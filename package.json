@@ -1,0 +1,16 @@
+{
+  "name": "xaucore",
+  "version": "1.0.0",
+  "private": true,
+  "description": "XAUCORE — DEMO / SYNTHETIC XAUUSD trading simulator (no real quotes, brokers or accounts)",
+  "type": "commonjs",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "license": "MIT"
+}

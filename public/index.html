@@ -1,0 +1,3531 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>XAUCORE — DEMO XAUUSD Simulator</title>
+<meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
+<meta name="theme-color" content="#f4f5f7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="XAUCORE">
+<style>
+:root{
+  --bg:#f4f5f7; --card:#ffffff; --ink:#1a1d21; --ink2:#6b7280; --ink3:#9aa1ab;
+  --line:#e8eaed; --green:#0aa85f; --green-bg:#e7f7ef; --red:#e5342b;
+  --red-bg:#fdecea; --orange:#f5820d; --orange-bg:#fff2e2; --blue:#2f7bf6;
+  --radius:16px; --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
+   overflow-x:clip prevents horizontal overflow WITHOUT turning overflow-y into a
+   scroll container (which `hidden` would do). */
+html{overflow-x:clip;overscroll-behavior-y:none}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px;line-height:1.35}
+body{max-width:520px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);width:100%;overflow-x:clip}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
+input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
+img,canvas,svg,video{max-width:100%}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+#app{padding-bottom:92px;overflow-x:clip;max-width:100%}
+.row>*{min-width:0}
+.row .v{text-align:right;overflow-wrap:anywhere}
+.appbar{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;padding:12px 14px;min-height:52px}
+.appbar .ttl{font-weight:700;font-size:18px;display:flex;align-items:center;gap:6px}
+.appbar .sp{flex:1}
+.iconbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--ink2);font-size:18px}
+.iconbtn:active{background:var(--line)}
+.badge-demo{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--orange);
+  background:var(--orange-bg);border:1px solid #f6cfa0;padding:3px 7px;border-radius:999px;white-space:nowrap}
+.subtabs{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
+.subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
+.subtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.wrap{padding:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);font-weight:700}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.row+.row{margin-top:8px}
+.k{color:var(--ink2)}
+.v{font-weight:600}
+.pos{color:var(--green)!important}
+.neg{color:var(--red)!important}
+.warn-banner{background:var(--orange);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
+.err-banner{background:var(--red);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
+
+/* trade panel */
+.tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(84px,110px) minmax(0,1fr);gap:6px;align-items:stretch}
+.tbtn{border-radius:14px;padding:12px 4px;text-align:center;display:flex;flex-direction:column;gap:5px;justify-content:center;min-height:92px;border:1px solid transparent;overflow:hidden;min-width:0}
+.tbtn .lbl{font-weight:800;font-size:clamp(11px,3.4vw,14px);letter-spacing:.02em}
+.tbtn .px{font-size:clamp(15px,5.1vw,22px);font-weight:800;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.tbtn .sub{font-size:11px;opacity:.75;font-weight:600}
+.tbtn.sell{background:var(--red-bg);color:var(--red);border-color:#f6c9c4}
+.tbtn.buy{background:var(--green-bg);color:var(--green);border-color:#b7e6cf}
+.tbtn:active{filter:brightness(.96)}
+.tbtn:disabled{opacity:.45}
+.lotbox{background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px;gap:4px}
+.lotbox .cap{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.lotctl{display:flex;align-items:center;gap:4px;width:100%}
+.lotctl button{width:30px;height:30px;border-radius:9px;background:var(--line);font-size:19px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.lotctl button:active{background:#dfe2e6}
+.lotctl .val{flex:1;text-align:center;font-weight:800;font-size:16px;border:none;background:none;width:100%;padding:2px 0}
+.lotctl .val:focus{outline:2px solid var(--blue);border-radius:6px}
+.spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;margin-top:10px}
+.miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:700;font-size:12px;color:var(--ink2)}
+.miniquick button:active{background:#dfe2e6}
+.loterr{color:var(--red);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
+
+.bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 24px));
+  background:#111418;color:#fff;font-weight:800;letter-spacing:.02em;padding:15px;border-radius:14px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.bignew:active{background:#000}
+
+/* bottom nav */
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:#fff;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.bottomnav button{padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:10.5px;font-weight:600}
+.bottomnav button.on{color:var(--blue)}
+.bottomnav .ic{font-size:19px;line-height:1;position:relative}
+.navpill{position:absolute;top:-4px;right:-11px;background:var(--blue);color:#fff;border-radius:999px;font-size:9px;font-weight:800;padding:1px 4px;min-width:14px;text-align:center}
+
+/* list rows */
+.lrow{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
+.lrow .top{display:flex;justify-content:space-between;align-items:baseline}
+.lrow .sym{font-weight:800}
+.tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
+.tag.buy{background:var(--green-bg);color:var(--green)}
+.tag.sell{background:var(--red-bg);color:var(--red)}
+.lrow .mid{display:flex;justify-content:space-between;color:var(--ink2);font-size:12.5px}
+.lrow .pnl{font-weight:800;font-size:16px}
+.muted{color:var(--ink3);text-align:center;padding:32px 10px;font-size:13.5px}
+
+/* chart */
+.chartwrap{background:#fff;border-radius:0;max-width:100%;overflow:hidden}
+.tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tfbar::-webkit-scrollbar{display:none}
+.tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:800;font-size:12.5px;color:var(--ink2);background:var(--line)}
+.tfbar button.on{background:var(--blue);color:#fff}
+#chartCanvas,#miniCanvas,#domCanvas{width:100%;display:block;max-width:100%}
+/* pan-y lets a vertical swipe scroll the PAGE even when it starts on the chart;
+   horizontal drag / pinch still go to the chart's own JS handlers */
+#chartCanvas{touch-action:pan-y}
+#miniCanvas{touch-action:auto}
+.chartbox{position:relative;background:#fff;max-width:100%;overflow:hidden}
+.chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:rgba(255,255,255,.9);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
+.chartzoom{position:absolute;left:8px;bottom:26px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.chartzoom button{width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.92);border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
+.chartzoom button:active{background:var(--line)}
+.chartzoom button.rst{font-size:14px}
+
+/* forms / modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:80;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
+.sheet h2{margin:2px 0 14px;font-size:17px}
+.sheet .close{position:absolute;right:16px;top:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--ink2);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fbfbfc}
+.field .hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
+.seg{display:flex;gap:4px;background:var(--line);border-radius:11px;padding:3px}
+.seg button{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:13px;color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow)}
+.btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:800;text-align:center;margin-top:6px}
+.btn.green{background:var(--green);color:#fff}
+.btn.red{background:var(--red);color:#fff}
+.btn.dark{background:#111418;color:#fff}
+.btn.ghost{background:var(--line);color:var(--ink)}
+.btn:active{filter:brightness(.95)}
+.btn:disabled{opacity:.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pl-tbl .row{padding:5px 0;border-bottom:1px dashed var(--line)}
+.pl-tbl .row:last-child{border-bottom:none}
+.menu-item{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.menu-item:active{background:#f7f8f9}
+.toast-wrap{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:100;width:min(492px,calc(100% - 20px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:#111418;color:#fff;border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin .25s ease}
+.toast.g{background:#0b7a45}.toast.r{background:#c02a22}.toast.o{background:#c96a08}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.dom-grid{display:grid;grid-template-columns:1fr 88px 1fr;font-size:12px;font-variant-numeric:tabular-nums}
+.dom-grid>div{padding:5px 8px;border-bottom:1px solid var(--line)}
+.dom-bid{text-align:right;color:var(--green);position:relative}
+.dom-ask{text-align:left;color:var(--red);position:relative}
+.dom-px{text-align:center;font-weight:800}
+.dom-bar{position:absolute;top:0;bottom:0;opacity:.14}
+.dom-bar.b{right:0;background:var(--green)}
+.dom-bar.a{left:0;background:var(--red)}
+.evt{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.evt:last-child{border-bottom:none}
+.evt .nm{font-weight:700}
+.evt .impact{font-size:10px;font-weight:800;padding:1px 5px;border-radius:5px;background:var(--orange-bg);color:var(--orange)}
+.evt small{color:var(--ink3)}
+hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
+.pill-toggle{display:flex;gap:6px}
+.pill-toggle button{flex:1;padding:8px;border-radius:9px;background:var(--line);font-weight:700;font-size:12px;color:var(--ink2)}
+.pill-toggle button.on{background:var(--ink);color:#fff}
+
+/* macro news engine */
+.news-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 8px}
+.news-btns button{background:var(--orange-bg);color:var(--orange);border:1px solid #f3c98f;border-radius:11px;padding:12px 4px;font-weight:800;font-size:12.5px;letter-spacing:.02em}
+.news-btns button:active{filter:brightness(.94)}
+.news-btns button:disabled{opacity:.35}
+.news-btns button.wide{grid-column:span 3;background:#111418;color:#fff;border-color:#111418}
+.news-lock{position:sticky;top:0;z-index:60;background:linear-gradient(90deg,#f5820d,#e5342b);color:#fff;padding:10px 14px 11px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.2)}
+.news-lock .nl-title{font-size:11px;font-weight:800;letter-spacing:.06em;opacity:.95}
+.news-lock .nl-count{font-size:28px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.news-lock .nl-sub{font-size:10px;font-weight:600;opacity:.92}
+.news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
+.news-res .row:last-child{border-bottom:none}
+.ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.ne-card summary{font-weight:800;font-size:13px;cursor:pointer;list-style:none}
+.ne-card summary::-webkit-details-marker{display:none}
+.ne-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.ne-grid .field{margin-bottom:4px}
+.ne-grid .field label{font-size:10px}
+.ne-grid .field input,.ne-grid .field select{padding:8px 9px;font-size:13px}
+.lastnews{background:#fafbfc;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:4px}
+.lastnews b{font-weight:800}
+
+/* ticks-per-second control */
+.tps-val{font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;color:var(--blue)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:2px 0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:999px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;margin-top:-8.5px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:7px;border-radius:999px;background:var(--line)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid #fff}
+.tps-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tps-presets button{flex:1 1 auto;min-width:54px;background:var(--line);border-radius:9px;padding:10px 4px;font-weight:800;font-size:12.5px;color:var(--ink2)}
+.tps-presets button.on{background:var(--blue);color:#fff}
+.tps-presets button:active{filter:brightness(.95)}
+
+/* manual market control (god mode) */
+.godpanel{background:#1b1f24;color:#fff;border-radius:16px;padding:13px 13px 14px;margin-bottom:12px;box-shadow:0 6px 20px rgba(0,0,0,.28)}
+.godpanel .gp-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#ffb85c}
+.godpanel .gp-hd .dot{width:8px;height:8px;border-radius:50%;background:#ffb85c;box-shadow:0 0 8px #ffb85c}
+.godpanel .gp-px{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.godpanel .gp-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.godpanel button{flex:1 1 auto;min-width:0;background:#2b3138;color:#fff;border-radius:9px;padding:9px 6px;font-weight:800;font-size:12px;border:1px solid #3a424b}
+.godpanel button:active{background:#353d46}
+.godpanel button.on{background:#f5820d;border-color:#f5820d}
+.godpanel button.up{color:#5fe0a0}.godpanel button.dn{color:#ff8a80}
+.godpanel input{background:#12151a;border:1px solid #3a424b;color:#fff;border-radius:9px;padding:9px 8px;width:100%;min-width:0}
+.godpanel .gp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.godpanel .gp-grid>div{min-width:0}
+.godpanel .gp-lbl{font-size:10px;color:#9aa4af;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.godpanel .gp-half{flex:1}
+
+/* generic overflow guards */
+.card,.lrow,.menu-item,.evt{max-width:100%;overflow-wrap:anywhere}
+.dom-grid{overflow-x:auto}
+.grid2{gap:8px}
+.grid2>*{min-width:0}
+.sheet{overflow-wrap:anywhere}
+.appbar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge-demo{flex:0 0 auto}
+</style>
+
+<div id="app"></div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+"use strict";
+/* =========================================================================
+   XAUUSD DEMO TERMINAL — fully autonomous synthetic trading simulator
+   DEMO • SYNTHETIC DATA — no real quotes / broker / accounts / trades
+   ========================================================================= */
+const LS_LEGACY = "xauusd_demo_terminal_v2";
+let LS_KEY = "xc_state_local";        // becomes per-user ("xc_state_<uid>") after sign-in
+const TF = { M1:60, M5:300, M15:900, M30:1800, H1:3600, H4:14400, D1:86400 };
+const TF_ORDER = ["M1","M5","M15","M30","H1","H4","D1"];
+const TF_CAP = { M1:800, M5:500, M15:400, M30:400, H1:400, H4:300, D1:220 };
+const NEWS_TYPES = ["NFP","CPI","PPI","FOMC","FED_SPEECH"];
+const NEWS_LABEL = { NFP:"NFP", CPI:"CPI", PPI:"PPI", FOMC:"FOMC", FED_SPEECH:"FED SPEECH" };
+
+/* ---- Daily volatility bands — target intraday Range ($). Only sets the amplitude
+        of moves WITHIN a game-day, never a long-term ceiling. Editable in Settings. ---- */
+const DAYVOL_ORDER = ["LOW","NORMAL","ACTIVE","EXTREME"];
+const DAYVOL_RANGE = { LOW:[16,27], NORMAL:[26,46], ACTIVE:[45,75], EXTREME:[80,150] };
+function dayVolProbDefaults(){ return { LOW:0.22, NORMAL:0.42, ACTIVE:0.26, EXTREME:0.10 }; }
+
+/* ---- MARKET REGIME ENGINE — regime-switching framework (no static anchor) ----
+   drift  : directional bias, in "day-stdevs per game-day" (+ up / - down)
+   vol    : volatility multiplier
+   mom    : momentum (velocity autocorrelation)
+   rangePull : pull toward the DYNAMIC EMA equilibrium (0 = pure trend, no pull)
+   durDays: [min,max] game-days the regime lasts                                   */
+const MARKET_REGIMES = {
+  STRONG_BULL:  { drift:+1.30, vol:1.22, mom:0.55, rangePull:0.00, durDays:[3,12],  label:"STRONG BULL" },
+  BULL:         { drift:+0.62, vol:0.98, mom:0.50, rangePull:0.02, durDays:[8,34],  label:"BULL" },
+  RANGE:        { drift: 0.00, vol:0.82, mom:0.35, rangePull:0.075, durDays:[4,22], label:"RANGE" },
+  DISTRIBUTION: { drift:-0.05, vol:1.35, mom:0.30, rangePull:0.06, durDays:[2,10],  label:"DISTRIBUTION" },
+  BEAR:         { drift:-0.62, vol:1.08, mom:0.50, rangePull:0.02, durDays:[5,20],  label:"BEAR" },
+  STRONG_BEAR:  { drift:-1.30, vol:1.36, mom:0.58, rangePull:0.00, durDays:[2,8],   label:"STRONG BEAR / CRASH" },
+  ACCUMULATION: { drift:-0.03, vol:0.74, mom:0.30, rangePull:0.09, durDays:[3,15],  label:"ACCUMULATION" },
+  RECOVERY:     { drift:+0.95, vol:1.10, mom:0.52, rangePull:0.03, durDays:[3,13],  label:"RECOVERY" }
+};
+const MARKET_REGIME_ORDER = Object.keys(MARKET_REGIMES);
+/* Markov transition matrix — probability of the NEXT regime given the current one.
+   Slight bull edge (gold grinds up, drops fast); MACRO_DRIFT adds the long-term tilt. */
+const MARKET_TRANSITIONS = {
+  STRONG_BULL:  { BULL:.46, DISTRIBUTION:.30, RANGE:.15, STRONG_BULL:.09 },
+  BULL:         { BULL:.34, RANGE:.24, DISTRIBUTION:.17, STRONG_BULL:.13, BEAR:.12 },
+  RANGE:        { BULL:.31, BEAR:.25, RANGE:.14, STRONG_BULL:.12, STRONG_BEAR:.09, DISTRIBUTION:.09 },
+  DISTRIBUTION: { BEAR:.44, STRONG_BEAR:.20, RANGE:.21, BULL:.15 },
+  BEAR:         { BEAR:.25, RANGE:.24, STRONG_BEAR:.15, ACCUMULATION:.20, RECOVERY:.16 },
+  STRONG_BEAR:  { ACCUMULATION:.54, BEAR:.18, RECOVERY:.20, STRONG_BEAR:.08 },
+  ACCUMULATION: { RECOVERY:.48, RANGE:.26, BULL:.20, BEAR:.06 },
+  RECOVERY:     { BULL:.42, RANGE:.21, STRONG_BULL:.24, DISTRIBUTION:.09, BEAR:.04 }
+};
+/* long-term bullish macro drift (gold-like), $ per game-day — deep 20-40% drawdowns still occur via bear regimes */
+const MACRO_DRIFT = 0.10;
+
+/* Per-event probability profiles. `dist` = weighted [minUSD, maxUSD, probability] buckets
+   for the TOTAL RANGE the price travels during the 20s event (not the final move).
+   Small moves are common, large moves rare, extreme moves very rare. */
+function newsEngineDefaults(){
+  return {
+    NFP:{ dist:[[5,10,.20],[10,15,.20],[15,25,.25],[25,35,.15],[35,50,.12],[50,75,.06],[75,110,.02]],
+      minMove:5, maxMove:110, allowExtreme:true,
+      upProb:.45, downProb:.45, twoWayProb:.55, fakeoutProb:.30, reversalProb:.35,
+      spreadMul:6, slipMul:4, duration:20 },
+    CPI:{ dist:[[3,8,.20],[8,15,.30],[15,25,.25],[25,35,.15],[35,50,.07],[50,80,.03]],
+      minMove:3, maxMove:90, allowExtreme:true,
+      upProb:.45, downProb:.45, twoWayProb:.50, fakeoutProb:.28, reversalProb:.33,
+      spreadMul:6, slipMul:3.5, duration:20 },
+    PPI:{ dist:[[1,3,.42],[3,5,.30],[5,8,.20],[8,10,.06],[10,13,.02]],
+      minMove:1, maxMove:10, allowExtreme:false,
+      upProb:.45, downProb:.45, twoWayProb:.40, fakeoutProb:.20, reversalProb:.25,
+      spreadMul:3, slipMul:2, duration:20 },
+    FOMC:{ dist:[[1,4,.18],[4,8,.20],[8,15,.22],[15,30,.18],[30,50,.12],[50,75,.06],[75,100,.03],[100,160,.01]],
+      minMove:1, maxMove:160, allowExtreme:true,
+      upProb:.45, downProb:.45, twoWayProb:.60, fakeoutProb:.40, reversalProb:.45,
+      spreadMul:8, slipMul:5, duration:20 },
+    FED_SPEECH:{ dist:[[1,4,.25],[4,10,.32],[10,20,.23],[20,40,.14],[40,80,.06]],
+      minMove:1, maxMove:100, allowExtreme:true,
+      upProb:.45, downProb:.45, twoWayProb:.55, fakeoutProb:.35, reversalProb:.55,
+      spreadMul:6, slipMul:4, duration:20 }
+  };
+}
+
+const DEFAULTS = () => ({
+  version: 5,
+  account: { initialBalance: 10000, balance: 10000, currency: "USD" },
+  symbol: {
+    name: "XAUUSD", contractSize: 100, minLot: 0.01, maxLot: 50, lotStep: 0.01,
+    leverage: 100, digits: 2
+  },
+  trading: {
+    commissionType: "usd_per_lot",   // usd_per_lot | usd_per_million | percent | quote_per_lot
+    commission: 6.0,                  // per lot per side
+    spreadMode: "dynamic",           // fixed | dynamic
+    fixedSpread: 0.22,
+    slippageOn: true,
+    swapLong: -25,                    // USD per lot per day
+    swapShort: 5,
+    tripleSwapDay: 3,                 // 0=Sun ... 3=Wed
+    stopOutLevel: 50,
+    marginCallLevel: 100,
+    executionMode: "market"
+  },
+  /* NORMAL MARKET — regime-switching autonomous engine (no static anchor) */
+  market: {
+    initialBid: 4457.02, initialAsk: 4457.24,
+    dayDurationMin: 50,     // SIMULATED DAY DURATION — 50 real minutes = 1 simulated trading day
+    dayVolProbs: dayVolProbDefaults(),
+    intradayNoise: 1.0,     // global multiplier on tick noise amplitude
+    regimeDriftScale: 1.0,  // global multiplier on regime directional drift
+    macroBull: 1.0,         // multiplier on the long-term bullish macro drift
+    ticksPerSecond: 2.0,    // TPS — ordinary-market tick rate (0.1 .. 20). timer = 1000 / TPS ms
+    baseSpread: 0.22,       // Base Spread ($)
+    normalSlippage: 0.03,   // Normal Slippage ($ max)
+    volClusterPersist: 0.992,  // volatility-clustering memory (higher = clusters last longer)
+    forceOpen: true
+  },
+  /* NEWS ENGINE */
+  newsEngine: { tickHzNewsMin: 20, tickHzNewsMax: 50, newsBreaksRegimeProb: 0.40, perEvent: newsEngineDefaults() },
+  /* MANUAL MARKET CONTROL (God Mode) */
+  manual: { enabled:false, frozen:false, impulse:null },
+
+  /* live runtime — currentMarketPrice == price.mid is the single source of truth */
+  price: { bid:4457.02, ask:4457.24, mid:4457.13, prevMid:4457.13,
+           ema:4457.13, emaFast:4457.13, spread:0.22, vel:0, volCluster:1, volume:0, lastVol:0 },
+  regime: null,            // current market regime (built by startRegime)
+  day: null,               // current simulated trading day (built by startNewDay)
+  dayLog: [],              // finished-day statistics (newest first)
+  daySeq: 0,
+  simClock: Date.now(),
+  lastSimDay: null,
+  candles: {},
+  positions: [],
+  pendings: [],
+  history: [],
+  events: [],                         // informational economic calendar
+  news: { active:false, type:null, scenario:null, startReal:0, endReal:0,
+          startPrice:0, high:0, low:0, progress:0, ticks:0, decayUntil:0, result:null,
+          delta:0, _vel:0 },
+  lock: { active:false, until:0 },
+  newsLog: [],
+  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1" },
+  seq: { pos: 1, ord: 1, evt: 1 },
+  createdAt: Date.now()
+});
+
+let S = null;
+
+/* ---------------- persistence ---------------- */
+function load(allowLegacy){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const p = JSON.parse(raw);
+      if(p && p.version >= 2){ S = p; migrateState(); return; }
+    }
+  }catch(e){ console.warn("load failed", e); }
+  // one-time migration of the pre-cloud single-player save -> the first signed-in account only
+  if(allowLegacy){
+    try{
+      const legacy = localStorage.getItem(LS_LEGACY);
+      if(legacy){
+        const p = JSON.parse(legacy);
+        localStorage.removeItem(LS_LEGACY);         // consume it once; later accounts start fresh
+        if(p && p.version >= 2){ S = p; migrateState(); saveNow(); return; }
+      }
+    }catch(e){ localStorage.removeItem(LS_LEGACY); }
+  }
+  S = DEFAULTS();
+  seedMarket();
+}
+/* bring an older saved state up to the current schema */
+function migrateState(){
+  const d = DEFAULTS();
+  S.version = d.version;
+  for(const k in d.market) if(S.market[k] === undefined) S.market[k] = d.market[k];
+  if(!S.market.dayVolProbs) S.market.dayVolProbs = dayVolProbDefaults();
+  if(S.market.dayDurationMin === undefined) S.market.dayDurationMin = 50;
+  if(!(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2.0;
+  S.market.ticksPerSecond = clamp(S.market.ticksPerSecond, 0.1, 20);
+  if(!S.newsEngine.newsBreaksRegimeProb) S.newsEngine.newsBreaksRegimeProb = 0.40;
+  if(!S.manual) S.manual = { enabled:false, frozen:false, impulse:null };
+  S.manual.impulse = null;
+  if(!S.dayLog) S.dayLog = [];
+  if(S.daySeq === undefined) S.daySeq = 0;
+  if(!S.newsLog) S.newsLog = [];
+  if(!S.news) S.news = d.news;
+  if(S.news.delta === undefined){ S.news.delta = 0; S.news._vel = 0; }
+  S.news.active = false;
+  if(!S.lock) S.lock = { active:false, until:0 };
+  S.lock.active = false;
+  if(S.price.vel == null) S.price.vel = 0;
+  if(S.price.volCluster == null) S.price.volCluster = 1;
+  if(S.price.ema == null) S.price.ema = S.price.mid;
+  if(S.price.emaFast == null) S.price.emaFast = S.price.mid;
+  // v5: day/regime timing switched from absolute Date.now() endpoints to accumulated ms
+  if(S.regime){
+    if(S.regime.ageMs == null){
+      S.regime.ageMs = (S.regime.startReal && S.regime.endReal)
+        ? clamp(Date.now() - S.regime.startReal, 0, (S.regime.durDays||8)*dayDurationMs()) : 0;
+    }
+    delete S.regime.startReal; delete S.regime.endReal;
+  }
+  if(S.day){
+    if(S.day.elapsedMs == null){
+      S.day.elapsedMs = (S.day.startReal) ? clamp(Date.now() - S.day.startReal, 0, dayDurationMs()) : 0;
+    }
+    delete S.day.startReal; delete S.day.endReal;
+  }
+  if(!S.regime) startRegime(null);
+  if(!S.day) startNewDay(S.price.mid);
+}
+let saveTimer = null;
+function save(){
+  if(saveTimer) return;
+  saveTimer = setTimeout(()=>{
+    saveTimer = null;
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+    catch(e){ console.warn("save failed", e); }
+    if(typeof xcPushState === "function") xcPushState();     // mirror to the server (debounced)
+  }, 400);
+}
+function saveNow(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+}
+function resetAll(){
+  localStorage.removeItem(LS_KEY);
+  S = DEFAULTS();
+  seedMarket();
+  saveNow();
+  const done = ()=> location.reload();
+  if(typeof XC !== "undefined" && XC.token){
+    xcApi("PUT", "/api/state", { state: S }).then(done).catch(done);
+  } else done();
+}
+
+/* ---------------- utils ---------------- */
+let gSpare = null;
+function gauss(){
+  if(gSpare !== null){ const s = gSpare; gSpare = null; return s; }
+  let u,v,s;
+  do{ u = Math.random()*2-1; v = Math.random()*2-1; s = u*u+v*v; }while(s>=1||s===0);
+  const m = Math.sqrt(-2*Math.log(s)/s);
+  gSpare = v*m; return u*m;
+}
+const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+const rnd = (a,b)=>a + Math.random()*(b-a);
+function roundTo(x,d){ const p = Math.pow(10,d); return Math.round((x+Number.EPSILON)*p)/p; }
+function fmt(x,d){ return Number(x).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function money(x){ const s = x<0?"-":""; return s + "$" + fmt(Math.abs(x),2); }
+function signMoney(x){ const s = x>0?"+":(x<0?"-":""); return s + "$" + fmt(Math.abs(x),2); }
+function pxfmt(x){ return fmt(x, S.symbol.digits); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function simDate(){ return new Date(S.simClock); }
+function simTimeStr(){ const d = simDate(); return pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes())+":"+pad2(d.getUTCSeconds()); }
+function simDateStr(t){ const d = new Date(t==null?S.simClock:t); return d.getUTCFullYear()+"-"+pad2(d.getUTCMonth()+1)+"-"+pad2(d.getUTCDate()); }
+function fmtDur(ms){
+  const s = Math.floor(ms/1000);
+  const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), ss = s%60;
+  if(d) return d+"d "+h+"h "+m+"m";
+  if(h) return h+"h "+m+"m";
+  if(m) return m+"m "+ss+"s";
+  return ss+"s";
+}
+
+/* ---------------- market sessions ---------------- */
+let _sessJitterHour = -1, _sessJitter = 1;
+function sessionInfo(){
+  const d = simDate();
+  const h = d.getUTCHours() + d.getUTCMinutes()/60;
+  const hourKey = Math.floor(S.simClock/3600000);
+  if(hourKey !== _sessJitterHour){ _sessJitterHour = hourKey; _sessJitter = clamp(0.78 + Math.abs(gauss())*0.42, 0.6, 1.9); }
+
+  const asian  = (h>=0 && h<9);
+  const london = (h>=7 && h<16);
+  const ny     = (h>=12 && h<21);
+  const late   = (h>=21 && h<24);
+  const names = [];
+  if(asian)  names.push("Asian");
+  if(london) names.push("London");
+  if(ny)     names.push("New York");
+  if(late)   names.push("Late");
+  let vol = 0.55;
+  if(asian)  vol = Math.max(vol, 0.85);     // low / medium
+  if(london) vol = Math.max(vol, 1.25);     // increased activity
+  if(ny)     vol = Math.max(vol, 1.40);     // high activity
+  if(london && ny) vol = 1.68;              // overlap
+  if(late)   vol = Math.max(0.7, vol*0.75); // usually calmer — but not absolute
+  if(!names.length) names = ["Off-hours"];
+  vol *= _sessJitter;                        // random variation — sessions aren't absolute
+  return { names, vol: clamp(vol, 0.4, 2.6) };
+}
+function isWeekend(){
+  const d = simDate().getUTCDay();
+  const h = simDate().getUTCHours();
+  // Fri 21:00 -> Sun 21:00 closed (approx FX weekend)
+  if(d===6) return true;
+  if(d===0 && h<21) return true;
+  if(d===5 && h>=21) return true;
+  return false;
+}
+function marketClosed(){ return !S.market.forceOpen && isWeekend(); }
+
+/* ---------------- seed candle history from synthetic ticks ---------------- */
+function seedMarket(){
+  const digits = S.symbol.digits;
+  S.price.bid = S.market.initialBid;
+  S.price.ask = S.market.initialAsk;
+  S.price.mid = (S.market.initialBid + S.market.initialAsk)/2;
+  S.price.prevMid = S.price.mid;
+  S.price.ema = S.price.mid;
+  S.price.emaFast = S.price.mid;
+  S.price.spread = roundTo(S.market.initialAsk - S.market.initialBid, digits);
+  S.price.vel = 0;
+  S.price.volCluster = 1;
+  S.news = { active:false, type:null, scenario:null, startReal:0, endReal:0,
+             startPrice:0, high:0, low:0, progress:0, ticks:0, decayUntil:0, result:null,
+             delta:0, _vel:0 };
+  S.lock = { active:false, until:0 };
+  S.manual = { enabled:false, frozen:false, impulse:null };
+  S.dayLog = [];
+  S.daySeq = 0;
+  S.regime = null;
+
+  const now = Date.now();
+  const startMid = S.price.mid;
+
+  S.candles = {};
+  const counts = { M1:720, M5:520, M15:420, M30:380, H1:360, H4:300, D1:200 };
+  for(const tf of TF_ORDER){
+    S.candles[tf] = genBars(counts[tf], TF[tf], startMid, now).slice(-TF_CAP[tf]);
+  }
+  S.simClock = now;
+  S.lastSimDay = simDateStr(now);
+  buildDefaultEvents();
+  startRegime(null);
+  startNewDay(startMid);
+}
+/* generate `count` synthetic OHLC bars of `sec` seconds each, ending at `endMid` at time `endMs` */
+function genBars(count, sec, endMid, endMs){
+  const digits = S.symbol.digits;
+  const bars = [];
+  const perBar = 42/3.4 * Math.sqrt(sec/86400);      // stdev per bar (typical daily range ~$42)
+  let m = endMid + gauss() * perBar * Math.sqrt(count) * 0.5;
+  let anchor = m;
+  const tEnd = Math.floor(endMs/1000/sec) * sec;
+  const t0 = tEnd - count*sec;
+  const steps = Math.max(4, Math.min(24, Math.round(sec/30)));
+  for(let i=0;i<count;i++){
+    const t = t0 + i*sec;
+    const hh = new Date(t*1000).getUTCHours();
+    let sv = 0.75;
+    if(hh>=7 && hh<16) sv = 1.2;
+    if(hh>=12 && hh<21) sv = 1.35;
+    if(hh>=12 && hh<16) sv = 1.7;
+    const o = m; let hi = o, lo = o;
+    const sVol = perBar * sv / Math.sqrt(steps);
+    for(let k=0;k<steps;k++){
+      anchor += (endMid - anchor) * 0.0025;
+      m += (anchor - m) * 0.02 + gauss() * sVol;
+      if(Math.random() < 0.02) m += gauss() * sVol * 3;
+      hi = Math.max(hi, m); lo = Math.min(lo, m);
+    }
+    bars.push({ t, o:roundTo(o,digits), h:roundTo(hi,digits), l:roundTo(lo,digits), c:roundTo(m,digits), v:Math.round(rnd(30,300)*Math.sqrt(sec/60)) });
+  }
+  // ease the last few closes onto endMid so all timeframes agree on "now"
+  const d = endMid - bars[bars.length-1].c;
+  const n = Math.min(bars.length, 15);
+  for(let i=bars.length-n;i<bars.length;i++){
+    const w = (i-(bars.length-n))/n;
+    bars[i].c += d*w; bars[i].o += d*w*0.6;
+    bars[i].h = Math.max(bars[i].h, bars[i].c, bars[i].o);
+    bars[i].l = Math.min(bars[i].l, bars[i].c, bars[i].o);
+  }
+  bars[bars.length-1].c = endMid;
+  return bars;
+}
+function aggregateFrom(m1, sec){
+  const out = [];
+  for(const b of m1){
+    const bt = Math.floor(b.t / sec) * sec;
+    const last = out[out.length-1];
+    if(!last || last.t !== bt){
+      out.push({ t:bt, o:b.o, h:b.h, l:b.l, c:b.c, v:b.v });
+    }else{
+      last.h = Math.max(last.h, b.h);
+      last.l = Math.min(last.l, b.l);
+      last.c = b.c;
+      last.v += b.v;
+    }
+  }
+  return out;
+}
+
+/* ---------------- economic calendar (synthetic) ---------------- */
+function buildDefaultEvents(){
+  S.events = [];
+  const base = S.simClock;
+  const defs = [
+    { name:"NFP (Non-Farm Payrolls)", unit:"K", prev:165, fc:180, impact:3, mins:35 },
+    { name:"CPI y/y", unit:"%", prev:3.1, fc:3.0, impact:3, mins:80 },
+    { name:"FOMC Rate Decision", unit:"%", prev:4.50, fc:4.50, impact:3, mins:130 },
+    { name:"Interest Rate Statement", unit:"", prev:0, fc:0, impact:2, mins:190 },
+    { name:"GDP q/q", unit:"%", prev:2.1, fc:2.4, impact:2, mins:250 },
+    { name:"Unemployment Rate", unit:"%", prev:4.1, fc:4.1, impact:2, mins:320 }
+  ];
+  for(const d of defs){
+    S.events.push({
+      id: S.seq.evt++, name:d.name, unit:d.unit,
+      previous:d.prev, forecast:d.fc, actual:null,
+      impact:d.impact, time: base + d.mins*60000, released:false, manual:false
+    });
+  }
+}
+function nameToNewsType(name){
+  if(/NFP|Payroll/i.test(name)) return "NFP";
+  if(/CPI/i.test(name)) return "CPI";
+  if(/PPI|Producer/i.test(name)) return "PPI";
+  if(/FOMC|Rate Decision/i.test(name)) return "FOMC";
+  if(/FED|Speech|Press/i.test(name)) return "FED_SPEECH";
+  if(/GDP/i.test(name)) return "CPI";
+  return "PPI";
+}
+/* calendar tap -> launch the matching macro news scenario */
+function releaseEvent(ev){
+  ev.released = true;
+  startNews(nameToNewsType(ev.name), ev);
+}
+
+/* =========================================================================
+   MARKET ENGINE — autonomous regime-switching tick engine (NO STATIC ANCHOR)
+
+   * `S.price.mid` (== currentMarketPrice) is the SINGLE SOURCE OF TRUTH.
+     Where the price goes, it stays — every next tick builds from the actual
+     current price. No initialPrice / basePrice / reset / mean-reversion-to-start.
+     The only hard limit is price > 0.01.
+   * MARKET REGIME ENGINE: a regime (STRONG_BULL / BULL / RANGE / DISTRIBUTION /
+     BEAR / STRONG_BEAR / ACCUMULATION / RECOVERY) lasts several game-days to weeks
+     and switches via a Markov transition matrix.  RANGE-like regimes keep price
+     circulating around a DYNAMIC EMA equilibrium (which itself follows price, so a
+     flat can form at ANY level — 2100, 5800, anywhere).  Trend regimes have pure
+     directional drift + momentum + noise and no pull.
+   * 1 simulated trading day = market.dayDurationMin real minutes (default 50).
+     Each day draws its own volatility band (target intraday Range) — LOW / NORMAL
+     / ACTIVE / EXTREME — with volatility CLUSTERING across days.
+   * NEWS + MANUAL IMPULSE are added ON TOP of the auto price and persist afterward.
+   ========================================================================= */
+const RT_MS = 60;                    // real-time engine frame
+let _tickAcc = 0;
+let _simDebtMs = 0;                   // unconsumed sim-time carried to the next tick
+let _tickBuf = [];                    // in-memory synthetic tick log
+function currentVolFactor(){
+  const sess = sessionInfo();
+  return sess.vol * (S.price.volCluster||1) * (S.news.active ? volCurveAt(S.news.scenario, S.news.progress) : 1);
+}
+function weightedKey(obj){
+  const keys = Object.keys(obj);
+  const total = keys.reduce((s,k)=>s+(obj[k]||0), 0) || 1;
+  let r = Math.random()*total, acc = 0;
+  for(const k of keys){ acc += (obj[k]||0); if(r <= acc) return k; }
+  return keys[keys.length-1];
+}
+
+/* ---- MARKET REGIME (multi-day, Markov transitions) ---- */
+function regimeCfg(){ return MARKET_REGIMES[(S.regime && S.regime.name) || "RANGE"]; }
+function nextRegimeName(cur){
+  const row = MARKET_TRANSITIONS[cur];
+  if(!row) return weightedKey({ RANGE:.30, BULL:.28, ACCUMULATION:.12, RECOVERY:.10, BEAR:.14, DISTRIBUTION:.06 });
+  return weightedKey(row);
+}
+/* real-time within one game-day (ms). Time is ACCUMULATED, never derived from
+   an absolute Date.now() endpoint — so the whole simulation stays frozen while
+   the user is away and resumes exactly where it stopped. */
+function dayDurationMs(){ return Math.max(S.market.dayDurationMin || 50, 1) * 60000; }
+function regimeDurationMs(){ return (S.regime ? S.regime.durDays : 8) * dayDurationMs(); }
+
+function startRegime(forcedName){
+  const cur = S.regime ? S.regime.name : null;
+  const name = forcedName || nextRegimeName(cur);
+  const cfg = MARKET_REGIMES[name];
+  const durDays = rnd(cfg.durDays[0], cfg.durDays[1]);
+  const dayR = S.day ? S.day.targetRange : 35;
+  S.regime = {
+    name, ageMs: 0, durDays,
+    channelHalf: dayR * rnd(1.4, 3.8)             // multi-day range channel half-width
+  };
+  // breakout kick when leaving a range-ish regime for a directional one
+  if(cur && /RANGE|ACCUMULATION|DISTRIBUTION/.test(cur) && !/RANGE|ACCUMULATION|DISTRIBUTION/.test(name)){
+    S.price.vel += dayR * rnd(0.15, 0.55) * (cfg.drift >= 0 ? 1 : -1);
+  }
+  S._needRender = true;
+}
+function advanceRegime(){
+  if(S.regime && (S.regime.ageMs || 0) >= regimeDurationMs()){
+    const prev = S.regime.name;
+    startRegime(null);
+    toast("o", "MARKET REGIME → " + MARKET_REGIMES[S.regime.name].label + "  (было " + MARKET_REGIMES[prev].label + ")");
+  }
+}
+
+/* ---- daily volatility band (target intraday Range) with volatility clustering ---- */
+function pickDayVol(){
+  const pr = S.market.dayVolProbs || dayVolProbDefaults();
+  const bias = clamp((S.price.volCluster || 1) - 1, -0.45, 1.6);   // recent activity biases the band
+  const adj = {
+    LOW:     Math.max(0.02, (pr.LOW||0)    * (1 - bias*0.55)),
+    NORMAL:  (pr.NORMAL||0),
+    ACTIVE:  (pr.ACTIVE||0) * (1 + bias*0.45),
+    EXTREME: (pr.EXTREME||0)* (1 + bias*1.30)
+  };
+  const band = weightedKey(adj);
+  const [lo,hi] = DAYVOL_RANGE[band];
+  let range = rnd(lo, hi);
+  if(band === "EXTREME") range += expRand()*16;               // no hard upper cap
+  return { band, targetRange: range };
+}
+function startNewDay(open){
+  const { band, targetRange } = pickDayVol();
+  S.daySeq = (S.daySeq || 0) + 1;
+  S.day = {
+    index: S.daySeq, elapsedMs: 0,
+    band, targetRange,
+    open, high: open, low: open, close: open,
+    regimeAtOpen: S.regime ? S.regime.name : "RANGE"
+  };
+}
+function rolloverDay(){
+  const D = S.day;
+  D.close = S.price.mid;
+  const stat = {
+    index: D.index, open: D.open, high: D.high, low: D.low, close: D.close,
+    range: D.high - D.low, change: D.close - D.open,
+    changePct: (D.close - D.open) / (D.open || 1) * 100,
+    band: D.band, regime: S.regime ? MARKET_REGIMES[S.regime.name].label : "-",
+    endedAt: Date.now()
+  };
+  S.dayLog.unshift(stat);
+  if(S.dayLog.length > 250) S.dayLog.pop();
+  // synthetic inter-session gap: $0 .. $2.5 either way — NEVER a reset to a base price
+  const gap = rnd(0, 2.5) * (Math.random() < 0.5 ? 1 : -1);
+  const newOpen = Math.max(0.01, roundTo(D.close + gap, S.symbol.digits));
+  S.price.mid = newOpen; S.price.prevMid = newOpen;
+  const dd = simDate();
+  S.simClock = Date.UTC(dd.getUTCFullYear(), dd.getUTCMonth(), dd.getUTCDate() + 1, 0, 0, 0);
+  startNewDay(newOpen);
+  checkRollover();
+  S._needRender = true;
+  toast("o", "DAY " + stat.index + " · O " + pxfmt(stat.open) + "  C " + pxfmt(stat.close) +
+    "  Range $" + fmt(stat.range, 2) + " · " + signMoney(stat.change) + " · " + stat.regime);
+}
+
+/* ---- activity level -> tick frequency ---- */
+function marketActivity(){
+  return sessionInfo().vol * (S.price.volCluster || 1) * regimeCfg().vol
+       * (S.day ? clamp(S.day.targetRange / 42, 0.6, 3.2) : 1);
+}
+
+function daySpeedNow(){ return 1440 / Math.max(S.market.dayDurationMin || 50, 1); }   // sim-minutes per real-minute
+function normalTps(){ return clamp(S.market.ticksPerSecond || 2, 0.1, 20); }
+
+/* accumulate ACTIVE wall-time (capped) into the day/regime clocks. A big delta —
+   tab throttled, backgrounded, or reopened after minutes/hours/days — counts as a
+   single frame, so nothing advances while the user is away. */
+let _lastFrameReal = Date.now();
+function accumulateActiveTime(){
+  const now = Date.now();
+  let d = now - _lastFrameReal;
+  _lastFrameReal = now;
+  if(!(d > 0)) return;
+  if(d > 400) d = RT_MS;                                   // gap -> one frame, never a leap
+  if(S.manual.enabled && S.manual.frozen) return;          // God Mode freeze also stops the day clock
+  if(S.day)    S.day.elapsedMs   = (S.day.elapsedMs   || 0) + d;
+  if(S.regime) S.regime.ageMs    = (S.regime.ageMs    || 0) + d;
+}
+
+/* ---- RT frame (60ms): day/regime lifecycle + the FAST driver for news & manual impulse.
+        Ordinary market ticks come from normalTickTimer (see restartNormalTicks). ---- */
+function engineFrame(){
+  const nowR = Date.now();
+  const newsOn = S.news.active;
+  const impulseOn = !!S.manual.impulse;
+  const closed = marketClosed();
+
+  accumulateActiveTime();
+  if(S.day && (S.day.elapsedMs || 0) >= dayDurationMs()) rolloverDay();
+  advanceRegime();
+
+  if(newsOn || impulseOn){
+    const hz = newsOn ? rnd(S.newsEngine.tickHzNewsMin, S.newsEngine.tickHzNewsMax) : rnd(18, 34);
+    _tickAcc += hz * RT_MS / 1000;
+    let nTicks = clamp(Math.floor(_tickAcc), 0, 60);
+    _tickAcc -= Math.floor(_tickAcc);
+    _simDebtMs += RT_MS * daySpeedNow();
+    if(nTicks > 0){
+      const simPerTick = _simDebtMs / nTicks;
+      _simDebtMs = 0;
+      for(let i=0;i<nTicks;i++){
+        S.simClock += simPerTick;
+        priceStep((simPerTick/1000) * (closed ? 0.2 : 1));   // the day keeps moving under the news
+        if(impulseOn) applyManualImpulse();
+        if(newsOn)    stepNews();
+        applyPriceDerived();
+        pushTick();
+        updateCandles();
+        processPendings();
+        processPositionSLTP();
+      }
+    }
+  }else{
+    _tickAcc = 0; _simDebtMs = 0;      // no news catch-up spike when it resumes
+  }
+
+  finishFrame(nowR, newsOn);
+}
+function finishFrame(nowR, newsOn){
+  if(S.news.active && nowR >= S.news.endReal) endNews();
+  if(S.lock.active && nowR >= S.lock.until){ S.lock.active = false; S._needRender = true; }
+  if(Math.random() < 0.02) checkEvents();
+  recalcAccount();
+  checkStopOut();
+  save();
+}
+
+/* ---- ordinary-market tick generator — its own timer at exactly 1000 / ticksPerSecond ms ---- */
+let normalTickTimer = null;
+function restartNormalTicks(){
+  if(normalTickTimer) clearInterval(normalTickTimer);
+  const ms = Math.max(50, Math.round(1000 / normalTps()));
+  normalTickTimer = setInterval(normalTickFire, ms);
+}
+function normalTickFire(){
+  try{
+    if(S.news.active || S.manual.impulse) return;                 // news / impulse drive price via engineFrame
+    if(S.manual.enabled && S.manual.frozen) return;               // God Mode freeze
+    if(marketClosed()){ recalcAccount(); return; }
+    const tps = normalTps();
+    const gameMs = (1000 / tps) * daySpeedNow();                  // game-time advanced per real tick
+    S.simClock += gameMs;
+    // rare micro-burst on extremely active markets, so candles don't look mechanical
+    const burst = (marketActivity() > 2.6 && Math.random() < 0.18) ? 2 : 1;
+    for(let i=0;i<burst;i++){
+      priceStep((gameMs / burst) / 1000);
+      applyPriceDerived();
+      pushTick();
+    }
+    updateCandles();
+    processPendings();
+    processPositionSLTP();
+    recalcAccount();
+    checkStopOut();
+    save();
+  }catch(e){ console.error(e); }
+}
+
+/* compat wrapper used by tests — advances the market ~a few game-minutes */
+function marketTick(){
+  for(let i=0;i<40;i++){ priceStep(4); applyPriceDerived(); pushTick(); }
+  S.simClock += 160000;
+  updateCandles(); processPendings(); processPositionSLTP();
+  recalcAccount(); checkStopOut(); save();
+}
+
+/* ---- the price step (dt in GAME seconds).  No anchor. ---- */
+function priceStep(dt){
+  const P = S.price, M = S.market, RG = regimeCfg();
+  dt = Math.max(dt, 0.002);
+
+  const dayRange = S.day ? S.day.targetRange : 35;
+  const dayStdev = dayRange / 3.2;                 // close-to-close stdev ~ Range / 3.2
+  const sf = sessionInfo().vol;
+
+  // volatility clustering with LONG memory — high-vol periods persist for days (modest ±)
+  const persist = clamp(M.volClusterPersist || 0.992, 0.90, 0.9995);
+  P.volCluster = clamp(persist*(P.volCluster || 1) + (1-persist)*(0.72 + Math.abs(gauss())*0.7), 0.5, 2.4);
+
+  const volMul = RG.vol * sf * P.volCluster * (M.intradayNoise || 1);
+  const sigma = (dayStdev / Math.sqrt(86400)) * Math.sqrt(dt) * volMul;
+  const shock = gauss() * sigma;
+
+  // momentum (AR-1 velocity)
+  P.vel = clamp(RG.mom, 0, 0.92) * (P.vel || 0) + shock;
+
+  // regime directional drift ($ per game-day). Scale with daily stdev but CAP it so an
+  // extreme-vol day does not create runaway trend drift.
+  const driftPerDay = RG.drift * clamp(dayStdev, 4, 13) * (M.regimeDriftScale || 1)
+                    + MACRO_DRIFT * (M.macroBull || 1);
+  P.mid += P.vel + driftPerDay * (dt / 86400);
+
+  // DYNAMIC EQUILIBRIUM — range-like regimes circulate around the slow EMA (which follows price)
+  if(RG.rangePull > 0){
+    const pull = 1 - Math.exp(-RG.rangePull * dt / 90);
+    const dev = P.mid - P.ema;
+    const half = (S.regime && S.regime.channelHalf) || dayRange * 2;
+    const wall = Math.abs(dev) > half ? clamp((Math.abs(dev)/half - 1) * 0.6, 0, 0.4) : 0;
+    P.mid += (P.ema - P.mid) * (pull + wall);
+    // rare real breakout out of a long consolidation
+    if(Math.random() < 0.00008 * dt){
+      const dir = dev >= 0 ? 1 : -1;
+      startRegime(dir > 0 ? (Math.random()<0.5?"BULL":"STRONG_BULL") : (Math.random()<0.5?"BEAR":"STRONG_BEAR"));
+      P.vel += dir * dayStdev * rnd(0.8, 1.8);
+    }
+  }
+
+  // the EMAs FOLLOW the price — this is what keeps the flat centre non-static
+  P.ema     += (P.mid - P.ema)     * (1 - Math.exp(-dt / 5400));   // ~1.5 game-hour
+  P.emaFast += (P.mid - P.emaFast) * (1 - Math.exp(-dt / 900));    // ~15 game-min
+
+  microShock(dt);
+
+  if(P.mid < 0.01) P.mid = 0.01;
+  trackDayExtremes();
+  P.lastVol = Math.max(1, Math.round(Math.abs(P.vel)/Math.max(sigma,1e-9) * rnd(2,8) + rnd(1,5)));
+}
+function normalMicroStep(dt){ priceStep(dt); }   // back-compat alias
+
+/* small ordinary market shock ($2-5 common, $5-10, rarely $10-20) — never $50+ */
+let _lastShockMin = -1;
+function microShock(dt){
+  if(S.news.active || S.manual.impulse) return;
+  const simMin = Math.floor(S.simClock/60000);
+  if(simMin === _lastShockMin) return;
+  _lastShockMin = simMin;
+  if(Math.random() > 0.012) return;                // ~ a handful per game-day
+  const r = Math.random();
+  const mag = r < 0.70 ? rnd(2,5) : r < 0.93 ? rnd(5,10) : rnd(10,20);
+  const dir = Math.random() < 0.5 ? 1 : -1;
+  S.price.mid += dir*mag;
+  S.price.vel += dir*mag*0.30;
+  S.price.volCluster = Math.min(5, (S.price.volCluster || 1) + 0.7);
+  S.price.lastVol = Math.round(mag*9);
+}
+function trackDayExtremes(){
+  const D = S.day; if(!D) return;
+  if(S.price.mid > D.high) D.high = S.price.mid;
+  if(S.price.mid < D.low)  D.low  = S.price.mid;
+}
+
+/* ---- MANUAL MARKET CONTROL (God Mode) ---- */
+function manualSyncAll(){
+  applyPriceDerived(); updateCandles(); trackDayExtremes();
+  processPendings(); processPositionSLTP(); recalcAccount(); checkStopOut();
+  pushTick(); save();
+}
+function manualSetPrice(v){
+  if(!isFinite(v) || v <= 0.01){ toast("r", "Некорректная цена"); return; }
+  S.price.mid = v; S.price.prevMid = v; S.price.vel = 0;
+  S.price.ema = v; S.price.emaFast = v;
+  manualSyncAll(); toast("", "Цена установлена: " + pxfmt(v));
+}
+function manualNudge(d){
+  S.price.mid = Math.max(0.01, S.price.mid + d);
+  S.price.vel += d * 0.2;
+  manualSyncAll();
+}
+function manualTick(dir){
+  manualNudge(dir * Math.max(0.02, S.price.spread * 0.5));
+}
+function startManualImpulse(dir, usd, sec){
+  if(S.news.active){ toast("o", "Идёт новость — дождитесь окончания"); return; }
+  if(!isFinite(usd) || usd <= 0 || !isFinite(sec) || sec <= 0){ toast("r", "Проверьте параметры импульса"); return; }
+  const now = Date.now();
+  S.manual.impulse = { startReal: now, endReal: now + sec*1000, dir: dir >= 0 ? 1 : -1, usd, sec, delta: 0 };
+  S._needRender = true;
+  toast("o", "Импульс " + (dir >= 0 ? "UP" : "DOWN") + " $" + fmt(usd,2) + " / " + sec + "s");
+}
+function applyManualImpulse(){
+  const im = S.manual.impulse, P = S.price;
+  if(!im) return;                                   // impulse finished earlier in this frame
+  const p = clamp((Date.now() - im.startReal) / Math.max(im.endReal - im.startReal, 1), 0, 1);
+  const ease = p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2)/2;    // easeInOutQuad
+  const newDelta = im.dir * im.usd * ease + gauss() * im.usd * 0.014;
+  const applied = newDelta - im.delta;
+  im.delta = newDelta;
+  P.mid = Math.max(0.01, P.mid + applied);
+  P.vel = 0.4*P.vel + applied*0.5;
+  P.lastVol = Math.max(3, Math.round(Math.abs(applied)*28 + rnd(6,22)));
+  trackDayExtremes();
+  if(p >= 1){
+    S.manual.impulse = null;
+    S._needRender = true;
+    toast("g", "Импульс завершён (" + (im.dir>0?"+":"-") + "$" + fmt(im.usd,2) + ")");
+  }
+}
+
+/* ---- news micro-step: news impulse added ON TOP of the market; persists after ---- */
+function stepNews(){
+  const N = S.news, sc = N.scenario, P = S.price;
+  if(!N.active || !sc) return;
+  const p = clamp((Date.now() - N.startReal) / (sc.duration*1000), 0, 1);
+  N.progress = p;
+  const targetDelta = pathOffsetAt(sc, p);
+  const nsig = sc.noiseBase * volCurveAt(sc, p);
+  N._vel = 0.45*(N._vel || 0) + gauss()*nsig;
+  let nd = N.delta + (targetDelta - N.delta) * clamp(sc.pullStrength, 0.02, 0.6) + N._vel;
+  if(Math.random() < 0.06) nd += gauss()*nsig*2.6;
+  const applied = nd - N.delta;
+  N.delta = nd;
+  P.mid = Math.max(0.01, P.mid + applied);
+  N.high = Math.max(N.high, P.mid);
+  N.low  = Math.min(N.low,  P.mid);
+  N.ticks++;
+  trackDayExtremes();
+  P.lastVol = Math.max(3, Math.round(Math.abs(applied)/Math.max(nsig,1e-9) * rnd(20,60) + rnd(10,40)));
+}
+function newsMicroStep(){ stepNews(); }   // back-compat alias
+
+/* ---- derive bid/ask/spread from mid + dynamic spread engine ---- */
+function applyPriceDerived(){
+  const P = S.price, d = S.symbol.digits, base = S.market.baseSpread;
+  const mv = Math.abs(P.mid - (P.prevMid||P.mid));
+  let spread;
+  if(S.trading.spreadMode === "fixed"){
+    spread = S.trading.fixedSpread;
+  }else{
+    const sf = sessionInfo().vol;
+    spread = base * (0.75 + 0.28*sf) + mv * 0.7;                 // session + micro-move widening
+    if(S.news.active){
+      const cfg = S.newsEngine.perEvent[S.news.type];
+      const p = S.news.progress || 0;
+      const shape = clamp(Math.exp(-2.4*p) + 0.55*Math.exp(-26*Math.pow(p-0.5,2)) + 0.35, 0.1, 1.3);
+      spread = base * (1 + (cfg.spreadMul - 1) * shape) + mv * 3.2;   // impulse spikes
+    }else if(S.news.decayUntil && Date.now() < S.news.decayUntil){
+      const k = (S.news.decayUntil - Date.now()) / 4000;
+      spread *= (1 + 3.0*k);                                     // gradual return to normal
+    }
+    if(S.manual.impulse) spread = base*(1.6 + 2.4*(1-Math.abs(S.manual.impulse.delta/Math.max(S.manual.impulse.usd,1)))) + mv*3;
+    spread = clamp(spread, base*0.6, base*60);                   // spread guard only — not a price corridor
+  }
+  if(marketClosed()) spread *= 3;
+  P.prevMid = P.mid;
+  P.mid = roundTo(P.mid, d);
+  P.spread = roundTo(spread, d);
+  P.bid = roundTo(P.mid - spread/2, d);
+  P.ask = roundTo(P.mid + spread/2, d);
+  P.volume += P.lastVol || 1;
+}
+
+function pushTick(){
+  _tickBuf.push({ t:S.simClock, bid:S.price.bid, ask:S.price.ask, mid:S.price.mid,
+                  spread:S.price.spread, volume:S.price.lastVol||0, vol:+currentVolFactor().toFixed(2) });
+  if(_tickBuf.length > 400) _tickBuf.splice(0, _tickBuf.length - 400);
+}
+
+/* =========================================================================
+   MACRO NEWS ENGINE — scenario generator
+   ========================================================================= */
+function expRand(){ return -Math.log(1 - Math.random()); }
+function weightedMove(cfg){
+  const dist = cfg.dist;
+  const dMin = dist[0][0], dMax = dist[dist.length-1][1];
+  const remap = x => cfg.minMove + (x - dMin)/(dMax - dMin || 1) * (cfg.maxMove - cfg.minMove);
+  let r = Math.random(), acc = 0, pick = dist[dist.length-1], isTop = true;
+  for(let i=0;i<dist.length;i++){ acc += dist[i][2]; if(r <= acc){ pick = dist[i]; isTop = (i === dist.length-1); break; } }
+  let v = remap(rnd(pick[0], pick[1]));
+  if(isTop && cfg.allowExtreme && Math.random() < 0.4){
+    v += expRand() * (cfg.maxMove - cfg.minMove) * 0.38;         // heavy tail — no hard cap
+  }
+  if(!cfg.allowExtreme) v = Math.min(v, cfg.maxMove);
+  return Math.max(v, cfg.minMove * 0.5);
+}
+function describePattern(sc){
+  const d = sc.mainDir > 0 ? "UP" : "DOWN", o = sc.mainDir > 0 ? "DOWN" : "UP";
+  if(sc.fakeout && sc.reversal) return "FAKEOUT "+o+" → "+d+" → "+o;
+  if(sc.fakeout)  return "FAKEOUT "+o+" → "+d;
+  if(sc.reversal) return "BREAKOUT "+d+" → REVERSAL "+o;
+  if(sc.twoWay)   return d+" → "+o+" (two-way)";
+  return d;
+}
+function generateScenario(type){
+  const cfg = S.newsEngine.perEvent[type];
+  const R = weightedMove(cfg);                        // planned total range ($)
+  const upBias = cfg.upProb / (cfg.upProb + cfg.downProb || 1);
+  const mainDir = Math.random() < upBias ? 1 : -1;
+  const twoWay   = Math.random() < cfg.twoWayProb;
+  const fakeout  = Math.random() < cfg.fakeoutProb;
+  const reversal = Math.random() < cfg.reversalProb;
+
+  // Split the total travel R between the main direction and the counter direction.
+  // Always keep a real counter-move so Total Range != |final - start|.
+  let mainShare;
+  if(twoWay)        mainShare = rnd(0.50, 0.68);
+  else if(reversal) mainShare = rnd(0.55, 0.72);
+  else              mainShare = rnd(0.70, 0.86);
+  const mainBudget = R * mainShare, counterBudget = R * (1 - mainShare);
+  const hiOff = mainDir > 0 ?  mainBudget : counterBudget;
+  const loOff = mainDir > 0 ? -counterBudget : -mainBudget;
+  const mainExt = mainDir > 0 ? hiOff : loOff;
+  const oppExt  = mainDir > 0 ? loOff : hiOff;
+
+  // phase control points (progress, offset-from-start $) — 5 phases per spec
+  const spikeDir = fakeout ? -mainDir : mainDir;
+  const o1 = spikeDir * (fakeout ? Math.abs(oppExt) : Math.abs(mainExt)) * rnd(0.35, 0.80); // 0-2s initial spike
+  const o2 = mainExt * rnd(0.90, 1.05);                                                     // 2-8s main impulse
+  let   o3 = (twoWay || reversal) ? oppExt * rnd(0.80, 1.05)                                 // 8-14s continuation / reversal
+                                  : mainExt * rnd(0.85, 1.00);
+  let   o4 = (reversal ? oppExt : mainExt) * rnd(0.45, 0.90);                                // 14-18s secondary impulse
+  let   o5 = reversal ? oppExt * rnd(0.25, 0.80)                                             // 18-20s final movement
+          : twoWay    ? mainExt * rnd(0.15, 0.55) * (Math.random()<0.5 ? 1 : -0.4)
+          :             mainExt * rnd(0.40, 0.85);
+  const lim = 1.2;
+  const cp = [[0,0],[0.10,o1],[0.40,o2],[0.70,o3],[0.90,o4],[1.0,o5]]
+             .map(c => [c[0], clamp(c[1], loOff*lim, hiOff*lim)]);
+
+  const impulses = 2 + Math.floor(Math.random()*5);
+  const sc = {
+    type, duration: cfg.duration, R, cp, mainDir, twoWay, fakeout, reversal, impulses,
+    hiOff, loOff,
+    noiseBase: clamp(R / cfg.duration / 26, 0.03, 3.0),
+    pullStrength: 0.18,
+    volA: 2.0 + R/55, volB: 0.9 + R/110
+  };
+  sc.pattern = describePattern(sc);
+  return sc;
+}
+function pathOffsetAt(sc, p){
+  const cp = sc.cp;
+  for(let i=1;i<cp.length;i++){
+    if(p <= cp[i][0]){
+      const [pa,oa] = cp[i-1], [pb,ob] = cp[i];
+      let t = (p - pa) / (pb - pa || 1);
+      t = t*t*(3 - 2*t);                                   // smoothstep
+      return oa + (ob - oa) * t;
+    }
+  }
+  return cp[cp.length-1][1];
+}
+function volCurveAt(sc, p){
+  if(!sc) return 1;
+  p = clamp(p||0, 0, 1);
+  return 1 + sc.volA*Math.exp(-3.6*p) + sc.volB*Math.exp(-42*Math.pow(p-0.72,2));
+}
+
+/* ---- trading lock ---- */
+function tradingLocked(){ return S.lock.active && Date.now() < S.lock.until; }
+function lockSecondsLeft(){ return Math.max(0, (S.lock.until - Date.now())/1000); }
+function guardLock(){
+  if(tradingLocked()){
+    toast("o", "🔒 TRADING LOCKED — новость ("+lockSecondsLeft().toFixed(1)+"s)");
+    return true;
+  }
+  return false;
+}
+
+/* ---- launch / finish a news event ---- */
+function startNews(type, ev){
+  if(!NEWS_TYPES.includes(type)) return;
+  if(S.news.active){ toast("o","Новость уже идёт — дождитесь завершения"); return; }
+  const cfg = S.newsEngine.perEvent[type];
+  const sc = generateScenario(type);
+  const now = Date.now();
+  S.news = {
+    active:true, type, scenario:sc,
+    startReal: now, endReal: now + sc.duration*1000,
+    startPrice: S.price.mid, high: S.price.mid, low: S.price.mid,
+    progress:0, ticks:0, decayUntil:0, result:null, delta:0, _vel:0
+  };
+  S.lock = { active:true, until: now + sc.duration*1000 };
+  S._needRender = true;
+  if(ev) ev.released = true;
+  toast("o", "📰 "+NEWS_LABEL[type]+" RELEASED — TRADING LOCKED "+sc.duration+"s");
+  closeModal();
+  save();
+}
+function endNews(){
+  const N = S.news, sc = N.scenario;
+  N.active = false;
+  S.lock = { active:false, until:0 };          // trading unlocks exactly when the event ends
+  N.decayUntil = Date.now() + 4500;
+  // the news move is already baked into price.mid tick by tick — it simply persists,
+  // and the EMA equilibrium re-forms around the new level.
+  const start = N.startPrice, final = S.price.mid;
+  const res = {
+    type: N.type, label: NEWS_LABEL[N.type],
+    start, final, high: N.high, low: N.low,
+    totalRange: N.high - N.low,
+    upExc: N.high - start, downExc: N.low - start,
+    finalMove: final - start,
+    duration: sc.duration, ticks: N.ticks,
+    pattern: sc.pattern, plannedR: sc.R,
+    fakeout: sc.fakeout, reversal: sc.reversal, twoWay: sc.twoWay, impulses: sc.impulses,
+    endedAt: Date.now()
+  };
+  N.result = res;
+  N.delta = 0; N._vel = 0;
+  S.newsLog.unshift(res);
+  if(S.newsLog.length > 40) S.newsLog.pop();
+  S.price.vel += (res.finalMove) * 0.04;        // a little follow-through momentum
+  // strong macro data can instantly break the current regime (spec 6.3)
+  if(Math.abs(res.finalMove) > sc.R*0.35 && Math.random() < (S.newsEngine.newsBreaksRegimeProb || 0.4)){
+    const up = res.finalMove >= 0;
+    startRegime(up ? (Math.random()<0.5?"STRONG_BULL":"BULL") : (Math.random()<0.5?"STRONG_BEAR":"BEAR"));
+    toast("o", "📰 Новость сломала режим → " + MARKET_REGIMES[S.regime.name].label);
+  }
+  S._needRender = true;
+  toast("g", "🔓 TRADING UNLOCKED — "+res.label+" complete");
+  showNewsResult(res);
+  save();
+}
+
+/* offline Monte-Carlo of a scenario (no timers) — used by the self-test */
+function simulateNewsOffline(type){
+  const sc = generateScenario(type);
+  const steps = sc.duration * 30;
+  let mid = 4457.13, start = mid, hi = mid, lo = mid, vel = 0;
+  for(let i=0;i<steps;i++){
+    const p = i/steps;
+    const target = start + pathOffsetAt(sc, p);
+    const nsig = sc.noiseBase * volCurveAt(sc, p);
+    vel = 0.45*vel + gauss()*nsig;
+    mid += (target - mid)*sc.pullStrength + vel;
+    if(Math.random() < 0.06) mid += gauss()*nsig*2.6;
+    hi = Math.max(hi, mid); lo = Math.min(lo, mid);
+  }
+  return { type, start, final: mid, high: hi, low: lo,
+    totalRange: hi - lo, upExc: hi - start, downExc: lo - start, finalMove: mid - start,
+    pattern: sc.pattern, plannedR: sc.R, mainDir: sc.mainDir,
+    fakeout: sc.fakeout, reversal: sc.reversal, twoWay: sc.twoWay };
+}
+
+/* =========================================================================
+   DAY / REGIME ENGINE — offline simulation + statistics (self-test)
+   Runs the real price math (no timers) over many game-days with regime switching.
+   ========================================================================= */
+function simDaysOffline(nDays){
+  nDays = nDays || 100;
+  const START = 4457;
+  let price = START, ema = price, vel = 0, vc = 1;
+  let minP = price, maxP = price, peak = price, maxDD = 0;
+  const days = [];
+  let regName = weightedKey({ RANGE:.4, BULL:.3, BEAR:.2, ACCUMULATION:.1 });
+  let regDaysLeft = rnd(MARKET_REGIMES[regName].durDays[0], MARKET_REGIMES[regName].durDays[1]);
+  let channelHalf = 35 * rnd(1.4, 3.8);
+  const regimeCounts = {};
+  const stepsPerDay = 900, dtSec = 86400 / stepsPerDay;
+  for(let d=0; d<nDays; d++){
+    regimeCounts[regName] = (regimeCounts[regName] || 0) + 1;
+    // day volatility band (with clustering bias)
+    const pr = S.market.dayVolProbs || dayVolProbDefaults();
+    const bias = clamp(vc - 1, -0.45, 1.6);
+    const adj = { LOW:Math.max(0.02,(pr.LOW||0)*(1-bias*0.55)), NORMAL:(pr.NORMAL||0),
+                  ACTIVE:(pr.ACTIVE||0)*(1+bias*0.45), EXTREME:(pr.EXTREME||0)*(1+bias*1.3) };
+    const band = weightedKey(adj);
+    let range = rnd(DAYVOL_RANGE[band][0], DAYVOL_RANGE[band][1]);
+    if(band === "EXTREME") range += expRand()*16;
+    const dayStdev = range / 3.2;
+    const dOpen = price;
+    let hi = price, lo = price;
+    for(let s=0;s<stepsPerDay;s++){
+      const RG = MARKET_REGIMES[regName];
+      vc = clamp((S.market.volClusterPersist||0.992)*vc + (1-(S.market.volClusterPersist||0.992))*(0.72 + Math.abs(gauss())*0.7), 0.5, 2.4);
+      const sf = 0.80 + 0.55*Math.abs(Math.sin((d*stepsPerDay+s)/stepsPerDay * Math.PI * 1.7));
+      const sigma = (dayStdev/Math.sqrt(86400)) * Math.sqrt(dtSec) * RG.vol * sf * vc * (S.market.intradayNoise||1);
+      vel = clamp(RG.mom,0,0.92)*vel + gauss()*sigma;
+      const driftPerDay = RG.drift*clamp(dayStdev,4,13)*(S.market.regimeDriftScale||1) + MACRO_DRIFT*(S.market.macroBull||1);
+      price += vel + driftPerDay*(dtSec/86400);
+      if(RG.rangePull > 0){
+        const pull = 1 - Math.exp(-RG.rangePull*dtSec/90);
+        const dev = price - ema;
+        const wall = Math.abs(dev) > channelHalf ? clamp((Math.abs(dev)/channelHalf - 1)*0.6, 0, 0.4) : 0;
+        price += (ema - price)*(pull + wall);
+      }
+      ema += (price - ema)*(1 - Math.exp(-dtSec/5400));
+      if(s % 60 === 0 && Math.random() < 0.10){          // a few small shocks per day
+        const r = Math.random(); const mag = r<0.7?rnd(2,5):r<0.93?rnd(5,10):rnd(10,20);
+        price += (Math.random()<0.5?1:-1)*mag; vc = Math.min(5, vc+0.7);
+      }
+      if(price < 0.01) price = 0.01;
+      hi = Math.max(hi, price); lo = Math.min(lo, price);
+      peak = Math.max(peak, price);
+      maxDD = Math.max(maxDD, (peak - price)/peak);
+    }
+    minP = Math.min(minP, lo); maxP = Math.max(maxP, hi);
+    days.push({ range: hi-lo, band, regime: regName, open: dOpen, close: price, change: price-dOpen });
+    price = Math.max(0.01, price + rnd(0,2.5)*(Math.random()<0.5?1:-1));   // inter-session gap
+    if(--regDaysLeft <= 0){
+      regName = nextRegimeName(regName);
+      regDaysLeft = rnd(MARKET_REGIMES[regName].durDays[0], MARKET_REGIMES[regName].durDays[1]);
+      channelHalf = range * rnd(1.4, 3.8);
+    }
+  }
+  return { days, priceStart: START, priceEnd: price, minPrice: minP, maxPrice: maxP,
+           maxDrawdownPct: maxDD*100, regimeCounts };
+}
+function runDayTests(n){
+  n = n || 100;
+  const sim = simDaysOffline(n);
+  const R = sim.days.map(d => d.range).sort((a,b)=>a-b);
+  const mean = R.reduce((a,b)=>a+b,0)/n;
+  const sd = Math.sqrt(R.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n);
+  const q = p => R[clamp(Math.floor(p*(n-1)),0,n-1)];
+  const band = (lo,hi) => +(R.filter(x=>x>=lo && x<hi).length/n*100).toFixed(0);
+  const byBand = {};
+  for(const d of sim.days){ (byBand[d.band] = byBand[d.band] || []).push(d.range); }
+  const bandMeans = {};
+  for(const k in byBand) bandMeans[k] = { n: byBand[k].length, meanRange: +(byBand[k].reduce((a,b)=>a+b,0)/byBand[k].length).toFixed(1) };
+  return {
+    n, meanRange:+mean.toFixed(1), medianRange:+q(.5).toFixed(1),
+    minRange:+R[0].toFixed(1), maxRange:+R[n-1].toFixed(1), stdev:+sd.toFixed(1),
+    bands: { "<15":band(0,15), "15-25":band(15,25), "25-45":band(25,45),
+             "45-75":band(45,75), "75-150":band(75,150), "150+":+(R.filter(x=>x>=150).length/n*100).toFixed(0) },
+    bandMeans, regimeCounts: sim.regimeCounts,
+    priceStart:+sim.priceStart.toFixed(0), priceEnd:+sim.priceEnd.toFixed(0),
+    priceMin:+sim.minPrice.toFixed(0), priceMax:+sim.maxPrice.toFixed(0),
+    netMovePct:+((sim.priceEnd-sim.priceStart)/sim.priceStart*100).toFixed(1),
+    maxDrawdownPct:+sim.maxDrawdownPct.toFixed(1)
+  };
+}
+function simulateDayOffline(){ return simDaysOffline(1).days[0]; }   // back-compat
+
+/* ---------------- candles ---------------- */
+function updateCandles(){
+  const tsec = Math.floor(S.simClock/1000);
+  const price = S.price.mid;
+  const vol = S.price.lastVol;
+  for(const tf of TF_ORDER){
+    const arr = S.candles[tf] || (S.candles[tf] = []);
+    const bt = Math.floor(tsec / TF[tf]) * TF[tf];
+    const last = arr[arr.length-1];
+    if(!last || last.t < bt){
+      arr.push({ t:bt, o:price, h:price, l:price, c:price, v:vol });
+      if(arr.length > TF_CAP[tf]) arr.splice(0, arr.length - TF_CAP[tf]);
+    }else{
+      last.h = Math.max(last.h, price);
+      last.l = Math.min(last.l, price);
+      last.c = price;
+      last.v += vol;
+    }
+  }
+}
+
+/* ---------------- commission ---------------- */
+function commissionFor(volume, price){
+  const t = S.trading.commissionType;
+  const c = S.trading.commission;
+  const cs = S.symbol.contractSize;
+  const px = price || S.price.mid;
+  if(t === "usd_per_lot")     return volume * c;
+  if(t === "quote_per_lot")   return volume * c;              // quote currency = USD for XAUUSD
+  if(t === "usd_per_million"){ const notional = volume * cs * px; return notional/1e6 * c; }
+  if(t === "percent"){         const notional = volume * cs * px; return notional * c/100; }
+  return volume * c;
+}
+
+/* ---------------- P/L ---------------- */
+function grossPL(pos, bid, ask){
+  const b = bid==null?S.price.bid:bid, a = ask==null?S.price.ask:ask;
+  const cs = S.symbol.contractSize;
+  if(pos.side === "buy")  return (b - pos.entry) * pos.volume * cs;
+  else                    return (pos.entry - a) * pos.volume * cs;
+}
+function closePriceFor(pos){ return pos.side === "buy" ? S.price.bid : S.price.ask; }
+function posMetrics(pos){
+  const gross = grossPL(pos);
+  const closeComm = commissionFor(pos.volume, closePriceFor(pos));
+  const comm = pos.openCommission + closeComm;
+  const swap = pos.swap;
+  const net = gross + swap - comm;
+  return { gross, openComm: pos.openCommission, closeComm, comm, swap, net };
+}
+
+/* ---------------- account / margin ---------------- */
+function usedMargin(){
+  const cs = S.symbol.contractSize, lev = S.symbol.leverage;
+  let m = 0;
+  for(const p of S.positions){
+    m += (p.volume * cs * S.price.mid) / lev;
+  }
+  return m;
+}
+function recalcAccount(){
+  let floating = 0, swaps = 0;
+  for(const p of S.positions){ floating += grossPL(p); swaps += p.swap; }
+  S._acc = {
+    balance: S.account.balance,
+    floating,
+    swaps,
+    equity: S.account.balance + floating + swaps,
+    margin: usedMargin()
+  };
+  S._acc.freeMargin = S._acc.equity - S._acc.margin;
+  S._acc.marginLevel = S._acc.margin > 0 ? (S._acc.equity / S._acc.margin * 100) : Infinity;
+}
+
+/* ---------------- slippage ----------------
+   depends on volatility, spread, speed and (during news) the event's slip curve */
+function slippage(){
+  if(!S.trading.slippageOn) return 0;
+  let mx = S.market.normalSlippage;                       // normal: 0 .. normalSlippage
+  if(S.news.active){
+    const cfg = S.newsEngine.perEvent[S.news.type];
+    const p = S.news.progress || 0;
+    const shape = clamp(Math.exp(-2*p) + 0.35, 0.2, 1.35);
+    const spreadFactor = clamp(S.price.spread / Math.max(S.market.baseSpread, 0.01), 1, 8);
+    mx = S.market.normalSlippage * cfg.slipMul * shape * (0.5 + spreadFactor/4);
+  }else if(currentVolFactor() > 1.9){
+    mx *= 2.5;                                            // high normal volatility
+  }
+  const v = Math.abs(gauss())*mx*0.7 + Math.random()*mx*0.4;
+  return roundTo(Math.min(v, mx*2.5), S.symbol.digits);
+}
+
+/* ---------------- open / close ---------------- */
+function validateLot(v){
+  const {minLot,maxLot,lotStep} = S.symbol;
+  if(!isFinite(v) || v <= 0) return "Объём должен быть больше 0";
+  if(v < minLot) return "Минимальный объём "+fmt(minLot,2);
+  if(v > maxLot) return "Максимальный объём "+fmt(maxLot,2);
+  const steps = v / lotStep;
+  if(Math.abs(steps - Math.round(steps)) > 1e-6) return "Объём должен быть кратен "+fmt(lotStep,2);
+  return null;
+}
+function openPosition(side, volume, opts){
+  opts = opts || {};
+  if(guardLock()) return null;
+  if(marketClosed()){ toast("r","Рынок закрыт — исполнение недоступно"); return null; }
+  const err = validateLot(volume);
+  if(err){ toast("r", err); return null; }
+  recalcAccount();
+  let px = side === "buy" ? S.price.ask : S.price.bid;
+  const slip = slippage();
+  if(slip>0) px = roundTo(px + (side==="buy" ? slip : -slip), S.symbol.digits);
+
+  // margin check
+  const reqM = (volume * S.symbol.contractSize * S.price.mid) / S.symbol.leverage;
+  if(reqM > S._acc.freeMargin + 1e-6){
+    toast("r","Недостаточно свободной маржи (нужно "+money(reqM)+")");
+    return null;
+  }
+  // validate SL/TP sides
+  if(opts.sl != null){
+    if(side==="buy"  && opts.sl >= px){ toast("r","SL для BUY должен быть ниже цены входа"); return null; }
+    if(side==="sell" && opts.sl <= px){ toast("r","SL для SELL должен быть выше цены входа"); return null; }
+  }
+  if(opts.tp != null){
+    if(side==="buy"  && opts.tp <= px){ toast("r","TP для BUY должен быть выше цены входа"); return null; }
+    if(side==="sell" && opts.tp >= px){ toast("r","TP для SELL должен быть ниже цены входа"); return null; }
+  }
+  const openComm = commissionFor(volume, px);
+  const pos = {
+    id: S.seq.pos++, symbol: S.symbol.name, side, volume: roundTo(volume,2),
+    entry: px, openTime: S.simClock, sl: opts.sl||null, tp: opts.tp||null,
+    openCommission: openComm, swap: 0, slippage: slip,
+    lastSwapDay: simDateStr()
+  };
+  S.account.balance -= openComm;   // commission charged on OPEN
+  S.positions.push(pos);
+  recalcAccount();
+  toast("g", (side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+" @ "+pxfmt(px)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip):""));
+  save();
+  return pos;
+}
+function closePosition(id, reason){
+  const i = S.positions.findIndex(p=>p.id===id);
+  if(i<0) return;
+  const pos = S.positions[i];
+  const m = posMetrics(pos);
+  const exit = closePriceFor(pos);
+  S.account.balance += m.gross + m.swap - m.closeComm;   // openComm already taken at open
+  S.positions.splice(i,1);
+  S.history.unshift({
+    id: pos.id, symbol: pos.symbol, side: pos.side, volume: pos.volume,
+    entry: pos.entry, exit,
+    openTime: pos.openTime, closeTime: S.simClock,
+    gross: m.gross, commission: m.comm, swap: m.swap, net: m.gross + m.swap - m.comm,
+    reason: reason || "manual", slippage: pos.slippage
+  });
+  if(S.history.length > 500) S.history.pop();
+  recalcAccount();
+  const cls = m.gross + m.swap - m.comm >= 0 ? "g":"r";
+  toast(cls, "Закрыта #"+pos.id+"  "+signMoney(m.gross+m.swap-m.comm)+(reason?"  ("+reason+")":""));
+  save();
+}
+function modifyPosition(id, sl, tp){
+  if(guardLock()) return;
+  const p = S.positions.find(x=>x.id===id);
+  if(!p) return;
+  p.sl = sl; p.tp = tp;
+  toast("", "Позиция #"+id+" изменена");
+  save();
+}
+
+/* ---------------- SL / TP ---------------- */
+function processPositionSLTP(){
+  for(const p of [...S.positions]){
+    const bid = S.price.bid, ask = S.price.ask;
+    if(p.side === "buy"){
+      if(p.sl != null && bid <= p.sl){ closePosition(p.id, "SL"); continue; }
+      if(p.tp != null && bid >= p.tp){ closePosition(p.id, "TP"); continue; }
+    }else{
+      if(p.sl != null && ask >= p.sl){ closePosition(p.id, "SL"); continue; }
+      if(p.tp != null && ask <= p.tp){ closePosition(p.id, "TP"); continue; }
+    }
+  }
+}
+
+/* ---------------- pending orders ---------------- */
+function addPending(o){
+  if(guardLock()) return null;
+  const err = validateLot(o.volume);
+  if(err){ toast("r", err); return null; }
+  const ord = {
+    id: S.seq.ord++, symbol: S.symbol.name, type: o.type, volume: roundTo(o.volume,2),
+    price: o.price, sl: o.sl||null, tp: o.tp||null, createTime: S.simClock
+  };
+  S.pendings.push(ord);
+  toast("", o.type.replace("_"," ").toUpperCase()+" "+fmt(o.volume,2)+" @ "+pxfmt(o.price));
+  save();
+  return ord;
+}
+function cancelPending(id){
+  if(guardLock()) return;
+  const i = S.pendings.findIndex(o=>o.id===id);
+  if(i>=0){ S.pendings.splice(i,1); toast("","Ордер отменён"); save(); }
+}
+function processPendings(){
+  const bid = S.price.bid, ask = S.price.ask;
+  for(const o of [...S.pendings]){
+    let trig = false, side = "buy";
+    if(o.type === "buy_limit"  && ask <= o.price){ trig = true; side = "buy"; }
+    if(o.type === "sell_limit" && bid >= o.price){ trig = true; side = "sell"; }
+    if(o.type === "buy_stop"   && ask >= o.price){ trig = true; side = "buy"; }
+    if(o.type === "sell_stop"  && bid <= o.price){ trig = true; side = "sell"; }
+    if(!trig) continue;
+    const i = S.pendings.findIndex(x=>x.id===o.id);
+    if(i>=0) S.pendings.splice(i,1);
+    // open at trigger price (+slippage for stop orders)
+    const isStop = o.type.includes("stop");
+    let px = o.price;
+    if(isStop){ const sl = slippage(); px = roundTo(px + (side==="buy"?sl:-sl), S.symbol.digits); }
+    const openComm = commissionFor(o.volume, px);
+    if((o.volume*S.symbol.contractSize*S.price.mid)/S.symbol.leverage > (S._acc?S._acc.freeMargin:1e9)+1e-6){
+      toast("r","Ордер #"+o.id+" не исполнен — недостаточно маржи"); save(); continue;
+    }
+    S.account.balance -= openComm;
+    S.positions.push({
+      id: S.seq.pos++, symbol: S.symbol.name, side, volume: o.volume, entry: px,
+      openTime: S.simClock, sl: o.sl, tp: o.tp, openCommission: openComm, swap: 0,
+      slippage: isStop?roundTo(Math.abs(px-o.price),S.symbol.digits):0, lastSwapDay: simDateStr()
+    });
+    toast("g", "Исполнен "+o.type.replace("_"," ")+" #"+o.id+" @ "+pxfmt(px));
+    save();
+  }
+}
+
+/* ---------------- rollover / swap ---------------- */
+function checkRollover(){
+  const day = simDateStr();
+  if(S.lastSimDay == null){ S.lastSimDay = day; return; }
+  if(day === S.lastSimDay) return;
+  // crossed midnight (possibly several days if timeMultiplier huge)
+  const prev = new Date(S.lastSimDay+"T00:00:00Z");
+  const cur = new Date(day+"T00:00:00Z");
+  let daysCrossed = Math.round((cur - prev)/86400000);
+  S.lastSimDay = day;
+  if(daysCrossed < 1) return;
+
+  const wd = simDate().getUTCDay();
+  let mult = 1;
+  if(wd === S.trading.tripleSwapDay) mult = 3;
+  mult += (daysCrossed - 1); // accumulate any skipped days simply
+
+  let anySwap = false;
+  for(const p of S.positions){
+    const rate = p.side === "buy" ? S.trading.swapLong : S.trading.swapShort;
+    const amt = rate * p.volume * mult;   // USD per lot per day
+    p.swap += amt;
+    p.lastSwapDay = day;
+    anySwap = true;
+  }
+  if(anySwap){
+    toast("o", "🌙 Rollover — swap начислен"+(mult>=3?" (x"+mult+")":""));
+  }
+  recalcAccount();
+  save();
+}
+
+/* ---------------- stop out / margin call ---------------- */
+let marginCallShown = false;
+function checkStopOut(){
+  recalcAccount();
+  const ml = S._acc.marginLevel;
+  if(!isFinite(ml)){ marginCallShown = false; return; }
+  if(ml < S.trading.marginCallLevel && ml >= S.trading.stopOutLevel){
+    if(!marginCallShown){ toast("o", "⚠ MARGIN CALL — Margin Level "+fmt(ml,1)+"%"); marginCallShown = true; }
+  }else if(ml >= S.trading.marginCallLevel){
+    marginCallShown = false;
+  }
+  let guard = 0;
+  while(S._acc.marginLevel < S.trading.stopOutLevel && S.positions.length && guard++ < 50){
+    // close most losing position first
+    let worst = null, worstPL = Infinity;
+    for(const p of S.positions){
+      const pl = grossPL(p) + p.swap;
+      if(pl < worstPL){ worstPL = pl; worst = p; }
+    }
+    toast("r", "🛑 STOP OUT — закрыта позиция #"+worst.id+" (Margin Level "+fmt(S._acc.marginLevel,1)+"%)");
+    closePosition(worst.id, "Stop Out");
+    recalcAccount();
+  }
+}
+
+/* ---------------- events schedule check ---------------- */
+/* Economic calendar is informational only — macro news is user-triggered
+   via the Macro News Engine buttons (NFP / CPI / PPI / FOMC / FED SPEECH). */
+function checkEvents(){
+  const pending = S.events.filter(e=>!e.released);
+  if(pending.length <= 1){
+    const defs = [
+      { name:"NFP (Non-Farm Payrolls)", unit:"K", prev:180, fc:190, mins: 30 },
+      { name:"CPI y/y",                  unit:"%", prev:3.0, fc:2.9, mins: 75 },
+      { name:"PPI m/m",                  unit:"%", prev:0.2, fc:0.3, mins:120 },
+      { name:"FOMC Rate Decision",       unit:"%", prev:4.50,fc:4.50,mins:175 },
+      { name:"FED Press Conference",     unit:"",  prev:0,  fc:0,   mins:200 }
+    ];
+    for(const d of defs){
+      S.events.push({ id:S.seq.evt++, name:d.name, unit:d.unit, previous:d.prev, forecast:d.fc,
+        actual:null, impact:3, time:S.simClock + d.mins*60000, released:false, manual:false });
+    }
+    if(S.events.length > 30) S.events.splice(0, S.events.length - 30);
+  }
+}
+function addManualEvent(o){
+  S.events.push({
+    id: S.seq.evt++, name: o.name, unit: o.unit||"",
+    previous: o.previous, forecast: o.forecast,
+    actual: (o.actual===""||o.actual==null)?null:Number(o.actual),
+    impact: o.impact||2, time: S.simClock + (o.delaySec||30)*1000,
+    released:false, manual:true
+  });
+  toast("o", "Создано событие: "+o.name+" (через "+(o.delaySec||30)+"с)");
+  save();
+}
+
+/* =========================================================================
+   UI
+   ========================================================================= */
+const app = () => document.getElementById("app");
+let modalEl = null;
+
+function toast(kind, msg){
+  const w = document.getElementById("toasts");
+  const t = document.createElement("div");
+  t.className = "toast " + (kind||"");
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .3s"; setTimeout(()=>t.remove(),300); }, 3200);
+}
+
+function nav(tab, subtab){
+  S.ui.tab = tab;
+  if(subtab) S.ui.subtab = subtab;
+  closeModal();
+  render();
+  save();
+}
+
+/* ---------- top-level render ---------- */
+function render(){
+  const t = S.ui.tab;
+  let html = "";
+  html += topBanner();
+  if(t === "markets")   html += screenMarkets();
+  else if(t === "chart")     html += screenChart();
+  else if(t === "positions") html += screenPositions();
+  else if(t === "orders")    html += screenOrders();
+  else if(t === "more")      html += screenMore();
+  else if(t === "settings")  html += screenSettings();
+  else if(t === "history")   html += screenHistory();
+  else if(t === "calendar")  html += screenCalendar();
+  else if(t === "dom")       html += screenDOM();
+  else if(t === "debug")     html += screenDebug();
+  html += bottomNav();
+  app().innerHTML = html;
+  bindScreen();
+  updateLive();
+  if(t === "chart" || (t === "markets" && S.ui.subtab === "chart")) setupChartCanvas();
+  if(t === "markets" && S.ui.subtab === "overview") drawMini();
+  if(t === "dom") drawDOMCanvasMaybe();
+}
+
+function topBanner(){
+  let b = "";
+  if(marketClosed()){
+    b += `<div class="warn-banner">Рынки по этому инструменту закрыты. Торговля ограничена. (Synthetic weekend)</div>`;
+  }
+  if(tradingLocked()){
+    b += `<div class="news-lock">
+      <div class="nl-title">NEWS RELEASE · ${NEWS_LABEL[S.news.type]||""} — TRADING LOCKED</div>
+      <div class="nl-count mono" id="nlCount">${lockSecondsLeft().toFixed(1)}</div>
+      <div class="nl-sub">Цена, график, P/L, SL/TP, Stop Out работают. DEMO • SYNTHETIC DATA</div>
+    </div>`;
+  }else if(S.news.decayUntil && Date.now() < S.news.decayUntil){
+    b += `<div class="warn-banner">📊 Спред нормализуется после новости…</div>`;
+  }
+  recalcAccount();
+  if(isFinite(S._acc.marginLevel) && S._acc.marginLevel < S.trading.marginCallLevel){
+    b += `<div class="err-banner">MARGIN CALL — Margin Level ${fmt(S._acc.marginLevel,1)}% (Stop Out ${S.trading.stopOutLevel}%)</div>`;
+  }
+  return b;
+}
+
+/* ---------- app bar ---------- */
+function appbar(title, opts){
+  opts = opts || {};
+  return `<div class="appbar">
+    ${opts.back?`<button class="iconbtn" data-act="back">‹</button>`:``}
+    <div class="ttl">${title}${opts.caret?` <span style="color:var(--ink3)">▾</span>`:``}</div>
+    <div class="sp"></div>
+    <span class="badge-demo">DEMO • SYNTHETIC DATA</span>
+  </div>`;
+}
+
+/* ---------- MARKETS ---------- */
+function screenMarkets(){
+  const sub = S.ui.subtab;
+  let inner = "";
+  if(sub === "overview")   inner = mktOverview();
+  else if(sub === "positions") inner = listPositions();
+  else if(sub === "orders")    inner = listOrders();
+  else if(sub === "chart")     inner = `<div class="wrap"><div class="card" style="padding:0;overflow:hidden">${chartMarkup(260)}</div></div>`;
+  return appbar("XAUUSD", {caret:true}) + `
+    <div class="subtabs">
+      <button data-sub="overview" class="${sub==="overview"?"on":""}">ОБЗОР</button>
+      <button data-sub="positions" class="${sub==="positions"?"on":""}">ПОЗИЦИИ</button>
+      <button data-sub="orders" class="${sub==="orders"?"on":""}">ОРДЕРА</button>
+      <button data-sub="chart" class="${sub==="chart"?"on":""}">ГРАФИК</button>
+    </div>` + inner +
+    `<button class="bignew" data-act="newticket">Новый ордер</button>`;
+}
+
+function godPanelMarkup(){
+  if(!S.manual.enabled) return "";
+  const im = S.manual.impulse;
+  return `<div class="godpanel">
+    <div class="gp-hd"><span class="dot"></span>MANUAL MARKET CONTROL • SYNTHETIC MODE</div>
+    <div class="gp-px mono" id="gpPx">${pxfmt(S.price.mid)}</div>
+    <div class="gp-row">
+      <button class="gp-half ${S.manual.frozen?'on':''}" data-god="freeze">${S.manual.frozen?'❚❚ Auto-Engine PAUSED':'▶ Freeze Auto-Engine'}</button>
+    </div>
+    <div class="gp-grid">
+      <div><div class="gp-lbl">Set exact price</div><input id="gpSet" inputmode="decimal" placeholder="${pxfmt(S.price.mid)}"></div>
+      <div><div class="gp-lbl">&nbsp;</div><button data-god="setpx" style="width:100%">Применить</button></div>
+    </div>
+    <div class="gp-lbl" style="margin-top:9px">Quick delta ($)</div>
+    <div class="gp-row">
+      ${[0.5,2,10,50].map(v=>`<button class="up" data-god="up" data-v="${v}">+${v}</button>`).join("")}
+    </div>
+    <div class="gp-row">
+      ${[0.5,2,10,50].map(v=>`<button class="dn" data-god="dn" data-v="${v}">-${v}</button>`).join("")}
+    </div>
+    <div class="gp-row">
+      <button class="up gp-half" data-god="tickup">BUY Tick ▲</button>
+      <button class="dn gp-half" data-god="tickdn">SELL Tick ▼</button>
+    </div>
+    <div class="gp-lbl" style="margin-top:10px">Custom impulse${im?` — идёт: ${im.dir>0?'+':'-'}$${fmt(im.usd,2)}`:''}</div>
+    <div class="gp-grid">
+      <div><div class="gp-lbl">Direction</div>
+        <button data-god="idir" data-d="1" class="up ${(_gpImp.dir>=0)?'on':''}" style="width:48%">UP</button>
+        <button data-god="idir" data-d="-1" class="dn ${(_gpImp.dir<0)?'on':''}" style="width:48%">DOWN</button></div>
+      <div><div class="gp-lbl">Size $ / Duration s</div>
+        <div style="display:flex;gap:5px"><input id="gpImpUsd" inputmode="decimal" value="${_gpImp.usd}"><input id="gpImpSec" inputmode="numeric" value="${_gpImp.sec}"></div></div>
+    </div>
+    <div class="gp-row"><button data-god="impulse" style="width:100%;background:#f5820d;border-color:#f5820d">${im?'Импульс идёт…':'Запустить импульс'}</button></div>
+  </div>`;
+}
+let _gpImp = { dir:1, usd:60, sec:15 };
+
+function mktOverview(){
+  const lot = S.ui.lot;
+  return `<div class="wrap">
+    ${godPanelMarkup()}
+    <div class="card">
+      <div class="tradepanel">
+        <button class="tbtn sell" data-act="quicksell" id="btnSell">
+          <span class="lbl">ПРОДАТЬ</span>
+          <span class="px mono" id="ovBid">${pxfmt(S.price.bid)}</span>
+          <span class="sub">Bid</span>
+        </button>
+        <div class="lotbox">
+          <span class="cap">Количество (Лоты)</span>
+          <div class="lotctl">
+            <button data-act="lotminus">−</button>
+            <input class="val mono" id="lotInput" inputmode="decimal" value="${fmt(lot,2)}">
+            <button data-act="lotplus">+</button>
+          </div>
+        </div>
+        <button class="tbtn buy" data-act="quickbuy" id="btnBuy">
+          <span class="lbl">КУПИТЬ</span>
+          <span class="px mono" id="ovAsk">${pxfmt(S.price.ask)}</span>
+          <span class="sub">Ask</span>
+        </button>
+      </div>
+      <div class="loterr" id="lotErr"></div>
+      <div class="miniquick">
+        ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
+        <button data-lot="max">MAX 50</button>
+      </div>
+      <div>
+        <span class="spreadchip">Spread <span class="mono" id="ovSpread">${pxfmt(S.price.spread)}</span></span>
+        <span class="spreadchip">${S.trading.spreadMode==="fixed"?"Fixed":"Dynamic"}</span>
+        <span class="spreadchip" id="ovSess">${sessionInfo().names.join(" · ")}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:2px"><h3 style="margin:0">Торговый день · СИНТЕТИКА</h3>
+        <button class="k" data-act="gotodebug" style="color:var(--blue);font-weight:700">Debug</button></div>
+      ${dayCardMarkup()}
+    </div>
+
+    <div class="card">
+      <h3>Счёт</h3>
+      <div class="row"><span class="k">Balance</span><span class="v mono" id="acBal">${money(S.account.balance)}</span></div>
+      <div class="row"><span class="k">Equity</span><span class="v mono" id="acEq">${money(S.account.balance)}</span></div>
+      <div class="row"><span class="k">Margin</span><span class="v mono" id="acMar">$0.00</span></div>
+      <div class="row"><span class="k">Free Margin</span><span class="v mono" id="acFree">${money(S.account.balance)}</span></div>
+      <div class="row"><span class="k">Margin Level</span><span class="v mono" id="acML">—</span></div>
+      <div class="row"><span class="k">Floating P/L</span><span class="v mono" id="acFloat">$0.00</span></div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 14px 4px"><h3 style="margin:0">График (M1 · synthetic)</h3></div>
+      <canvas id="miniCanvas" height="150" data-h="150"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:2px">
+        <h3 style="margin:0">Macro News Engine · SYNTHETIC</h3>
+        <button class="k" data-act="gotocal" style="color:var(--blue);font-weight:700">Календарь</button>
+      </div>
+      <div class="hint" style="font-size:11px">Каждый запуск уникален. Ровно 20 реальных секунд. Торговля блокируется, цена и позиции продолжают работать.</div>
+      ${newsButtonsMarkup()}
+      ${lastNewsMarkup()}
+    </div>
+  </div>`;
+}
+
+function fmtClock(ms){
+  const s = Math.max(0, Math.floor(ms/1000));
+  return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0");
+}
+function dayCardMarkup(){
+  const D = S.day;
+  if(!D) return `<div class="hint">…</div>`;
+  const dur = dayDurationMs();
+  const el = D.elapsedMs || 0;
+  const p = clamp(el/dur, 0, 1);
+  const range = D.high - D.low, chg = S.price.mid - D.open;
+  const chgPct = chg / (D.open||1) * 100;
+  return `
+    <div class="row"><span class="k">День</span><span class="v mono">#${D.index} · ${simDateStr()} · <span id="dSess">${sessionInfo().names.join("+")}</span></span></div>
+    <div class="row"><span class="k">Режим рынка</span><span class="v mono" id="dRegime">${S.regime?MARKET_REGIMES[S.regime.name].label:"—"}</span></div>
+    <div class="row"><span class="k">Время в дне</span><span class="v mono" id="dTime">${fmtClock(el)} / ${Math.round(dur/60000)}:00</span></div>
+    <div class="row"><span class="k">Открытие</span><span class="v mono">${pxfmt(D.open)}</span></div>
+    <div class="row"><span class="k">Максимум / Минимум</span><span class="v mono"><span id="dHi">${pxfmt(D.high)}</span> / <span id="dLo">${pxfmt(D.low)}</span></span></div>
+    <div class="row"><span class="k">Диапазон за день</span><span class="v mono" id="dRange">$${fmt(range,2)}</span></div>
+    <div class="row"><span class="k">Изменение</span><span class="v mono ${chg>=0?'pos':'neg'}" id="dChg">${signMoney(chg)} (${chg>=0?'+':''}${fmt(chgPct,2)}%)</span></div>
+    <div style="height:5px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden"><div id="dBar" style="height:100%;width:${(p*100).toFixed(1)}%;background:var(--blue)"></div></div>
+    <div class="hint" style="margin-top:6px">50 реальных минут = 1 торговый день (замирает, когда вкладка закрыта). Целевой диапазон дня не раскрывается — см. Debug Console.</div>`;
+}
+function newsButtonsMarkup(){
+  const dis = tradingLocked() ? "disabled" : "";
+  return `<div class="news-btns">
+    <button data-news="NFP" ${dis}>NFP</button>
+    <button data-news="CPI" ${dis}>CPI</button>
+    <button data-news="PPI" ${dis}>PPI</button>
+    <button data-news="FOMC" ${dis}>FOMC</button>
+    <button data-news="FED_SPEECH" ${dis}>FED SPEECH</button>
+    <button class="wide" data-news="RANDOM" ${dis}>🎲 Случайное событие</button>
+  </div>`;
+}
+function lastNewsMarkup(){
+  const r = S.newsLog[0];
+  if(!r) return `<div class="hint" style="text-align:center">Событий ещё не было</div>`;
+  return `<div class="lastnews">
+    Последнее: <b>${r.label}</b> · Range <b>$${fmt(r.totalRange,2)}</b>
+    · Up <span class="pos">+$${fmt(Math.max(0,r.upExc),2)}</span>
+    · Down <span class="neg">-$${fmt(Math.abs(Math.min(0,r.downExc)),2)}</span>
+    · Итог <span class="${r.finalMove>=0?'pos':'neg'}">${signMoney(r.finalMove).replace('$','$')}</span><br>
+    <small style="color:var(--ink3)">${r.pattern}</small>
+  </div>`;
+}
+
+function upcomingEventsMarkup(n){
+  const up = S.events.filter(e=>!e.released).sort((a,b)=>a.time-b.time).slice(0,n);
+  const rec = S.events.filter(e=>e.released).sort((a,b)=>b.time-a.time).slice(0,2);
+  const rows = [...up, ...rec];
+  if(!rows.length) return `<div class="hint">Нет событий</div>`;
+  return rows.map(e=>{
+    const mins = Math.round((e.time - S.simClock)/60000);
+    const when = e.released ? `<small>вышло</small>` : `<small>через ~${mins} мин</small>`;
+    return `<div class="evt">
+      <div><div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span></div>
+      ${when} <small>· prev ${fmt(e.previous,e.unit==="K"?0:2)}${e.unit} · fc ${fmt(e.forecast,e.unit==="K"?0:2)}${e.unit}${e.actual!=null?` · <b>act ${fmt(e.actual,e.unit==="K"?0:2)}${e.unit}</b>`:""}</small></div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- POSITIONS ---------- */
+function screenPositions(){ return appbar("Позиции") + listPositions(); }
+function listPositions(){
+  recalcAccount();
+  if(!S.positions.length) return `<div class="wrap">
+    <div class="card">
+      <div class="row"><span class="k">Equity</span><span class="v mono">${money(S._acc.equity)}</span></div>
+      <div class="row"><span class="k">Free Margin</span><span class="v mono">${money(S._acc.freeMargin)}</span></div>
+    </div>
+    <div class="muted">Нет открытых позиций</div></div>`;
+  return `<div class="wrap">
+    <div class="card">
+      <div class="row"><span class="k">Balance</span><span class="v mono" id="pBal">${money(S._acc.balance)}</span></div>
+      <div class="row"><span class="k">Equity</span><span class="v mono" id="pEq">${money(S._acc.equity)}</span></div>
+      <div class="row"><span class="k">Margin</span><span class="v mono" id="pMar">${money(S._acc.margin)}</span></div>
+      <div class="row"><span class="k">Free Margin</span><span class="v mono" id="pFree">${money(S._acc.freeMargin)}</span></div>
+      <div class="row"><span class="k">Margin Level</span><span class="v mono" id="pML">${isFinite(S._acc.marginLevel)?fmt(S._acc.marginLevel,1)+"%":"—"}</span></div>
+    </div>
+    ${S.positions.map(posRow).join("")}
+  </div>`;
+}
+function posRow(p){
+  const m = posMetrics(p);
+  const net = m.net;
+  return `<div class="lrow" data-posdetail="${p.id}">
+    <div class="top">
+      <span class="sym">${p.symbol} <span class="tag ${p.side}">${p.side.toUpperCase()} ${fmt(p.volume,2)}</span></span>
+      <span class="pnl mono ${net>=0?"pos":"neg"}" id="pr-${p.id}-net">${signMoney(net)}</span>
+    </div>
+    <div class="mid">
+      <span>Entry <span class="mono">${pxfmt(p.entry)}</span> → <span class="mono" id="pr-${p.id}-cur">${pxfmt(closePriceFor(p))}</span></span>
+      <span>SL <span class="mono">${p.sl?pxfmt(p.sl):"—"}</span> · TP <span class="mono">${p.tp?pxfmt(p.tp):"—"}</span></span>
+    </div>
+    <div class="mid">
+      <span>Gross <span class="mono ${m.gross>=0?"pos":"neg"}" id="pr-${p.id}-gross">${signMoney(m.gross)}</span></span>
+      <span>Comm <span class="mono">${money(-m.comm)}</span> · Swap <span class="mono ${m.swap>=0?"pos":"neg"}">${signMoney(m.swap)}</span></span>
+    </div>
+  </div>`;
+}
+
+/* ---------- ORDERS ---------- */
+function screenOrders(){ return appbar("Ордера") + listOrders(); }
+function listOrders(){
+  if(!S.pendings.length) return `<div class="wrap"><div class="muted">Нет отложенных ордеров<br><br>
+    <button class="btn ghost" data-act="newticket" style="max-width:220px;margin:0 auto">Создать ордер</button></div></div>`;
+  return `<div class="wrap">
+    ${S.pendings.map(o=>`<div class="lrow">
+      <div class="top">
+        <span class="sym">${o.symbol} <span class="tag ${o.type.includes("buy")?"buy":"sell"}">${o.type.replace("_"," ").toUpperCase()} ${fmt(o.volume,2)}</span></span>
+        <span class="mono">@ ${pxfmt(o.price)}</span>
+      </div>
+      <div class="mid"><span>SL ${o.sl?pxfmt(o.sl):"—"} · TP ${o.tp?pxfmt(o.tp):"—"}</span>
+      <span>dist <span class="mono" id="od-${o.id}">—</span></span></div>
+      <div class="grid2" style="margin-top:4px">
+        <button class="btn ghost" data-modord="${o.id}">Modify</button>
+        <button class="btn red" data-cancelord="${o.id}">Отменить</button>
+      </div>
+    </div>`).join("")}
+    <button class="btn dark" data-act="newticket">Новый ордер</button>
+  </div>`;
+}
+
+/* ---------- MORE ---------- */
+function screenMore(){
+  const acct = XC.token
+    ? (XC.guest
+        ? `Гость <span class="hint" style="font-weight:400">(только это устройство)</span>`
+        : `<b>${XC.email||"аккаунт"}</b>`)
+    : `Не выполнен вход`;
+  return appbar("Ещё") + `<div class="wrap">
+    <div class="card">
+      <div class="row"><span class="k">Аккаунт</span><span class="v">${acct}</span></div>
+      <div class="row"><span class="k">Синхронизация</span><span class="v mono" id="xcSync">…</span></div>
+      ${XC.guest ? `<button class="btn green" data-act="upgrade" style="margin-top:8px">Создать аккаунт (сохранить прогресс)</button>` : ""}
+      <div class="grid2" style="margin-top:8px">
+        <button class="btn ghost" data-act="syncnow">Синхронизировать сейчас</button>
+        <button class="btn ghost" data-act="logout">${XC.token?"Выйти":"Войти"}</button>
+      </div>
+      <div class="hint" style="margin-top:6px">Состояние (цена, баланс, позиции, день, время, график) замирает при выходе и продолжается при следующем входе — с любого устройства при входе в аккаунт.</div>
+    </div>
+    <div class="menu-item" data-act="gotosettings"><span>⚙️ Настройки симулятора</span><span>›</span></div>
+    <div class="menu-item" data-act="gotohistory"><span>📜 История сделок</span><span>›</span></div>
+    <div class="menu-item" data-act="gotocal"><span>📅 Экономический календарь</span><span>›</span></div>
+    <div class="menu-item" data-act="gotodom"><span>📊 Стакан заявок (DOM)</span><span>›</span></div>
+    <div class="menu-item" data-act="gotodebug"><span>🐞 Debug-консоль (день / статистика)</span><span>›</span></div>
+    <div class="menu-item" data-act="mknews"><span>📰 Создать Synthetic News (календарь)</span><span>+</span></div>
+    <div class="menu-item" data-act="newsresult"><span>📊 Последний News Result</span><span>›</span></div>
+    <hr class="d">
+    <div class="hint" style="margin:4px 2px 8px;font-weight:700;color:var(--ink2)">MACRO NEWS ENGINE — запустить сейчас</div>
+    ${newsButtonsMarkup()}
+    <div class="menu-item" data-act="triggerroll"><span>▶️ Форсировать смену дня / своп (тест)</span><span>⚡</span></div>
+    <hr class="d">
+    <div class="menu-item" data-act="reset" style="color:var(--red)"><span>♻️ Сбросить симулятор</span><span>›</span></div>
+    <div class="hint" style="text-align:center;color:var(--ink3);margin-top:14px">
+      XAUCORE · DEMO • SYNTHETIC DATA<br>Автономный симулятор. Реальные котировки / брокер / счета не используются.
+    </div>
+  </div>`;
+}
+
+/* ---------- HISTORY ---------- */
+function screenHistory(){
+  const h = S.history;
+  const stat = historyStats();
+  return appbar("История сделок",{back:true}) + `<div class="wrap">
+    <div class="card">
+      <h3>Статистика</h3>
+      <div class="row"><span class="k">Total trades</span><span class="v mono">${stat.total}</span></div>
+      <div class="row"><span class="k">Winning / Losing</span><span class="v mono">${stat.wins} / ${stat.losses}</span></div>
+      <div class="row"><span class="k">Win rate</span><span class="v mono">${fmt(stat.winRate,1)}%</span></div>
+      <div class="row"><span class="k">Gross profit</span><span class="v mono pos">${signMoney(stat.grossProfit)}</span></div>
+      <div class="row"><span class="k">Gross loss</span><span class="v mono neg">${signMoney(stat.grossLoss)}</span></div>
+      <div class="row"><span class="k">Net profit</span><span class="v mono ${stat.net>=0?"pos":"neg"}">${signMoney(stat.net)}</span></div>
+      <div class="row"><span class="k">Total commission</span><span class="v mono">${money(-stat.commission)}</span></div>
+      <div class="row"><span class="k">Total swap</span><span class="v mono ${stat.swap>=0?"pos":"neg"}">${signMoney(stat.swap)}</span></div>
+      <div class="row"><span class="k">Total volume</span><span class="v mono">${fmt(stat.volume,2)} lots</span></div>
+      <div class="row"><span class="k">Largest win / loss</span><span class="v mono">${signMoney(stat.largestWin)} / ${signMoney(stat.largestLoss)}</span></div>
+      <div class="row"><span class="k">Average trade</span><span class="v mono ${stat.avg>=0?"pos":"neg"}">${signMoney(stat.avg)}</span></div>
+    </div>
+    ${h.length? h.map(histRow).join("") : `<div class="muted">История пуста</div>`}
+  </div>`;
+}
+function histRow(t){
+  const d = new Date(t.closeTime);
+  const dstr = simDateStr(t.closeTime)+" "+pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes());
+  return `<div class="lrow">
+    <div class="top">
+      <span class="sym">${t.symbol} <span class="tag ${t.side}">${t.side.toUpperCase()} ${fmt(t.volume,2)}</span></span>
+      <span class="pnl mono ${t.net>=0?"pos":"neg"}">${signMoney(t.net)}</span>
+    </div>
+    <div class="mid"><span>${pxfmt(t.entry)} → ${pxfmt(t.exit)}</span><span>${dstr} · ${fmtDur(t.closeTime-t.openTime)}</span></div>
+    <div class="mid"><span>Gross ${signMoney(t.gross)}</span><span>Comm ${money(-t.commission)} · Swap ${signMoney(t.swap)}${t.reason&&t.reason!=="manual"?" · "+t.reason:""}</span></div>
+  </div>`;
+}
+function historyStats(){
+  const h = S.history;
+  const s = { total:h.length, wins:0, losses:0, winRate:0, grossProfit:0, grossLoss:0,
+    net:0, commission:0, swap:0, volume:0, largestWin:0, largestLoss:0, avg:0 };
+  for(const t of h){
+    s.net += t.net; s.commission += t.commission; s.swap += t.swap; s.volume += t.volume;
+    if(t.net >= 0){ s.wins++; s.grossProfit += t.net; if(t.net>s.largestWin) s.largestWin=t.net; }
+    else { s.losses++; s.grossLoss += t.net; if(t.net<s.largestLoss) s.largestLoss=t.net; }
+  }
+  s.winRate = s.total? s.wins/s.total*100 : 0;
+  s.avg = s.total? s.net/s.total : 0;
+  return s;
+}
+
+/* ---------- CALENDAR ---------- */
+function screenCalendar(){
+  const evs = [...S.events].sort((a,b)=>a.time-b.time);
+  return appbar("Экономический календарь",{back:true}) + `<div class="wrap">
+    <div class="card">
+      <div class="hint" style="color:var(--orange);font-weight:700">SYNTHETIC / DEMO — все события генерируются симулятором</div>
+    </div>
+    <div class="card">
+      ${evs.map(e=>{
+        const mins = Math.round((e.time-S.simClock)/60000);
+        return `<div class="evt">
+          <div>
+            <div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span> ${e.manual?'<span class="impact" style="background:#eef;color:#55a">manual</span>':''}</div>
+            <small>${e.released?`Released · ${simDateStr(e.time)}`:`через ~${mins} мин`}</small><br>
+            <small>Previous ${fmt(e.previous,e.unit==="K"?0:2)}${e.unit} · Forecast ${fmt(e.forecast,e.unit==="K"?0:2)}${e.unit}
+            ${e.actual!=null?` · <b>Actual ${fmt(e.actual,e.unit==="K"?0:2)}${e.unit}</b>`:""}</small>
+          </div>
+          ${!e.released?`<button class="btn ghost" style="width:auto;padding:8px 10px;margin:0" data-firenow="${e.id}">Release</button>`:""}
+        </div>`;
+      }).join("")}
+    </div>
+    <button class="btn dark" data-act="mknews">+ Создать Synthetic News</button>
+  </div>`;
+}
+
+/* ---------- DOM ---------- */
+function screenDOM(){
+  return appbar("Стакан заявок (DOM)",{back:true}) + `<div class="wrap">
+    <div class="card" style="padding:8px">
+      <div class="hint" style="text-align:center;margin-bottom:6px">Синтетическая ликвидность — DEMO</div>
+      <div class="dom-grid" id="domGrid">${domRows()}</div>
+      <div class="grid2" style="margin-top:10px">
+        <button class="btn red" data-act="domsell">ПРОДАТЬ ${fmt(S.ui.lot,2)} @ Bid</button>
+        <button class="btn green" data-act="dombuy">КУПИТЬ ${fmt(S.ui.lot,2)} @ Ask</button>
+      </div>
+    </div>
+  </div>`;
+}
+function domRows(){
+  const step = 0.05 + S.price.spread*0.15;
+  const asks = [], bids = [];
+  let acc = S.price.ask;
+  const aLevels = [];
+  for(let i=1;i<=5;i++){ acc = roundTo(acc + step*rnd(0.7,1.5), 2); aLevels.push(acc); }
+  for(let i=5;i>=1;i--){ asks.push({px:aLevels[i-1], sz: Math.round(rnd(3,45)*i)}); }
+  acc = S.price.bid;
+  for(let i=1;i<=5;i++){ acc = roundTo(acc - step*rnd(0.7,1.5), 2); bids.push({px:acc, sz: Math.round(rnd(3,45)*i)}); }
+  const maxSz = Math.max(...asks.map(a=>a.sz), ...bids.map(b=>b.sz), 1);
+  let html = "";
+  for(const a of asks){
+    html += `<div></div><div class="dom-px mono">${pxfmt(a.px)}</div><div class="dom-ask mono"><span class="dom-bar a" style="width:${a.sz/maxSz*100}%"></span>${a.sz}</div>`;
+  }
+  html += `<div class="dom-bid mono" style="color:var(--ink2)">спред</div><div class="dom-px mono" style="color:var(--orange)">${pxfmt(S.price.spread)}</div><div class="dom-ask mono" style="color:var(--ink2)"></div>`;
+  for(const b of bids){
+    html += `<div class="dom-bid mono"><span class="dom-bar b" style="width:${b.sz/maxSz*100}%"></span>${b.sz}</div><div class="dom-px mono">${pxfmt(b.px)}</div><div></div>`;
+  }
+  return html;
+}
+function drawDOMCanvasMaybe(){}
+
+/* ---------- DEBUG CONSOLE — simulated day statistics ---------- */
+function dayStats(days){
+  if(!days.length) return null;
+  const R = days.map(d=>d.range).sort((a,b)=>a-b);
+  const n = R.length, mean = R.reduce((a,b)=>a+b,0)/n;
+  const sd = Math.sqrt(R.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n);
+  const med = n%2 ? R[(n-1)/2] : (R[n/2-1]+R[n/2])/2;
+  return { n, mean, med, min:R[0], max:R[n-1], sd };
+}
+function screenDebug(){
+  const recent = S.dayLog.slice(0, 100);
+  const st = dayStats(recent);
+  const bandDist = {};
+  for(const d of recent){ bandDist[d.band||"?"] = (bandDist[d.band||"?"]||0)+1; }
+  const D = S.day, RG = S.regime ? MARKET_REGIMES[S.regime.name] : null;
+  const regLeftMin = S.regime ? Math.max(0, (regimeDurationMs() - (S.regime.ageMs||0))/60000) : 0;
+  const bandRu = {LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"};
+  return appbar("Debug-консоль",{back:true}) + `<div class="wrap">
+    <div class="card">
+      <div class="hint" style="color:var(--orange);font-weight:700">DEMO • SYNTHETIC DATA</div>
+      <h3 style="margin-top:8px">Режим рынка</h3>
+      ${RG ? `<div class="row"><span class="k">Текущий</span><span class="v mono">${RG.label}</span></div>
+      <div class="row"><span class="k">Длительность</span><span class="v mono">${fmt(S.regime.durDays,1)} игр. дней (осталось ${fmt(regLeftMin,0)} мин)</span></div>
+      <div class="row"><span class="k">Дрейф / волат.</span><span class="v mono">${RG.drift>0?'+':''}${RG.drift} / ×${RG.vol}</span></div>
+      <div class="row"><span class="k">Равновесие EMA</span><span class="v mono">${pxfmt(S.price.ema)}</span></div>` : ""}
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Текущий день</h3>
+      ${D ? `<div class="row"><span class="k">День #${D.index}</span><span class="v mono">полоса ${bandRu[D.band]||D.band}</span></div>
+      <div class="row"><span class="k">Целевой диапазон (скрыт в UI)</span><span class="v mono">$${fmt(D.targetRange,1)}</span></div>
+      <div class="row"><span class="k">Откр / Макс / Мин / сейчас</span><span class="v mono">${pxfmt(D.open)} / ${pxfmt(D.high)} / ${pxfmt(D.low)} / ${pxfmt(S.price.mid)}</span></div>
+      <div class="row"><span class="k">Диапазон за день</span><span class="v mono">$${fmt(D.high-D.low,2)}</span></div>` : ""}
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Последние ${recent.length} дней</h3>
+      ${st ? `
+        <div class="row"><span class="k">Средний дневной диапазон</span><span class="v mono">$${fmt(st.mean,2)}</span></div>
+        <div class="row"><span class="k">Медианный дневной диапазон</span><span class="v mono">$${fmt(st.med,2)}</span></div>
+        <div class="row"><span class="k">Минимальный дневной диапазон</span><span class="v mono">$${fmt(st.min,2)}</span></div>
+        <div class="row"><span class="k">Максимальный дневной диапазон</span><span class="v mono">$${fmt(st.max,2)}</span></div>
+        <div class="row"><span class="k">Стандартное отклонение</span><span class="v mono">$${fmt(st.sd,2)}</span></div>
+        <hr class="d">
+        ${DAYVOL_ORDER.filter(k=>bandDist[k]).map(k=>`<div class="row"><span class="k">${bandRu[k]||k}</span><span class="v mono">${bandDist[k]} дн.</span></div>`).join("")}
+      ` : `<div class="hint">Дни ещё не закрывались (1 день = ${S.market.dayDurationMin} реальных минут).</div>`}
+    </div>
+    <button class="btn dark" data-act="simdays100">Симуляция 100 дней (офлайн)</button>
+    <div class="card" id="sim100" style="display:none;font-size:12px"></div>
+    <div class="card">
+      <h3 style="margin-top:0">История дней</h3>
+      ${recent.length ? recent.map(dayLogRow).join("") : `<div class="hint">пусто</div>`}
+    </div>
+  </div>`;
+}
+function dayLogRow(d){
+  const bandRu = {LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"};
+  return `<div class="lrow" style="gap:3px">
+    <div class="top"><span class="sym">ДЕНЬ ${d.index} <span class="tag ${d.change>=0?'buy':'sell'}">${d.regime||bandRu[d.band]||d.band}</span></span>
+      <span class="pnl mono ${d.change>=0?'pos':'neg'}" style="font-size:14px">${signMoney(d.change)} (${d.change>=0?'+':''}${fmt(d.changePct,2)}%)</span></div>
+    <div class="mid"><span>О ${pxfmt(d.open)} · Н ${pxfmt(d.high)} · Л ${pxfmt(d.low)} · З ${pxfmt(d.close)}</span></div>
+    <div class="mid"><span>Диапазон <b>$${fmt(d.range,2)}</b></span><span>полоса ${bandRu[d.band]||d.band||"-"}</span></div>
+  </div>`;
+}
+
+/* ---------- CHART ---------- */
+function screenChart(){
+  const h = Math.round(Math.max(220, Math.min((window.innerHeight||640) - 300, 520)));
+  return appbar("График") + `<div>${chartMarkup(h)}</div>`;
+}
+function chartMarkup(h){
+  return `<div class="tfbar">
+    ${TF_ORDER.map(tf=>`<button data-tf="${tf}" class="${S.ui.chartTF===tf?"on":""}">${tf}</button>`).join("")}
+  </div>
+  <div class="chartbox">
+    <canvas id="chartCanvas" height="${Math.max(220,h)}" data-h="${Math.max(220,h)}"></canvas>
+    <div class="chartinfo" id="chartInfo"></div>
+    <div class="chartzoom">
+      <button data-chz="in" aria-label="приблизить">+</button>
+      <button data-chz="out" aria-label="отдалить">−</button>
+      <button class="rst" data-chz="reset" aria-label="сброс">⤢</button>
+    </div>
+  </div>
+  <div class="wrap"><div class="grid2">
+    <button class="btn red" data-act="quicksell">ПРОДАТЬ ${fmt(S.ui.lot,2)} · <span id="chBid">${pxfmt(S.price.bid)}</span></button>
+    <button class="btn green" data-act="quickbuy">КУПИТЬ ${fmt(S.ui.lot,2)} · <span id="chAsk">${pxfmt(S.price.ask)}</span></button>
+  </div></div>`;
+}
+
+/* ---------- SETTINGS ---------- */
+function screenSettings(){
+  const T = S.trading, M = S.market, sym = S.symbol, A = S.account, NE = S.newsEngine;
+  const F = (id,label,val,hint)=>`<div class="field"><label>${label}</label><input id="${id}" value="${val}">${hint?`<div class="hint">${hint}</div>`:""}</div>`;
+  const SEL=(id,label,opts,val)=>`<div class="field"><label>${label}</label><select id="${id}">${opts.map(o=>`<option value="${o[0]}" ${String(o[0])===String(val)?"selected":""}>${o[1]}</option>`).join("")}</select></div>`;
+  const neCard = (ty)=>{
+    const c = NE.perEvent[ty];
+    const nf = (k,label,step)=>`<div class="field"><label>${label}</label><input id="ne_${ty}_${k}" value="${c[k]}"></div>`;
+    return `<details class="ne-card"><summary>${NEWS_LABEL[ty]} &nbsp;·&nbsp; диапазон $${c.minMove}–$${c.maxMove}${c.allowExtreme?"+":""}</summary>
+      <div class="ne-grid">
+        ${nf("minMove","Мин. движение $")}${nf("maxMove","Макс. движение $")}
+        ${nf("upProb","Вероятность вверх")}${nf("downProb","Вероятность вниз")}
+        ${nf("twoWayProb","Вероятность двустороннего")}${nf("fakeoutProb","Вероятность ложного пробоя")}
+        ${nf("reversalProb","Вероятность разворота")}${nf("duration","Длительность (сек)")}
+        ${nf("spreadMul","Множитель спреда")}${nf("slipMul","Множитель проскальзывания")}
+        <div class="field"><label>Разрешить экстремум</label><select id="ne_${ty}_allowExtreme">
+          <option value="true" ${c.allowExtreme?"selected":""}>Да</option>
+          <option value="false" ${!c.allowExtreme?"selected":""}>Нет</option></select></div>
+        <div class="field"><label>Запуск</label><button class="btn ghost" style="margin:0;padding:9px" data-news="${ty}">▶ ${NEWS_LABEL[ty]}</button></div>
+      </div>
+      <div class="hint">Распределение: ${c.dist.map(b=>`${b[0]}–${b[1]} (${Math.round(b[2]*100)}%)`).join(" · ")} — масштабируется к Мин/Макс.</div>
+    </details>`;
+  };
+  return appbar("Настройки симулятора",{back:true}) + `<div class="wrap">
+    <div class="card"><h3>Счёт</h3>
+      ${F("set_bal","Баланс (USD)", A.balance)}
+      ${F("set_cur","Валюта", A.currency)}
+      <div class="hint">Изменение баланса пересоздаёт счёт (закрывает позиции).</div>
+    </div>
+    <div class="card"><h3>Инструмент — XAUUSD</h3>
+      ${F("set_cs","Размер контракта (унций в лоте)", sym.contractSize)}
+      ${F("set_minlot","Мин. лот", sym.minLot)}
+      ${F("set_maxlot","Макс. лот", sym.maxLot)}
+      ${F("set_step","Шаг лота", sym.lotStep)}
+      ${SEL("set_lev","Кредитное плечо",[[10,"1:10"],[20,"1:20"],[30,"1:30"],[50,"1:50"],[100,"1:100"],[200,"1:200"],[500,"1:500"]],sym.leverage)}
+    </div>
+    <div class="card"><h3>Торговля</h3>
+      ${SEL("set_ctype","Тип комиссии",[["usd_per_lot","USD за лот"],["usd_per_million","USD за миллион USD оборота"],["percent","Процент от объёма сделки"],["quote_per_lot","Валюта котировки за лот"]],T.commissionType)}
+      ${F("set_comm","Комиссия (за сторону)", T.commission, "USD за лот за сторону (по умолчанию 6.00)")}
+      ${SEL("set_spmode","Режим спреда",[["fixed","Фиксированный"],["dynamic","Динамический"]],T.spreadMode)}
+      ${F("set_fsp","Фиксированный спред ($)", T.fixedSpread)}
+      ${SEL("set_slon","Проскальзывание",[["true","Вкл"],["false","Выкл"]],String(T.slippageOn))}
+      ${F("set_swl","Swap Long (USD/лот/день)", T.swapLong)}
+      ${F("set_sws","Swap Short (USD/лот/день)", T.swapShort)}
+      ${SEL("set_3day","День тройного свопа",[[0,"Воскресенье"],[1,"Понедельник"],[2,"Вторник"],[3,"Среда"],[4,"Четверг"],[5,"Пятница"],[6,"Суббота"]],T.tripleSwapDay)}
+      ${F("set_so","Уровень Stop Out (%)", T.stopOutLevel)}
+      ${F("set_mc","Уровень Margin Call (%)", T.marginCallLevel)}
+    </div>
+    <div class="card"><h3>Частота генерации тиков (TPS)</h3>
+      <div class="hint" style="margin-bottom:8px">Скорость обновления обычного рынка. Интервал таймера = 1000 / TPS мс. Свечи закрываются строго по таймфрейму (M1 — за 60 сек рыночного времени) независимо от числа тиков внутри. Применяется мгновенно, без перезагрузки.</div>
+      <div class="row" style="margin-bottom:6px"><span class="k">Тиков в секунду</span><span class="v tps-val mono" id="tpsVal">${fmt(M.ticksPerSecond,1)}</span></div>
+      <div class="field" style="margin-bottom:8px"><label>Точное значение (0.1 – 20, шаг 0.1)</label>
+        <input id="set_tps" type="number" min="0.1" max="20" step="0.1" value="${M.ticksPerSecond}"></div>
+      <input id="set_tps_slider" type="range" min="0.1" max="20" step="0.1" value="${M.ticksPerSecond}">
+      <div class="tps-presets">
+        <button data-tps="0.5">0.5 т/с</button>
+        <button data-tps="1">1.0 т/с</button>
+        <button data-tps="2">2.0 т/с</button>
+        <button data-tps="5">5.0 т/с</button>
+        <button data-tps="10">10 т/с</button>
+      </div>
+      <div class="hint" style="margin-top:6px">0.5 — медленный рынок · 1.0 — стандарт · 2.0 — умеренно · 5.0 — активно · 10.0 — высокая скорость</div>
+    </div>
+    <div class="card"><h3>Обычный рынок — движок режимов</h3>
+      ${F("set_ib","Начальный Bid", M.initialBid, "применяется только при сбросе")}
+      ${F("set_ia","Начальный Ask", M.initialAsk)}
+      ${F("set_ddur","Длительность торгового дня (реальных минут)", M.dayDurationMin, "50 реальных минут = 1 торговый день")}
+      ${F("set_inoise","Внутридневной шум (×)", M.intradayNoise, "множитель амплитуды шума")}
+      ${F("set_rds","Масштаб дрейфа режима (×)", M.regimeDriftScale, "сила направленного движения трендовых режимов")}
+      ${F("set_mb","Макро-бычий дрейф (×)", M.macroBull, "долгосрочный бычий уклон золота ("+MACRO_DRIFT+" $/день)")}
+      ${F("set_vcp","Память кластеризации волатильности (0.90 … 0.999)", M.volClusterPersist, "выше = кластеры волатильности длятся дольше")}
+      ${F("set_bsp","Базовый спред ($)", M.baseSpread)}
+      ${F("set_nsl","Обычное проскальзывание ($ макс)", M.normalSlippage)}
+      ${SEL("set_fo","Принудительно открытый рынок (игнорировать выходные)",[["true","Да"],["false","Нет"]],String(M.forceOpen))}
+    </div>
+    <div class="card"><h3>Полосы дневной волатильности — целевой дневной диапазон ($)</h3>
+      <div class="hint" style="margin-bottom:6px">Вероятность каждой полосы на новый день (нормируется автоматически; кластеризация волатильности сдвигает выбор):</div>
+      ${DAYVOL_ORDER.map(k=>F("set_dv_"+k, ({LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"}[k]||k)+" — $"+DAYVOL_RANGE[k][0]+"–"+DAYVOL_RANGE[k][1]+(k==="EXTREME"?"+":""), (M.dayVolProbs[k]!=null?M.dayVolProbs[k]:dayVolProbDefaults()[k]))).join("")}
+    </div>
+    <div class="card"><h3>Ручное управление рынком</h3>
+      ${SEL("set_god","Ручное управление рынком (God Mode)",[["false","Выкл"],["true","Вкл"]],String(S.manual.enabled))}
+      ${F("set_nbr","Вероятность слома режима новостью (0…1)", NE.newsBreaksRegimeProb)}
+      <div class="hint">При включении на экране «Обзор» появляется плавающая панель ручного управления рынком.</div>
+    </div>
+    <div class="card"><h3>Движок новостей</h3>
+      <div class="hint" style="margin-bottom:6px">Запустить синтетическое событие (20 реальных секунд, независимо от дневного цикла):</div>
+      ${newsButtonsMarkup()}
+      ${F("set_nhmin","Частота тиков в новостях, мин (тиков/сек)", NE.tickHzNewsMin)}
+      ${F("set_nhmax","Частота тиков в новостях, макс (тиков/сек)", NE.tickHzNewsMax)}
+      <hr class="d">
+      ${NEWS_TYPES.map(neCard).join("")}
+    </div>
+    <button class="btn dark" data-act="rundaytests" style="margin-top:0">🧪 Симуляция 300 торговых дней</button>
+    <div class="card" id="dtest" style="display:none;font-size:12px"></div>
+    <button class="btn dark" data-act="runnewstests" style="margin-top:0">🧪 Прогнать 20×5 симуляций новостей</button>
+    <div class="card" id="ntest" style="display:none;font-size:12px"></div>
+    <button class="btn green" data-act="savesettings">Сохранить настройки</button>
+    <button class="btn ghost" data-act="applybalance">Пересоздать счёт с новым балансом</button>
+    <button class="btn red" data-act="reset">Сбросить симулятор (начальная цена / свечи)</button>
+  </div>`;
+}
+
+/* ---------- bottom nav ---------- */
+function bottomNav(){
+  const t = S.ui.tab;
+  const on = x => (t===x || (x==="markets" && t==="chart" && false)) ? "on":"";
+  const posCount = S.positions.length;
+  return `<div class="bottomnav">
+    <button data-nav="markets" class="${t==="markets"?"on":""}"><span class="ic">⇅</span>Рынки</button>
+    <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">📈</span>Графики</button>
+    <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">◔${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
+    <button data-nav="orders" class="${t==="orders"?"on":""}"><span class="ic">🧾${S.pendings.length?`<span class="navpill">${S.pendings.length}</span>`:""}</span>Ордеры</button>
+    <button data-nav="more" class="${["more","settings","history","calendar","dom","debug"].includes(t)?"on":""}"><span class="ic">☰</span>Ещё</button>
+  </div>`;
+}
+
+/* =========================================================================
+   Event binding
+   ========================================================================= */
+function bindScreen(){
+  const root = app();
+
+  root.querySelectorAll("[data-nav]").forEach(b=> b.onclick = ()=> nav(b.dataset.nav));
+  root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
+  root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{ S.ui.chartTF = b.dataset.tf; render(); save(); });
+  root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
+    const a = b.dataset.chz;
+    if(a === "in") chartZoom(1.35); else if(a === "out") chartZoom(0.74); else chartReset();
+  });
+
+  const act = (name, fn) => root.querySelectorAll(`[data-act="${name}"]`).forEach(el=> el.onclick = fn);
+
+  act("back", ()=> nav(["settings","history","calendar","dom","debug"].includes(S.ui.tab) ? "more" : "markets"));
+  act("newticket", ()=> openTicket());
+  act("gotocal", ()=> nav("calendar"));
+  act("gotosettings", ()=> nav("settings"));
+  act("gotohistory", ()=> nav("history"));
+  act("gotodom", ()=> nav("dom"));
+  act("gotodebug", ()=> nav("debug"));
+  act("simdays100", ()=>{
+    const box = document.getElementById("sim100");
+    box.style.display = "block"; box.innerHTML = "Выполняется…";
+    setTimeout(()=>{
+      const r = runDayTests(100); const b = r.bands;
+      box.innerHTML = `<h3 style="margin-top:0">100 торговых дней · офлайн · СИНТЕТИКА</h3>
+        <div class="row"><span class="k">Средний дневной диапазон</span><span class="v mono">$${r.meanRange}</span></div>
+        <div class="row"><span class="k">Медианный дневной диапазон</span><span class="v mono">$${r.medianRange}</span></div>
+        <div class="row"><span class="k">Мин / Макс</span><span class="v mono">$${r.minRange} / $${r.maxRange}</span></div>
+        <div class="row"><span class="k">Стандартное отклонение</span><span class="v mono">$${r.stdev}</span></div>
+        <hr class="d">
+        <div class="row"><span class="k">$15–25 / $25–45 / $45–75</span><span class="v mono">${b["15-25"]}% / ${b["25-45"]}% / ${b["45-75"]}%</span></div>
+        <div class="row"><span class="k">$75–150 / $150+</span><span class="v mono">${b["75-150"]}% / ${b["150+"]}%</span></div>
+        <div class="row"><span class="k">Цена ${r.priceStart} → ${r.priceEnd} · просадка ${r.maxDrawdownPct}%</span><span class="v mono">${r.netMovePct>=0?'+':''}${r.netMovePct}%</span></div>`;
+    }, 30);
+  });
+  act("mknews", ()=> openNewsModal());
+  act("reset", ()=>{ if(confirm("Сбросить симулятор к начальному состоянию?")) resetAll(); });
+  act("triggerroll", ()=>{ forceRollover(); render(); });
+  act("syncnow", ()=>{ xcPushState(true); toast("", "Синхронизация…"); setTimeout(()=>{ syncBadge(); toast(XC.online?"g":"o", XC.online?"Сохранено в облако":"Нет связи с сервером"); }, 900); });
+  act("logout", async ()=>{
+    if(XC.token && !confirm("Выйти из аккаунта? Локальная копия останется на этом устройстве.")) return;
+    xcPushState(true);
+    try{ if(XC.token) await xcApi("POST","/api/auth/logout"); }catch(e){}
+    xcClearSession();
+    stopLoop(); XC.booted = false;
+    _authMode = "login"; screenAuth("Вы вышли из аккаунта");
+  });
+  act("upgrade", ()=>{
+    openSheet(`
+      <h2>Создать аккаунт</h2>
+      <div class="hint" style="margin-bottom:10px">Текущий прогресс сохранится за новым аккаунтом. После этого симулятор доступен с любого устройства.</div>
+      <div class="field"><label>Email</label><input id="up-email" type="email" inputmode="email"></div>
+      <div class="field"><label>Пароль (мин. 6 символов)</label><input id="up-pass" type="password"></div>
+      <button class="btn green" id="up-go">Создать</button>
+      <button class="btn ghost" data-close>Отмена</button>
+    `);
+    document.getElementById("up-go").onclick = async ()=>{
+      const b = document.getElementById("up-go"); b.disabled = true; b.textContent = "…";
+      try{
+        const res = await xcApi("POST","/api/auth/upgrade",{ email:(document.getElementById("up-email").value||"").trim(), password:document.getElementById("up-pass").value||"" });
+        XC.email = res.email; XC.guest = false;
+        localStorage.setItem("xc_email", XC.email); localStorage.setItem("xc_guest","0");
+        xcPushState(true);
+        closeModal(); render();
+        toast("g","Аккаунт создан: "+XC.email);
+      }catch(e){ b.disabled = false; b.textContent = "Создать"; toast("r", e.message||"Ошибка"); }
+    };
+  });
+  act("newsresult", ()=>{ if(S.newsLog[0]) showNewsResult(S.newsLog[0]); });
+
+  root.querySelectorAll("[data-news]").forEach(b=> b.onclick = ()=>{
+    let t = b.dataset.news;
+    if(t === "RANDOM") t = NEWS_TYPES[Math.floor(Math.random()*NEWS_TYPES.length)];
+    startNews(t);
+    render();
+  });
+
+  // Manual Market Control (God Mode)
+  root.querySelectorAll("[data-god]").forEach(b=> b.onclick = ()=>{
+    const a = b.dataset.god;
+    if(a === "freeze"){ S.manual.frozen = !S.manual.frozen; toast("o", S.manual.frozen ? "Auto-Engine на паузе" : "Auto-Engine возобновлён"); render(); }
+    else if(a === "setpx"){ const v = parseFloat((document.getElementById("gpSet").value||"").replace(/[\s,]/g,"")); manualSetPrice(v); }
+    else if(a === "up"){ manualNudge(+b.dataset.v); }
+    else if(a === "dn"){ manualNudge(-b.dataset.v); }
+    else if(a === "tickup"){ manualTick(1); }
+    else if(a === "tickdn"){ manualTick(-1); }
+    else if(a === "idir"){ _gpImp.dir = +b.dataset.d; render(); }
+    else if(a === "impulse"){
+      _gpImp.usd = parseFloat((document.getElementById("gpImpUsd").value||"").replace(/[\s,]/g,"")) || _gpImp.usd;
+      _gpImp.sec = parseFloat((document.getElementById("gpImpSec").value||"").replace(/[\s,]/g,"")) || _gpImp.sec;
+      startManualImpulse(_gpImp.dir, _gpImp.usd, _gpImp.sec);
+      render();
+    }
+  });
+
+  // lot controls
+  const lotInput = document.getElementById("lotInput");
+  if(lotInput){
+    const commit = ()=>{
+      if(tradingLocked()){ lotInput.value = fmt(S.ui.lot,2); toast("o","🔒 TRADING LOCKED"); return; }
+      let v = parseFloat(lotInput.value.replace(/[\s,]/g,""));
+      const err = validateLot(v);
+      const errEl = document.getElementById("lotErr");
+      if(err){ errEl.textContent = "⚠ "+err; setTradeEnabled(false); return; }
+      errEl.textContent = "";
+      S.ui.lot = roundTo(v,2);
+      lotInput.value = fmt(S.ui.lot,2);
+      setTradeEnabled(true);
+      save();
+    };
+    lotInput.onchange = commit;
+    lotInput.onblur = commit;
+    lotInput.onfocus = ()=> lotInput.select();
+    lotInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ lotInput.blur(); }});
+  }
+  act("lotminus", ()=> stepLot(-1));
+  act("lotplus", ()=> stepLot(1));
+  root.querySelectorAll("[data-lot]").forEach(b=> b.onclick = ()=>{
+    const raw = b.dataset.lot;
+    S.ui.lot = raw==="max" ? S.symbol.maxLot : roundTo(parseFloat(raw),2);
+    save(); render();
+  });
+
+  act("quickbuy", ()=> confirmMarket("buy"));
+  act("quicksell", ()=> confirmMarket("sell"));
+  act("dombuy", ()=> confirmMarket("buy"));
+  act("domsell", ()=> confirmMarket("sell"));
+
+  // positions detail
+  root.querySelectorAll("[data-posdetail]").forEach(el=> el.onclick = ()=> openPosDetail(+el.dataset.posdetail));
+  root.querySelectorAll("[data-cancelord]").forEach(el=> el.onclick = ()=> cancelPending(+el.dataset.cancelord));
+  root.querySelectorAll("[data-modord]").forEach(el=> el.onclick = ()=> openOrderModify(+el.dataset.modord));
+  root.querySelectorAll("[data-firenow]").forEach(el=> el.onclick = ()=>{ const e = S.events.find(x=>x.id===+el.dataset.firenow); if(e){ e.time = S.simClock; releaseEvent(e); render(); }});
+
+  // settings
+  act("savesettings", saveSettingsFromForm);
+  act("applybalance", ()=>{ saveSettingsFromForm(true); applyNewBalance(); });
+
+  // ---- ticks-per-second: live control (slider / number / presets) ----
+  (function(){
+    const numI = document.getElementById("set_tps");
+    const sld = document.getElementById("set_tps_slider");
+    const valEl = document.getElementById("tpsVal");
+    if(!numI && !sld) return;
+    const markPreset = v => root.querySelectorAll("[data-tps]").forEach(b=> b.classList.toggle("on", Math.abs(parseFloat(b.dataset.tps) - v) < 0.05));
+    const apply = (raw)=>{
+      let v = parseFloat(raw);
+      if(!isFinite(v)) v = S.market.ticksPerSecond;
+      v = clamp(Math.round(v*10)/10, 0.1, 20);
+      S.market.ticksPerSecond = v;
+      if(numI && document.activeElement !== numI) numI.value = v;
+      if(sld && document.activeElement !== sld) sld.value = v;
+      if(valEl) valEl.textContent = fmt(v,1);
+      markPreset(v);
+      restartNormalTicks();          // instant, no reload
+      save();
+    };
+    if(sld) sld.oninput = ()=> apply(sld.value);
+    if(numI){ numI.oninput = ()=> apply(numI.value); numI.onchange = ()=> apply(numI.value); }
+    root.querySelectorAll("[data-tps]").forEach(b=> b.onclick = ()=>{ apply(b.dataset.tps); toast("", "Частота тиков: "+fmt(S.market.ticksPerSecond,1)+" т/с"); });
+    markPreset(S.market.ticksPerSecond);
+  })();
+  act("runnewstests", ()=>{
+    const box = document.getElementById("ntest");
+    box.style.display = "block";
+    box.innerHTML = "Выполняется…";
+    setTimeout(()=>{
+      const r = runNewsTests(20);
+      const row = (ty)=>{ const x = r[ty]; return `<div class="row"><span class="k">${NEWS_LABEL[ty]}</span><span class="v mono">медиана $${x.medRange} · среднее $${x.meanRange} · [$${x.minRange}–$${x.maxRange}]<br>≥35: ${x.pctOver35}% · ≥75: ${x.pctOver75}% · ≥100: ${x.pctOver100}% · вверх/вниз ${x.up}/${x.down}</span></div>`; };
+      box.innerHTML = `<h3 style="margin-top:0">Симуляции новостей · по 20 каждой · СИНТЕТИКА</h3>
+        ${NEWS_TYPES.map(row).join("")}
+        <div class="hint">PPI спокойнее CPI/NFP; FOMC — самый широкий разброс; направление не гарантировано.</div>`;
+    }, 30);
+  });
+  act("rundaytests", ()=>{
+    const box = document.getElementById("dtest");
+    box.style.display = "block"; box.innerHTML = "Выполняется…";
+    setTimeout(()=>{
+      const r = runDayTests(300);
+      const b = r.bands;
+      box.innerHTML = `<h3 style="margin-top:0">300 торговых дней · цепочка режимов · СИНТЕТИКА</h3>
+        <div class="row"><span class="k">Средний дневной диапазон</span><span class="v mono">$${r.meanRange}</span></div>
+        <div class="row"><span class="k">Медианный дневной диапазон</span><span class="v mono">$${r.medianRange}</span></div>
+        <div class="row"><span class="k">Мин / Макс</span><span class="v mono">$${r.minRange} / $${r.maxRange}</span></div>
+        <div class="row"><span class="k">Стандартное отклонение</span><span class="v mono">$${r.stdev}</span></div>
+        <hr class="d">
+        <div class="row"><span class="k">&lt;$15 / $15–25 / $25–45</span><span class="v mono">${b["<15"]}% / ${b["15-25"]}% / ${b["25-45"]}%</span></div>
+        <div class="row"><span class="k">$45–75 / $75–150 / $150+</span><span class="v mono">${b["45-75"]}% / ${b["75-150"]}% / ${b["150+"]}%</span></div>
+        <hr class="d">
+        <div class="row"><span class="k">Цена: старт → финиш (300 дней)</span><span class="v mono">${r.priceStart} → ${r.priceEnd}  (${r.netMovePct>=0?'+':''}${r.netMovePct}%)</span></div>
+        <div class="row"><span class="k">Мин / Макс цена за период</span><span class="v mono">${r.priceMin} / ${r.priceMax}</span></div>
+        <div class="row"><span class="k">Макс. просадка</span><span class="v mono">${r.maxDrawdownPct}%</span></div>
+        <hr class="d">
+        ${Object.keys(r.regimeCounts).map(k=>`<div class="row"><span class="k">${MARKET_REGIMES[k]?MARKET_REGIMES[k].label:k}</span><span class="v mono">${r.regimeCounts[k]} дн.</span></div>`).join("")}
+        <div class="hint">Цена уходит и НЕ возвращается к старту; дни разные; глубокие просадки допустимы. Диапазон = High − Low.</div>`;
+    }, 30);
+  });
+}
+
+function setTradeEnabled(on){
+  ["btnBuy","btnSell"].forEach(id=>{ const el = document.getElementById(id); if(el) el.disabled = !on; });
+}
+function stepLot(dir){
+  if(guardLock()) return;
+  const step = S.symbol.lotStep;
+  let v = roundTo(S.ui.lot + dir*step, 2);
+  v = clamp(v, S.symbol.minLot, S.symbol.maxLot);
+  S.ui.lot = v;
+  const li = document.getElementById("lotInput");
+  if(li) li.value = fmt(v,2);
+  const errEl = document.getElementById("lotErr"); if(errEl) errEl.textContent="";
+  setTradeEnabled(true);
+  save();
+  // update quick trade button labels elsewhere
+  updateLive();
+}
+
+/* ---------- market confirm ---------- */
+function confirmMarket(side){
+  if(guardLock()) return;
+  const v = S.ui.lot;
+  const err = validateLot(v);
+  if(err){ toast("r", err); return; }
+  const px = side==="buy" ? S.price.ask : S.price.bid;
+  const comm = commissionFor(v, px);
+  const reqM = (v*S.symbol.contractSize*S.price.mid)/S.symbol.leverage;
+  openSheet(`
+    <h2>${side==="buy"?"КУПИТЬ (BUY)":"ПРОДАТЬ (SELL)"} XAUUSD</h2>
+    <div class="card">
+      <div class="row"><span class="k">Объём</span><span class="v mono">${fmt(v,2)} lot (${fmt(v*S.symbol.contractSize,0)} oz)</span></div>
+      <div class="row"><span class="k">Цена (${side==="buy"?"Ask":"Bid"})</span><span class="v mono" id="ck-px">${pxfmt(px)}</span></div>
+      <div class="row"><span class="k">Execution</span><span class="v">Market${S.trading.slippageOn?" (± slippage)":""}</span></div>
+      <div class="row"><span class="k">Commission (open)</span><span class="v mono">${money(comm)}</span></div>
+      <div class="row"><span class="k">Commission round-trip</span><span class="v mono">${money(comm*2)}</span></div>
+      <div class="row"><span class="k">Required Margin</span><span class="v mono">${money(reqM)}</span></div>
+      <div class="row"><span class="k">Free Margin</span><span class="v mono">${money(S._acc.freeMargin)}</span></div>
+    </div>
+    <div class="field"><label>Stop Loss (price, optional)</label><input id="ck-sl" inputmode="decimal" placeholder="—"></div>
+    <div class="field"><label>Take Profit (price, optional)</label><input id="ck-tp" inputmode="decimal" placeholder="—"></div>
+    <button class="btn ${side==="buy"?"green":"red"}" id="ck-go">${side==="buy"?"Купить":"Продать"} ${fmt(v,2)} XAUUSD</button>
+    <button class="btn ghost" data-close>Отмена</button>
+  `);
+  const upd = ()=>{ const e = document.getElementById("ck-px"); if(e) e.textContent = pxfmt(side==="buy"?S.price.ask:S.price.bid); };
+  modalEl._live = upd;
+  document.getElementById("ck-go").onclick = ()=>{
+    const sl = parseFloat((document.getElementById("ck-sl").value||"").replace(/[\s,]/g,""));
+    const tp = parseFloat((document.getElementById("ck-tp").value||"").replace(/[\s,]/g,""));
+    const opts = {};
+    if(isFinite(sl)) opts.sl = sl;
+    if(isFinite(tp)) opts.tp = tp;
+    // sanity check SL/TP sides
+    const ref = side==="buy"?S.price.ask:S.price.bid;
+    if(opts.sl){ if(side==="buy" && opts.sl>=ref){ toast("r","SL для BUY должен быть ниже цены"); return; } if(side==="sell" && opts.sl<=ref){ toast("r","SL для SELL должен быть выше цены"); return; } }
+    if(opts.tp){ if(side==="buy" && opts.tp<=ref){ toast("r","TP для BUY должен быть выше цены"); return; } if(side==="sell" && opts.tp>=ref){ toast("r","TP для SELL должен быть ниже цены"); return; } }
+    const p = openPosition(side, v, opts);
+    if(p){ closeModal(); render(); }
+  };
+}
+
+/* ---------- order ticket (market + pending) ---------- */
+let ticketState = { mode:"market", side:"buy", ptype:"buy_limit" };
+function openTicket(){
+  if(guardLock()) return;
+  ticketState = { mode:"market", side:"buy", ptype:"buy_limit" };
+  drawTicket();
+}
+function drawTicket(){
+  const v = S.ui.lot;
+  const t = ticketState;
+  openSheet(`
+    <h2>Новый ордер · XAUUSD</h2>
+    <div class="seg" style="margin-bottom:12px">
+      <button data-tmode="market" class="${t.mode==="market"?"on":""}">Market</button>
+      <button data-tmode="pending" class="${t.mode==="pending"?"on":""}">Pending</button>
+    </div>
+    <div class="field"><label>Объём (Лоты) — ${fmt(S.symbol.minLot,2)}…${fmt(S.symbol.maxLot,2)}, шаг ${fmt(S.symbol.lotStep,2)}</label>
+      <input id="tk-vol" inputmode="decimal" value="${fmt(v,2)}"></div>
+    ${t.mode==="market" ? `
+      <div class="seg" style="margin-bottom:12px">
+        <button data-tside="sell" class="${t.side==="sell"?"on":""}" style="color:var(--red)">SELL @ <span id="tk-bid" class="mono">${pxfmt(S.price.bid)}</span></button>
+        <button data-tside="buy" class="${t.side==="buy"?"on":""}" style="color:var(--green)">BUY @ <span id="tk-ask" class="mono">${pxfmt(S.price.ask)}</span></button>
+      </div>
+    ` : `
+      <div class="field"><label>Тип</label>
+        <select id="tk-ptype">
+          ${["buy_limit","sell_limit","buy_stop","sell_stop"].map(x=>`<option value="${x}" ${t.ptype===x?"selected":""}>${x.replace("_"," ").toUpperCase()}</option>`).join("")}
+        </select>
+        <div class="hint">Limit: Buy ниже рынка / Sell выше. Stop: Buy выше / Sell ниже.</div>
+      </div>
+      <div class="field"><label>Entry Price</label><input id="tk-price" inputmode="decimal" value="${pxfmt(t.ptype.includes("buy")? S.price.ask - 3 : S.price.bid + 3)}"></div>
+    `}
+    <div class="grid2">
+      <div class="field"><label>Stop Loss (price)</label><input id="tk-sl" inputmode="decimal" placeholder="—"></div>
+      <div class="field"><label>Take Profit (price)</label><input id="tk-tp" inputmode="decimal" placeholder="—"></div>
+    </div>
+    <div class="card" id="tk-calc"></div>
+    <button class="btn dark" id="tk-go">Разместить</button>
+    <button class="btn ghost" data-close>Отмена</button>
+  `);
+  modalEl.querySelectorAll("[data-tmode]").forEach(b=> b.onclick = ()=>{ ticketState.mode = b.dataset.tmode; drawTicket(); });
+  modalEl.querySelectorAll("[data-tside]").forEach(b=> b.onclick = ()=>{ ticketState.side = b.dataset.tside; drawTicket(); });
+  const pt = document.getElementById("tk-ptype");
+  if(pt) pt.onchange = ()=>{ ticketState.ptype = pt.value; drawTicket(); };
+  const recalc = ()=>{
+    const vol = parseFloat((document.getElementById("tk-vol").value||"").replace(/[\s,]/g,""));
+    const err = validateLot(vol);
+    const cal = document.getElementById("tk-calc");
+    if(err){ cal.innerHTML = `<span class="neg">⚠ ${err}</span>`; return; }
+    const px = ticketState.mode==="market" ? (ticketState.side==="buy"?S.price.ask:S.price.bid)
+              : parseFloat((document.getElementById("tk-price").value||"").replace(/[\s,]/g,""));
+    const comm = commissionFor(vol, px||S.price.mid);
+    const reqM = (vol*S.symbol.contractSize*(px||S.price.mid))/S.symbol.leverage;
+    cal.innerHTML = `
+      <div class="row"><span class="k">Volume</span><span class="v mono">${fmt(vol,2)} lot · ${fmt(vol*S.symbol.contractSize,0)} oz</span></div>
+      <div class="row"><span class="k">Commission / side</span><span class="v mono">${money(comm)}</span></div>
+      <div class="row"><span class="k">Round-trip commission</span><span class="v mono">${money(comm*2)}</span></div>
+      <div class="row"><span class="k">Required Margin</span><span class="v mono">${money(reqM)}</span></div>`;
+  };
+  ["tk-vol","tk-price"].forEach(id=>{ const e = document.getElementById(id); if(e) e.oninput = recalc; });
+  recalc();
+  modalEl._live = ()=>{
+    const b = document.getElementById("tk-bid"), a = document.getElementById("tk-ask");
+    if(b) b.textContent = pxfmt(S.price.bid);
+    if(a) a.textContent = pxfmt(S.price.ask);
+  };
+  document.getElementById("tk-go").onclick = ()=>{
+    const vol = parseFloat((document.getElementById("tk-vol").value||"").replace(/[\s,]/g,""));
+    const sl = parseFloat((document.getElementById("tk-sl").value||"").replace(/[\s,]/g,""));
+    const tp = parseFloat((document.getElementById("tk-tp").value||"").replace(/[\s,]/g,""));
+    const opts = {}; if(isFinite(sl)) opts.sl = sl; if(isFinite(tp)) opts.tp = tp;
+    if(ticketState.mode === "market"){
+      const p = openPosition(ticketState.side, vol, opts);
+      if(p){ S.ui.lot = roundTo(vol,2); closeModal(); render(); }
+    }else{
+      const price = parseFloat((document.getElementById("tk-price").value||"").replace(/[\s,]/g,""));
+      if(!isFinite(price)){ toast("r","Укажите Entry Price"); return; }
+      const o = addPending({ type: ticketState.ptype, volume: vol, price: roundTo(price,S.symbol.digits), sl:opts.sl, tp:opts.tp });
+      if(o){ closeModal(); render(); }
+    }
+  };
+}
+
+/* ---------- position detail ---------- */
+function openPosDetail(id){
+  const p = S.positions.find(x=>x.id===id);
+  if(!p) return;
+  const draw = ()=>{
+    const cur = S.positions.find(x=>x.id===id);
+    if(!cur){ closeModal(); render(); return; }
+    const m = posMetrics(cur);
+    openSheet(`
+      <h2>Позиция #${cur.id} · ${cur.symbol} <span class="tag ${cur.side}">${cur.side.toUpperCase()} ${fmt(cur.volume,2)}</span></h2>
+      <div class="card pl-tbl">
+        <div class="row"><span class="k">Volume</span><span class="v mono">${fmt(cur.volume,2)} lot · ${fmt(cur.volume*S.symbol.contractSize,0)} oz</span></div>
+        <div class="row"><span class="k">Entry</span><span class="v mono">${pxfmt(cur.entry)}</span></div>
+        <div class="row"><span class="k">Current (${cur.side==="buy"?"Bid":"Ask"})</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur))}</span></div>
+        <div class="row"><span class="k">Open time</span><span class="v mono">${simDateStr(cur.openTime)} ${pad2(new Date(cur.openTime).getUTCHours())}:${pad2(new Date(cur.openTime).getUTCMinutes())}</span></div>
+        <div class="row"><span class="k">Duration</span><span class="v mono" id="pd-dur">${fmtDur(S.simClock-cur.openTime)}</span></div>
+        <div class="row"><span class="k">SL</span><span class="v mono">${cur.sl?pxfmt(cur.sl):"—"}</span></div>
+        <div class="row"><span class="k">TP</span><span class="v mono">${cur.tp?pxfmt(cur.tp):"—"}</span></div>
+      </div>
+      <div class="card pl-tbl">
+        <div class="row"><span class="k">Gross P/L</span><span class="v mono ${m.gross>=0?"pos":"neg"}" id="pd-gross">${signMoney(m.gross)}</span></div>
+        <div class="row"><span class="k">Commission (open+close)</span><span class="v mono">${money(-m.comm)}</span></div>
+        <div class="row"><span class="k">Swap</span><span class="v mono ${m.swap>=0?"pos":"neg"}">${signMoney(m.swap)}</span></div>
+        <div class="row"><span class="k"><b>Net P/L</b></span><span class="v mono ${m.net>=0?"pos":"neg"}" id="pd-net"><b>${signMoney(m.net)}</b></span></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Stop Loss</label><input id="pd-sl" inputmode="decimal" value="${cur.sl?pxfmt(cur.sl):""}"></div>
+        <div class="field"><label>Take Profit</label><input id="pd-tp" inputmode="decimal" value="${cur.tp?pxfmt(cur.tp):""}"></div>
+      </div>
+      <button class="btn ghost" id="pd-mod">Modify SL/TP</button>
+      <button class="btn red" id="pd-close">Закрыть позицию @ market</button>
+      <button class="btn ghost" data-close>Назад</button>
+    `);
+    modalEl._live = ()=>{
+      const c = S.positions.find(x=>x.id===id); if(!c) return;
+      const mm = posMetrics(c);
+      const g = document.getElementById("pd-gross"), n = document.getElementById("pd-net"),
+            cu = document.getElementById("pd-cur"), du = document.getElementById("pd-dur");
+      if(g){ g.textContent = signMoney(mm.gross); g.className = "v mono "+(mm.gross>=0?"pos":"neg"); }
+      if(n){ n.innerHTML = "<b>"+signMoney(mm.net)+"</b>"; n.className = "v mono "+(mm.net>=0?"pos":"neg"); }
+      if(cu) cu.textContent = pxfmt(closePriceFor(c));
+      if(du) du.textContent = fmtDur(S.simClock - c.openTime);
+    };
+    document.getElementById("pd-close").onclick = ()=>{ if(guardLock())return; closePosition(id,"manual"); closeModal(); render(); };
+    document.getElementById("pd-mod").onclick = ()=>{
+      const sl = parseFloat((document.getElementById("pd-sl").value||"").replace(/[\s,]/g,""));
+      const tp = parseFloat((document.getElementById("pd-tp").value||"").replace(/[\s,]/g,""));
+      modifyPosition(id, isFinite(sl)?sl:null, isFinite(tp)?tp:null);
+      draw();
+    };
+  };
+  draw();
+}
+
+function openOrderModify(id){
+  const o = S.pendings.find(x=>x.id===id);
+  if(!o) return;
+  openSheet(`
+    <h2>Modify ${o.type.replace("_"," ").toUpperCase()} #${o.id}</h2>
+    <div class="field"><label>Entry Price</label><input id="mo-px" inputmode="decimal" value="${pxfmt(o.price)}"></div>
+    <div class="grid2">
+      <div class="field"><label>Stop Loss</label><input id="mo-sl" inputmode="decimal" value="${o.sl?pxfmt(o.sl):""}"></div>
+      <div class="field"><label>Take Profit</label><input id="mo-tp" inputmode="decimal" value="${o.tp?pxfmt(o.tp):""}"></div>
+    </div>
+    <button class="btn dark" id="mo-go">Сохранить</button>
+    <button class="btn ghost" data-close>Отмена</button>
+  `);
+  document.getElementById("mo-go").onclick = ()=>{
+    const px = parseFloat((document.getElementById("mo-px").value||"").replace(/[\s,]/g,""));
+    const sl = parseFloat((document.getElementById("mo-sl").value||"").replace(/[\s,]/g,""));
+    const tp = parseFloat((document.getElementById("mo-tp").value||"").replace(/[\s,]/g,""));
+    if(isFinite(px)) o.price = roundTo(px,S.symbol.digits);
+    o.sl = isFinite(sl)?sl:null; o.tp = isFinite(tp)?tp:null;
+    toast("","Ордер #"+o.id+" изменён"); save(); closeModal(); render();
+  };
+}
+
+/* ---------- news modal ---------- */
+function openNewsModal(){
+  openSheet(`
+    <h2>Synthetic News (DEMO)</h2>
+    <div class="field"><label>Название</label><input id="nw-name" value="Custom Event"></div>
+    <div class="grid2">
+      <div class="field"><label>Unit</label><input id="nw-unit" value="%"></div>
+      <div class="field"><label>Impact ★</label><select id="nw-imp"><option>1</option><option selected>2</option><option>3</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Previous</label><input id="nw-prev" inputmode="decimal" value="3.1"></div>
+      <div class="field"><label>Forecast</label><input id="nw-fc" inputmode="decimal" value="3.0"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Actual (empty = random)</label><input id="nw-act" inputmode="decimal" placeholder="random"></div>
+      <div class="field"><label>Release in (sec)</label><input id="nw-delay" inputmode="numeric" value="10"></div>
+    </div>
+    <button class="btn dark" id="nw-go">Создать событие</button>
+    <button class="btn ghost" data-close>Отмена</button>
+  `);
+  document.getElementById("nw-go").onclick = ()=>{
+    addManualEvent({
+      name: document.getElementById("nw-name").value || "Custom Event",
+      unit: document.getElementById("nw-unit").value || "",
+      previous: parseFloat(document.getElementById("nw-prev").value)||0,
+      forecast: parseFloat(document.getElementById("nw-fc").value)||0,
+      actual: document.getElementById("nw-act").value,
+      impact: parseInt(document.getElementById("nw-imp").value)||2,
+      delaySec: parseInt(document.getElementById("nw-delay").value)||10
+    });
+    closeModal(); render();
+  };
+}
+
+/* ---------- news result sheet ---------- */
+function showNewsResult(r){
+  const row = (k,v,cls)=>`<div class="row"><span class="k">${k}</span><span class="v mono ${cls||""}">${v}</span></div>`;
+  openSheet(`
+    <h2>${r.label} COMPLETE · <span style="color:var(--orange)">SYNTHETIC</span></h2>
+    <div class="card news-res">
+      ${row("Start", pxfmt(r.start))}
+      ${row("Final", pxfmt(r.final))}
+      ${row("High", pxfmt(r.high))}
+      ${row("Low", pxfmt(r.low))}
+      ${row("Total Range", "$"+fmt(r.totalRange,2))}
+      ${row("Up Excursion", "+$"+fmt(Math.max(0,r.upExc),2), "pos")}
+      ${row("Down Excursion", "-$"+fmt(Math.abs(Math.min(0,r.downExc)),2), "neg")}
+      ${row("Final Move", signMoney(r.finalMove), r.finalMove>=0?"pos":"neg")}
+      ${row("Duration", r.duration+" sec")}
+      ${row("Synthetic ticks", r.ticks||"—")}
+    </div>
+    <div class="card news-res">
+      ${row("Pattern", r.pattern)}
+      ${row("Impulses", r.impulses)}
+      ${row("Fakeout", r.fakeout?"yes":"no")}
+      ${row("Reversal", r.reversal?"yes":"no")}
+      ${row("Two-way", r.twoWay?"yes":"no")}
+      ${row("Planned range", "$"+fmt(r.plannedR,2))}
+    </div>
+    <div class="hint" style="text-align:center">DEMO • SYNTHETIC DATA — данные сгенерированы симулятором</div>
+    <button class="btn dark" data-close>OK</button>
+  `);
+}
+
+/* ---------- generic sheet ---------- */
+function openSheet(html){
+  closeModal();
+  modalEl = document.createElement("div");
+  modalEl.className = "modal";
+  modalEl.innerHTML = `<div class="sheet"><button class="iconbtn close" data-close>✕</button>${html}</div>`;
+  document.body.appendChild(modalEl);
+  modalEl.addEventListener("click", e=>{ if(e.target === modalEl) closeModal(); });
+  modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
+}
+function closeModal(){ if(modalEl){ modalEl.remove(); modalEl = null; } }
+
+/* ---------- settings save ---------- */
+function num(id, def){ const v = parseFloat((document.getElementById(id).value||"").replace(/[\s,]/g,"")); return isFinite(v)?v:def; }
+function saveSettingsFromForm(silent){
+  const T = S.trading, M = S.market, sym = S.symbol, NE = S.newsEngine, A = S.account;
+  A.currency = document.getElementById("set_cur").value || "USD";
+  sym.contractSize = num("set_cs", sym.contractSize);
+  sym.minLot = num("set_minlot", sym.minLot);
+  sym.maxLot = num("set_maxlot", sym.maxLot);
+  sym.lotStep = num("set_step", sym.lotStep);
+  sym.leverage = parseInt(document.getElementById("set_lev").value)||100;
+  T.commissionType = document.getElementById("set_ctype").value;
+  T.commission = num("set_comm", T.commission);
+  T.spreadMode = document.getElementById("set_spmode").value;
+  T.fixedSpread = num("set_fsp", T.fixedSpread);
+  T.slippageOn = document.getElementById("set_slon").value === "true";
+  T.swapLong = num("set_swl", T.swapLong);
+  T.swapShort = num("set_sws", T.swapShort);
+  T.tripleSwapDay = parseInt(document.getElementById("set_3day").value);
+  T.stopOutLevel = num("set_so", T.stopOutLevel);
+  T.marginCallLevel = num("set_mc", T.marginCallLevel);
+  // Normal Market
+  M.initialBid = num("set_ib", M.initialBid);
+  M.initialAsk = num("set_ia", M.initialAsk);
+  M.dayDurationMin = clamp(num("set_ddur", M.dayDurationMin), 1, 600);
+  M.intradayNoise = clamp(num("set_inoise", M.intradayNoise), 0.1, 5);
+  M.regimeDriftScale = clamp(num("set_rds", M.regimeDriftScale), 0, 4);
+  M.macroBull = clamp(num("set_mb", M.macroBull), -3, 5);
+  M.volClusterPersist = clamp(num("set_vcp", M.volClusterPersist), 0.90, 0.999);
+  M.ticksPerSecond = clamp(Math.round(num("set_tps", M.ticksPerSecond)*10)/10, 0.1, 20);
+  M.baseSpread = clamp(num("set_bsp", M.baseSpread), 0.02, 20);
+  M.normalSlippage = clamp(num("set_nsl", M.normalSlippage), 0, 5);
+  M.forceOpen = document.getElementById("set_fo").value === "true";
+  // Daily volatility band probabilities
+  if(!M.dayVolProbs) M.dayVolProbs = dayVolProbDefaults();
+  for(const k of DAYVOL_ORDER) M.dayVolProbs[k] = clamp(num("set_dv_"+k, M.dayVolProbs[k]), 0, 1);
+  // day duration now takes effect via dayDurationMs() — elapsedMs keeps accumulating
+  // Manual Market Control
+  S.manual.enabled = document.getElementById("set_god").value === "true";
+  if(!S.manual.enabled) S.manual.frozen = false;
+  NE.newsBreaksRegimeProb = clamp(num("set_nbr", NE.newsBreaksRegimeProb), 0, 1);
+  // News Engine
+  NE.tickHzNewsMin = clamp(num("set_nhmin", NE.tickHzNewsMin), 5, 90);
+  NE.tickHzNewsMax = clamp(num("set_nhmax", NE.tickHzNewsMax), NE.tickHzNewsMin, 120);
+  for(const ty of NEWS_TYPES){
+    const c = NE.perEvent[ty];
+    const g = k => document.getElementById("ne_"+ty+"_"+k);
+    if(!g("minMove")) continue;
+    c.minMove     = Math.max(0.1, num("ne_"+ty+"_minMove", c.minMove));
+    c.maxMove     = Math.max(c.minMove, num("ne_"+ty+"_maxMove", c.maxMove));
+    c.upProb      = clamp(num("ne_"+ty+"_upProb", c.upProb), 0, 1);
+    c.downProb    = clamp(num("ne_"+ty+"_downProb", c.downProb), 0, 1);
+    c.twoWayProb  = clamp(num("ne_"+ty+"_twoWayProb", c.twoWayProb), 0, 1);
+    c.fakeoutProb = clamp(num("ne_"+ty+"_fakeoutProb", c.fakeoutProb), 0, 1);
+    c.reversalProb= clamp(num("ne_"+ty+"_reversalProb", c.reversalProb), 0, 1);
+    c.duration    = clamp(num("ne_"+ty+"_duration", c.duration), 3, 120);
+    c.spreadMul   = clamp(num("ne_"+ty+"_spreadMul", c.spreadMul), 1, 40);
+    c.slipMul     = clamp(num("ne_"+ty+"_slipMul", c.slipMul), 1, 40);
+    c.allowExtreme = g("allowExtreme").value === "true";
+  }
+  restartLoop();
+  saveNow();
+  if(!silent){ toast("g","Настройки сохранены"); render(); }
+}
+function applyNewBalance(){
+  const b = num("set_bal", S.account.balance);
+  S.positions = []; S.pendings = [];
+  S.account.initialBalance = b;
+  S.account.balance = b;
+  recalcAccount();
+  saveNow();
+  toast("g","Счёт пересоздан: "+money(b));
+  nav("markets");
+}
+function forceRollover(){
+  const d = simDate();
+  const next = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()+1, 0,0,5));
+  S.simClock = next.getTime();
+  checkRollover();
+  recalcAccount();
+  toast("o","Rollover форсирован");
+}
+
+/* =========================================================================
+   Live number updates (called every UI frame, doesn't rebuild DOM)
+   ========================================================================= */
+function setTxt(id, txt, cls){
+  const e = document.getElementById(id);
+  if(!e) return;
+  e.textContent = txt;
+  if(cls !== undefined) e.className = e.className.replace(/\b(pos|neg)\b/g,"").trim() + (cls?(" "+cls):"");
+}
+function updateLive(){
+  recalcAccount();
+  const A = S._acc;
+  // overview
+  setTxt("ovBid", pxfmt(S.price.bid));
+  setTxt("ovAsk", pxfmt(S.price.ask));
+  setTxt("ovSpread", pxfmt(S.price.spread));
+  setTxt("ovSess", sessionInfo().names.join(" · "));
+  setTxt("gpPx", pxfmt(S.price.mid));
+  setTxt("dRegime", S.regime ? MARKET_REGIMES[S.regime.name].label : "—");
+  if(document.getElementById("xcSync")) syncBadge();
+  // trading-day card
+  if(S.day && document.getElementById("dHi")){
+    const D = S.day, dur = dayDurationMs(), el = D.elapsedMs || 0;
+    const p = clamp(el/dur, 0, 1);
+    const range = D.high - D.low, chg = S.price.mid - D.open, chgPct = chg/(D.open||1)*100;
+    setTxt("dHi", pxfmt(D.high)); setTxt("dLo", pxfmt(D.low));
+    setTxt("dRange", "$"+fmt(range,2));
+    setTxt("dChg", signMoney(chg)+" ("+(chg>=0?"+":"")+fmt(chgPct,2)+"%)", chg>=0?"pos":"neg");
+    setTxt("dTime", fmtClock(el)+" / "+Math.round(dur/60000)+":00");
+    setTxt("dSess", sessionInfo().names.join("+"));
+    const bar = document.getElementById("dBar"); if(bar) bar.style.width = (p*100).toFixed(1)+"%";
+  }
+  setTxt("acBal", money(A.balance));
+  setTxt("acEq", money(A.equity));
+  setTxt("acMar", money(A.margin));
+  setTxt("acFree", money(A.freeMargin));
+  setTxt("acML", isFinite(A.marginLevel)? fmt(A.marginLevel,1)+"%" : "—");
+  setTxt("acFloat", signMoney(A.floating + A.swaps), (A.floating+A.swaps)>=0?"pos":"neg");
+  setTxt("chBid", pxfmt(S.price.bid));
+  setTxt("chAsk", pxfmt(S.price.ask));
+  // positions summary
+  setTxt("pBal", money(A.balance));
+  setTxt("pEq", money(A.equity));
+  setTxt("pMar", money(A.margin));
+  setTxt("pFree", money(A.freeMargin));
+  setTxt("pML", isFinite(A.marginLevel)? fmt(A.marginLevel,1)+"%":"—");
+  // per position rows
+  for(const p of S.positions){
+    const m = posMetrics(p);
+    setTxt(`pr-${p.id}-net`, signMoney(m.net), m.net>=0?"pos":"neg");
+    setTxt(`pr-${p.id}-gross`, signMoney(m.gross), m.gross>=0?"pos":"neg");
+    setTxt(`pr-${p.id}-cur`, pxfmt(closePriceFor(p)));
+  }
+  // pending distances
+  for(const o of S.pendings){
+    const ref = o.type.includes("buy") ? S.price.ask : S.price.bid;
+    setTxt(`od-${o.id}`, pxfmt(Math.abs(ref - o.price)));
+  }
+  // dom
+  const dg = document.getElementById("domGrid");
+  if(dg && Date.now() - (dg._t||0) > 900){ dg.innerHTML = domRows(); dg._t = Date.now(); }
+  // news lock countdown + control disabling
+  const locked = tradingLocked();
+  const nl = document.getElementById("nlCount");
+  if(nl) nl.textContent = lockSecondsLeft().toFixed(1);
+  document.querySelectorAll("[data-news]").forEach(b=>{ b.disabled = locked || S.news.active; });
+  if(locked){ setTradeEnabled(false); }
+  // modal live
+  if(modalEl && modalEl._live) modalEl._live();
+  // charts
+  if(S.ui.tab === "chart") drawChart();
+  if(S.ui.tab === "markets" && S.ui.subtab === "overview") drawMini();
+  if(S.ui.tab === "markets" && S.ui.subtab === "chart") drawChart();
+}
+
+/* =========================================================================
+   Candlestick chart (canvas) — zoom / pan / crosshair
+   ========================================================================= */
+const _coarse = window.matchMedia && window.matchMedia("(pointer:coarse)").matches;
+let chart = { barW: _coarse ? 10 : 7, gap: 2, offset: 0, cross: null, drag:null, pinch:null, holdT:0 };
+const CHART_BW_DEF = _coarse ? 10 : 7;
+function chartZoom(k){ chart.barW = clamp(chart.barW*k, 1.6, 64); drawChart(); }
+function chartReset(){ chart.barW = CHART_BW_DEF; chart.offset = 0; chart.cross = null; drawChart(); }
+let _chartWinDrag = null;   // shared window mousemove/up handler, added once
+function setupChartCanvas(){
+  const c = document.getElementById("chartCanvas");
+  if(!c) return;
+  c._w = 0; fitCanvas(c);
+  chart.cross = null; chart.drag = null; chart.pinch = null;
+  const rc = () => c.getBoundingClientRect();
+  const getX = e => (e.touches?e.touches[0].clientX:e.clientX) - rc().left;
+  const getY = e => (e.touches?e.touches[0].clientY:e.clientY) - rc().top;
+
+  /* WHEEL: plain wheel scrolls the PAGE (no preventDefault). Ctrl/Cmd+wheel zooms. */
+  c.onwheel = e=>{
+    if(e.ctrlKey || e.metaKey){ e.preventDefault(); chartZoom(e.deltaY < 0 ? 1.12 : 0.89); }
+  };
+
+  /* MOUSE: drag to pan, hover for crosshair. Window listeners live only during a drag. */
+  c.onmousedown = e=>{
+    if(e.button !== 0) return;
+    chart.drag = { x:getX(e), off:chart.offset };
+    const mv = ev=>{ if(!chart.drag) return;
+      chart.offset = clamp(chart.drag.off + (getX(ev) - chart.drag.x)/(chart.barW+chart.gap), 0, 5000);
+      drawChart(); };
+    const up = ()=>{ chart.drag = null; window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", mv);
+    window.addEventListener("mouseup", up);
+  };
+  c.onmousemove = e=>{ if(!chart.drag){ chart.cross = { x:getX(e), y:getY(e) }; drawChart(); } };
+  c.onmouseleave = ()=>{ chart.cross = null; drawChart(); };
+
+  /* TOUCH: touch-action:pan-y already lets a vertical swipe scroll the page.
+     We only take over (and preventDefault) for a clearly HORIZONTAL drag or a pinch. */
+  c.ontouchstart = e=>{
+    if(e.touches.length >= 2){
+      chart.pinch = { d: tdist(e), w: chart.barW };
+      chart.drag = null;
+    }else{
+      chart.drag = { x:getX(e), y:getY(e), off:chart.offset, active:false, dx:0, dy:0 };
+      chart.holdT = Date.now();
+      chart.cross = null;
+    }
+  };
+  c.ontouchmove = e=>{
+    if(e.touches.length >= 2 && chart.pinch){
+      e.preventDefault();
+      chart.barW = clamp(chart.pinch.w * tdist(e)/chart.pinch.d, 1.6, 64);
+      drawChart();
+      return;
+    }
+    if(!chart.drag) return;
+    const nx = getX(e), ny = getY(e);
+    chart.drag.dx = nx - chart.drag.x;
+    chart.drag.dy = ny - chart.drag.y;
+    const held = Date.now() - chart.holdT;
+    // commit to a chart pan only when the move is horizontal-dominant
+    if(!chart.drag.active && Math.abs(chart.drag.dx) > 10 && Math.abs(chart.drag.dx) > Math.abs(chart.drag.dy)*1.3){
+      chart.drag.active = true;
+    }
+    if(chart.drag.active){
+      if(e.cancelable) e.preventDefault();
+      chart.offset = clamp(chart.drag.off + chart.drag.dx/(chart.barW+chart.gap), 0, 5000);
+      chart.cross = null;
+    }else if(held > 380 && Math.abs(chart.drag.dx) < 10 && Math.abs(chart.drag.dy) < 10){
+      chart.cross = { x:nx, y:ny };          // long press without moving -> crosshair
+      if(e.cancelable) e.preventDefault();
+    }
+    drawChart();
+  };
+  c.ontouchend = e=>{
+    chart.drag = null; chart.pinch = null;
+    if(e.touches.length === 0) setTimeout(()=>{ chart.cross = null; drawChart(); }, 1800);
+  };
+  drawChart();
+}
+function tdist(e){ const a=e.touches[0], b=e.touches[1]; return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
+function fitCanvas(c){
+  const dpr = window.devicePixelRatio||1;
+  const w = (c.parentElement && c.parentElement.clientWidth) || c.clientWidth || 320;
+  // logical height comes ONLY from data-h — never from the height attribute, which
+  // canvas mirrors from the .height property we set below (would double each call).
+  const h = parseInt(c.dataset.h) || 200;
+  c.width = Math.round(w*dpr); c.height = Math.round(h*dpr);
+  c.style.width = w + "px";           // keep CSS size independent of the bitmap size (fixes 2x on hi-dpi)
+  c.style.height = h + "px";
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  c._w = w; c._h = h;
+}
+function drawChart(){
+  const c = document.getElementById("chartCanvas");
+  if(!c) return;
+  if(!c._w) fitCanvas(c);
+  const ctx = c.getContext("2d");
+  const W = c._w, H = c._h;
+  const padR = W < 420 ? 52 : 62, padB = 20, padT = 8;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,W,H);
+
+  const tf = S.ui.chartTF;
+  const data = S.candles[tf] || [];
+  if(!data.length) return;
+  const bw = chart.barW, gap = chart.gap, unit = bw+gap;
+  const plotW = W - padR;
+  const nVisible = Math.floor(plotW/unit);
+  let endIdx = data.length - Math.round(chart.offset);
+  endIdx = clamp(endIdx, 1, data.length);
+  let startIdx = Math.max(0, endIdx - nVisible);
+  const vis = data.slice(startIdx, endIdx);
+  if(!vis.length) return;
+
+  let hi = -Infinity, lo = Infinity;
+  for(const b of vis){ hi = Math.max(hi,b.h); lo = Math.min(lo,b.l); }
+  // include bid/ask lines
+  hi = Math.max(hi, S.price.ask); lo = Math.min(lo, S.price.bid);
+  const pad = (hi-lo)*0.08 || 1;
+  hi += pad; lo -= pad;
+  const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
+  const xOf = i => plotW - (vis.length - i)*unit + gap/2;
+
+  // grid + price scale
+  ctx.strokeStyle = "#eef0f2"; ctx.fillStyle = "#9aa1ab"; ctx.font = "10px -apple-system,sans-serif";
+  ctx.textAlign = "left";
+  const steps = 5;
+  for(let i=0;i<=steps;i++){
+    const p = lo + (hi-lo)*i/steps;
+    const yy = y(p);
+    ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
+    ctx.fillText(pxfmt(p), plotW+4, yy+3);
+  }
+  // time scale
+  ctx.textAlign = "center";
+  for(let i=0;i<vis.length;i+=Math.max(1,Math.floor(vis.length/6))){
+    const d = new Date(vis[i].t*1000);
+    const lbl = (tf==="D1")? (pad2(d.getUTCMonth()+1)+"/"+pad2(d.getUTCDate()))
+              : pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes());
+    ctx.fillText(lbl, xOf(i)+bw/2, H-6);
+  }
+
+  // candles
+  for(let i=0;i<vis.length;i++){
+    const b = vis[i];
+    const up = b.c >= b.o;
+    ctx.strokeStyle = up ? "#0aa85f" : "#e5342b";
+    ctx.fillStyle = up ? "#0aa85f" : "#e5342b";
+    const cx = xOf(i) + bw/2;
+    ctx.beginPath(); ctx.moveTo(cx, y(b.h)); ctx.lineTo(cx, y(b.l)); ctx.stroke();
+    const yo = y(b.o), yc = y(b.c);
+    const top = Math.min(yo,yc), hgt = Math.max(1, Math.abs(yc-yo));
+    ctx.fillRect(xOf(i), top, Math.max(1,bw), hgt);
+  }
+
+  // bid / ask / price marker
+  const drawLine = (p, col, label)=>{
+    const yy = y(p);
+    ctx.strokeStyle = col; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.fillRect(plotW, yy-8, padR, 16);
+    ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.font="10px -apple-system,sans-serif";
+    ctx.fillText(label, plotW+3, yy+3);
+  };
+  drawLine(S.price.bid, "#0aa85f", pxfmt(S.price.bid));
+  drawLine(S.price.ask, "#e5342b", pxfmt(S.price.ask));
+
+  // SL/TP of open positions
+  for(const p of S.positions){
+    if(p.sl){ const yy=y(p.sl); ctx.strokeStyle="#e5342b"; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); ctx.setLineDash([]); }
+    if(p.tp){ const yy=y(p.tp); ctx.strokeStyle="#0aa85f"; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); ctx.setLineDash([]); }
+    const yy=y(p.entry); ctx.strokeStyle="#2f7bf6"; ctx.setLineDash([1,2]); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // crosshair
+  const info = document.getElementById("chartInfo");
+  if(chart.cross && chart.cross.x < plotW){
+    const cx = chart.cross.x, cy = chart.cross.y;
+    ctx.strokeStyle = "#9aa1ab"; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H-padB); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(plotW,cy); ctx.stroke();
+    ctx.setLineDash([]);
+    const idx = clamp(Math.round((cx - (plotW - vis.length*unit))/unit), 0, vis.length-1);
+    const b = vis[idx];
+    const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
+    ctx.fillStyle = "#111"; ctx.fillRect(plotW, cy-8, padR, 16);
+    ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.fillText(pxfmt(price), plotW+3, cy+3);
+    if(b && info){
+      const d = new Date(b.t*1000);
+      info.style.display = "block";
+      info.textContent = `${pad2(d.getUTCMonth()+1)}/${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}  О ${pxfmt(b.o)}  Н ${pxfmt(b.h)}  Л ${pxfmt(b.l)}  З ${pxfmt(b.c)}`;
+    }
+  }else if(info){
+    const last = data[data.length-1];
+    info.style.display = "block";
+    info.textContent = `${tf}   О ${pxfmt(last.o)}  Н ${pxfmt(last.h)}  Л ${pxfmt(last.l)}  З ${pxfmt(last.c)}`;
+  }
+}
+
+/* mini chart on overview */
+function drawMini(){
+  const c = document.getElementById("miniCanvas");
+  if(!c) return;
+  if(!c._w) fitCanvas(c);
+  const ctx = c.getContext("2d");
+  const W = c._w, H = c._h, padR = 52;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H);
+  const data = (S.candles.M1||[]).slice(-90);
+  if(!data.length) return;
+  let hi=-Infinity, lo=Infinity;
+  for(const b of data){ hi=Math.max(hi,b.h); lo=Math.min(lo,b.l); }
+  hi=Math.max(hi,S.price.ask); lo=Math.min(lo,S.price.bid);
+  const pad=(hi-lo)*0.1||1; hi+=pad; lo-=pad;
+  const plotW = W-padR;
+  const y = p => 6 + (hi-p)/(hi-lo)*(H-12);
+  const bw = plotW/data.length;
+  for(let i=0;i<data.length;i++){
+    const b=data[i], up=b.c>=b.o;
+    ctx.strokeStyle=up?"#0aa85f":"#e5342b"; ctx.fillStyle=up?"#0aa85f":"#e5342b";
+    const cx=i*bw+bw/2;
+    ctx.beginPath(); ctx.moveTo(cx,y(b.h)); ctx.lineTo(cx,y(b.l)); ctx.stroke();
+    const yo=y(b.o),yc=y(b.c);
+    ctx.fillRect(i*bw+0.5, Math.min(yo,yc), Math.max(1,bw-1.5), Math.max(1,Math.abs(yc-yo)));
+  }
+  const yb=y(S.price.bid), ya=y(S.price.ask);
+  ctx.setLineDash([4,3]);
+  ctx.strokeStyle="#0aa85f"; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW,yb); ctx.stroke();
+  ctx.strokeStyle="#e5342b"; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW,ya); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle="#0aa85f"; ctx.fillRect(plotW,yb-7,padR,14); ctx.fillStyle="#fff"; ctx.font="10px sans-serif"; ctx.textAlign="left"; ctx.fillText(pxfmt(S.price.bid),plotW+3,yb+3);
+  ctx.fillStyle="#e5342b"; ctx.fillRect(plotW,ya-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.ask),plotW+3,ya+3);
+}
+
+/* =========================================================================
+   Loop
+   ========================================================================= */
+let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false;
+function restartLoop(){
+  if(rtTimer) clearInterval(rtTimer);
+  rtTimer = setInterval(()=>{ try{ engineFrame(); }catch(e){ console.error(e); } }, RT_MS);
+  restartNormalTicks();
+}
+/* fully STOP the simulation — used while the tab is hidden so nothing advances */
+function stopLoop(){
+  _loopRunning = false;
+  if(rtTimer){ clearInterval(rtTimer); rtTimer = null; }
+  if(normalTickTimer){ clearInterval(normalTickTimer); normalTickTimer = null; }
+  saveNow();
+}
+function startLoop(){
+  _loopRunning = true;
+  _lastFrameReal = Date.now();     // discard any gap since the last active frame
+  _lastShockMin = Math.floor((S.simClock||Date.now())/60000);
+  restartLoop();
+  if(uiTimer) clearInterval(uiTimer);
+  uiTimer = setInterval(()=>{
+    try{
+      if(S._needRender && !modalEl){ S._needRender = false; render(); return; }
+      const key = S.positions.length+"/"+S.pendings.length+"/"+S.history.length+"/"+(tradingLocked()?1:0);
+      if(key !== _lastCounts && !modalEl){
+        _lastCounts = key;
+        if(["positions","orders","history"].includes(S.ui.tab) ||
+           (S.ui.tab==="markets" && ["positions","orders"].includes(S.ui.subtab))){
+          render(); return;
+        }
+      }
+      _lastCounts = key;
+      updateLive();
+    }catch(e){ console.error(e); }
+  }, 120);
+}
+
+window.addEventListener("resize", ()=>{
+  const ids = ["chartCanvas","miniCanvas"];
+  ids.forEach(id=>{ const c = document.getElementById(id); if(c){ c._w = 0; fitCanvas(c); } });
+  if(S.ui.tab === "chart") drawChart();
+  drawMini();
+});
+
+/* ---------------- news self-test (20×4 offline simulations) ---------------- */
+function runNewsTests(n){
+  n = n || 20;
+  const out = {};
+  for(const ty of NEWS_TYPES){
+    const runs = [];
+    for(let i=0;i<n;i++) runs.push(simulateNewsOffline(ty));
+    const R = runs.map(r=>r.totalRange);
+    const fm = runs.map(r=>r.finalMove);
+    const up = runs.filter(r=>r.finalMove>0).length;
+    out[ty] = {
+      n, meanRange:+avg(R).toFixed(1), minRange:+Math.min(...R).toFixed(1), maxRange:+Math.max(...R).toFixed(1),
+      medRange:+median(R).toFixed(1),
+      pctOver35:+(R.filter(x=>x>=35).length/n*100).toFixed(0),
+      pctOver75:+(R.filter(x=>x>=75).length/n*100).toFixed(0),
+      pctOver100:+(R.filter(x=>x>=100).length/n*100).toFixed(0),
+      up, down:n-up,
+      fakeouts:runs.filter(r=>r.fakeout).length, reversals:runs.filter(r=>r.reversal).length,
+      twoWay:runs.filter(r=>r.twoWay).length,
+      meanFinalAbs:+avg(fm.map(Math.abs)).toFixed(1)
+    };
+  }
+  return out;
+}
+function avg(a){ return a.reduce((x,y)=>x+y,0)/(a.length||1); }
+function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+
+/* =========================================================================
+   CLOUD SYNC + ACCOUNTS
+   The full simulator state (S) is the save. It is stored locally (fast, offline)
+   and mirrored to the server so the SAME frozen state resumes on any device.
+   ========================================================================= */
+const XC = {
+  token: localStorage.getItem("xc_token") || null,
+  email: localStorage.getItem("xc_email") || null,
+  guest: localStorage.getItem("xc_guest") === "1",
+  online: false, remoteAt: 0, _pushT: null, _pushMax: 0, _dirty: false, _inflight: false, booted: false
+};
+async function xcApi(method, path, body){
+  const h = { "Content-Type": "application/json" };
+  if(XC.token) h["Authorization"] = "Bearer " + XC.token;
+  const r = await fetch(path, { method, headers: h, body: body ? JSON.stringify(body) : undefined });
+  let data = null; try{ data = await r.json(); }catch(e){}
+  if(!r.ok){ const err = new Error((data && data.error) || ("HTTP " + r.status)); err.status = r.status; throw err; }
+  return data;
+}
+function xcSetSession(res){
+  XC.token = res.token; XC.email = res.email || null; XC.guest = !!res.isGuest;
+  localStorage.setItem("xc_token", XC.token);
+  if(XC.email) localStorage.setItem("xc_email", XC.email); else localStorage.removeItem("xc_email");
+  localStorage.setItem("xc_guest", XC.guest ? "1" : "0");
+}
+function xcClearSession(){
+  XC.token = null; XC.email = null; XC.guest = false; XC.online = false;
+  LS_KEY = "xc_state_local";   // stop writing to the previous account's local cache
+  localStorage.removeItem("xc_token"); localStorage.removeItem("xc_email"); localStorage.removeItem("xc_guest");
+}
+function xcPushState(force){
+  if(!XC.token) return;
+  XC._dirty = true;
+  const go = ()=>{
+    clearTimeout(XC._pushT); clearTimeout(XC._pushMax); XC._pushT = null; XC._pushMax = 0;
+    if(!XC._dirty || XC._inflight) return;
+    XC._inflight = true; XC._dirty = false;
+    xcApi("PUT", "/api/state", { state: S })
+      .then(res=>{ XC._inflight = false; XC.online = true; XC.remoteAt = res.updatedAt; syncBadge(); })
+      .catch(()=>{ XC._inflight = false; XC._dirty = true; XC.online = false; syncBadge(); });
+  };
+  if(force){ go(); return; }
+  clearTimeout(XC._pushT);
+  XC._pushT = setTimeout(go, 3500);
+  // the 3.5 s debounce gets starved during continuous play -> hard flush at least every 15 s
+  if(!XC._pushMax) XC._pushMax = setTimeout(go, 15000);
+}
+/* Reliable save on the way out. visibilitychange->hidden already fired an async
+   force-push; this is the belt-and-suspenders path for real page teardown.
+   The state (mostly chart candles) is well over sendBeacon's 64 KB limit, so a
+   synchronous same-origin XHR is used during unload (permitted for unload handlers). */
+function xcPushBeacon(){
+  saveNow();
+  if(!XC.token) return;                 // always flush the latest state on the way out
+  const t = Date.now();
+  if(t - (XC._beaconAt || 0) < 1500) return;   // pagehide + beforeunload both fire -> send once
+  XC._beaconAt = t;
+  const body = JSON.stringify({ state: S });
+  try{
+    if(body.length < 60000 && navigator.sendBeacon){
+      const blob = new Blob([body], { type: "application/json" });
+      if(navigator.sendBeacon("/api/state?token=" + encodeURIComponent(XC.token), blob)){ XC._dirty = false; return; }
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", "/api/state", false);   // sync: must complete before the page is gone
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Authorization", "Bearer " + XC.token);
+    xhr.send(body);
+    XC._dirty = false;
+  }catch(e){
+    try{
+      fetch("/api/state", { method:"PUT", keepalive:true,
+        headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + XC.token }, body }).catch(()=>{});
+    }catch(e2){}
+  }
+}
+function syncBadge(){
+  const el = document.getElementById("xcSync");
+  if(!el) return;
+  el.textContent = XC.token ? (XC.online ? "● облако" : "○ офлайн") : "○ локально";
+  el.style.color = XC.online ? "var(--green)" : "var(--ink3)";
+}
+
+/* ---------- auth screen ---------- */
+let _authMode = "login";
+function screenAuth(msg){
+  const t = _authMode;
+  app().innerHTML = `
+    <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div><span class="badge-demo">DEMO • SYNTHETIC DATA</span></div>
+    <div class="wrap" style="max-width:420px;margin:0 auto">
+      <div class="card" style="text-align:center;padding:22px 16px">
+        <div style="font-size:26px;font-weight:900;letter-spacing:.02em">XAUCORE</div>
+        <div class="hint" style="margin-top:4px">Синтетический DEMO-терминал XAUUSD. Не подключает реальные счета или брокеров.</div>
+      </div>
+      <div class="card">
+        <div class="seg" style="margin-bottom:14px">
+          <button data-am="login" class="${t==='login'?'on':''}">Вход</button>
+          <button data-am="register" class="${t==='register'?'on':''}">Регистрация</button>
+        </div>
+        ${msg?`<div class="hint" style="color:${/ошиб|занят|невер/i.test(msg)?'var(--red)':'var(--green)'};font-weight:700;margin-bottom:8px">${msg}</div>`:""}
+        <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" autocomplete="email" value="${XC.email||''}"></div>
+        <div class="field"><label>Пароль${t==='register'?' (мин. 6 символов)':''}</label><input id="au-pass" type="password" autocomplete="${t==='register'?'new-password':'current-password'}"></div>
+        <button class="btn green" id="au-go">${t==='login'?'Войти':'Создать аккаунт'}</button>
+        <button class="btn ghost" id="au-guest">Играть без аккаунта (гость)</button>
+        <div class="hint" style="margin-top:8px;text-align:center">Аккаунт нужен, чтобы продолжить симуляцию с другого устройства или браузера. Гость — только это устройство.</div>
+      </div>
+    </div>`;
+  app().querySelectorAll("[data-am]").forEach(b=> b.onclick = ()=>{ _authMode = b.dataset.am; screenAuth(); });
+  const em = ()=> (document.getElementById("au-email").value||"").trim();
+  const pw = ()=> document.getElementById("au-pass").value||"";
+  document.getElementById("au-go").onclick = async ()=>{
+    const btn = document.getElementById("au-go"); btn.disabled = true; btn.textContent = "…";
+    try{
+      const res = await xcApi("POST", _authMode==="login" ? "/api/auth/login" : "/api/auth/register", { email: em(), password: pw() });
+      xcSetSession(res);
+      await bootAfterAuth(true);
+    }catch(e){ screenAuth(e.message || "Ошибка"); }
+  };
+  document.getElementById("au-guest").onclick = async ()=>{
+    try{
+      const res = await xcApi("POST", "/api/auth/guest");
+      xcSetSession(res);
+      await bootAfterAuth(false);
+    }catch(e){ screenAuth("Сервер недоступен — работаем офлайн"); localStorage.setItem("xc_offline","1"); startOffline(); }
+  };
+  document.getElementById("au-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("au-go").click(); });
+}
+
+/* ---------- state fixups applied whenever S is (re)loaded ---------- */
+function normalizeState(){
+  const d = DEFAULTS();
+  if(!S.candles || !S.candles.M1 || !S.candles.M1.length) seedMarket();
+  if(!S.news) S.news = d.news;
+  if(!S.lock) S.lock = { active:false, until:0 };
+  if(!S.newsLog) S.newsLog = [];
+  if(!S.dayLog) S.dayLog = [];
+  if(!S.newsEngine) S.newsEngine = { tickHzNewsMin:20, tickHzNewsMax:50, perEvent: newsEngineDefaults() };
+  S.news.active = false; S.lock.active = false;   // never resume a news event across a session
+  S.news.delta = 0; S.news._vel = 0; S.news.decayUntil = 0;
+  if(!S.manual) S.manual = { enabled:false, frozen:false, impulse:null };
+  S.manual.impulse = null;                         // never resume an impulse across a session
+  if(S.price.vel == null) S.price.vel = 0;
+  if(S.price.volCluster == null) S.price.volCluster = 1;
+  if(S.price.ema == null) S.price.ema = S.price.mid;
+  if(S.price.emaFast == null) S.price.emaFast = S.price.mid;
+  if(S.regime){ if(S.regime.ageMs == null) S.regime.ageMs = 0; delete S.regime.startReal; delete S.regime.endReal; }
+  if(S.day){ if(S.day.elapsedMs == null) S.day.elapsedMs = 0; delete S.day.startReal; delete S.day.endReal; }
+  if(!S.regime) startRegime(null);
+  if(!S.day) startNewDay(S.price.mid);
+  if(S.market.ticksPerSecond == null || !(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2;
+  recalcAccount();
+}
+
+function finishBoot(){
+  if(XC.booted) return;
+  XC.booted = true;
+  normalizeState();
+  render();
+  // start advancing only if the page is actually visible; ?boot=paused -> restore only (debug).
+  // if it loads into a background tab, the loop starts on the first visibilitychange->visible.
+  const bootPaused = /[?&]boot=paused/.test(location.search);
+  if(!bootPaused && document.visibilityState !== "hidden") startLoop();
+  syncBadge();
+
+  // pause the WHOLE simulation while the tab is hidden -> nothing advances while away
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){ if(_loopRunning){ stopLoop(); xcPushState(true); } }
+    else { if(!_loopRunning && XC.booted && !bootPaused){ startLoop(); } }
+  });
+  window.addEventListener("pagehide", xcPushBeacon);
+  window.addEventListener("beforeunload", xcPushBeacon);
+}
+
+/* start without a server (fallback if backend is unreachable) */
+function startOffline(){
+  load();
+  finishBoot();
+}
+
+/* after a successful auth: pull the frozen server state (if any) and resume it */
+async function bootAfterAuth(preferRemote){
+  try{
+    const me = await xcApi("GET", "/api/me");
+    XC.email = me.email || null; XC.guest = !!me.isGuest;
+    if(me.id) LS_KEY = "xc_state_" + me.id;   // per-user local cache -> no cross-account bleed
+    localStorage.setItem("xc_guest", XC.guest ? "1" : "0");
+    if(XC.email) localStorage.setItem("xc_email", XC.email);
+  }catch(e){}
+  try{
+    const r = await xcApi("GET", "/api/state");
+    if(r && r.state && (preferRemote || !localStorage.getItem(LS_KEY))){
+      S = r.state;                      // frozen server state wins -> exact resume
+      if(S.version >= 2) migrateState();
+      XC.online = true; XC.remoteAt = r.updatedAt;
+      saveNow();
+    } else {
+      load(true);                       // no server state -> per-user local cache, then legacy once, else fresh
+      if(r && r.state && r.updatedAt > 0){ /* keep local; it will be pushed */ }
+    }
+  }catch(e){
+    if(e.status === 401){ xcClearSession(); return screenAuth("Сессия истекла — войдите снова"); }
+    XC.online = false;
+    load(true);                         // network error -> offline cache
+  }
+  finishBoot();
+  xcPushState(true);                    // make sure server has the current state
+}
+
+/* ---------------- boot ---------------- */
+if(XC.token){
+  bootAfterAuth(true).catch(()=>{ load(); finishBoot(); });
+} else {
+  load();                             // load local cache so it survives even before login
+  screenAuth();
+}
+
+window.__sim = { S:()=>S, openPosition, closePosition, commissionFor, posMetrics, recalcAccount,
+  releaseEvent, forceRollover, resetAll, addPending, cancelPending,
+  processPositionSLTP, processPendings, checkStopOut, checkRollover, marketTick, seedMarket,
+  startNews, endNews, generateScenario, simulateNewsOffline, runNewsTests,
+  engineFrame, priceStep, normalMicroStep, normalTickFire, restartNormalTicks, tradingLocked, ticks:()=>_tickBuf, chart:()=>chart,
+  startNewDay, rolloverDay, startRegime, advanceRegime, pickDayVol,
+  simDaysOffline, simulateDayOffline, runDayTests,
+  manualSetPrice, manualNudge, manualTick, startManualImpulse,
+  MARKET_REGIMES, MARKET_TRANSITIONS,
+  XC:()=>XC, stopLoop, startLoop, dayDurationMs, regimeDurationMs, finishBoot,
+  drive(frames){ for(let i=0;i<(frames||1);i++){ _lastFrameReal = Date.now()-60; engineFrame(); normalTickFire(); } },
+  simulateAwayGap(ms){ _lastFrameReal = Date.now() - ms; engineFrame(); }   // one frame after a long gap
+};
+</script>

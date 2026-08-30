@@ -1,0 +1,27 @@
+# Render.com blueprint for XAUCORE.
+# In the Render dashboard: New +  ->  Blueprint  ->  point at this repo.
+# A persistent Disk is required so the SQLite database survives restarts/redeploys
+# (Disks are a paid feature on Render — ~$1/mo for 1 GB. On the free plan the
+#  service still runs but the DB is wiped on every redeploy.)
+# After the service is live:  Settings -> Custom Domains -> add  xaucore.io  and
+# www.xaucore.io, then create the CNAME / ALIAS records Render shows at your DNS.
+
+services:
+  - type: web
+    name: xaucore
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter          # "free" also works but has no persistent disk
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8777"
+      - key: DB_PATH
+        value: /data/xaucore.db
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: xaucore-data
+      mountPath: /data
+      sizeGB: 1
