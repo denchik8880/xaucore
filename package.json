@@ -1,16 +1,18 @@
 {
   "name": "xaucore",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "XAUCORE — DEMO / SYNTHETIC XAUUSD trading simulator (no real quotes, brokers or accounts)",
-  "type": "commonjs",
-  "main": "server.js",
+  "description": "XAUCORE — DEMO / SYNTHETIC XAUUSD trading simulator (no real quotes, brokers or accounts). Vercel + Turso.",
+  "type": "module",
   "engines": {
-    "node": ">=22.5.0"
+    "node": "22.x"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node dev-server.js",
+    "init-db": "node scripts/init-db.mjs"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.4"
   },
   "license": "MIT"
 }
