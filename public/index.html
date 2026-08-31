@@ -229,6 +229,29 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .godpanel .gp-lbl{font-size:10px;color:#9aa4af;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
 .godpanel .gp-half{flex:1}
 
+/* markets watchlist ("Рынки" list -> tap XAUUSD -> existing terminal screen) */
+.wl-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.wl-name{font-weight:800;font-size:15px}
+.wl-tools{display:flex;gap:6px}
+.wl-tools .ic{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--line);font-size:14px;color:var(--ink2)}
+.wl-row{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:9px;cursor:pointer;width:100%;text-align:left}
+.wl-row:active{background:#f6f7f9}
+.wl-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.wl-sym{font-weight:800;font-size:17px}
+.wl-sym .ck{color:var(--green);margin-right:3px}
+.wl-chg{font-weight:700;font-size:12.5px;white-space:nowrap}
+.wl-mid{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.wl-spark{flex:0 0 118px;height:38px;overflow:hidden}
+.wl-spark svg{display:block;width:100%;height:100%}
+.wl-stats{font-size:10.5px;color:var(--ink3);text-align:right;line-height:1.5;overflow-wrap:anywhere}
+.wl-quote{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wl-q{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:7px 4px}
+.wl-q b{font-size:9px;letter-spacing:.04em;color:var(--ink3)}
+.wl-q .mono{font-size:15px;font-weight:800}
+.wl-q.sell{border-color:#f6c9c4;color:var(--red)}
+.wl-q.buy{border-color:#b7e6cf;color:var(--green)}
+.ab-bal{background:var(--line);color:var(--ink);font-weight:800;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+
 /* generic overflow guards */
 .card,.lrow,.menu-item,.evt{max-width:100%;overflow-wrap:anywhere}
 .dom-grid{overflow-x:auto}
@@ -388,7 +411,7 @@ const DEFAULTS = () => ({
           delta:0, _vel:0 },
   lock: { active:false, until:0 },
   newsLog: [],
-  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1" },
+  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false },
   seq: { pos: 1, ord: 1, evt: 1 },
   createdAt: Date.now()
 });
@@ -1813,10 +1836,11 @@ function nav(tab, subtab){
 
 /* ---------- top-level render ---------- */
 function render(){
+  if(!S) return;                       // guard against a stray render() during boot
   const t = S.ui.tab;
   let html = "";
   html += topBanner();
-  if(t === "markets")   html += screenMarkets();
+  if(t === "markets")   html += S.ui.marketOpen ? screenMarkets() : screenMarketsList();
   else if(t === "chart")     html += screenChart();
   else if(t === "positions") html += screenPositions();
   else if(t === "orders")    html += screenOrders();
@@ -1830,8 +1854,8 @@ function render(){
   app().innerHTML = html;
   bindScreen();
   updateLive();
-  if(t === "chart" || (t === "markets" && S.ui.subtab === "chart")) setupChartCanvas();
-  if(t === "markets" && S.ui.subtab === "overview") drawMini();
+  if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
+  if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(t === "dom") drawDOMCanvasMaybe();
 }
 
@@ -1859,15 +1883,64 @@ function topBanner(){
 /* ---------- app bar ---------- */
 function appbar(title, opts){
   opts = opts || {};
+  const right = opts.balance
+    ? `<span class="badge-demo" style="font-size:9px;padding:2px 5px">DEMO</span><span class="ab-bal mono" id="abBal">${money(S.account.balance)}</span>`
+    : `<span class="badge-demo">DEMO • SYNTHETIC DATA</span>`;
   return `<div class="appbar">
     ${opts.back?`<button class="iconbtn" data-act="back">‹</button>`:``}
     <div class="ttl">${title}${opts.caret?` <span style="color:var(--ink3)">▾</span>`:``}</div>
     <div class="sp"></div>
-    <span class="badge-demo">DEMO • SYNTHETIC DATA</span>
+    ${right}
   </div>`;
 }
 
-/* ---------- MARKETS ---------- */
+/* ---------- MARKETS ----------
+   "Рынки" is a watchlist. Tapping the XAUUSD row opens the EXISTING XAUUSD
+   terminal screen (screenMarkets) against the SAME simulator state — no copy.
+   S.ui.marketOpen toggles between the two; the terminal's ‹ back returns here. */
+function watchSparkSVG(){
+  const c = (S.candles.M1 || []).slice(-48).map(b => b.c);
+  if(c.length < 2) return "";
+  const lo = Math.min(...c), hi = Math.max(...c), rng = (hi - lo) || 1;
+  const W = 118, H = 38;
+  const pts = c.map((v,i) => `${(i/(c.length-1)*W).toFixed(1)},${(H - 2 - (v-lo)/rng*(H-4)).toFixed(1)}`).join(" ");
+  const col = c[c.length-1] >= c[0] ? "var(--green)" : "var(--red)";
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function watchStats(){
+  const D = S.day;
+  const chg = D ? (S.price.mid - D.open) : 0;
+  const chgPct = D ? chg / (D.open || 1) * 100 : 0;
+  const spr = Math.round((S.price.ask - S.price.bid) / Math.pow(10, -S.symbol.digits));
+  return { chg, chgPct, spr, hi: D ? D.high : S.price.mid, lo: D ? D.low : S.price.mid };
+}
+function screenMarketsList(){
+  recalcAccount();
+  const w = watchStats();
+  return appbar("Рынки", { balance:true }) + `<div class="wrap">
+    <div class="wl-head">
+      <span class="wl-name">XAU · DEMO <span style="color:var(--ink3)">▾</span></span>
+      <span class="wl-tools"><span class="ic" data-act="addinstr">＋</span><span class="ic" data-act="addinstr">✎</span></span>
+    </div>
+    <button class="wl-row" data-act="openxau">
+      <div class="wl-top">
+        <span class="wl-sym"><span class="ck">✓</span>XAUUSD</span>
+        <span class="wl-chg mono ${w.chg>=0?'pos':'neg'}" id="wlChg">${signMoney(w.chg)} (${w.chg>=0?'+':''}${fmt(w.chgPct,2)}%)</span>
+      </div>
+      <div class="wl-mid">
+        <span class="wl-spark" id="wlSparkBox">${watchSparkSVG()}</span>
+        <span class="wl-stats mono">H: <span id="wlHi">${pxfmt(w.hi)}</span> · S: <span id="wlSp">${w.spr}</span> · L: <span id="wlLo">${pxfmt(w.lo)}</span></span>
+      </div>
+      <div class="wl-quote">
+        <span class="wl-q sell"><b>ПРОДАТЬ</b><span class="mono" id="wlBid">${pxfmt(S.price.bid)}</span></span>
+        <span class="wl-q buy"><b>КУПИТЬ</b><span class="mono" id="wlAsk">${pxfmt(S.price.ask)}</span></span>
+      </div>
+    </button>
+    <button class="btn dark" data-act="addinstr" style="margin-top:14px">＋ Добавить инструменты</button>
+    <div class="hint" style="text-align:center;margin-top:16px">DEMO • SYNTHETIC DATA — в демо-режиме доступен только XAUUSD</div>
+    <button class="bignew" data-act="newticket">Новый ордер</button>
+  </div>`;
+}
 function screenMarkets(){
   const sub = S.ui.subtab;
   let inner = "";
@@ -1875,7 +1948,7 @@ function screenMarkets(){
   else if(sub === "positions") inner = listPositions();
   else if(sub === "orders")    inner = listOrders();
   else if(sub === "chart")     inner = `<div class="wrap"><div class="card" style="padding:0;overflow:hidden">${chartMarkup(260)}</div></div>`;
-  return appbar("XAUUSD", {caret:true}) + `
+  return appbar("XAUUSD", {back:true, caret:true}) + `
     <div class="subtabs">
       <button data-sub="overview" class="${sub==="overview"?"on":""}">ОБЗОР</button>
       <button data-sub="positions" class="${sub==="positions"?"on":""}">ПОЗИЦИИ</button>
@@ -2526,7 +2599,10 @@ function bottomNav(){
 function bindScreen(){
   const root = app();
 
-  root.querySelectorAll("[data-nav]").forEach(b=> b.onclick = ()=> nav(b.dataset.nav));
+  root.querySelectorAll("[data-nav]").forEach(b=> b.onclick = ()=>{
+    if(b.dataset.nav === "markets") S.ui.marketOpen = false;   // "Рынки" tab -> watchlist
+    nav(b.dataset.nav);
+  });
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{ S.ui.chartTF = b.dataset.tf; render(); save(); });
@@ -2537,7 +2613,12 @@ function bindScreen(){
 
   const act = (name, fn) => root.querySelectorAll(`[data-act="${name}"]`).forEach(el=> el.onclick = fn);
 
-  act("back", ()=> nav(["settings","history","calendar","dom","debug"].includes(S.ui.tab) ? "more" : "markets"));
+  act("back", ()=>{
+    if(S.ui.tab === "markets"){ S.ui.marketOpen = false; render(); save(); return; }   // XAUUSD ‹ -> "Рынки"
+    nav(["settings","history","calendar","dom","debug"].includes(S.ui.tab) ? "more" : "markets");
+  });
+  act("openxau", ()=>{ S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
+  act("addinstr", ()=> toast("o", "В DEMO-режиме доступен только XAUUSD"));
   act("newticket", ()=> openTicket());
   act("gotocal", ()=> nav("calendar"));
   act("gotosettings", ()=> nav("settings"));
@@ -3165,6 +3246,7 @@ function fitText(el, minPx){
   }
 }
 function updateLive(){
+  if(!S) return;
   recalcAccount();
   const A = S._acc;
   // overview
@@ -3174,6 +3256,7 @@ function updateLive(){
   fitText(document.getElementById("ovAsk"), 13);
   setTxt("ovSpread", pxfmt(S.price.spread));
   setTxt("ovSess", sessionInfo().names.join(" · "));
+  setTxt("abBal", money(S.account.balance));
   setTxt("gpPx", pxfmt(S.price.mid));
   setTxt("gpSub", "Bid "+pxfmt(S.price.bid)+" · Ask "+pxfmt(S.price.ask)+" · спред "+pxfmt(S.price.spread));
   const gpSt = document.getElementById("gpState");
@@ -3235,8 +3318,17 @@ function updateLive(){
   if(modalEl && modalEl._live) modalEl._live();
   // charts
   if(S.ui.tab === "chart") drawChart();
-  if(S.ui.tab === "markets" && S.ui.subtab === "overview") drawMini();
-  if(S.ui.tab === "markets" && S.ui.subtab === "chart") drawChart();
+  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
+  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart") drawChart();
+  // watchlist row — keep prices/change/spark live
+  if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
+    const w = watchStats();
+    setTxt("wlBid", pxfmt(S.price.bid)); setTxt("wlAsk", pxfmt(S.price.ask));
+    setTxt("wlHi", pxfmt(w.hi)); setTxt("wlLo", pxfmt(w.lo)); setTxt("wlSp", String(w.spr));
+    setTxt("wlChg", signMoney(w.chg)+" ("+(w.chg>=0?"+":"")+fmt(w.chgPct,2)+"%)", w.chg>=0?"pos":"neg");
+    const sb = document.getElementById("wlSparkBox");
+    if(sb && Date.now() - (sb._t||0) > 1500){ sb.innerHTML = watchSparkSVG(); sb._t = Date.now(); }
+  }
 }
 
 /* =========================================================================
@@ -3335,6 +3427,7 @@ function fitCanvas(c){
   c._w = w; c._h = h;
 }
 function drawChart(){
+  if(!S) return;
   const c = document.getElementById("chartCanvas");
   if(!c) return;
   if(!c._w) fitCanvas(c);
@@ -3457,6 +3550,7 @@ function drawChart(){
 
 /* mini chart on overview */
 function drawMini(){
+  if(!S) return;
   const c = document.getElementById("miniCanvas");
   if(!c) return;
   if(!c._w) fitCanvas(c);
@@ -3523,7 +3617,7 @@ function startLoop(){
       if(key !== _lastCounts && !modalEl){
         _lastCounts = key;
         if(["positions","orders","history"].includes(S.ui.tab) ||
-           (S.ui.tab==="markets" && ["positions","orders"].includes(S.ui.subtab))){
+           (S.ui.tab==="markets" && S.ui.marketOpen && ["positions","orders"].includes(S.ui.subtab))){
           render(); return;
         }
       }
@@ -3534,9 +3628,10 @@ function startLoop(){
 }
 
 window.addEventListener("resize", ()=>{
+  if(!S) return;                               // resize can fire before the state is loaded
   const ids = ["chartCanvas","miniCanvas"];
   ids.forEach(id=>{ const c = document.getElementById(id); if(c){ c._w = 0; fitCanvas(c); } });
-  if(S.ui.tab === "chart") drawChart();
+  if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
   drawMini();
 });
 
@@ -3717,6 +3812,8 @@ function normalizeState(){
   if(!S.regime) startRegime(null);
   if(!S.day) startNewDay(S.price.mid);
   if(S.market.ticksPerSecond == null || !(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2;
+  if(!S.ui) S.ui = { ...d.ui };
+  if(S.ui.marketOpen == null) S.ui.marketOpen = false;   // land on the "Рынки" watchlist
   recalcAccount();
 }
 
