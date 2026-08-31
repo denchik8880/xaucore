@@ -1619,8 +1619,20 @@ function modifyPosition(id, sl, tp){
   if(guardLock()) return;
   const p = S.positions.find(x=>x.id===id);
   if(!p) return;
-  p.sl = sl; p.tp = tp;
-  toast("", "Позиция #"+id+" изменена");
+  // Reject an SL/TP that already sits on the wrong side of the market — that would
+  // trigger on the very next tick. Editing a position must NEVER auto-close it.
+  const bid = S.price.bid, ask = S.price.ask;
+  if(sl != null && isFinite(sl)){
+    if(p.side === "buy"  && sl >= bid){ toast("r", "SL для BUY должен быть ниже Bid "+pxfmt(bid)+" — позиция не изменена"); return; }
+    if(p.side === "sell" && sl <= ask){ toast("r", "SL для SELL должен быть выше Ask "+pxfmt(ask)+" — позиция не изменена"); return; }
+  }
+  if(tp != null && isFinite(tp)){
+    if(p.side === "buy"  && tp <= bid){ toast("r", "TP для BUY должен быть выше Bid "+pxfmt(bid)+" — позиция не изменена"); return; }
+    if(p.side === "sell" && tp >= ask){ toast("r", "TP для SELL должен быть ниже Ask "+pxfmt(ask)+" — позиция не изменена"); return; }
+  }
+  p.sl = (sl != null && isFinite(sl)) ? sl : null;
+  p.tp = (tp != null && isFinite(tp)) ? tp : null;
+  toast("g", "Позиция #"+id+" изменена — SL "+(p.sl?pxfmt(p.sl):"—")+" · TP "+(p.tp?pxfmt(p.tp):"—"));
   save();
 }
 
@@ -2410,9 +2422,9 @@ function screenSettings(){
   };
   return appbar("Настройки симулятора",{back:true}) + `<div class="wrap">
     <div class="card"><h3>Счёт</h3>
-      ${F("set_bal","Баланс (USD)", A.balance)}
+      ${F("set_bal","Баланс (USD)", fmt(A.balance,2))}
       ${F("set_cur","Валюта", A.currency)}
-      <div class="hint">Изменение баланса пересоздаёт счёт (закрывает позиции).</div>
+      <div class="hint">Новый баланс применяется по кнопке «Сохранить настройки» (или «Применить баланс»). Открытые позиции и ордера сохраняются.</div>
     </div>
     <div class="card"><h3>Инструмент — XAUUSD</h3>
       ${F("set_cs","Размер контракта (унций в лоте)", sym.contractSize)}
@@ -2489,7 +2501,7 @@ function screenSettings(){
     <button class="btn dark" data-act="runnewstests" style="margin-top:0">🧪 Прогнать 20×5 симуляций новостей</button>
     <div class="card" id="ntest" style="display:none;font-size:12px"></div>
     <button class="btn green" data-act="savesettings">Сохранить настройки</button>
-    <button class="btn ghost" data-act="applybalance">Пересоздать счёт с новым балансом</button>
+    <button class="btn ghost" data-act="applybalance">Применить баланс (позиции сохраняются)</button>
     <button class="btn red" data-act="reset">Сбросить симулятор (начальная цена / свечи)</button>
   </div>`;
 }
@@ -3023,6 +3035,14 @@ function num(id, def){ const v = parseFloat((document.getElementById(id).value||
 function saveSettingsFromForm(silent){
   const T = S.trading, M = S.market, sym = S.symbol, NE = S.newsEngine, A = S.account;
   A.currency = document.getElementById("set_cur").value || "USD";
+  // Account balance — applied here (via the normal "Сохранить" button). Open
+  // positions and pending orders are KEPT; only cash balance / equity change.
+  const nb = num("set_bal", A.balance);
+  if(isFinite(nb) && nb >= 0 && Math.abs(nb - A.balance) > 0.005){
+    A.balance = roundTo(nb, 2);
+    A.initialBalance = A.balance;
+    recalcAccount();
+  }
   sym.contractSize = num("set_cs", sym.contractSize);
   sym.minLot = num("set_minlot", sym.minLot);
   sym.maxLot = num("set_maxlot", sym.maxLot);
@@ -3089,13 +3109,13 @@ function saveSettingsFromForm(silent){
   }
 }
 function applyNewBalance(){
-  const b = num("set_bal", S.account.balance);
-  S.positions = []; S.pendings = [];
-  S.account.initialBalance = b;
-  S.account.balance = b;
-  recalcAccount();
+  const b = clamp(num("set_bal", S.account.balance), 0, 1e12);
+  S.account.balance = roundTo(b, 2);
+  S.account.initialBalance = S.account.balance;
+  recalcAccount();                         // equity/margin update; open positions are kept
   saveNow();
-  toast("g","Счёт пересоздан: "+money(b));
+  if(typeof xcPushState === "function") xcPushState(true);
+  toast("g", "Баланс изменён: " + money(S.account.balance) + " · позиции сохранены");
   nav("markets");
 }
 function forceRollover(){
