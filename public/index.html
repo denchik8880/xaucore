@@ -55,22 +55,32 @@ img,canvas,svg,video{max-width:100%}
 .warn-banner{background:var(--orange);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 .err-banner{background:var(--red);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 
-/* trade panel */
-.tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(84px,110px) minmax(0,1fr);gap:6px;align-items:stretch}
-.tbtn{border-radius:14px;padding:12px 4px;text-align:center;display:flex;flex-direction:column;gap:5px;justify-content:center;min-height:92px;border:1px solid transparent;overflow:hidden;min-width:0}
-.tbtn .lbl{font-weight:800;font-size:clamp(11px,3.4vw,14px);letter-spacing:.02em}
-.tbtn .px{font-size:clamp(15px,5.1vw,22px);font-weight:800;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.tbtn .sub{font-size:11px;opacity:.75;font-weight:600}
+/* trade panel — ПРОДАТЬ | лоты | КУПИТЬ. Must fit full Bid/Ask on ~360-412px with no clipping. */
+.tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(58px,88px) minmax(0,1fr);gap:6px;align-items:stretch;width:100%}
+.tbtn{border-radius:14px;padding:12px 5px;text-align:center;display:flex;flex-direction:column;gap:5px;justify-content:center;min-height:92px;border:1px solid transparent;overflow:hidden;min-width:0}
+.tbtn .lbl{font-weight:800;font-size:clamp(10px,3vw,13.5px);letter-spacing:.02em;white-space:nowrap}
+.tbtn .px{display:block;width:100%;font-size:clamp(14px,4.7vw,21px);font-weight:800;white-space:nowrap;overflow:hidden;letter-spacing:-.01em;line-height:1.15}
+.tbtn .sub{font-size:10.5px;opacity:.75;font-weight:600}
 .tbtn.sell{background:var(--red-bg);color:var(--red);border-color:#f6c9c4}
 .tbtn.buy{background:var(--green-bg);color:var(--green);border-color:#b7e6cf}
 .tbtn:active{filter:brightness(.96)}
 .tbtn:disabled{opacity:.45}
-.lotbox{background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px;gap:4px}
-.lotbox .cap{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
-.lotctl{display:flex;align-items:center;gap:4px;width:100%}
-.lotctl button{width:30px;height:30px;border-radius:9px;background:var(--line);font-size:19px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.lotbox{background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 3px;gap:4px;min-width:0}
+.lotbox .cap{font-size:8.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.02em;font-weight:700;text-align:center;line-height:1.15}
+.lotctl{display:flex;align-items:center;gap:3px;width:100%}
+.lotctl button{width:24px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--line);font-size:16px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .lotctl button:active{background:#dfe2e6}
-.lotctl .val{flex:1;text-align:center;font-weight:800;font-size:16px;border:none;background:none;width:100%;padding:2px 0}
+.lotctl .val{flex:1 1 auto;min-width:30px;text-align:center;font-weight:800;font-size:15px;border:none;background:none;width:100%;padding:2px 0}
+@media (max-width:400px){
+  .tradepanel{grid-template-columns:minmax(0,1fr) minmax(64px,82px) minmax(0,1fr);gap:4px}
+  .tbtn{padding:11px 3px}
+  .tbtn .lbl{font-size:10px}
+  .lotbox{padding:6px 2px}
+  .lotbox .cap{font-size:7.5px}
+  .lotctl{gap:2px}
+  .lotctl button{width:20px;height:26px;font-size:14px}
+  .lotctl .val{font-size:14px;min-width:28px}
+}
 .lotctl .val:focus{outline:2px solid var(--blue);border-radius:6px}
 .spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;margin-top:10px}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
@@ -162,8 +172,8 @@ img,canvas,svg,video{max-width:100%}
 .evt small{color:var(--ink3)}
 hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .pill-toggle{display:flex;gap:6px}
-.pill-toggle button{flex:1;padding:8px;border-radius:9px;background:var(--line);font-weight:700;font-size:12px;color:var(--ink2)}
-.pill-toggle button.on{background:var(--ink);color:#fff}
+.pill-toggle button{flex:1 1 0;min-width:0;padding:9px 4px;border-radius:9px;background:var(--line);font-weight:800;font-size:12px;color:var(--ink2);white-space:nowrap}
+.pill-toggle button.on{background:var(--blue);color:#fff}
 
 /* macro news engine */
 .news-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 8px}
@@ -204,6 +214,10 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .godpanel .gp-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#ffb85c}
 .godpanel .gp-hd .dot{width:8px;height:8px;border-radius:50%;background:#ffb85c;box-shadow:0 0 8px #ffb85c}
 .godpanel .gp-px{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.godpanel .gp-sub{font-size:11px;color:#9aa4af;font-weight:600;margin-bottom:4px}
+.godpanel .gp-state{margin-top:7px;font-size:10.5px;font-weight:800;letter-spacing:.03em;text-align:center;padding:6px 8px;border-radius:8px}
+.godpanel .gp-state.on{background:#14351f;color:#5fe0a0}
+.godpanel .gp-state.off{background:#3a2417;color:#ffb85c}
 .godpanel .gp-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .godpanel button{flex:1 1 auto;min-width:0;background:#2b3138;color:#fff;border-radius:9px;padding:9px 6px;font-weight:800;font-size:12px;border:1px solid #3a424b}
 .godpanel button:active{background:#353d46}
@@ -247,6 +261,12 @@ const NEWS_LABEL = { NFP:"NFP", CPI:"CPI", PPI:"PPI", FOMC:"FOMC", FED_SPEECH:"F
 const DAYVOL_ORDER = ["LOW","NORMAL","ACTIVE","EXTREME"];
 const DAYVOL_RANGE = { LOW:[16,27], NORMAL:[26,46], ACTIVE:[45,75], EXTREME:[80,150] };
 function dayVolProbDefaults(){ return { LOW:0.22, NORMAL:0.42, ACTIVE:0.26, EXTREME:0.10 }; }
+
+/* ---- SIMULATION ACCELERATOR — multiplies ALL simulated time (market, ticks,
+        candles, trading day, regimes, events, news impulses, swaps, timers).
+        The 20 REAL seconds of a news release stay 20 real seconds. ---- */
+const TIME_SCALES = [1, 2, 5, 10];
+function simSpeed(){ const s = S.market.timeScale || 1; return TIME_SCALES.includes(s) ? s : 1; }
 
 /* ---- MARKET REGIME ENGINE — regime-switching framework (no static anchor) ----
    drift  : directional bias, in "day-stdevs per game-day" (+ up / - down)
@@ -337,6 +357,7 @@ const DEFAULTS = () => ({
     regimeDriftScale: 1.0,  // global multiplier on regime directional drift
     macroBull: 1.0,         // multiplier on the long-term bullish macro drift
     ticksPerSecond: 2.0,    // TPS — ordinary-market tick rate (0.1 .. 20). timer = 1000 / TPS ms
+    timeScale: 1,           // SIMULATION ACCELERATOR — 1 | 2 | 5 | 10 (multiplies all simulated time)
     baseSpread: 0.22,       // Base Spread ($)
     normalSlippage: 0.03,   // Normal Slippage ($ max)
     volClusterPersist: 0.992,  // volatility-clustering memory (higher = clusters last longer)
@@ -344,8 +365,9 @@ const DEFAULTS = () => ({
   },
   /* NEWS ENGINE */
   newsEngine: { tickHzNewsMin: 20, tickHzNewsMax: 50, newsBreaksRegimeProb: 0.40, perEvent: newsEngineDefaults() },
-  /* MANUAL MARKET CONTROL (God Mode) */
-  manual: { enabled:false, frozen:false, impulse:null },
+  /* MANUAL MARKET CONTROL (God Mode) — off by default, no accidental activation */
+  manual: { enabled:false, frozen:false, impulse:null,
+            stepSize:0.20, moveSize:5, impDir:1, impUsd:60, impSec:15 },
 
   /* live runtime — currentMarketPrice == price.mid is the single source of truth */
   price: { bid:4457.02, ask:4457.24, mid:4457.13, prevMid:4457.13,
@@ -405,8 +427,14 @@ function migrateState(){
   if(S.market.dayDurationMin === undefined) S.market.dayDurationMin = 50;
   if(!(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2.0;
   S.market.ticksPerSecond = clamp(S.market.ticksPerSecond, 0.1, 20);
+  if(!TIME_SCALES.includes(S.market.timeScale)) S.market.timeScale = 1;
   if(!S.newsEngine.newsBreaksRegimeProb) S.newsEngine.newsBreaksRegimeProb = 0.40;
   if(!S.manual) S.manual = { enabled:false, frozen:false, impulse:null };
+  if(S.manual.stepSize == null) S.manual.stepSize = 0.20;
+  if(S.manual.moveSize == null) S.manual.moveSize = 5;
+  if(S.manual.impDir == null)   S.manual.impDir = 1;
+  if(S.manual.impUsd == null)   S.manual.impUsd = 60;
+  if(S.manual.impSec == null)   S.manual.impSec = 15;
   S.manual.impulse = null;
   if(!S.dayLog) S.dayLog = [];
   if(S.daySeq === undefined) S.daySeq = 0;
@@ -544,7 +572,8 @@ function seedMarket(){
              startPrice:0, high:0, low:0, progress:0, ticks:0, decayUntil:0, result:null,
              delta:0, _vel:0 };
   S.lock = { active:false, until:0 };
-  S.manual = { enabled:false, frozen:false, impulse:null };
+  S.manual = { enabled:false, frozen:false, impulse:null,
+               stepSize:0.20, moveSize:5, impDir:1, impUsd:60, impSec:15 };
   S.dayLog = [];
   S.daySeq = 0;
   S.regime = null;
@@ -789,13 +818,18 @@ function normalTps(){ return clamp(S.market.ticksPerSecond || 2, 0.1, 20); }
    tab throttled, backgrounded, or reopened after minutes/hours/days — counts as a
    single frame, so nothing advances while the user is away. */
 let _lastFrameReal = Date.now();
+function newsFreezesTime(){
+  return S.news.active && S.news.scenario && S.news.scenario.oneCandle;
+}
 function accumulateActiveTime(){
   const now = Date.now();
   let d = now - _lastFrameReal;
   _lastFrameReal = now;
   if(!(d > 0)) return;
   if(d > 400) d = RT_MS;                                   // gap -> one frame, never a leap
-  if(S.manual.enabled && S.manual.frozen) return;          // God Mode freeze also stops the day clock
+  if(S.manual.enabled && S.manual.frozen) return;          // God Mode PAUSE also stops the day clock
+  if(newsFreezesTime()) return;                            // NFP: the world holds for the 20s impulse
+  d *= simSpeed();                                         // accelerator (applied AFTER the gap cap)
   if(S.day)    S.day.elapsedMs   = (S.day.elapsedMs   || 0) + d;
   if(S.regime) S.regime.ageMs    = (S.regime.ageMs    || 0) + d;
 }
@@ -813,17 +847,21 @@ function engineFrame(){
   advanceRegime();
 
   if(newsOn || impulseOn){
+    // NFP-style "one candle" release: sim-time HOLDS, only the news impulse drives price
+    const oneShot = newsOn && S.news.scenario && S.news.scenario.oneCandle;
     const hz = newsOn ? rnd(S.newsEngine.tickHzNewsMin, S.newsEngine.tickHzNewsMax) : rnd(18, 34);
     _tickAcc += hz * RT_MS / 1000;
     let nTicks = clamp(Math.floor(_tickAcc), 0, 60);
     _tickAcc -= Math.floor(_tickAcc);
-    _simDebtMs += RT_MS * daySpeedNow();
+    if(!oneShot) _simDebtMs += RT_MS * daySpeedNow() * simSpeed();
     if(nTicks > 0){
-      const simPerTick = _simDebtMs / nTicks;
+      const simPerTick = oneShot ? 0 : _simDebtMs / nTicks;
       _simDebtMs = 0;
       for(let i=0;i<nTicks;i++){
-        S.simClock += simPerTick;
-        priceStep((simPerTick/1000) * (closed ? 0.2 : 1));   // the day keeps moving under the news
+        if(!oneShot){
+          S.simClock += simPerTick;
+          priceStep((simPerTick/1000) * (closed ? 0.2 : 1));   // the day keeps moving under the news
+        }
         if(impulseOn) applyManualImpulse();
         if(newsOn)    stepNews();
         applyPriceDerived();
@@ -851,26 +889,29 @@ function finishFrame(nowR, newsOn){
 /* ---- ordinary-market tick generator — its own timer at exactly 1000 / ticksPerSecond ms ---- */
 let normalTickTimer = null;
 function restartNormalTicks(){
-  if(normalTickTimer) clearInterval(normalTickTimer);
+  if(normalTickTimer){ clearInterval(normalTickTimer); normalTickTimer = null; }
+  if(!_loopRunning) return;                        // don't run ticks while paused / tab hidden
   const ms = Math.max(50, Math.round(1000 / normalTps()));
   normalTickTimer = setInterval(normalTickFire, ms);
 }
 function normalTickFire(){
   try{
     if(S.news.active || S.manual.impulse) return;                 // news / impulse drive price via engineFrame
-    if(S.manual.enabled && S.manual.frozen) return;               // God Mode freeze
+    if(S.manual.enabled && S.manual.frozen) return;               // God Mode PAUSE
     if(marketClosed()){ recalcAccount(); return; }
     const tps = normalTps();
-    const gameMs = (1000 / tps) * daySpeedNow();                  // game-time advanced per real tick
-    S.simClock += gameMs;
-    // rare micro-burst on extremely active markets, so candles don't look mechanical
-    const burst = (marketActivity() > 2.6 && Math.random() < 0.18) ? 2 : 1;
-    for(let i=0;i<burst;i++){
-      priceStep((gameMs / burst) / 1000);
+    const gameMs = (1000 / tps) * daySpeedNow() * simSpeed();     // game-time advanced per real tick (× accelerator)
+    // keep each price sub-step small (~<=14 game-sec) so candles stay smooth at any TPS / accelerator
+    let sub = clamp(Math.round(gameMs / 14000), 1, 40);
+    if(sub < 2 && marketActivity() > 2.6 && Math.random() < 0.18) sub = 2;   // occasional micro-burst
+    const stepMs = gameMs / sub;
+    for(let i=0;i<sub;i++){
+      S.simClock += stepMs;
+      priceStep(stepMs / 1000);
       applyPriceDerived();
       pushTick();
+      updateCandles();
     }
-    updateCandles();
     processPendings();
     processPositionSLTP();
     recalcAccount();
@@ -977,10 +1018,24 @@ function manualSetPrice(v){
 function manualNudge(d){
   S.price.mid = Math.max(0.01, S.price.mid + d);
   S.price.vel += d * 0.2;
+  S.price.lastVol = Math.max(2, Math.round(Math.abs(d) * 14 + rnd(2, 8)));
   manualSyncAll();
 }
 function manualTick(dir){
-  manualNudge(dir * Math.max(0.02, S.price.spread * 0.5));
+  const st = Math.max(0.01, Math.abs(S.manual.stepSize || 0.2));
+  manualNudge((dir >= 0 ? 1 : -1) * st);
+}
+function manualMove(dir){
+  const mv = Math.max(0.01, Math.abs(S.manual.moveSize || 1));
+  manualNudge((dir >= 0 ? 1 : -1) * mv);
+  toast("", (dir >= 0 ? "▲ +$" : "▼ -$") + fmt(mv, 2) + "  →  " + pxfmt(S.price.mid));
+}
+function manualPause(on){
+  if(!S.manual.enabled) return;
+  S.manual.frozen = !!on;
+  if(on) S.manual.impulse = null;                 // a running impulse would fight a pause
+  toast("o", on ? "⏸ Авто Price Engine остановлен" : "▶ Авто Price Engine возобновлён");
+  S._needRender = true;
 }
 function startManualImpulse(dir, usd, sec){
   if(S.news.active){ toast("o", "Идёт новость — дождитесь окончания"); return; }
@@ -1072,6 +1127,12 @@ function pushTick(){
    MACRO NEWS ENGINE — scenario generator
    ========================================================================= */
 function expRand(){ return -Math.log(1 - Math.random()); }
+function weightedIdx(weights){
+  const total = weights.reduce((s,w)=>s+w,0) || 1;
+  let r = Math.random()*total, acc = 0;
+  for(let i=0;i<weights.length;i++){ acc += weights[i]; if(r <= acc) return i; }
+  return weights.length - 1;
+}
 function weightedMove(cfg){
   const dist = cfg.dist;
   const dMin = dist[0][0], dMax = dist[dist.length-1][1];
@@ -1093,7 +1154,61 @@ function describePattern(sc){
   if(sc.twoWay)   return d+" → "+o+" (two-way)";
   return d;
 }
+/* ---- NFP — ONE strong 20s impulse, mostly one-directional, random strength tier.
+        Renders as a SINGLE news candle (sim-time holds for the 20 real seconds).
+        Direction is a coin-flip BUY-side / SELL-side; the move does NOT snap back. ---- */
+const NFP_TIERS = [
+  { name:"слабый",           lo:6,   hi:14,  w:0.30 },
+  { name:"средний",          lo:15,  hi:30,  w:0.34 },
+  { name:"сильный",          lo:32,  hi:52,  w:0.22 },
+  { name:"очень сильный",    lo:56,  hi:88,  w:0.11 },
+  { name:"экстремальный",    lo:100, hi:185, w:0.03 }
+];
+function generateNFPScenario(){
+  const cfg = S.newsEngine.perEvent.NFP;
+  const dur = clamp(cfg.duration || 20, 3, 120);
+  const tier = NFP_TIERS[weightedIdx(NFP_TIERS.map(t=>t.w))];
+  let move = rnd(tier.lo, tier.hi);
+  move = Math.max(move, (cfg.minMove || 5) * 0.6);
+  if(!cfg.allowExtreme) move = Math.min(move, cfg.maxMove || 110);
+  const upBias = cfg.upProb / ((cfg.upProb + cfg.downProb) || 1);
+  const dir = Math.random() < upBias ? 1 : -1;                 // BUY-side (+) / SELL-side (-)
+  const twoWay = Math.random() < 0.05;                          // ~5% sharp reversal / two-way
+  const m = dir * move;
+  let cp;
+  if(!twoWay){
+    // ~95%: one clean directional impulse (minor wobble only), then it holds
+    cp = [[0,0],
+          [0.14, m*rnd(0.30,0.48)],
+          [0.42, m*rnd(0.78,0.97)],
+          [0.72, m*rnd(0.94,1.08)],
+          [1.00, m*rnd(0.90,1.10)]];
+  }else{
+    // ~5%: violent spike one way, then reverses hard THROUGH the start to the other side
+    const spike  = -dir * move * rnd(0.45, 0.80);
+    const settle =  dir * move * rnd(0.85, 1.20);
+    cp = [[0,0],
+          [0.16, spike],
+          [0.30, spike*0.55],
+          [0.55, settle*0.35],
+          [0.80, settle*0.92],
+          [1.00, settle]];
+  }
+  const R = Math.abs(move) * (twoWay ? 1.75 : 1.12);
+  const sc = {
+    type:"NFP", duration: dur, oneCandle:true, tier: tier.name,
+    R, cp, mainDir: dir, twoWay, fakeout:false, reversal:twoWay, impulses:1,
+    noiseBase: clamp(move / dur / 42, 0.02, 1.1),
+    pullStrength: 0.16,
+    volA: 2.6 + move/40, volB: 1.0 + move/120
+  };
+  sc.pattern = twoWay
+    ? (dir>0 ? "SPIKE вниз → разворот в BUY-side" : "SPIKE вверх → разворот в SELL-side")
+    : (dir>0 ? "BUY-side · однонаправленный ("+tier.name+")" : "SELL-side · однонаправленный ("+tier.name+")");
+  return sc;
+}
 function generateScenario(type){
+  if(type === "NFP") return generateNFPScenario();
   const cfg = S.newsEngine.perEvent[type];
   const R = weightedMove(cfg);                        // planned total range ($)
   const upBias = cfg.upProb / (cfg.upProb + cfg.downProb || 1);
@@ -1193,6 +1308,9 @@ function endNews(){
   N.active = false;
   S.lock = { active:false, until:0 };          // trading unlocks exactly when the event ends
   N.decayUntil = Date.now() + 4500;
+  // seal a "one candle" release: nudge sim-time past the current M1 so the next
+  // tick opens a FRESH candle instead of extending the (now huge) news candle.
+  if(sc && sc.oneCandle) S.simClock += (TF.M1 + 1) * 1000;
   // the news move is already baked into price.mid tick by tick — it simply persists,
   // and the EMA equilibrium re-forms around the new level.
   const start = N.startPrice, final = S.price.mid;
@@ -1203,7 +1321,7 @@ function endNews(){
     upExc: N.high - start, downExc: N.low - start,
     finalMove: final - start,
     duration: sc.duration, ticks: N.ticks,
-    pattern: sc.pattern, plannedR: sc.R,
+    pattern: sc.pattern, plannedR: sc.R, tier: sc.tier || null, oneCandle: !!sc.oneCandle,
     fakeout: sc.fakeout, reversal: sc.reversal, twoWay: sc.twoWay, impulses: sc.impulses,
     endedAt: Date.now()
   };
@@ -1757,40 +1875,55 @@ function screenMarkets(){
 
 function godPanelMarkup(){
   if(!S.manual.enabled) return "";
-  const im = S.manual.impulse;
+  const im = S.manual.impulse, MN = S.manual, paused = !!MN.frozen;
   return `<div class="godpanel">
     <div class="gp-hd"><span class="dot"></span>MANUAL MARKET CONTROL • SYNTHETIC MODE</div>
     <div class="gp-px mono" id="gpPx">${pxfmt(S.price.mid)}</div>
+    <div class="gp-sub mono" id="gpSub">Bid ${pxfmt(S.price.bid)} · Ask ${pxfmt(S.price.ask)} · спред ${pxfmt(S.price.spread)}</div>
     <div class="gp-row">
-      <button class="gp-half ${S.manual.frozen?'on':''}" data-god="freeze">${S.manual.frozen?'❚❚ Auto-Engine PAUSED':'▶ Freeze Auto-Engine'}</button>
+      <button class="gp-half ${paused?'':'on'}" data-god="resume">▶ RESUME (авто)</button>
+      <button class="gp-half ${paused?'on':''}" data-god="pause">⏸ PAUSE (авто-движок)</button>
     </div>
+    <div class="gp-state ${paused?'off':'on'}" id="gpState">${paused?'АВТО PRICE ENGINE ОСТАНОВЛЕН — движение задаёте вы':'Авто Price Engine работает'}</div>
+
     <div class="gp-grid">
-      <div><div class="gp-lbl">Set exact price</div><input id="gpSet" inputmode="decimal" placeholder="${pxfmt(S.price.mid)}"></div>
-      <div><div class="gp-lbl">&nbsp;</div><button data-god="setpx" style="width:100%">Применить</button></div>
+      <div><div class="gp-lbl">Точная цена</div><input id="gpSet" inputmode="decimal" placeholder="${pxfmt(S.price.mid)}"></div>
+      <div><div class="gp-lbl">&nbsp;</div><button data-god="setpx" style="width:100%">Установить</button></div>
     </div>
-    <div class="gp-lbl" style="margin-top:9px">Quick delta ($)</div>
-    <div class="gp-row">
-      ${[0.5,2,10,50].map(v=>`<button class="up" data-god="up" data-v="${v}">+${v}</button>`).join("")}
-    </div>
-    <div class="gp-row">
-      ${[0.5,2,10,50].map(v=>`<button class="dn" data-god="dn" data-v="${v}">-${v}</button>`).join("")}
-    </div>
-    <div class="gp-row">
-      <button class="up gp-half" data-god="tickup">BUY Tick ▲</button>
-      <button class="dn gp-half" data-god="tickdn">SELL Tick ▼</button>
-    </div>
-    <div class="gp-lbl" style="margin-top:10px">Custom impulse${im?` — идёт: ${im.dir>0?'+':'-'}$${fmt(im.usd,2)}`:''}</div>
+
+    <div class="gp-lbl" style="margin-top:10px">Ручной тик — шаг $</div>
     <div class="gp-grid">
-      <div><div class="gp-lbl">Direction</div>
-        <button data-god="idir" data-d="1" class="up ${(_gpImp.dir>=0)?'on':''}" style="width:48%">UP</button>
-        <button data-god="idir" data-d="-1" class="dn ${(_gpImp.dir<0)?'on':''}" style="width:48%">DOWN</button></div>
-      <div><div class="gp-lbl">Size $ / Duration s</div>
-        <div style="display:flex;gap:5px"><input id="gpImpUsd" inputmode="decimal" value="${_gpImp.usd}"><input id="gpImpSec" inputmode="numeric" value="${_gpImp.sec}"></div></div>
+      <div><input id="gpStep" inputmode="decimal" value="${fmt(MN.stepSize,2)}"></div>
+      <div style="display:flex;gap:6px">
+        <button class="dn gp-half" data-god="tickdn">▼ SELL тик</button>
+        <button class="up gp-half" data-god="tickup">▲ BUY тик</button>
+      </div>
+    </div>
+
+    <div class="gp-lbl" style="margin-top:10px">Сдвинуть цену на $</div>
+    <div class="gp-grid">
+      <div><input id="gpMove" inputmode="decimal" value="${fmt(MN.moveSize,2)}"></div>
+      <div style="display:flex;gap:6px">
+        <button class="dn gp-half" data-god="movedn">▼ Вниз</button>
+        <button class="up gp-half" data-god="moveup">▲ Вверх</button>
+      </div>
+    </div>
+
+    <div class="gp-lbl" style="margin-top:10px">Быстрая дельта ($)</div>
+    <div class="gp-row">${[0.5,2,10,50].map(v=>`<button class="up" data-god="up" data-v="${v}">+${v}</button>`).join("")}</div>
+    <div class="gp-row">${[0.5,2,10,50].map(v=>`<button class="dn" data-god="dn" data-v="${v}">-${v}</button>`).join("")}</div>
+
+    <div class="gp-lbl" style="margin-top:12px">Плавный импульс${im?` — идёт: ${im.dir>0?'+':'-'}$${fmt(im.usd,2)} (${Math.max(0,Math.round((im.endReal-Date.now())/1000))}s)`:''}</div>
+    <div class="gp-grid">
+      <div><div class="gp-lbl">Направление</div>
+        <button data-god="idir" data-d="1" class="up ${(MN.impDir>=0)?'on':''}" style="width:48%">UP</button>
+        <button data-god="idir" data-d="-1" class="dn ${(MN.impDir<0)?'on':''}" style="width:48%">DOWN</button></div>
+      <div><div class="gp-lbl">Размер $ / Время с</div>
+        <div style="display:flex;gap:5px"><input id="gpImpUsd" inputmode="decimal" value="${MN.impUsd}"><input id="gpImpSec" inputmode="numeric" value="${MN.impSec}"></div></div>
     </div>
     <div class="gp-row"><button data-god="impulse" style="width:100%;background:#f5820d;border-color:#f5820d">${im?'Импульс идёт…':'Запустить импульс'}</button></div>
   </div>`;
 }
-let _gpImp = { dir:1, usd:60, sec:15 };
 
 function mktOverview(){
   const lot = S.ui.lot;
@@ -1883,7 +2016,11 @@ function dayCardMarkup(){
     <div class="row"><span class="k">Диапазон за день</span><span class="v mono" id="dRange">$${fmt(range,2)}</span></div>
     <div class="row"><span class="k">Изменение</span><span class="v mono ${chg>=0?'pos':'neg'}" id="dChg">${signMoney(chg)} (${chg>=0?'+':''}${fmt(chgPct,2)}%)</span></div>
     <div style="height:5px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden"><div id="dBar" style="height:100%;width:${(p*100).toFixed(1)}%;background:var(--blue)"></div></div>
-    <div class="hint" style="margin-top:6px">50 реальных минут = 1 торговый день (замирает, когда вкладка закрыта). Целевой диапазон дня не раскрывается — см. Debug Console.</div>`;
+    <div class="k" style="margin-top:10px;margin-bottom:5px">Ускоритель симуляции</div>
+    <div class="pill-toggle">
+      ${TIME_SCALES.map(v=>`<button data-ts="${v}" class="${simSpeed()===v?'on':''}">${v===1?'NORMAL':'×'+v}</button>`).join("")}
+    </div>
+    <div class="hint" style="margin-top:6px">${Math.round(dur/60000)} реальных минут = 1 торговый день при NORMAL (замирает, когда вкладка закрыта). Ускоритель ×${simSpeed()} масштабирует всё игровое время: рынок, тики, свечи, день, режимы, события, свопы. Целевой диапазон дня не раскрывается — см. Debug Console.</div>`;
 }
 function newsButtonsMarkup(){
   const dis = tradingLocked() ? "disabled" : "";
@@ -2139,6 +2276,36 @@ function dayStats(days){
   const med = n%2 ? R[(n-1)/2] : (R[n/2-1]+R[n/2])/2;
   return { n, mean, med, min:R[0], max:R[n-1], sd };
 }
+/* live proof that every Simulator Setting is wired into the Price Engine */
+function engineLiveCard(){
+  const M = S.market, NE = S.newsEngine, P = S.price;
+  const RG = regimeCfg();
+  const dayRange = S.day ? S.day.targetRange : 35;
+  const dayStdev = dayRange / 3.2;
+  const sessV = sessionInfo().vol;
+  const volMul = RG.vol * sessV * (P.volCluster||1) * (M.intradayNoise||1);
+  const sigMin = (dayStdev/Math.sqrt(86400)) * Math.sqrt(60) * volMul;      // ~$ move stdev per game-minute
+  const driftDay = RG.drift * clamp(dayStdev,4,13) * (M.regimeDriftScale||1) + MACRO_DRIFT * (M.macroBull||1);
+  const tickMs = Math.max(50, Math.round(1000 / normalTps()));
+  const row = (k,v)=>`<div class="row"><span class="k">${k}</span><span class="v mono">${v}</span></div>`;
+  return `<div class="card">
+    <h3 style="margin-top:0">Движок — коэффициенты сейчас (live)</h3>
+    <div class="hint" style="margin-bottom:6px">Каждое значение читается движком на лету. Измените настройку → сохраните → цифры здесь меняются.</div>
+    ${row("Внутридневной шум ×", fmt(M.intradayNoise,2)+"  → volMul ×"+fmt(volMul,2))}
+    ${row("Масштаб дрейфа режима ×", fmt(M.regimeDriftScale,2)+"  (режим "+RG.label+", drift "+(RG.drift>0?'+':'')+RG.drift+")")}
+    ${row("Макро-бычий дрейф ×", fmt(M.macroBull,2)+"  → итог дрейфа ≈ "+signMoney(driftDay)+" / игр. день")}
+    ${row("Память волатильности", fmt(M.volClusterPersist,4)+"  (тек. кластер ×"+fmt(P.volCluster||1,2)+")")}
+    ${row("Частота тиков (TPS)", fmt(M.ticksPerSecond,1)+" т/с  (таймер "+tickMs+" мс)")}
+    ${row("Ускоритель симуляции", "×"+simSpeed()+"  (игр. время идёт в "+simSpeed()+"× быстрее)")}
+    ${row("Базовый спред", "$"+fmt(M.baseSpread,2)+"  → текущий спред $"+fmt(P.spread,2))}
+    ${row("Обычное проскальзывание", "$"+fmt(M.normalSlippage,2)+" макс")}
+    ${row("Целевой диапазон дня", "$"+fmt(dayRange,1)+"  → σ ≈ $"+fmt(sigMin,2)+" / игр. мин")}
+    ${row("Длительность дня", M.dayDurationMin+" реальных мин  (при NORMAL)")}
+    ${row("Слом режима новостью", fmt(NE.newsBreaksRegimeProb,2))}
+    ${row("Тиков/сек в новости", NE.tickHzNewsMin+"–"+NE.tickHzNewsMax)}
+    ${row("Ручное управление", S.manual.enabled ? (S.manual.frozen?"ВКЛ · авто-движок на ПАУЗЕ":"ВКЛ · авто-движок работает") : "выкл")}
+  </div>`;
+}
 function screenDebug(){
   const recent = S.dayLog.slice(0, 100);
   const st = dayStats(recent);
@@ -2156,6 +2323,7 @@ function screenDebug(){
       <div class="row"><span class="k">Дрейф / волат.</span><span class="v mono">${RG.drift>0?'+':''}${RG.drift} / ×${RG.vol}</span></div>
       <div class="row"><span class="k">Равновесие EMA</span><span class="v mono">${pxfmt(S.price.ema)}</span></div>` : ""}
     </div>
+    ${engineLiveCard()}
     <div class="card">
       <h3 style="margin-top:0">Текущий день</h3>
       ${D ? `<div class="row"><span class="k">День #${D.index}</span><span class="v mono">полоса ${bandRu[D.band]||D.band}</span></div>
@@ -2280,6 +2448,13 @@ function screenSettings(){
       </div>
       <div class="hint" style="margin-top:6px">0.5 — медленный рынок · 1.0 — стандарт · 2.0 — умеренно · 5.0 — активно · 10.0 — высокая скорость</div>
     </div>
+    <div class="card"><h3>Ускоритель симуляции</h3>
+      <div class="hint" style="margin-bottom:8px">Ускоряет ВСЁ игровое время: движение рынка, тики, свечи, торговый день, режимы, события, свопы. Реальные 20 секунд новости остаются 20 реальными секундами. Переключается без сброса состояния.</div>
+      <input type="hidden" id="set_ts" value="${M.timeScale||1}">
+      <div class="pill-toggle" id="tsPills">
+        ${TIME_SCALES.map(v=>`<button data-ts="${v}" class="${(M.timeScale||1)===v?'on':''}">${v===1?'NORMAL':'×'+v}</button>`).join("")}
+      </div>
+    </div>
     <div class="card"><h3>Обычный рынок — движок режимов</h3>
       ${F("set_ib","Начальный Bid", M.initialBid, "применяется только при сбросе")}
       ${F("set_ia","Начальный Ask", M.initialAsk)}
@@ -2296,10 +2471,10 @@ function screenSettings(){
       <div class="hint" style="margin-bottom:6px">Вероятность каждой полосы на новый день (нормируется автоматически; кластеризация волатильности сдвигает выбор):</div>
       ${DAYVOL_ORDER.map(k=>F("set_dv_"+k, ({LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"}[k]||k)+" — $"+DAYVOL_RANGE[k][0]+"–"+DAYVOL_RANGE[k][1]+(k==="EXTREME"?"+":""), (M.dayVolProbs[k]!=null?M.dayVolProbs[k]:dayVolProbDefaults()[k]))).join("")}
     </div>
-    <div class="card"><h3>Ручное управление рынком</h3>
-      ${SEL("set_god","Ручное управление рынком (God Mode)",[["false","Выкл"],["true","Вкл"]],String(S.manual.enabled))}
+    <div class="card"><h3>Ручное управление рынком (Manual Market Control)</h3>
+      ${SEL("set_god","Режим ручного управления",[["false","Выкл — работает авто Price Engine"],["true","Вкл — ручное управление XAUUSD"]],String(S.manual.enabled))}
       ${F("set_nbr","Вероятность слома режима новостью (0…1)", NE.newsBreaksRegimeProb)}
-      <div class="hint">При включении на экране «Обзор» появляется плавающая панель ручного управления рынком.</div>
+      <div class="hint">По умолчанию выключено — цена движется автоматическим Price Engine. При включении на экране «Обзор» появляется панель: PAUSE/RESUME авто-движка, ручные тики UP/DOWN с заданным шагом, ручное изменение цены на нужную величину, точная установка цены и плавный импульс. Bid/Ask, график, P/L и SL/TP сразу используют новую цену.</div>
     </div>
     <div class="card"><h3>Движок новостей</h3>
       <div class="hint" style="margin-bottom:6px">Запустить синтетическое событие (20 реальных секунд, независимо от дневного цикла):</div>
@@ -2340,6 +2515,7 @@ function bindScreen(){
   const root = app();
 
   root.querySelectorAll("[data-nav]").forEach(b=> b.onclick = ()=> nav(b.dataset.nav));
+  root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{ S.ui.chartTF = b.dataset.tf; render(); save(); });
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
@@ -2414,22 +2590,30 @@ function bindScreen(){
     render();
   });
 
-  // Manual Market Control (God Mode)
+  // Manual Market Control — only reachable when S.manual.enabled (panel not rendered otherwise)
   root.querySelectorAll("[data-god]").forEach(b=> b.onclick = ()=>{
     const a = b.dataset.god;
-    if(a === "freeze"){ S.manual.frozen = !S.manual.frozen; toast("o", S.manual.frozen ? "Auto-Engine на паузе" : "Auto-Engine возобновлён"); render(); }
-    else if(a === "setpx"){ const v = parseFloat((document.getElementById("gpSet").value||"").replace(/[\s,]/g,"")); manualSetPrice(v); }
+    const rd = id => { const el = document.getElementById(id); return el ? parseFloat((el.value||"").replace(/[\s,]/g,"")) : NaN; };
+    const st = rd("gpStep"); if(isFinite(st) && st > 0) S.manual.stepSize = roundTo(st, 2);
+    const mv = rd("gpMove"); if(isFinite(mv) && mv > 0) S.manual.moveSize = roundTo(mv, 2);
+    if(a === "pause"){ manualPause(true); render(); }
+    else if(a === "resume"){ manualPause(false); render(); }
+    else if(a === "setpx"){ manualSetPrice(rd("gpSet")); }
     else if(a === "up"){ manualNudge(+b.dataset.v); }
     else if(a === "dn"){ manualNudge(-b.dataset.v); }
     else if(a === "tickup"){ manualTick(1); }
     else if(a === "tickdn"){ manualTick(-1); }
-    else if(a === "idir"){ _gpImp.dir = +b.dataset.d; render(); }
+    else if(a === "moveup"){ manualMove(1); }
+    else if(a === "movedn"){ manualMove(-1); }
+    else if(a === "idir"){ S.manual.impDir = +b.dataset.d; render(); }
     else if(a === "impulse"){
-      _gpImp.usd = parseFloat((document.getElementById("gpImpUsd").value||"").replace(/[\s,]/g,"")) || _gpImp.usd;
-      _gpImp.sec = parseFloat((document.getElementById("gpImpSec").value||"").replace(/[\s,]/g,"")) || _gpImp.sec;
-      startManualImpulse(_gpImp.dir, _gpImp.usd, _gpImp.sec);
+      const u = rd("gpImpUsd"), s = rd("gpImpSec");
+      if(isFinite(u) && u > 0) S.manual.impUsd = u;
+      if(isFinite(s) && s > 0) S.manual.impSec = s;
+      startManualImpulse(S.manual.impDir, S.manual.impUsd, S.manual.impSec);
       render();
     }
+    save();
   });
 
   // lot controls
@@ -2809,6 +2993,8 @@ function showNewsResult(r){
     </div>
     <div class="card news-res">
       ${row("Pattern", r.pattern)}
+      ${r.tier ? row("Сила (tier)", r.tier) : ""}
+      ${r.oneCandle ? row("Формат", "одна новостная свеча · sim-время держится 20 сек") : ""}
       ${row("Impulses", r.impulses)}
       ${row("Fakeout", r.fakeout?"yes":"no")}
       ${row("Reversal", r.reversal?"yes":"no")}
@@ -2861,6 +3047,8 @@ function saveSettingsFromForm(silent){
   M.macroBull = clamp(num("set_mb", M.macroBull), -3, 5);
   M.volClusterPersist = clamp(num("set_vcp", M.volClusterPersist), 0.90, 0.999);
   M.ticksPerSecond = clamp(Math.round(num("set_tps", M.ticksPerSecond)*10)/10, 0.1, 20);
+  const tsEl = document.getElementById("set_ts");
+  if(tsEl){ const ts = parseInt(tsEl.value); if(TIME_SCALES.includes(ts)) M.timeScale = ts; }
   M.baseSpread = clamp(num("set_bsp", M.baseSpread), 0.02, 20);
   M.normalSlippage = clamp(num("set_nsl", M.normalSlippage), 0, 5);
   M.forceOpen = document.getElementById("set_fo").value === "true";
@@ -2891,9 +3079,14 @@ function saveSettingsFromForm(silent){
     c.slipMul     = clamp(num("ne_"+ty+"_slipMul", c.slipMul), 1, 40);
     c.allowExtreme = g("allowExtreme").value === "true";
   }
-  restartLoop();
+  restartLoop();                 // re-applies TPS / accelerator to the live loop (no-op if paused)
   saveNow();
-  if(!silent){ toast("g","Настройки сохранены"); render(); }
+  if(typeof xcPushState === "function") xcPushState(true);
+  if(!silent){
+    toast("g", "Применено к движку: шум ×"+fmt(M.intradayNoise,2)+" · дрейф ×"+fmt(M.regimeDriftScale,2)
+      +" · спред $"+fmt(M.baseSpread,2)+" · TPS "+fmt(M.ticksPerSecond,1)+" · ускоритель ×"+simSpeed());
+    render();
+  }
 }
 function applyNewBalance(){
   const b = num("set_bal", S.account.balance);
@@ -2913,6 +3106,17 @@ function forceRollover(){
   recalcAccount();
   toast("o","Rollover форсирован");
 }
+/* SIMULATION ACCELERATOR — switch NORMAL / ×2 / ×5 / ×10 without resetting state */
+function setTimeScale(v){
+  v = TIME_SCALES.includes(+v) ? +v : 1;
+  if(v === S.market.timeScale) return;
+  S.market.timeScale = v;
+  const tsEl = document.getElementById("set_ts"); if(tsEl) tsEl.value = v;
+  document.querySelectorAll("[data-ts]").forEach(b=> b.classList.toggle("on", +b.dataset.ts === v));
+  saveNow();
+  if(typeof xcPushState === "function") xcPushState();
+  toast("o", "Ускоритель: " + (v === 1 ? "NORMAL" : "×"+v) + " — состояние не сброшено");
+}
 
 /* =========================================================================
    Live number updates (called every UI frame, doesn't rebuild DOM)
@@ -2923,15 +3127,41 @@ function setTxt(id, txt, cls){
   e.textContent = txt;
   if(cls !== undefined) e.className = e.className.replace(/\b(pos|neg)\b/g,"").trim() + (cls?(" "+cls):"");
 }
+/* guarantee a value ALWAYS shows in full — shrink font (to a readable floor) only if it would clip.
+   Skips the work when neither the text length nor the box width changed. */
+function fitText(el, minPx){
+  if(!el) return;
+  const key = el.textContent.length + "@" + el.clientWidth;
+  if(el._fitKey === key) return;
+  el._fitKey = key;
+  el.style.fontSize = "";                          // let CSS drive the natural size first
+  const floor = minPx || 12;
+  let guard = 0;
+  while(el.scrollWidth > el.clientWidth + 1 && guard++ < 22){
+    const cur = parseFloat(getComputedStyle(el).fontSize) || 20;
+    const next = Math.max(floor, cur - 1);
+    el.style.fontSize = next + "px";
+    if(next === floor) break;
+  }
+}
 function updateLive(){
   recalcAccount();
   const A = S._acc;
   // overview
   setTxt("ovBid", pxfmt(S.price.bid));
   setTxt("ovAsk", pxfmt(S.price.ask));
+  fitText(document.getElementById("ovBid"), 13);
+  fitText(document.getElementById("ovAsk"), 13);
   setTxt("ovSpread", pxfmt(S.price.spread));
   setTxt("ovSess", sessionInfo().names.join(" · "));
   setTxt("gpPx", pxfmt(S.price.mid));
+  setTxt("gpSub", "Bid "+pxfmt(S.price.bid)+" · Ask "+pxfmt(S.price.ask)+" · спред "+pxfmt(S.price.spread));
+  const gpSt = document.getElementById("gpState");
+  if(gpSt){
+    const pz = !!S.manual.frozen;
+    gpSt.textContent = pz ? "АВТО PRICE ENGINE ОСТАНОВЛЕН — движение задаёте вы" : "Авто Price Engine работает";
+    gpSt.className = "gp-state " + (pz ? "off" : "on");
+  }
   setTxt("dRegime", S.regime ? MARKET_REGIMES[S.regime.name].label : "—");
   if(document.getElementById("xcSync")) syncBadge();
   // trading-day card
@@ -3147,18 +3377,31 @@ function drawChart(){
     ctx.fillRect(xOf(i), top, Math.max(1,bw), hgt);
   }
 
-  // bid / ask / price marker
-  const drawLine = (p, col, label)=>{
-    const yy = y(p);
+  // bid / ask price lines — cTrader style: GREEN Ask on top, RED Bid below.
+  // Ask > Bid and higher price = higher on screen, so green always ends up above red,
+  // at every price level and on every timeframe.
+  const CL_ASK = "#0aa85f", CL_BID = "#e5342b";
+  const yAsk = y(S.price.ask), yBid = y(S.price.bid);
+  const priceLine = (yy, col)=>{
     ctx.strokeStyle = col; ctx.setLineDash([4,3]);
-    ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = col; ctx.fillRect(plotW, yy-8, padR, 16);
-    ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.font="10px -apple-system,sans-serif";
-    ctx.fillText(label, plotW+3, yy+3);
   };
-  drawLine(S.price.bid, "#0aa85f", pxfmt(S.price.bid));
-  drawLine(S.price.ask, "#e5342b", pxfmt(S.price.ask));
+  priceLine(yAsk, CL_ASK);
+  priceLine(yBid, CL_BID);
+  // right-scale tags — keep both readable when the spread is only a few pixels
+  let tAsk = yAsk, tBid = yBid;
+  if(tBid - tAsk < 17){ const mid = (yAsk + yBid)/2; tAsk = mid - 8.5; tBid = mid + 8.5; }
+  const priceTag = (yTag, yLine, col, label)=>{
+    ctx.fillStyle = col; ctx.fillRect(plotW, yTag-8, padR, 16);
+    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px -apple-system,sans-serif";
+    ctx.fillText(label, plotW+3, yTag+3);
+    if(Math.abs(yTag - yLine) > 1){
+      ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(plotW, yLine); ctx.lineTo(plotW+3, yTag); ctx.stroke();
+    }
+  };
+  priceTag(tAsk, yAsk, CL_ASK, pxfmt(S.price.ask));
+  priceTag(tBid, yBid, CL_BID, pxfmt(S.price.bid));
 
   // SL/TP of open positions
   for(const p of S.positions){
@@ -3217,13 +3460,17 @@ function drawMini(){
     const yo=y(b.o),yc=y(b.c);
     ctx.fillRect(i*bw+0.5, Math.min(yo,yc), Math.max(1,bw-1.5), Math.max(1,Math.abs(yc-yo)));
   }
+  // GREEN Ask on top, RED Bid below (cTrader style) — holds at any price / timeframe
   const yb=y(S.price.bid), ya=y(S.price.ask);
   ctx.setLineDash([4,3]);
-  ctx.strokeStyle="#0aa85f"; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW,yb); ctx.stroke();
-  ctx.strokeStyle="#e5342b"; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW,ya); ctx.stroke();
+  ctx.strokeStyle="#0aa85f"; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW,ya); ctx.stroke();
+  ctx.strokeStyle="#e5342b"; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW,yb); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle="#0aa85f"; ctx.fillRect(plotW,yb-7,padR,14); ctx.fillStyle="#fff"; ctx.font="10px sans-serif"; ctx.textAlign="left"; ctx.fillText(pxfmt(S.price.bid),plotW+3,yb+3);
-  ctx.fillStyle="#e5342b"; ctx.fillRect(plotW,ya-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.ask),plotW+3,ya+3);
+  let la=ya, lb=yb;
+  if(lb-la<15){ const mid=(ya+yb)/2; la=mid-7.5; lb=mid+7.5; }
+  ctx.font="10px sans-serif"; ctx.textAlign="left";
+  ctx.fillStyle="#0aa85f"; ctx.fillRect(plotW,la-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.ask),plotW+3,la+3);
+  ctx.fillStyle="#e5342b"; ctx.fillRect(plotW,lb-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.bid),plotW+3,lb+3);
 }
 
 /* =========================================================================
@@ -3231,7 +3478,8 @@ function drawMini(){
    ========================================================================= */
 let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false;
 function restartLoop(){
-  if(rtTimer) clearInterval(rtTimer);
+  if(rtTimer){ clearInterval(rtTimer); rtTimer = null; }
+  if(!_loopRunning) return;                        // paused / tab hidden -> stay stopped
   rtTimer = setInterval(()=>{ try{ engineFrame(); }catch(e){ console.error(e); } }, RT_MS);
   restartNormalTicks();
 }
@@ -3522,7 +3770,8 @@ window.__sim = { S:()=>S, openPosition, closePosition, commissionFor, posMetrics
   engineFrame, priceStep, normalMicroStep, normalTickFire, restartNormalTicks, tradingLocked, ticks:()=>_tickBuf, chart:()=>chart,
   startNewDay, rolloverDay, startRegime, advanceRegime, pickDayVol,
   simDaysOffline, simulateDayOffline, runDayTests,
-  manualSetPrice, manualNudge, manualTick, startManualImpulse,
+  manualSetPrice, manualNudge, manualTick, manualMove, manualPause, startManualImpulse,
+  generateNFPScenario, simSpeed, setTimeScale, saveSettingsFromForm,
   MARKET_REGIMES, MARKET_TRANSITIONS,
   XC:()=>XC, stopLoop, startLoop, dayDurationMs, regimeDurationMs, finishBoot,
   drive(frames){ for(let i=0;i<(frames||1);i++){ _lastFrameReal = Date.now()-60; engineFrame(); normalTickFire(); } },
