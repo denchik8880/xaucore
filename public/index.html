@@ -268,6 +268,75 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-q.buy{border-color:#b7e6cf;color:var(--green)}
 .ab-bal{background:var(--line);color:var(--ink);font-weight:800;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
 
+/* ===== BROKER WALLET PAGE ===== */
+/* the wallet route widens the app column so the card + info sit side by side on desktop;
+   every other screen keeps the normal 520px mobile column. */
+body.route-wallet{max-width:1040px}
+.wallet-hero{background:linear-gradient(180deg,#faf6f0 0%,var(--bg) 60%);
+  border-bottom:1px solid var(--line);padding:22px 16px 24px}
+.wallet-grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:clamp(18px,3.5vw,44px);
+  align-items:center;max-width:900px;margin:0 auto}
+.wallet-info{min-width:0}
+.wi-title{font-size:13px;font-weight:700;color:var(--ink3);letter-spacing:.02em}
+.wi-balance{font-size:clamp(24px,6.6vw,40px);font-weight:800;margin:6px 0 2px;line-height:1.12;white-space:nowrap;overflow:hidden}
+.wi-divider{border-top:1px solid var(--line);margin:16px 0 12px}
+.wi-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.wi-row-k{color:var(--ink3);font-size:13px}
+.wi-row-v{font-weight:700;font-size:14px;overflow-wrap:anywhere}
+
+/* the card — ISO ID-1 proportions (1.586:1), brown-gold, premium */
+.wallet-card{position:relative;width:100%;max-width:400px;aspect-ratio:1.586/1;border-radius:18px;
+  padding:clamp(16px,4.6vw,24px);color:#fff;overflow:hidden;isolation:isolate;
+  background:linear-gradient(118deg,#d7b48a 0%,#bb8d63 34%,#916339 66%,#654328 100%);
+  box-shadow:0 16px 38px rgba(101,67,40,.34),0 4px 12px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.22);
+  display:flex;flex-direction:column;justify-content:space-between}
+.wallet-card::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 80% at 12% 6%,rgba(255,255,255,.28),transparent 46%),
+             radial-gradient(90% 70% at 92% 100%,rgba(0,0,0,.24),transparent 52%)}
+.wc-watermark{position:absolute;z-index:0;left:-4%;bottom:-14%;font-family:Georgia,'Times New Roman',serif;
+  font-weight:700;font-size:clamp(70px,26vw,150px);line-height:.82;letter-spacing:-.03em;
+  color:rgba(255,255,255,.10);white-space:nowrap;pointer-events:none;transform:rotate(-5deg);user-select:none}
+.wc-top,.wc-owner{position:relative;z-index:2}
+.wc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.wc-logo{font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:clamp(17px,4.8vw,23px);letter-spacing:.03em;text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.wc-tag{text-align:right;min-width:0}
+.wc-tag-label{font-size:clamp(9px,2.6vw,11px);color:rgba(255,255,255,.72);font-weight:600;letter-spacing:.02em}
+.wc-tag-no{font-weight:800;font-size:clamp(12px,3.5vw,15px);letter-spacing:.04em;margin-top:2px;
+  text-shadow:0 1px 2px rgba(0,0,0,.25);word-break:break-all}
+.wc-owner{font-size:clamp(12px,3.6vw,15px);font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.94);text-shadow:0 1px 2px rgba(0,0,0,.2)}
+
+/* action buttons */
+.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:900px;margin:22px auto 0}
+.wallet-foot{max-width:900px;margin:0 auto;padding:14px 16px 0}
+.wbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 10px;border-radius:14px;
+  font-weight:800;font-size:13px;letter-spacing:.02em;border:1.6px solid var(--blue);color:var(--blue);
+  background:#fff;transition:background .12s,transform .06s,box-shadow .12s;white-space:nowrap;min-width:0}
+.wbtn .wbtn-ic{font-size:15px;line-height:1}
+.wbtn:hover{background:#eef4ff;box-shadow:0 4px 14px rgba(47,123,246,.16)}
+.wbtn:active{transform:translateY(1px);background:#e4edff}
+.wbtn.wbtn-fill{background:var(--blue);color:#fff}
+.wbtn.wbtn-fill:hover{background:#2a6fe0}
+.wbtn.wbtn-amber{border-color:#c98a2e;color:#a96e1c}
+.wbtn.wbtn-amber:hover{background:#fdf3e4}
+.wbtn.wbtn-amber:active{background:#f8e9d3}
+
+/* wallet modal bits */
+.wm-balance{background:#f7f8fa;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px;color:var(--ink2);margin-bottom:12px}
+.wm-balance b{color:var(--ink);font-weight:800}
+.wm-quick{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px}
+.wm-quick button{flex:1 1 auto;min-width:66px;background:var(--line);border-radius:9px;padding:9px 4px;font-weight:800;font-size:12px;color:var(--ink2)}
+.wm-quick button:active{filter:brightness(.95)}
+
+@media (max-width:640px){
+  .wallet-grid{grid-template-columns:1fr;gap:16px}
+  .wallet-card{max-width:none}
+  .wi-balance{font-size:clamp(22px,8.4vw,34px)}
+}
+@media (max-width:560px){
+  .wallet-actions{grid-template-columns:1fr}
+  .wallet-hero{padding:16px 12px 20px}
+}
+
 /* generic overflow guards */
 .card,.lrow,.menu-item,.evt{max-width:100%;overflow-wrap:anywhere}
 .dom-grid{overflow-x:auto}
@@ -407,6 +476,9 @@ const DEFAULTS = () => ({
   /* MANUAL MARKET CONTROL (God Mode) — off by default, no accidental activation */
   manual: { enabled:false, frozen:false, impulse:null,
             stepSize:0.20, moveSize:5, impDir:1, impUsd:60, impSec:15 },
+  /* BROKER WALLET — synthetic internal balance, single source of truth for the wallet page */
+  wallet: { balance: 3000000000, cardNo: "W077716769USD", walletNo: "W01507396USD",
+            owner: "Denis Fx", ledger: [] },
 
   /* live runtime — currentMarketPrice == price.mid is the single source of truth */
   price: { bid:4457.02, ask:4457.24, mid:4457.13, prevMid:4457.13,
@@ -475,6 +547,12 @@ function migrateState(){
   if(S.manual.impUsd == null)   S.manual.impUsd = 60;
   if(S.manual.impSec == null)   S.manual.impSec = 15;
   S.manual.impulse = null;
+  if(!S.wallet) S.wallet = { ...d.wallet, ledger: [] };
+  if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
+  if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
+  if(!S.wallet.cardNo)   S.wallet.cardNo = d.wallet.cardNo;
+  if(!S.wallet.walletNo) S.wallet.walletNo = d.wallet.walletNo;
+  if(!S.wallet.owner)    S.wallet.owner = d.wallet.owner;
   if(!S.dayLog) S.dayLog = [];
   if(S.daySeq === undefined) S.daySeq = 0;
   if(!S.newsLog) S.newsLog = [];
@@ -543,6 +621,11 @@ function roundTo(x,d){ const p = Math.pow(10,d); return Math.round((x+Number.EPS
 function fmt(x,d){ return Number(x).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}); }
 function money(x){ const s = x<0?"-":""; return s + "$" + fmt(Math.abs(x),2); }
 function signMoney(x){ const s = x>0?"+":(x<0?"-":""); return s + "$" + fmt(Math.abs(x),2); }
+function walletFmt(x){                                       // "3,000,000,000 USD" / "1,234.50 USD"
+  const n = Math.max(0, Number(x) || 0);
+  const dec = Number.isInteger(n) ? 0 : 2;
+  return n.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: 2 }) + " USD";
+}
 function pxfmt(x){ return fmt(x, S.symbol.digits); }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function simDate(){ return new Date(S.simClock); }
@@ -1861,6 +1944,7 @@ function render(){
   else if(t === "positions") html += screenPositions();
   else if(t === "orders")    html += screenOrders();
   else if(t === "more")      html += screenMore();
+  else if(t === "wallet")    html += screenWallet();
   else if(t === "settings")  html += screenSettings();
   else if(t === "history")   html += screenHistory();
   else if(t === "calendar")  html += screenCalendar();
@@ -1868,6 +1952,7 @@ function render(){
   else if(t === "debug")     html += screenDebug();
   html += bottomNav();
   app().innerHTML = html;
+  document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
   bindScreen();
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -2246,6 +2331,7 @@ function screenMore(){
       </div>
       <div class="hint" style="margin-top:6px">Состояние (цена, баланс, позиции, день, время, график) замирает при выходе и продолжается при следующем входе — с любого устройства при входе в аккаунт.</div>
     </div>
+    <div class="menu-item" data-act="gotowallet"><span>💳 Брокерский кошелёк</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>
     <div class="menu-item" data-act="gotosettings"><span>⚙️ Настройки симулятора</span><span>›</span></div>
     <div class="menu-item" data-act="gotohistory"><span>📜 История сделок</span><span>›</span></div>
     <div class="menu-item" data-act="gotocal"><span>📅 Экономический календарь</span><span>›</span></div>
@@ -2263,6 +2349,161 @@ function screenMore(){
       XAUCORE · DEMO • SYNTHETIC DATA<br>Автономный симулятор. Реальные котировки / брокер / счета не используются.
     </div>
   </div>`;
+}
+
+/* ================= BROKER WALLET =================
+   Synthetic internal balance. S.wallet.balance is the SINGLE source of truth —
+   every display reads it; ПОПОЛНИТЬ / ВЫВОД СРЕДСТВ mutate it and re-render.
+   ПЕРЕВЕСТИ is intentionally a no-op for now (walletTransfer stub). */
+function walletCardMarkup(){
+  const W = S.wallet;
+  return `<div class="wallet-card">
+    <div class="wc-watermark" aria-hidden="true">XAUCORE</div>
+    <div class="wc-top">
+      <div class="wc-logo">XAUCORE</div>
+      <div class="wc-tag">
+        <div class="wc-tag-label">Виртуальный кошелёк</div>
+        <div class="wc-tag-no mono">${W.cardNo}</div>
+      </div>
+    </div>
+    <div class="wc-owner">${W.owner}</div>
+  </div>`;
+}
+function walletLedgerRow(l){
+  const d = new Date(l.ts);
+  const when = simDateStr(l.ts) + " " + pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes());
+  const label = l.type === "deposit" ? "Пополнение" : l.type === "withdraw" ? "Вывод средств" : "Перевод";
+  const neg = l.type !== "deposit";
+  return `<div class="row" style="padding:7px 0;border-bottom:1px dashed var(--line)">
+    <span class="k">${label}<br><small style="color:var(--ink3)">${when}${l.note?" · "+l.note:""}</small></span>
+    <span class="v mono ${neg?'neg':'pos'}">${neg?'−':'+'}${walletFmt(l.amount)}</span>
+  </div>`;
+}
+function screenWallet(){
+  const W = S.wallet;
+  const led = (W.ledger || []).slice(0, 8);
+  return appbar("Кошелёк", {back:true}) + `
+  <div class="wallet-hero">
+    <div class="wallet-grid">
+      ${walletCardMarkup()}
+      <div class="wallet-info">
+        <div class="wi-title">Money Broker</div>
+        <div class="wi-balance mono" id="wiBalance">${walletFmt(W.balance)}</div>
+        <div class="wi-divider"></div>
+        <div class="wi-row">
+          <span class="wi-row-k">Номер виртуального кошелька</span>
+          <span class="wi-row-v mono">${W.walletNo}</span>
+        </div>
+      </div>
+    </div>
+    <div class="wallet-actions">
+      <button class="wbtn wbtn-fill" data-act="wdeposit"><span class="wbtn-ic" aria-hidden="true">＋</span>ПОПОЛНИТЬ</button>
+      <button class="wbtn" data-act="wtransfer"><span class="wbtn-ic" aria-hidden="true">⇄</span>ПЕРЕВЕСТИ</button>
+      <button class="wbtn wbtn-amber" data-act="wwithdraw"><span class="wbtn-ic" aria-hidden="true">↓</span>ВЫВОД СРЕДСТВ</button>
+    </div>
+  </div>
+  <div class="wallet-foot">
+    <div class="card">
+      <h3>Последние операции</h3>
+      ${led.length ? led.map(walletLedgerRow).join("") : `<div class="hint" style="text-align:center">Операций пока нет</div>`}
+    </div>
+    <div class="hint" style="text-align:center;color:var(--ink3)">DEMO • SYNTHETIC DATA — внутренний баланс симулятора. Реальные платёжные системы не подключены.</div>
+  </div>`;
+}
+
+function walletLog(type, amount, note){
+  S.wallet.ledger = S.wallet.ledger || [];
+  S.wallet.ledger.unshift({ type, amount: roundTo(amount, 2), ts: Date.now(), note: note || "" });
+  if(S.wallet.ledger.length > 60) S.wallet.ledger.length = 60;
+}
+function walletSync(){
+  save();
+  if(typeof xcPushState === "function") xcPushState(true);
+  render();                          // screenWallet re-reads S.wallet.balance — no duplicated state
+}
+function walletDeposit(amount){
+  const a = roundTo(Number(amount), 2);
+  if(!isFinite(a) || a <= 0) return { ok:false, msg:"Введите сумму больше 0" };
+  S.wallet.balance = roundTo(S.wallet.balance + a, 2);
+  walletLog("deposit", a);
+  walletSync();
+  toast("g", "Кошелёк пополнен на " + walletFmt(a));
+  return { ok:true };
+}
+function walletWithdraw(amount){
+  const a = roundTo(Number(amount), 2);
+  if(!isFinite(a) || a <= 0) return { ok:false, msg:"Введите сумму больше 0" };
+  if(a > S.wallet.balance + 1e-6) return { ok:false, msg:"Недостаточно средств. Доступно: " + walletFmt(S.wallet.balance) };
+  S.wallet.balance = roundTo(S.wallet.balance - a, 2);
+  walletLog("withdraw", a);
+  walletSync();
+  toast("g", "Выведено " + walletFmt(a));
+  return { ok:true };
+}
+/* ПЕРЕВЕСТИ — architecture only. Wire the real transfer here later. */
+function walletTransfer(recipient, amount){
+  const a = roundTo(Number(amount), 2);
+  if(!recipient || !String(recipient).trim()) return { ok:false, msg:"Укажите получателя" };
+  if(!isFinite(a) || a <= 0) return { ok:false, msg:"Введите сумму больше 0" };
+  if(a > S.wallet.balance + 1e-6) return { ok:false, msg:"Недостаточно средств. Доступно: " + walletFmt(S.wallet.balance) };
+  // TODO: perform the transfer (debit wallet, credit recipient, log). Not enabled yet.
+  return { ok:false, pending:true, msg:"Переводы будут подключены позже — операция не выполнена" };
+}
+
+function walletAmountModal(kind){
+  const isDep = kind === "deposit";
+  const title = isDep ? "Пополнить кошелёк" : "Вывод средств";
+  const go    = isDep ? "Пополнить" : "Вывести";
+  const cls   = isDep ? "green" : "dark";
+  const quick = isDep ? [1000, 10000, 100000, 1000000] : [1000, 100000, 1000000];
+  openSheet(`
+    <h2>${title}</h2>
+    <div class="hint" style="margin-bottom:10px">DEMO • SYNTHETIC — меняется только внутренний баланс симулятора.</div>
+    <div class="wm-balance">Текущий баланс кошелька: <b id="wmBal">${walletFmt(S.wallet.balance)}</b></div>
+    <div class="field"><label>Сумма (USD)</label><input id="wm-amt" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+    <div class="wm-quick">${quick.map(v=>`<button data-wq="${v}">+${fmt(v,0)}</button>`).join("")}${isDep?"":`<button data-wq="all">Всё</button>`}</div>
+    <div class="loterr" id="wm-err" style="min-height:16px"></div>
+    <button class="btn ${cls}" id="wm-go">${go}</button>
+    <button class="btn ghost" data-close>Отмена</button>
+  `);
+  const amt = document.getElementById("wm-amt");
+  const err = document.getElementById("wm-err");
+  const readAmt = () => parseFloat((amt.value || "").replace(/[\s,]/g, ""));
+  modalEl.querySelectorAll("[data-wq]").forEach(b => b.onclick = () => {
+    if(b.dataset.wq === "all"){ amt.value = fmt(S.wallet.balance, 2); }
+    else { amt.value = fmt((readAmt() || 0) + Number(b.dataset.wq), 2); }
+    err.textContent = ""; amt.focus();
+  });
+  modalEl._live = () => { const e = document.getElementById("wmBal"); if(e) e.textContent = walletFmt(S.wallet.balance); };
+  document.getElementById("wm-go").onclick = () => {
+    const r = isDep ? walletDeposit(readAmt()) : walletWithdraw(readAmt());
+    if(r.ok){ closeModal(); }
+    else { err.textContent = "⚠ " + r.msg; }
+  };
+  amt.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("wm-go").click(); });
+  setTimeout(() => amt.focus(), 60);
+}
+function walletTransferModal(){
+  openSheet(`
+    <h2>Перевести</h2>
+    <div class="hint" style="margin-bottom:10px">DEMO • SYNTHETIC — переводы пока не проводятся, форма готова к подключению.</div>
+    <div class="wm-balance">Доступно: <b>${walletFmt(S.wallet.balance)}</b></div>
+    <div class="field"><label>Получатель (номер кошелька / email)</label><input id="wt-to" placeholder="W000000000USD" autocomplete="off"></div>
+    <div class="field"><label>Сумма (USD)</label><input id="wt-amt" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+    <div class="field"><label>Комментарий (необязательно)</label><input id="wt-note" placeholder="—" autocomplete="off"></div>
+    <div class="loterr" id="wt-err" style="min-height:16px"></div>
+    <button class="btn dark" id="wt-go">Перевести</button>
+    <button class="btn ghost" data-close>Отмена</button>
+  `);
+  const err = document.getElementById("wt-err");
+  document.getElementById("wt-go").onclick = () => {
+    const to = document.getElementById("wt-to").value;
+    const a = parseFloat((document.getElementById("wt-amt").value || "").replace(/[\s,]/g, ""));
+    const r = walletTransfer(to, a);
+    err.textContent = "⚠ " + (r.msg || "Недоступно");
+    err.style.color = r.pending ? "var(--orange)" : "var(--red)";
+    if(r.pending) toast("o", r.msg);
+  };
 }
 
 /* ---------- HISTORY ---------- */
@@ -2610,7 +2851,7 @@ function bottomNav(){
     <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">📈</span>Графики</button>
     <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">◔${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
     <button data-nav="orders" class="${t==="orders"?"on":""}"><span class="ic">🧾${S.pendings.length?`<span class="navpill">${S.pendings.length}</span>`:""}</span>Ордеры</button>
-    <button data-nav="more" class="${["more","settings","history","calendar","dom","debug"].includes(t)?"on":""}"><span class="ic">☰</span>Ещё</button>
+    <button data-nav="more" class="${["more","settings","history","calendar","dom","debug","wallet"].includes(t)?"on":""}"><span class="ic">☰</span>Ещё</button>
   </div>`;
 }
 
@@ -2636,8 +2877,12 @@ function bindScreen(){
 
   act("back", ()=>{
     if(S.ui.tab === "markets"){ S.ui.marketOpen = false; render(); save(); return; }   // XAUUSD ‹ -> "Рынки"
-    nav(["settings","history","calendar","dom","debug"].includes(S.ui.tab) ? "more" : "markets");
+    nav(["settings","history","calendar","dom","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
   });
+  act("gotowallet", ()=> nav("wallet"));
+  act("wdeposit", ()=> walletAmountModal("deposit"));
+  act("wwithdraw", ()=> walletAmountModal("withdraw"));
+  act("wtransfer", ()=> walletTransferModal());
   act("openxau", ()=>{ S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
   act("addinstr", ()=> toast("o", "В DEMO-режиме доступен только XAUUSD"));
   act("search", ()=> toast("o", "Поиск инструментов будет добавлен позже"));
@@ -3342,6 +3587,11 @@ function updateLive(){
   if(S.ui.tab === "chart") drawChart();
   if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart") drawChart();
+  // broker wallet — single balance state reflected everywhere it shows
+  if(document.getElementById("wiBalance")){
+    setTxt("wiBalance", walletFmt(S.wallet.balance));
+    fitText(document.getElementById("wiBalance"), 16);
+  }
   // watchlist row — keep prices/change/spark live
   if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
     const w = watchStats();
@@ -3836,6 +4086,9 @@ function normalizeState(){
   if(S.market.ticksPerSecond == null || !(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2;
   if(!S.ui) S.ui = { ...d.ui };
   if(S.ui.marketOpen == null) S.ui.marketOpen = false;   // land on the "Рынки" watchlist
+  if(!S.wallet) S.wallet = { ...d.wallet, ledger: [] };
+  if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
+  if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
   recalcAccount();
 }
 
@@ -3911,6 +4164,7 @@ window.__sim = { S:()=>S, openPosition, closePosition, commissionFor, posMetrics
   simDaysOffline, simulateDayOffline, runDayTests,
   manualSetPrice, manualNudge, manualTick, manualMove, manualPause, startManualImpulse,
   generateNFPScenario, simSpeed, setTimeScale, saveSettingsFromForm,
+  walletDeposit, walletWithdraw, walletTransfer,
   MARKET_REGIMES, MARKET_TRANSITIONS,
   XC:()=>XC, stopLoop, startLoop, dayDurationMs, regimeDurationMs, finishBoot,
   drive(frames){ for(let i=0;i<(frames||1);i++){ _lastFrameReal = Date.now()-60; engineFrame(); normalTickFire(); } },
