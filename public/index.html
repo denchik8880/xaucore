@@ -268,73 +268,130 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-q.buy{border-color:#b7e6cf;color:var(--green)}
 .ab-bal{background:var(--line);color:var(--ink);font-weight:800;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
 
-/* ===== BROKER WALLET PAGE ===== */
-/* the wallet route widens the app column so the card + info sit side by side on desktop;
-   every other screen keeps the normal 520px mobile column. */
-body.route-wallet{max-width:1040px}
-.wallet-hero{background:linear-gradient(180deg,#faf6f0 0%,var(--bg) 60%);
-  border-bottom:1px solid var(--line);padding:22px 16px 24px}
-.wallet-grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:clamp(18px,3.5vw,44px);
-  align-items:center;max-width:900px;margin:0 auto}
-.wallet-info{min-width:0}
-.wi-title{font-size:13px;font-weight:700;color:var(--ink3);letter-spacing:.02em}
-.wi-balance{font-size:clamp(24px,6.6vw,40px);font-weight:800;margin:6px 0 2px;line-height:1.12;white-space:nowrap;overflow:hidden}
-.wi-divider{border-top:1px solid var(--line);margin:16px 0 12px}
-.wi-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.wi-row-k{color:var(--ink3);font-size:13px}
-.wi-row-v{font-weight:700;font-size:14px;overflow-wrap:anywhere}
+/* ===== BROKER WALLET (dark, premium) — its own full-screen dark surface ===== */
+body.route-wallet{max-width:none;background:#0c0a08}
+body.route-wallet #app{padding-bottom:0}
+body.route-wallet .bottomnav,body.route-wallet .appbar{display:none}
+html:has(body.route-wallet){background:#0c0a08}
 
-/* the card — ISO ID-1 proportions (1.586:1), brown-gold, premium */
-.wallet-card{position:relative;width:100%;max-width:400px;aspect-ratio:1.586/1;border-radius:18px;
-  padding:clamp(16px,4.6vw,24px);color:#fff;overflow:hidden;isolation:isolate;
-  background:linear-gradient(118deg,#d7b48a 0%,#bb8d63 34%,#916339 66%,#654328 100%);
-  box-shadow:0 16px 38px rgba(101,67,40,.34),0 4px 12px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.22);
-  display:flex;flex-direction:column;justify-content:space-between}
-.wallet-card::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:radial-gradient(120% 80% at 12% 6%,rgba(255,255,255,.28),transparent 46%),
-             radial-gradient(90% 70% at 92% 100%,rgba(0,0,0,.24),transparent 52%)}
-.wc-watermark{position:absolute;z-index:0;left:-4%;bottom:-14%;font-family:Georgia,'Times New Roman',serif;
-  font-weight:700;font-size:clamp(70px,26vw,150px);line-height:.82;letter-spacing:-.03em;
-  color:rgba(255,255,255,.10);white-space:nowrap;pointer-events:none;transform:rotate(-5deg);user-select:none}
-.wc-top,.wc-owner{position:relative;z-index:2}
-.wc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.wc-logo{font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:clamp(17px,4.8vw,23px);letter-spacing:.03em;text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.wallet-page{
+  --wg:#e3b877; --wg2:#a9884f; --wtxt:#f3ece0; --wmut:#9a917e;
+  --wpanel:#1a1713; --wline:#332c22;
+  min-height:100vh;color:var(--wtxt);padding:16px clamp(14px,4vw,44px) 0;
+  background:
+    radial-gradient(58% 40% at 80% -4%,rgba(227,184,119,.16),transparent 62%),
+    radial-gradient(46% 38% at 8% 6%,rgba(180,132,72,.09),transparent 60%),
+    radial-gradient(72% 52% at 60% 110%,rgba(120,86,48,.14),transparent 62%),
+    linear-gradient(178deg,#17130e 0%,#120f0b 46%,#0b0908 100%);
+}
+.wallet-inner{max-width:1000px;margin:0 auto}
+.wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:800;font-size:12px;
+  letter-spacing:.08em;padding:8px 2px;background:none}
+.wp-back:active{opacity:.65}
+.wp-h1{font-size:clamp(30px,7.4vw,46px);font-weight:800;line-height:1.04;margin:8px 0 8px;color:#fff;letter-spacing:-.015em}
+.wp-sub{color:var(--wmut);font-size:clamp(13px,3.3vw,15px);max-width:430px;line-height:1.45;margin-bottom:18px}
+
+.wpanel{background:var(--wpanel);border:1px solid var(--wline);border-radius:22px;
+  display:grid;grid-template-columns:minmax(0,358px) minmax(0,1fr);gap:clamp(18px,3vw,40px);
+  padding:clamp(16px,2.6vw,24px);align-items:center;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.wcard{position:relative;width:100%;aspect-ratio:1.586/1;border-radius:16px;overflow:hidden;isolation:isolate;
+  padding:clamp(15px,4vw,22px);display:flex;flex-direction:column;justify-content:space-between;
+  background:linear-gradient(130deg,#ecd3aa 0%,#dcb984 26%,#c99c62 52%,#b0854e 76%,#906b3c 100%);
+  box-shadow:0 20px 44px rgba(0,0,0,.5),0 3px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.36),inset 0 -1px 0 rgba(0,0,0,.22)}
+.wcard::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(130% 92% at 8% 2%,rgba(255,255,255,.34),transparent 44%),
+             radial-gradient(94% 82% at 98% 106%,rgba(58,36,12,.34),transparent 52%)}
+.wc-wm{position:absolute;z-index:0;left:-8%;top:32%;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  font-size:clamp(66px,23vw,132px);line-height:.78;color:rgba(74,49,20,.17);white-space:nowrap;
+  pointer-events:none;user-select:none;letter-spacing:-.045em}
+.wc-row1,.wc-owner{position:relative;z-index:2}
+.wc-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wc-brand{font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:clamp(18px,5.1vw,25px);
+  color:#fffaf0;letter-spacing:.02em;text-shadow:0 1px 2px rgba(78,48,14,.3)}
 .wc-tag{text-align:right;min-width:0}
-.wc-tag-label{font-size:clamp(9px,2.6vw,11px);color:rgba(255,255,255,.72);font-weight:600;letter-spacing:.02em}
-.wc-tag-no{font-weight:800;font-size:clamp(12px,3.5vw,15px);letter-spacing:.04em;margin-top:2px;
-  text-shadow:0 1px 2px rgba(0,0,0,.25);word-break:break-all}
-.wc-owner{font-size:clamp(12px,3.6vw,15px);font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.94);text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.wc-tag-l{font-size:clamp(9px,2.5vw,11px);color:rgba(46,29,9,.6);font-weight:700}
+.wc-tag-n{font-weight:800;font-size:clamp(12px,3.4vw,15px);color:#fffaf0;letter-spacing:.03em;margin-top:2px;
+  text-shadow:0 1px 2px rgba(78,48,14,.3);word-break:break-all}
+.wc-owner{font-size:clamp(12px,3.5vw,15px);font-weight:700;letter-spacing:.05em;color:#1c1509}
 
-/* action buttons */
-.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:900px;margin:22px auto 0}
-.wallet-foot{max-width:900px;margin:0 auto;padding:14px 16px 0}
-.wbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 10px;border-radius:14px;
-  font-weight:800;font-size:13px;letter-spacing:.02em;border:1.6px solid var(--blue);color:var(--blue);
-  background:#fff;transition:background .12s,transform .06s,box-shadow .12s;white-space:nowrap;min-width:0}
-.wbtn .wbtn-ic{font-size:15px;line-height:1}
-.wbtn:hover{background:#eef4ff;box-shadow:0 4px 14px rgba(47,123,246,.16)}
-.wbtn:active{transform:translateY(1px);background:#e4edff}
-.wbtn.wbtn-fill{background:var(--blue);color:#fff}
-.wbtn.wbtn-fill:hover{background:#2a6fe0}
-.wbtn.wbtn-amber{border-color:#c98a2e;color:#a96e1c}
-.wbtn.wbtn-amber:hover{background:#fdf3e4}
-.wbtn.wbtn-amber:active{background:#f8e9d3}
+.wpanel-info{min-width:0}
+.wpi-title{color:var(--wtxt);font-size:clamp(15px,3.8vw,19px);font-weight:700;margin-bottom:10px}
+.wpi-bal{font-size:clamp(25px,7.6vw,44px);font-weight:800;color:var(--wg);line-height:1.04;white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
+.wpi-bal .u{font-size:.46em;font-weight:700;color:var(--wg2);margin-left:.3em;letter-spacing:.04em}
+.wpi-div{border-top:1px solid var(--wline);margin:clamp(14px,3vw,22px) 0 12px}
+.wpi-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.wpi-row-k{color:var(--wmut);font-size:13px}
+.wpi-row-v{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--wtxt);overflow-wrap:anywhere}
+.wpi-copy{background:none;color:var(--wg2);font-size:15px;padding:2px;line-height:1}
+.wpi-copy:active{color:var(--wg)}
 
-/* wallet modal bits */
-.wm-balance{background:#f7f8fa;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px;color:var(--ink2);margin-bottom:12px}
-.wm-balance b{color:var(--ink);font-weight:800}
-.wm-quick{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px}
-.wm-quick button{flex:1 1 auto;min-width:66px;background:var(--line);border-radius:9px;padding:9px 4px;font-weight:800;font-size:12px;color:var(--ink2)}
-.wm-quick button:active{filter:brightness(.95)}
+.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 0}
+.wbtn{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 12px;border-radius:999px;
+  font-weight:800;font-size:13px;letter-spacing:.03em;white-space:nowrap;min-width:0;
+  border:1px solid var(--wg2);color:var(--wg);background:rgba(227,184,119,.04);
+  transition:background .14s,transform .06s}
+.wbtn .wbtn-ic{font-size:15px}
+.wbtn:hover{background:rgba(227,184,119,.1)}
+.wbtn:active{transform:translateY(1px)}
+.wbtn.wbtn-primary{border:none;color:#1c1408;background:linear-gradient(180deg,#eecb8a,#d6a961);box-shadow:0 8px 22px rgba(214,169,97,.26)}
+.wbtn.wbtn-primary:hover{background:linear-gradient(180deg,#f2d199,#dcb06a)}
 
+.wsec{background:var(--wpanel);border:1px solid var(--wline);border-radius:18px;padding:clamp(15px,2.4vw,22px);margin-top:16px}
+.wsec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.wsec-hd h3{margin:0;font-size:14px;font-weight:700;color:var(--wtxt);text-transform:none;letter-spacing:0}
+.wsec-all{color:var(--wg2);font-size:11px;font-weight:800;letter-spacing:.06em;background:none}
+.wstats{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,3vw,30px)}
+.wstat{display:flex;flex-direction:column;gap:8px;min-width:0}
+.wstat-ic{width:40px;height:40px;border-radius:12px;background:rgba(227,184,119,.1);border:1px solid var(--wline);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--wg)}
+.wstat-k{color:var(--wmut);font-size:12.5px}
+.wstat-v{font-weight:800;font-size:clamp(15px,3.6vw,19px);color:var(--wtxt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wstat-v .u{font-size:.62em;color:var(--wg2);margin-left:.25em}
+.wledger-empty{text-align:center;padding:20px 8px;color:var(--wmut)}
+.wledger-empty .ic{font-size:22px;color:var(--wg2);display:block;margin-bottom:8px}
+.wl-item{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--wline)}
+.wl-item:last-child{border-bottom:none}
+.wl-item .k{color:var(--wtxt);font-size:13px}
+.wl-item .k small{color:var(--wmut);display:block;font-size:11px;margin-top:2px}
+.wl-item .amt{font-weight:800;font-size:14px;white-space:nowrap}
+.wl-item .amt.pos{color:#5cc98b}.wl-item .amt.neg{color:#e08b6a}
+
+.wfoot{margin-top:26px;padding:24px clamp(14px,4vw,44px) 30px;border-top:1px solid var(--wline);
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.22))}
+.wfoot-inner{max-width:1000px;margin:0 auto}
+.wfeat{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,3vw,32px)}
+.wfeat > div{min-width:0}
+.wfeat-ic{font-size:17px;color:var(--wg);margin-bottom:7px}
+.wfeat-t{font-weight:700;font-size:13px;color:var(--wtxt);margin-bottom:4px}
+.wfeat-d{color:var(--wmut);font-size:11.5px;line-height:1.45}
+.wfoot-cr{text-align:center;color:#6b6353;font-size:11.5px;margin-top:22px;line-height:1.9}
+.wfoot-cr a{color:#8a8171}
+
+/* dark wallet modal (sits on document.body — literal colours, no page vars) */
+.sheet.sheet-dark{background:#1a1713;color:#f3ece0}
+.sheet.sheet-dark h2{color:#fff}
+.sheet.sheet-dark .field label{color:#9a917e}
+.sheet.sheet-dark .field input{background:#110e0a;border-color:#332c22;color:#f3ece0}
+.sheet.sheet-dark .hint{color:#8a8171}
+.sheet.sheet-dark .loterr{color:#e08b6a}
+.wm-balance{background:#211d18;border:1px solid #332c22;border-radius:11px;padding:10px 12px;font-size:13px;color:#b6ac98;margin-bottom:12px}
+.wm-balance b{color:#e3b877;font-weight:800}
+.wm-quick{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px}
+.wm-quick button{flex:1 1 auto;min-width:66px;background:#26221c;border-radius:9px;padding:9px 4px;font-weight:800;font-size:12px;color:#c9bfa8}
+.wm-quick button:active{filter:brightness(1.15)}
+.sheet.sheet-dark .btn.ghost{background:#26221c;color:#c9bfa8}
+.sheet.sheet-dark .btn.green,.sheet.sheet-dark .btn.dark{background:linear-gradient(180deg,#eecb8a,#d6a961);color:#1c1408}
+
+@media (max-width:680px){
+  .wpanel{grid-template-columns:1fr;gap:16px}
+  .wcard{max-width:360px;margin:0 auto}
+}
 @media (max-width:640px){
-  .wallet-grid{grid-template-columns:1fr;gap:16px}
-  .wallet-card{max-width:none}
-  .wi-balance{font-size:clamp(22px,8.4vw,34px)}
+  .wfeat{grid-template-columns:1fr 1fr;gap:18px}
 }
 @media (max-width:560px){
   .wallet-actions{grid-template-columns:1fr}
-  .wallet-hero{padding:16px 12px 20px}
+  .wstats{grid-template-columns:1fr;gap:14px}
 }
 
 /* generic overflow guards */
@@ -2355,15 +2412,19 @@ function screenMore(){
    Synthetic internal balance. S.wallet.balance is the SINGLE source of truth —
    every display reads it; ПОПОЛНИТЬ / ВЫВОД СРЕДСТВ mutate it and re-render.
    ПЕРЕВЕСТИ is intentionally a no-op for now (walletTransfer stub). */
+function walletBig(x){                                       // "3,000,000,000<span class=u>USD</span>"
+  const s = walletFmt(x), i = s.lastIndexOf(" ");
+  return `${s.slice(0, i)}<span class="u">${s.slice(i + 1)}</span>`;
+}
 function walletCardMarkup(){
   const W = S.wallet;
-  return `<div class="wallet-card">
-    <div class="wc-watermark" aria-hidden="true">XAUCORE</div>
-    <div class="wc-top">
-      <div class="wc-logo">XAUCORE</div>
+  return `<div class="wcard">
+    <div class="wc-wm" aria-hidden="true">XAUCORE</div>
+    <div class="wc-row1">
+      <div class="wc-brand">XAUCORE</div>
       <div class="wc-tag">
-        <div class="wc-tag-label">Виртуальный кошелёк</div>
-        <div class="wc-tag-no mono">${W.cardNo}</div>
+        <div class="wc-tag-l">Виртуальный кошелёк</div>
+        <div class="wc-tag-n mono">${W.walletNo}</div>
       </div>
     </div>
     <div class="wc-owner">${W.owner}</div>
@@ -2374,40 +2435,76 @@ function walletLedgerRow(l){
   const when = simDateStr(l.ts) + " " + pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes());
   const label = l.type === "deposit" ? "Пополнение" : l.type === "withdraw" ? "Вывод средств" : "Перевод";
   const neg = l.type !== "deposit";
-  return `<div class="row" style="padding:7px 0;border-bottom:1px dashed var(--line)">
-    <span class="k">${label}<br><small style="color:var(--ink3)">${when}${l.note?" · "+l.note:""}</small></span>
-    <span class="v mono ${neg?'neg':'pos'}">${neg?'−':'+'}${walletFmt(l.amount)}</span>
+  return `<div class="wl-item">
+    <span class="k">${label}<small>${when}${l.note ? " · " + l.note : ""}</small></span>
+    <span class="amt mono ${neg ? 'neg' : 'pos'}">${neg ? '−' : '+'}${walletFmt(l.amount)}</span>
   </div>`;
 }
 function screenWallet(){
   const W = S.wallet;
   const led = (W.ledger || []).slice(0, 8);
-  return appbar("Кошелёк", {back:true}) + `
-  <div class="wallet-hero">
-    <div class="wallet-grid">
-      ${walletCardMarkup()}
-      <div class="wallet-info">
-        <div class="wi-title">Money Broker</div>
-        <div class="wi-balance mono" id="wiBalance">${walletFmt(W.balance)}</div>
-        <div class="wi-divider"></div>
-        <div class="wi-row">
-          <span class="wi-row-k">Номер виртуального кошелька</span>
-          <span class="wi-row-v mono">${W.walletNo}</span>
+  const feat = [
+    ["🛡", "Безопасность", "DEMO-среда — реальные средства не задействованы"],
+    ["🔒", "Надёжность", "Синтетический симулятор XAUCORE, состояние сохраняется"],
+    ["⚡", "Быстрота", "Мгновенное пополнение и вывод внутри симулятора"],
+    ["🎧", "Поддержка", "Учебный проект · DEMO • SYNTHETIC DATA"]
+  ];
+  return `<div class="wallet-page">
+    <div class="wallet-inner">
+      <button class="wp-back" data-act="back">‹ НАЗАД</button>
+      <h1 class="wp-h1">Money Broker</h1>
+      <div class="wp-sub">Управляйте средствами брокера и операциями платформы (DEMO • SYNTHETIC).</div>
+
+      <div class="wpanel">
+        ${walletCardMarkup()}
+        <div class="wpanel-info">
+          <div class="wpi-title">Money Broker</div>
+          <div class="wpi-bal" id="wiBalance">${walletBig(W.balance)}</div>
+          <div class="wpi-div"></div>
+          <div class="wpi-row">
+            <span class="wpi-row-k">Номер виртуального кошелька</span>
+            <span class="wpi-row-v mono">${W.walletNo}<button class="wpi-copy" data-act="wcopy" aria-label="Копировать">⧉</button></span>
+          </div>
         </div>
       </div>
+
+      <div class="wallet-actions">
+        <button class="wbtn wbtn-primary" data-act="wdeposit"><span class="wbtn-ic" aria-hidden="true">＋</span>ПОПОЛНИТЬ</button>
+        <button class="wbtn" data-act="wtransfer"><span class="wbtn-ic" aria-hidden="true">⇄</span>ПЕРЕВЕСТИ</button>
+        <button class="wbtn" data-act="wwithdraw"><span class="wbtn-ic" aria-hidden="true">↓</span>ВЫВОД СРЕДСТВ</button>
+      </div>
+
+      <div class="wsec">
+        <div class="wsec-hd"><h3>Общая информация</h3></div>
+        <div class="wstats">
+          <div class="wstat">
+            <div class="wstat-ic" aria-hidden="true">🗂</div>
+            <div class="wstat-k">Общий баланс</div>
+            <div class="wstat-v" id="wStatTotal">${walletBig(W.balance)}</div>
+          </div>
+          <div class="wstat">
+            <div class="wstat-ic" aria-hidden="true">✓</div>
+            <div class="wstat-k">Доступно</div>
+            <div class="wstat-v" id="wStatAvail">${walletBig(W.balance)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wsec">
+        <div class="wsec-hd"><h3>Последние операции</h3>${led.length ? `<button class="wsec-all" data-act="gotohistory">СМОТРЕТЬ ВСЕ</button>` : ""}</div>
+        ${led.length
+          ? led.map(walletLedgerRow).join("")
+          : `<div class="wledger-empty"><span class="ic" aria-hidden="true">🧾</span>Нет операций<div style="font-size:12px;margin-top:4px;color:var(--wmut)">Здесь будут отображаться ваши операции</div></div>`}
+      </div>
     </div>
-    <div class="wallet-actions">
-      <button class="wbtn wbtn-fill" data-act="wdeposit"><span class="wbtn-ic" aria-hidden="true">＋</span>ПОПОЛНИТЬ</button>
-      <button class="wbtn" data-act="wtransfer"><span class="wbtn-ic" aria-hidden="true">⇄</span>ПЕРЕВЕСТИ</button>
-      <button class="wbtn wbtn-amber" data-act="wwithdraw"><span class="wbtn-ic" aria-hidden="true">↓</span>ВЫВОД СРЕДСТВ</button>
-    </div>
-  </div>
-  <div class="wallet-foot">
-    <div class="card">
-      <h3>Последние операции</h3>
-      ${led.length ? led.map(walletLedgerRow).join("") : `<div class="hint" style="text-align:center">Операций пока нет</div>`}
-    </div>
-    <div class="hint" style="text-align:center;color:var(--ink3)">DEMO • SYNTHETIC DATA — внутренний баланс симулятора. Реальные платёжные системы не подключены.</div>
+
+    <div class="wfoot"><div class="wfoot-inner">
+      <div class="wfeat">
+        ${feat.map(f => `<div><div class="wfeat-ic" aria-hidden="true">${f[0]}</div><div class="wfeat-t">${f[1]}</div><div class="wfeat-d">${f[2]}</div></div>`).join("")}
+      </div>
+      <div class="wfoot-cr">© ${new Date().getUTCFullYear()} XAUCORE · DEMO • SYNTHETIC DATA<br>
+        <a data-act="wlegal">Условия использования</a> · <a data-act="wlegal">Политика конфиденциальности</a></div>
+    </div></div>
   </div>`;
 }
 
@@ -2465,7 +2562,7 @@ function walletAmountModal(kind){
     <div class="loterr" id="wm-err" style="min-height:16px"></div>
     <button class="btn ${cls}" id="wm-go">${go}</button>
     <button class="btn ghost" data-close>Отмена</button>
-  `);
+  `, "sheet-dark");
   const amt = document.getElementById("wm-amt");
   const err = document.getElementById("wm-err");
   const readAmt = () => parseFloat((amt.value || "").replace(/[\s,]/g, ""));
@@ -2494,7 +2591,7 @@ function walletTransferModal(){
     <div class="loterr" id="wt-err" style="min-height:16px"></div>
     <button class="btn dark" id="wt-go">Перевести</button>
     <button class="btn ghost" data-close>Отмена</button>
-  `);
+  `, "sheet-dark");
   const err = document.getElementById("wt-err");
   document.getElementById("wt-go").onclick = () => {
     const to = document.getElementById("wt-to").value;
@@ -2883,6 +2980,12 @@ function bindScreen(){
   act("wdeposit", ()=> walletAmountModal("deposit"));
   act("wwithdraw", ()=> walletAmountModal("withdraw"));
   act("wtransfer", ()=> walletTransferModal());
+  act("wcopy", ()=>{
+    const t = S.wallet.walletNo;
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>toast("g","Номер скопирован")).catch(()=>toast("","Номер: "+t));
+    else toast("", "Номер: " + t);
+  });
+  act("wlegal", ()=> toast("o", "Раздел в разработке — DEMO • SYNTHETIC"));
   act("openxau", ()=>{ S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
   act("addinstr", ()=> toast("o", "В DEMO-режиме доступен только XAUUSD"));
   act("search", ()=> toast("o", "Поиск инструментов будет добавлен позже"));
@@ -3367,11 +3470,11 @@ function showNewsResult(r){
 }
 
 /* ---------- generic sheet ---------- */
-function openSheet(html){
+function openSheet(html, sheetCls){
   closeModal();
   modalEl = document.createElement("div");
   modalEl.className = "modal";
-  modalEl.innerHTML = `<div class="sheet"><button class="iconbtn close" data-close>✕</button>${html}</div>`;
+  modalEl.innerHTML = `<div class="sheet ${sheetCls||""}"><button class="iconbtn close" data-close>✕</button>${html}</div>`;
   document.body.appendChild(modalEl);
   modalEl.addEventListener("click", e=>{ if(e.target === modalEl) closeModal(); });
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
@@ -3588,9 +3691,14 @@ function updateLive(){
   if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart") drawChart();
   // broker wallet — single balance state reflected everywhere it shows
-  if(document.getElementById("wiBalance")){
-    setTxt("wiBalance", walletFmt(S.wallet.balance));
-    fitText(document.getElementById("wiBalance"), 16);
+  const wib = document.getElementById("wiBalance");
+  if(wib){
+    const big = walletBig(S.wallet.balance);
+    if(wib.innerHTML !== big) wib.innerHTML = big;
+    fitText(wib, 18);
+    const wt = document.getElementById("wStatTotal"), wa = document.getElementById("wStatAvail");
+    if(wt) wt.innerHTML = big;
+    if(wa) wa.innerHTML = big;
   }
   // watchlist row — keep prices/change/spark live
   if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
