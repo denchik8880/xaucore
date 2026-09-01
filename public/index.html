@@ -276,14 +276,19 @@ html:has(body.route-wallet){background:#0c0a08}
 
 .wallet-page{
   --wg:#e3b877; --wg2:#a9884f; --wtxt:#f3ece0; --wmut:#9a917e;
-  --wpanel:#1a1713; --wline:#332c22;
-  min-height:100vh;color:var(--wtxt);padding:16px clamp(14px,4vw,44px) 0;
-  background:
-    radial-gradient(58% 40% at 80% -4%,rgba(227,184,119,.16),transparent 62%),
-    radial-gradient(46% 38% at 8% 6%,rgba(180,132,72,.09),transparent 60%),
-    radial-gradient(72% 52% at 60% 110%,rgba(120,86,48,.14),transparent 62%),
-    linear-gradient(178deg,#17130e 0%,#120f0b 46%,#0b0908 100%);
+  --wpanel:rgba(21,17,13,.74); --wline:#3d352a;
+  position:relative;isolation:isolate;min-height:100vh;color:var(--wtxt);
+  padding:16px clamp(14px,4vw,44px) 0;background:#0b0908;
 }
+/* dark office / city-view at dusk — fixed behind the content */
+.wallet-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(10,8,6,.28) 0%,rgba(10,8,6,.4) 34%,rgba(9,7,5,.66) 60%,rgba(8,6,5,.9) 100%),
+    url(/wallet-bg.svg) center top/cover no-repeat;
+}
+.wallet-bg::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 55% at 50% 120%,rgba(6,5,4,.85),transparent 60%)}
+.wallet-inner,.wfoot{position:relative;z-index:1}
 .wallet-inner{max-width:1000px;margin:0 auto}
 .wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:800;font-size:12px;
   letter-spacing:.08em;padding:8px 2px;background:none}
@@ -2419,9 +2424,9 @@ function walletBig(x){                                       // "3,000,000,000<s
 function walletCardMarkup(){
   const W = S.wallet;
   return `<div class="wcard">
-    <div class="wc-wm" aria-hidden="true">XAUCORE</div>
+    <div class="wc-wm" aria-hidden="true">Zenin</div>
     <div class="wc-row1">
-      <div class="wc-brand">XAUCORE</div>
+      <div class="wc-brand">Zenin</div>
       <div class="wc-tag">
         <div class="wc-tag-l">Виртуальный кошелёк</div>
         <div class="wc-tag-n mono">${W.walletNo}</div>
@@ -2445,20 +2450,21 @@ function screenWallet(){
   const led = (W.ledger || []).slice(0, 8);
   const feat = [
     ["🛡", "Безопасность", "DEMO-среда — реальные средства не задействованы"],
-    ["🔒", "Надёжность", "Синтетический симулятор XAUCORE, состояние сохраняется"],
+    ["🔒", "Надёжность", "Синтетический симулятор, состояние кошелька сохраняется"],
     ["⚡", "Быстрота", "Мгновенное пополнение и вывод внутри симулятора"],
     ["🎧", "Поддержка", "Учебный проект · DEMO • SYNTHETIC DATA"]
   ];
   return `<div class="wallet-page">
+    <div class="wallet-bg" aria-hidden="true"></div>
     <div class="wallet-inner">
       <button class="wp-back" data-act="back">‹ НАЗАД</button>
-      <h1 class="wp-h1">Money Broker</h1>
+      <h1 class="wp-h1">Zenin Markets</h1>
       <div class="wp-sub">Управляйте средствами брокера и операциями платформы (DEMO • SYNTHETIC).</div>
 
       <div class="wpanel">
         ${walletCardMarkup()}
         <div class="wpanel-info">
-          <div class="wpi-title">Money Broker</div>
+          <div class="wpi-title">Zenin Markets</div>
           <div class="wpi-bal" id="wiBalance">${walletBig(W.balance)}</div>
           <div class="wpi-div"></div>
           <div class="wpi-row">
@@ -2502,7 +2508,7 @@ function screenWallet(){
       <div class="wfeat">
         ${feat.map(f => `<div><div class="wfeat-ic" aria-hidden="true">${f[0]}</div><div class="wfeat-t">${f[1]}</div><div class="wfeat-d">${f[2]}</div></div>`).join("")}
       </div>
-      <div class="wfoot-cr">© ${new Date().getUTCFullYear()} XAUCORE · DEMO • SYNTHETIC DATA<br>
+      <div class="wfoot-cr">© ${new Date().getUTCFullYear()} Zenin Markets · DEMO • SYNTHETIC DATA<br>
         <a data-act="wlegal">Условия использования</a> · <a data-act="wlegal">Политика конфиденциальности</a></div>
     </div></div>
   </div>`;
