@@ -280,14 +280,19 @@ html:has(body.route-wallet){background:#0c0a08}
   position:relative;isolation:isolate;min-height:100vh;color:var(--wtxt);
   padding:14px clamp(14px,4vw,44px) 0;background:#0b0908;
 }
-/* dusk skyscraper skyline — fixed behind the content */
-.wallet-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:url(/wallet-bg.svg) center top/cover no-repeat;
+/* wallet background — a real photo at /wallet-bg.jpg wins; SVG skyline is the fallback */
+.wallet-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:#0b0908;
+  background-image:url(/wallet-bg.svg);background-size:cover;background-position:center top;background-repeat:no-repeat;
 }
+.wallet-bg.has-photo{background-image:url(/wallet-bg.jpg);background-position:center}
 .wallet-bg::after{content:"";position:absolute;inset:0;
   background:linear-gradient(180deg,
     rgba(9,7,5,.06) 0%,rgba(9,7,5,.14) 30%,rgba(9,7,5,.4) 52%,
     rgba(8,6,4,.74) 72%,rgba(6,5,4,.94) 100%)}
+.wallet-bg.has-photo::after{
+  background:
+    linear-gradient(180deg,rgba(8,6,5,.34) 0%,rgba(8,6,5,.34) 24%,rgba(8,6,4,.6) 54%,rgba(6,5,4,.85) 76%,rgba(5,4,3,.96) 100%),
+    radial-gradient(120% 60% at 50% 0%,rgba(0,0,0,0),rgba(0,0,0,.28) 100%)}
 .wallet-inner,.wfoot{position:relative;z-index:1}
 .wallet-inner{max-width:1000px;margin:0 auto}
 .wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:800;font-size:12px;
@@ -540,7 +545,7 @@ const DEFAULTS = () => ({
             stepSize:0.20, moveSize:5, impDir:1, impUsd:60, impSec:15 },
   /* BROKER WALLET — synthetic internal balance, single source of truth for the wallet page */
   wallet: { balance: 3000000000, walletNo: "W01507396USD", owner: "Denis Fx",
-            cardBrand: "Zenin Core", ledger: [] },
+            cardBrand: "Core Wallet", ledger: [] },
 
   /* live runtime — currentMarketPrice == price.mid is the single source of truth */
   price: { bid:4457.02, ask:4457.24, mid:4457.13, prevMid:4457.13,
@@ -614,7 +619,7 @@ function migrateState(){
   if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
   if(!S.wallet.walletNo)  S.wallet.walletNo = d.wallet.walletNo;
   if(!S.wallet.owner)     S.wallet.owner = d.wallet.owner;
-  if(!S.wallet.cardBrand) S.wallet.cardBrand = d.wallet.cardBrand;
+  if(!S.wallet.cardBrand || S.wallet.cardBrand === "Zenin Core") S.wallet.cardBrand = d.wallet.cardBrand;
   if(!S.dayLog) S.dayLog = [];
   if(S.daySeq === undefined) S.daySeq = 0;
   if(!S.newsLog) S.newsLog = [];
@@ -2421,6 +2426,14 @@ function walletBig(x){                                       // "3,000,000,000<s
   const s = walletFmt(x), i = s.lastIndexOf(" ");
   return `${s.slice(0, i)}<span class="u">${s.slice(i + 1)}</span>`;
 }
+/* Wallet background: a real photo at /wallet-bg.jpg is used if present (drop the
+   file into public/), otherwise the stylized /wallet-bg.svg fallback. */
+let _walletBg = "svg";
+function walletProbePhoto(){
+  const im = new Image();
+  im.onload = () => { _walletBg = "jpg"; if(S && S.ui && S.ui.tab === "wallet") render(); };
+  im.src = "/wallet-bg.jpg?v=1";
+}
 function walletCardMarkup(){
   const W = S.wallet;
   const brand = W.cardBrand || "Zenin Core";                 // editable in S.wallet.cardBrand
@@ -2456,7 +2469,7 @@ function screenWallet(){
     ["🎧", "Поддержка", "Учебный проект · DEMO • SYNTHETIC DATA"]
   ];
   return `<div class="wallet-page">
-    <div class="wallet-bg" aria-hidden="true"></div>
+    <div class="wallet-bg${_walletBg === "jpg" ? " has-photo" : ""}" aria-hidden="true"></div>
     <div class="wallet-inner">
       <button class="wp-back" data-act="back">‹ НАЗАД</button>
       <h1 class="wp-h1">Zenin Markets</h1>
@@ -4264,6 +4277,7 @@ async function bootAfterAuth(preferRemote){
 }
 
 /* ---------------- boot ---------------- */
+walletProbePhoto();                    // use /wallet-bg.jpg if it exists, else the SVG fallback
 if(XC.token){
   bootAfterAuth(true).catch(()=>{ load(); finishBoot(); });
 } else {
