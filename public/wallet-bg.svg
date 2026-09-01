@@ -1,90 +1,98 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid slice">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0a0c15"/>
-      <stop offset="0.16" stop-color="#0f0e18"/>
-      <stop offset="0.27" stop-color="#1c1720"/>
-      <stop offset="0.34" stop-color="#3a2318"/>
-      <stop offset="0.40" stop-color="#6e3e1c"/>
-      <stop offset="0.44" stop-color="#8a4d1e"/>
-      <stop offset="0.49" stop-color="#4a2a15"/>
-      <stop offset="0.62" stop-color="#1a120d"/>
-      <stop offset="1" stop-color="#0a0807"/>
+      <stop offset="0" stop-color="#0a1024"/>
+      <stop offset="0.14" stop-color="#121030"/>
+      <stop offset="0.26" stop-color="#2a1c3a"/>
+      <stop offset="0.36" stop-color="#5c2c3a"/>
+      <stop offset="0.44" stop-color="#a8452a"/>
+      <stop offset="0.50" stop-color="#e07a2c"/>
+      <stop offset="0.545" stop-color="#ffb352"/>
+      <stop offset="0.59" stop-color="#c9682a"/>
+      <stop offset="0.68" stop-color="#4a2617"/>
+      <stop offset="0.82" stop-color="#180f0c"/>
+      <stop offset="1" stop-color="#0a0706"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.6" cy="0.44" r="0.6">
-      <stop offset="0" stop-color="#ffcf88" stop-opacity="0.6"/>
-      <stop offset="0.4" stop-color="#ef9a44" stop-opacity="0.24"/>
-      <stop offset="1" stop-color="#ef9a44" stop-opacity="0"/>
+    <radialGradient id="sun" cx="0.56" cy="0.545" r="0.42">
+      <stop offset="0" stop-color="#ffe6b0" stop-opacity="0.9"/>
+      <stop offset="0.28" stop-color="#ffb54e" stop-opacity="0.5"/>
+      <stop offset="0.7" stop-color="#ef8a34" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ef8a34" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="ceil" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2c2013" stop-opacity="0.95"/>
-      <stop offset="1" stop-color="#2c2013" stop-opacity="0"/>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb765" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ff9a44" stop-opacity="0.28"/>
     </linearGradient>
     <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0a0807" stop-opacity="0"/>
-      <stop offset="1" stop-color="#050403" stop-opacity="1"/>
+      <stop offset="0" stop-color="#0a0706" stop-opacity="0"/>
+      <stop offset="1" stop-color="#040302" stop-opacity="1"/>
     </linearGradient>
-    <radialGradient id="vig" cx="0.5" cy="0.36" r="0.85">
-      <stop offset="0.5" stop-color="#000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000" stop-opacity="0.62"/>
+    <radialGradient id="vig" cx="0.5" cy="0.4" r="0.9">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.5"/>
     </radialGradient>
-    <pattern id="lights" width="22" height="28" patternUnits="userSpaceOnUse">
-      <rect x="3" y="4" width="2.4" height="3.2" fill="#f9cd74" opacity="0.95"/>
-      <rect x="12" y="14" width="2.4" height="3.2" fill="#ffe19a" opacity="0.6"/>
-      <rect x="7" y="21" width="2" height="2.8" fill="#eaad55" opacity="0.5"/>
-      <rect x="16" y="8" width="2" height="2.8" fill="#f9cd74" opacity="0.32"/>
+    <pattern id="win" width="13" height="17" patternUnits="userSpaceOnUse">
+      <rect x="2.5" y="2.6" width="5.4" height="7.4" fill="#ffce7c" opacity="0.24"/>
     </pattern>
+    <pattern id="winFar" width="11" height="15" patternUnits="userSpaceOnUse">
+      <rect x="2.2" y="2.4" width="4.4" height="6" fill="#ffd58a" opacity="0.16"/>
+    </pattern>
+    <pattern id="winLit" width="55" height="70" patternUnits="userSpaceOnUse">
+      <rect x="4" y="8" width="5.4" height="7.4" fill="#ffe6ac" opacity="0.92"/>
+      <rect x="32" y="41" width="5.4" height="7.4" fill="#fff2ce" opacity="0.72"/>
+      <rect x="17" y="55" width="5" height="7" fill="#ffcf7c" opacity="0.6"/>
+      <rect x="44" y="21" width="5" height="7" fill="#ffdc98" opacity="0.5"/>
+    </pattern>
+
+    <clipPath id="near">
+      <rect x="-30" y="430" width="150" height="670"/><rect x="98" y="356" width="94" height="744"/>
+      <rect x="176" y="242" width="126" height="858"/><rect x="288" y="470" width="82" height="630"/>
+      <rect x="356" y="168" width="118" height="932"/><rect x="458" y="376" width="98" height="724"/>
+      <rect x="542" y="292" width="136" height="808"/><rect x="662" y="204" width="88" height="896"/>
+      <rect x="738" y="418" width="124" height="682"/><rect x="846" y="140" width="158" height="960"/>
+      <rect x="988" y="344" width="92" height="756"/><rect x="1068" y="262" width="120" height="838"/>
+      <rect x="1174" y="440" width="96" height="660"/><rect x="1254" y="196" width="140" height="904"/>
+      <rect x="1374" y="384" width="92" height="716"/><rect x="1452" y="300" width="128" height="800"/>
+      <rect x="1562" y="428" width="112" height="672"/>
+    </clipPath>
+    <clipPath id="far">
+      <rect x="-20" y="512" width="120" height="588"/><rect x="86" y="548" width="96" height="552"/>
+      <rect x="170" y="486" width="128" height="614"/><rect x="290" y="536" width="80" height="564"/>
+      <rect x="360" y="452" width="118" height="648"/><rect x="470" y="522" width="102" height="578"/>
+      <rect x="560" y="470" width="140" height="630"/><rect x="700" y="500" width="96" height="600"/>
+      <rect x="792" y="540" width="120" height="560"/><rect x="912" y="460" width="164" height="640"/>
+      <rect x="1074" y="524" width="94" height="576"/><rect x="1168" y="486" width="150" height="614"/>
+      <rect x="1316" y="536" width="96" height="564"/><rect x="1408" y="470" width="140" height="630"/>
+      <rect x="1540" y="524" width="118" height="576"/>
+    </clipPath>
   </defs>
 
-  <rect width="1600" height="1200" fill="url(#sky)"/>
-  <rect width="1600" height="1200" fill="url(#glow)"/>
+  <rect width="1600" height="1100" fill="url(#sky)"/>
+  <rect width="1600" height="1100" fill="url(#sun)"/>
+  <rect x="0" y="470" width="1600" height="200" fill="url(#haze)"/>
 
-  <!-- office ceiling + two warm light strips -->
-  <rect width="1600" height="150" fill="url(#ceil)"/>
-  <rect x="100" y="26" width="1400" height="6" rx="3" fill="#ffd591" opacity="0.55"/>
-  <rect x="240" y="76" width="1120" height="5" rx="2.5" fill="#ffc07a" opacity="0.32"/>
+  <!-- far skyline -->
+  <rect width="1600" height="1100" fill="#2a1f2c" opacity="0.82" clip-path="url(#far)"/>
+  <g clip-path="url(#far)"><rect x="0" y="420" width="1600" height="300" fill="url(#winFar)"/></g>
 
-  <!-- far skyline (hazy, warm-lit) -->
-  <g fill="#20161a" opacity="0.9">
-    <rect x="0" y="430" width="94" height="360"/><rect x="88" y="474" width="72" height="316"/>
-    <rect x="152" y="404" width="114" height="386"/><rect x="260" y="462" width="66" height="328"/>
-    <rect x="318" y="372" width="124" height="418"/><rect x="440" y="446" width="90" height="344"/>
-    <rect x="526" y="346" width="76" height="444"/><rect x="598" y="430" width="134" height="360"/>
-    <rect x="726" y="392" width="92" height="398"/><rect x="814" y="344" width="154" height="446"/>
-    <rect x="964" y="432" width="82" height="358"/><rect x="1040" y="410" width="114" height="380"/>
-    <rect x="1150" y="470" width="72" height="320"/><rect x="1218" y="384" width="134" height="406"/>
-    <rect x="1348" y="446" width="98" height="344"/><rect x="1442" y="486" width="84" height="304"/>
-    <rect x="1522" y="424" width="90" height="366"/>
+  <!-- near skyline -->
+  <rect width="1600" height="1100" fill="#0a0b12" clip-path="url(#near)"/>
+  <g clip-path="url(#near)">
+    <rect x="0" y="120" width="1600" height="560" fill="url(#win)"/>
+    <rect x="0" y="120" width="1600" height="560" fill="url(#winLit)"/>
+  </g>
+  <g stroke="#0a0b12" stroke-width="6">
+    <line x1="415" y1="168" x2="415" y2="96"/><line x1="925" y1="140" x2="925" y2="60"/>
+    <line x1="1324" y1="196" x2="1324" y2="124"/><line x1="235" y1="242" x2="235" y2="188"/>
+  </g>
+  <g fill="#ffdca0"><circle cx="925" cy="64" r="3.4" opacity="0.9"/><circle cx="415" cy="100" r="3" opacity="0.8"/></g>
+
+  <!-- room / floor -->
+  <rect x="0" y="640" width="1600" height="460" fill="url(#floor)"/>
+  <g stroke="#000" stroke-opacity="0.26" stroke-width="3">
+    <line x1="320" y1="0" x2="320" y2="1100"/><line x1="640" y1="0" x2="640" y2="1100"/>
+    <line x1="960" y1="0" x2="960" y2="1100"/><line x1="1280" y1="0" x2="1280" y2="1100"/>
   </g>
 
-  <!-- near skyline (near-black) -->
-  <g fill="#0c0a10">
-    <rect x="-20" y="520" width="156" height="360"/><rect x="126" y="566" width="98" height="314"/>
-    <rect x="218" y="474" width="144" height="406"/><rect x="356" y="558" width="82" height="322"/>
-    <rect x="434" y="430" width="122" height="450"/><rect x="552" y="546" width="154" height="334"/>
-    <rect x="700" y="496" width="98" height="384"/><rect x="794" y="566" width="124" height="314"/>
-    <rect x="914" y="456" width="176" height="424"/><rect x="1084" y="540" width="94" height="340"/>
-    <rect x="1174" y="500" width="154" height="380"/><rect x="1322" y="566" width="92" height="314"/>
-    <rect x="1408" y="466" width="144" height="414"/><rect x="1542" y="544" width="122" height="336"/>
-  </g>
-  <g stroke="#0c0a10" stroke-width="5">
-    <line x1="495" y1="430" x2="495" y2="374"/><line x1="1002" y1="456" x2="1002" y2="392"/>
-    <line x1="1480" y1="466" x2="1480" y2="410"/>
-  </g>
-
-  <!-- city window lights -->
-  <rect x="0" y="330" width="1600" height="470" fill="url(#lights)" opacity="0.55"/>
-  <rect x="0" y="330" width="1600" height="470" fill="url(#lights)" opacity="0.32" transform="translate(9 6)"/>
-
-  <!-- the dark room / marble floor below -->
-  <rect x="0" y="620" width="1600" height="580" fill="url(#floor)"/>
-
-  <!-- floor-to-ceiling glass mullions -->
-  <g stroke="#000" stroke-opacity="0.3" stroke-width="3">
-    <line x1="320" y1="0" x2="320" y2="1200"/><line x1="640" y1="0" x2="640" y2="1200"/>
-    <line x1="960" y1="0" x2="960" y2="1200"/><line x1="1280" y1="0" x2="1280" y2="1200"/>
-    <line x1="0" y1="112" x2="1600" y2="112"/>
-  </g>
-
-  <rect width="1600" height="1200" fill="url(#vig)"/>
+  <rect width="1600" height="1100" fill="url(#vig)"/>
 </svg>

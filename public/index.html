@@ -276,18 +276,18 @@ html:has(body.route-wallet){background:#0c0a08}
 
 .wallet-page{
   --wg:#e3b877; --wg2:#a9884f; --wtxt:#f3ece0; --wmut:#9a917e;
-  --wpanel:rgba(21,17,13,.74); --wline:#3d352a;
+  --wpanel:rgba(19,15,12,.82); --wline:#3d352a;
   position:relative;isolation:isolate;min-height:100vh;color:var(--wtxt);
-  padding:16px clamp(14px,4vw,44px) 0;background:#0b0908;
+  padding:14px clamp(14px,4vw,44px) 0;background:#0b0908;
 }
-/* dark office / city-view at dusk — fixed behind the content */
+/* dusk skyscraper skyline — fixed behind the content */
 .wallet-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    linear-gradient(180deg,rgba(10,8,6,.28) 0%,rgba(10,8,6,.4) 34%,rgba(9,7,5,.66) 60%,rgba(8,6,5,.9) 100%),
-    url(/wallet-bg.svg) center top/cover no-repeat;
+  background:url(/wallet-bg.svg) center top/cover no-repeat;
 }
 .wallet-bg::after{content:"";position:absolute;inset:0;
-  background:radial-gradient(120% 55% at 50% 120%,rgba(6,5,4,.85),transparent 60%)}
+  background:linear-gradient(180deg,
+    rgba(9,7,5,.06) 0%,rgba(9,7,5,.14) 30%,rgba(9,7,5,.4) 52%,
+    rgba(8,6,4,.74) 72%,rgba(6,5,4,.94) 100%)}
 .wallet-inner,.wfoot{position:relative;z-index:1}
 .wallet-inner{max-width:1000px;margin:0 auto}
 .wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:800;font-size:12px;
@@ -539,8 +539,8 @@ const DEFAULTS = () => ({
   manual: { enabled:false, frozen:false, impulse:null,
             stepSize:0.20, moveSize:5, impDir:1, impUsd:60, impSec:15 },
   /* BROKER WALLET — synthetic internal balance, single source of truth for the wallet page */
-  wallet: { balance: 3000000000, cardNo: "W077716769USD", walletNo: "W01507396USD",
-            owner: "Denis Fx", ledger: [] },
+  wallet: { balance: 3000000000, walletNo: "W01507396USD", owner: "Denis Fx",
+            cardBrand: "Zenin Core", ledger: [] },
 
   /* live runtime — currentMarketPrice == price.mid is the single source of truth */
   price: { bid:4457.02, ask:4457.24, mid:4457.13, prevMid:4457.13,
@@ -612,9 +612,9 @@ function migrateState(){
   if(!S.wallet) S.wallet = { ...d.wallet, ledger: [] };
   if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
   if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
-  if(!S.wallet.cardNo)   S.wallet.cardNo = d.wallet.cardNo;
-  if(!S.wallet.walletNo) S.wallet.walletNo = d.wallet.walletNo;
-  if(!S.wallet.owner)    S.wallet.owner = d.wallet.owner;
+  if(!S.wallet.walletNo)  S.wallet.walletNo = d.wallet.walletNo;
+  if(!S.wallet.owner)     S.wallet.owner = d.wallet.owner;
+  if(!S.wallet.cardBrand) S.wallet.cardBrand = d.wallet.cardBrand;
   if(!S.dayLog) S.dayLog = [];
   if(S.daySeq === undefined) S.daySeq = 0;
   if(!S.newsLog) S.newsLog = [];
@@ -2423,10 +2423,11 @@ function walletBig(x){                                       // "3,000,000,000<s
 }
 function walletCardMarkup(){
   const W = S.wallet;
+  const brand = W.cardBrand || "Zenin Core";                 // editable in S.wallet.cardBrand
   return `<div class="wcard">
-    <div class="wc-wm" aria-hidden="true">Zenin</div>
+    <div class="wc-wm" aria-hidden="true">${brand.split(" ")[0]}</div>
     <div class="wc-row1">
-      <div class="wc-brand">Zenin</div>
+      <div class="wc-brand">${brand}</div>
       <div class="wc-tag">
         <div class="wc-tag-l">Виртуальный кошелёк</div>
         <div class="wc-tag-n mono">${W.walletNo}</div>
@@ -4203,6 +4204,7 @@ function normalizeState(){
   if(!S.wallet) S.wallet = { ...d.wallet, ledger: [] };
   if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
   if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
+  if(!S.wallet.cardBrand) S.wallet.cardBrand = d.wallet.cardBrand;
   recalcAccount();
 }
 
