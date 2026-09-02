@@ -4,6 +4,7 @@
 <title>XAUCORE — DEMO XAUUSD Simulator</title>
 <meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
 <meta name="theme-color" content="#f4f5f7">
+<script>/* apply the saved theme before first paint — no light flash */try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,6 +24,28 @@
   --red-bg:#fdecea; --orange:#f5820d; --orange-bg:#fff2e2; --blue:#2f7bf6;
   --radius:16px; --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
   --font:'Open Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* --- theming tokens (see [data-theme="dark"] below) --- */
+  --field-bg:#fbfbfc;        /* inputs / sunken surfaces */
+  --press:#eef0f2;           /* :active / hover background */
+  --raise:#ffffff;           /* small raised chip (segmented "on") */
+  --invert:#111418;          /* dark CTA buttons, toasts, floating bar */
+  --invert-ink:#ffffff;
+  --scrim:rgba(0,0,0,.4);    /* modal backdrop */
+  --buy-line:#b7e6cf; --sell-line:#f6c9c4;
+  --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
+  --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
+}
+:root[data-theme="dark"]{
+  --bg:#0e1116; --card:#171b22; --ink:#e7e9ec; --ink2:#9aa3b0; --ink3:#69707c;
+  --line:#272d38; --green:#2ec27e; --green-bg:rgba(46,194,126,.16); --red:#f0564b;
+  --red-bg:rgba(240,86,75,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3b82f6;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.35);
+  --field-bg:#0f141b; --press:#20262f; --raise:#2c333e;
+  --invert:#242b35; --invert-ink:#f2f4f7;
+  --scrim:rgba(0,0,0,.62);
+  --buy-line:rgba(46,194,126,.45); --sell-line:rgba(240,86,75,.45);
+  --chart-bg:#12151b; --chart-grid:#232936; --chart-axis:#8a929e;
+  --chart-cross:#8a929e; --chart-tag:#2b323d; --chart-glass:rgba(20,24,30,.92);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
@@ -40,7 +63,7 @@ img,canvas,svg,video{max-width:100%}
 #app{padding-bottom:92px;overflow-x:clip;max-width:100%}
 .row>*{min-width:0}
 .row .v{text-align:right;overflow-wrap:anywhere}
-.appbar{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line);
+.appbar{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:8px;padding:12px 14px;min-height:52px}
 .appbar .ttl{font-weight:700;font-size:18px;display:flex;align-items:center;gap:6px}
 .appbar .sp{flex:1}
@@ -48,7 +71,7 @@ img,canvas,svg,video{max-width:100%}
 .iconbtn:active{background:var(--line)}
 .badge-demo{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--orange);
   background:var(--orange-bg);border:1px solid #f6cfa0;padding:3px 7px;border-radius:999px;white-space:nowrap}
-.subtabs{display:flex;gap:2px;background:#fff;border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
+.subtabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
 .subtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
 .wrap{padding:12px}
@@ -69,15 +92,15 @@ img,canvas,svg,video{max-width:100%}
 .tbtn .lbl{font-weight:800;font-size:clamp(10px,3vw,13.5px);letter-spacing:.02em;white-space:nowrap}
 .tbtn .px{display:block;width:100%;font-size:clamp(14px,4.7vw,21px);font-weight:800;white-space:nowrap;overflow:hidden;letter-spacing:-.01em;line-height:1.15}
 .tbtn .sub{font-size:10.5px;opacity:.75;font-weight:600}
-.tbtn.sell{background:var(--red-bg);color:var(--red);border-color:#f6c9c4}
-.tbtn.buy{background:var(--green-bg);color:var(--green);border-color:#b7e6cf}
+.tbtn.sell{background:var(--red-bg);color:var(--red);border-color:var(--sell-line)}
+.tbtn.buy{background:var(--green-bg);color:var(--green);border-color:var(--buy-line)}
 .tbtn:active{filter:brightness(.96)}
 .tbtn:disabled{opacity:.45}
-.lotbox{background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 3px;gap:4px;min-width:0}
+.lotbox{background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 3px;gap:4px;min-width:0}
 .lotbox .cap{font-size:8.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.02em;font-weight:700;text-align:center;line-height:1.15}
 .lotctl{display:flex;align-items:center;gap:3px;width:100%}
 .lotctl button{width:24px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--line);font-size:16px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center}
-.lotctl button:active{background:#dfe2e6}
+.lotctl button:active{background:var(--press)}
 .lotctl .val{flex:1 1 auto;min-width:30px;text-align:center;font-weight:800;font-size:15px;border:none;background:none;width:100%;padding:2px 0}
 @media (max-width:400px){
   .tradepanel{grid-template-columns:minmax(0,1fr) minmax(64px,82px) minmax(0,1fr);gap:4px}
@@ -93,15 +116,15 @@ img,canvas,svg,video{max-width:100%}
 .spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;margin-top:10px}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:700;font-size:12px;color:var(--ink2)}
-.miniquick button:active{background:#dfe2e6}
+.miniquick button:active{background:var(--press)}
 .loterr{color:var(--red);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
 
 .bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 24px));
-  background:#111418;color:#fff;font-weight:800;letter-spacing:.02em;padding:15px;border-radius:14px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-.bignew:active{background:#000}
+  background:var(--invert);color:var(--invert-ink);font-weight:800;letter-spacing:.02em;padding:15px;border-radius:14px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.bignew:active{filter:brightness(.9)}
 
 /* bottom nav */
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:#fff;border-top:1px solid var(--line);
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--card);border-top:1px solid var(--line);
   display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
 .bottomnav button{padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:10.5px;font-weight:600}
 .bottomnav button.on{color:var(--blue)}
@@ -120,8 +143,8 @@ img,canvas,svg,video{max-width:100%}
 .muted{color:var(--ink3);text-align:center;padding:32px 10px;font-size:13.5px}
 
 /* chart */
-.chartwrap{background:#fff;border-radius:0;max-width:100%;overflow:hidden}
-.tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chartwrap{background:var(--card);border-radius:0;max-width:100%;overflow:hidden}
+.tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tfbar::-webkit-scrollbar{display:none}
 .tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:800;font-size:12.5px;color:var(--ink2);background:var(--line)}
 .tfbar button.on{background:var(--blue);color:#fff}
@@ -130,39 +153,39 @@ img,canvas,svg,video{max-width:100%}
    horizontal drag / pinch still go to the chart's own JS handlers */
 #chartCanvas{touch-action:pan-y}
 #miniCanvas{touch-action:auto}
-.chartbox{position:relative;background:#fff;max-width:100%;overflow:hidden}
-.chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:rgba(255,255,255,.9);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
+.chartbox{position:relative;background:var(--card);max-width:100%;overflow:hidden}
+.chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartzoom{position:absolute;left:8px;bottom:26px;display:flex;flex-direction:column;gap:6px;z-index:5}
-.chartzoom button{width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.92);border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
+.chartzoom button{width:36px;height:36px;border-radius:11px;background:var(--chart-glass);border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
 .chartzoom button:active{background:var(--line)}
 .chartzoom button.rst{font-size:14px}
 
 /* forms / modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:80;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
+.modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
 .sheet h2{margin:2px 0 14px;font-size:17px}
 .sheet .close{position:absolute;right:16px;top:14px}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;color:var(--ink2);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
-.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fbfbfc}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--field-bg);color:var(--ink)}
 .field .hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
 .seg{display:flex;gap:4px;background:var(--line);border-radius:11px;padding:3px}
 .seg button{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:13px;color:var(--ink2)}
-.seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow)}
+.seg button.on{background:var(--raise);color:var(--ink);box-shadow:var(--shadow)}
 .btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:800;text-align:center;margin-top:6px}
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
-.btn.dark{background:#111418;color:#fff}
+.btn.dark{background:var(--invert);color:var(--invert-ink)}
 .btn.ghost{background:var(--line);color:var(--ink)}
 .btn:active{filter:brightness(.95)}
 .btn:disabled{opacity:.5}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pl-tbl .row{padding:5px 0;border-bottom:1px dashed var(--line)}
 .pl-tbl .row:last-child{border-bottom:none}
-.menu-item{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
-.menu-item:active{background:#f7f8f9}
+.menu-item{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.menu-item:active{background:var(--press)}
 .toast-wrap{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:100;width:min(492px,calc(100% - 20px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.toast{background:#111418;color:#fff;border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin .25s ease}
+.toast{background:var(--invert);color:var(--invert-ink);border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin .25s ease}
 .toast.g{background:#0b7a45}.toast.r{background:#c02a22}.toast.o{background:#c96a08}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .dom-grid{display:grid;grid-template-columns:1fr 88px 1fr;font-size:12px;font-variant-numeric:tabular-nums}
@@ -188,7 +211,7 @@ hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .news-btns button{background:var(--orange-bg);color:var(--orange);border:1px solid #f3c98f;border-radius:11px;padding:12px 4px;font-weight:800;font-size:12.5px;letter-spacing:.02em}
 .news-btns button:active{filter:brightness(.94)}
 .news-btns button:disabled{opacity:.35}
-.news-btns button.wide{grid-column:span 3;background:#111418;color:#fff;border-color:#111418}
+.news-btns button.wide{grid-column:span 3;background:var(--invert);color:var(--invert-ink);border-color:var(--invert)}
 .news-lock{position:sticky;top:0;z-index:60;background:linear-gradient(90deg,#f5820d,#e5342b);color:#fff;padding:10px 14px 11px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.2)}
 .news-lock .nl-title{font-size:11px;font-weight:800;letter-spacing:.06em;opacity:.95}
 .news-lock .nl-count{font-size:28px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:.02em}
@@ -202,16 +225,16 @@ hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .ne-grid .field{margin-bottom:4px}
 .ne-grid .field label{font-size:10px}
 .ne-grid .field input,.ne-grid .field select{padding:8px 9px;font-size:13px}
-.lastnews{background:#fafbfc;border-radius:10px;padding:9px 11px;font-size:12px;margin-top:4px}
+.lastnews{background:var(--field-bg);border-radius:10px;padding:9px 11px;font-size:12px;margin-top:4px}
 .lastnews b{font-weight:800}
 
 /* ticks-per-second control */
 .tps-val{font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;color:var(--blue)}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:2px 0;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:999px;background:var(--line)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;margin-top:-8.5px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.25)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;margin-top:-8.5px;border-radius:50%;background:var(--blue);border:3px solid var(--card);box-shadow:0 1px 5px rgba(0,0,0,.25)}
 input[type=range]::-moz-range-track{height:7px;border-radius:999px;background:var(--line)}
-input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid #fff}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid var(--card)}
 .tps-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .tps-presets button{flex:1 1 auto;min-width:54px;background:var(--line);border-radius:9px;padding:10px 4px;font-weight:800;font-size:12.5px;color:var(--ink2)}
 .tps-presets button.on{background:var(--blue);color:#fff}
@@ -238,7 +261,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .godpanel .gp-half{flex:1}
 
 /* markets watchlist ("Рынки" list -> tap XAUUSD -> existing terminal screen) */
-.wl-topbar{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line);
+.wl-topbar{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:10px;padding:14px 14px}
 .wl-logo{flex:0 0 auto;width:38px;height:38px;display:block}
 .wl-logo svg{width:100%;height:100%;display:block}
@@ -251,10 +274,13 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-tools{display:flex;gap:6px}
 .wl-tools .ic{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--line);font-size:14px;color:var(--ink2)}
 .wl-row{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:9px;cursor:pointer;width:100%;text-align:left}
-.wl-row:active{background:#f6f7f9}
+.wl-row:active{background:var(--press)}
 .wl-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .wl-sym{font-weight:800;font-size:17px}
 .wl-sym .ck{color:var(--green);margin-right:3px}
+.wl-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;
+  margin-left:8px;border:1.5px solid var(--ink3);border-radius:6px;font-size:12px;font-weight:800;
+  font-variant-numeric:tabular-nums;color:var(--ink2);vertical-align:2px;line-height:1}
 .wl-chg{font-weight:700;font-size:12.5px;white-space:nowrap}
 .wl-mid{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .wl-spark{flex:0 0 118px;height:38px;overflow:hidden}
@@ -264,8 +290,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-q{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:7px 4px}
 .wl-q b{font-size:9px;letter-spacing:.04em;color:var(--ink3)}
 .wl-q .mono{font-size:15px;font-weight:800}
-.wl-q.sell{border-color:#f6c9c4;color:var(--red)}
-.wl-q.buy{border-color:#b7e6cf;color:var(--green)}
+.wl-q.sell{border-color:var(--sell-line);color:var(--red)}
+.wl-q.buy{border-color:var(--buy-line);color:var(--green)}
 .ab-bal{background:var(--line);color:var(--ink);font-weight:800;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 /* ===== BROKER WALLET (dark, premium) — its own full-screen dark surface ===== */
@@ -566,7 +592,7 @@ const DEFAULTS = () => ({
           delta:0, _vel:0 },
   lock: { active:false, until:0 },
   newsLog: [],
-  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false },
+  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false, theme: "light" },
   seq: { pos: 1, ord: 1, evt: 1 },
   createdAt: Date.now()
 });
@@ -2000,6 +2026,47 @@ function nav(tab, subtab){
   save();
 }
 
+/* =========================================================================
+   THEME (light / dark) — one set of CSS tokens on <html data-theme>.
+   Switching only flips the attribute + S.ui.theme; it never touches the
+   simulator state (price, engine, positions, orders all live in S).
+   ========================================================================= */
+let _themeColors = null;                // cache; cleared by applyTheme()
+function currentTheme(){ return (S && S.ui && S.ui.theme === "dark") ? "dark" : "light"; }
+function applyTheme(t){
+  t = (t === "dark") ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+  _themeColors = null;
+  const mc = document.querySelector('meta[name="theme-color"]');
+  if(mc) mc.setAttribute("content", t === "dark" ? "#0e1116" : "#f4f5f7");
+  try{ localStorage.setItem("xc_theme", t); }catch(e){}
+}
+function setTheme(t){
+  if(!S.ui) S.ui = {};
+  S.ui.theme = (t === "dark") ? "dark" : "light";
+  applyTheme(S.ui.theme);
+  save();
+  render();
+  toast("", S.ui.theme === "dark" ? "🌙 Тёмная тема" : "☀️ Светлая тема");
+}
+/* canvas can't read CSS vars directly — resolve them once per theme */
+function themeColors(){
+  if(_themeColors) return _themeColors;
+  const cs = getComputedStyle(document.documentElement);
+  const g = (n, fb) => { const v = cs.getPropertyValue(n).trim(); return v || fb; };
+  _themeColors = {
+    bg:    g("--chart-bg", "#ffffff"),
+    grid:  g("--chart-grid", "#eef0f2"),
+    axis:  g("--chart-axis", "#9aa1ab"),
+    cross: g("--chart-cross", "#9aa1ab"),
+    tag:   g("--chart-tag", "#111418"),
+    up:    g("--green", "#0aa85f"),
+    down:  g("--red", "#e5342b"),
+    blue:  g("--blue", "#2f7bf6"),
+  };
+  return _themeColors;
+}
+
 /* ---------- top-level render ---------- */
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
@@ -2080,6 +2147,9 @@ function watchStats(){
   const spr = Math.round((S.price.ask - S.price.bid) / Math.pow(10, -S.symbol.digits));
   return { chg, chgPct, spr, hi: D ? D.high : S.price.mid, lo: D ? D.low : S.price.mid };
 }
+/* open positions on XAUUSD — pending orders do NOT count until they fill */
+function xauOpenCount(){ return S.positions.filter(p => p.symbol === S.symbol.name).length; }
+function wlCountBadge(){ const n = xauOpenCount(); return n > 0 ? ` <span class="wl-count" id="wlCount">${n}</span>` : ""; }
 function screenMarketsList(){
   recalcAccount();
   const w = watchStats();
@@ -2097,7 +2167,7 @@ function screenMarketsList(){
     </div>
     <button class="wl-row" data-act="openxau">
       <div class="wl-top">
-        <span class="wl-sym"><span class="ck">✓</span>XAUUSD</span>
+        <span class="wl-sym" id="wlSym"><span class="ck">✓</span>XAUUSD${wlCountBadge()}</span>
         <span class="wl-chg mono ${w.chg>=0?'pos':'neg'}" id="wlChg">${signMoney(w.chg)} (${w.chg>=0?'+':''}${fmt(w.chgPct,2)}%)</span>
       </div>
       <div class="wl-mid">
@@ -2398,6 +2468,14 @@ function screenMore(){
       </div>
       <div class="hint" style="margin-top:6px">Состояние (цена, баланс, позиции, день, время, график) замирает при выходе и продолжается при следующем входе — с любого устройства при входе в аккаунт.</div>
     </div>
+    <div class="card">
+      <div class="row"><span class="k">Тема оформления</span></div>
+      <div class="seg" id="themeSeg" style="margin-top:8px">
+        <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}">☀️ Светлая</button>
+        <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}">🌙 Тёмная</button>
+      </div>
+      <div class="hint" style="margin-top:6px">Применяется ко всему интерфейсу. Выбор запоминается; торговое состояние, позиции, ордера и цена не меняются.</div>
+    </div>
     <div class="menu-item" data-act="gotowallet"><span>💳 Брокерский кошелёк</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>
     <div class="menu-item" data-act="gotosettings"><span>⚙️ Настройки симулятора</span><span>›</span></div>
     <div class="menu-item" data-act="gotohistory"><span>📜 История сделок</span><span>›</span></div>
@@ -2683,7 +2761,7 @@ function screenCalendar(){
         const mins = Math.round((e.time-S.simClock)/60000);
         return `<div class="evt">
           <div>
-            <div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span> ${e.manual?'<span class="impact" style="background:#eef;color:#55a">manual</span>':''}</div>
+            <div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span> ${e.manual?'<span class="impact" style="background:var(--press);color:var(--ink2)">manual</span>':''}</div>
             <small>${e.released?`Released · ${simDateStr(e.time)}`:`через ~${mins} мин`}</small><br>
             <small>Previous ${fmt(e.previous,e.unit==="K"?0:2)}${e.unit} · Forecast ${fmt(e.forecast,e.unit==="K"?0:2)}${e.unit}
             ${e.actual!=null?` · <b>Actual ${fmt(e.actual,e.unit==="K"?0:2)}${e.unit}</b>`:""}</small>
@@ -3051,6 +3129,7 @@ function bindScreen(){
     nav(b.dataset.nav);
   });
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
+  root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{ S.ui.chartTF = b.dataset.tf; render(); save(); });
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
@@ -3789,12 +3868,14 @@ function updateLive(){
     if(wt) wt.innerHTML = big;
     if(wa) wa.innerHTML = big;
   }
-  // watchlist row — keep prices/change/spark live
+  // watchlist row — keep prices/change/spark/position-count live
   if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
     const w = watchStats();
     setTxt("wlBid", pxfmt(S.price.bid)); setTxt("wlAsk", pxfmt(S.price.ask));
     setTxt("wlHi", pxfmt(w.hi)); setTxt("wlLo", pxfmt(w.lo)); setTxt("wlSp", String(w.spr));
     setTxt("wlChg", signMoney(w.chg)+" ("+(w.chg>=0?"+":"")+fmt(w.chgPct,2)+"%)", w.chg>=0?"pos":"neg");
+    const sym = document.getElementById("wlSym");
+    if(sym){ const want = `<span class="ck">✓</span>XAUUSD${wlCountBadge()}`; if(sym.innerHTML !== want) sym.innerHTML = want; }
     const sb = document.getElementById("wlSparkBox");
     if(sb && Date.now() - (sb._t||0) > 1500){ sb.innerHTML = watchSparkSVG(); sb._t = Date.now(); }
   }
@@ -3895,16 +3976,43 @@ function fitCanvas(c){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   c._w = w; c._h = h;
 }
+/* rounded pill label used for position / pending markers on the chart */
+function chartChip(ctx, x, y, text, o){
+  ctx.font = "700 10px 'Open Sans',sans-serif";
+  const padX = 5, h = 15, w = Math.ceil(ctx.measureText(text).width) + padX*2;
+  const ry = y - h/2;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x, ry, w, h, 4); else ctx.rect(x, ry, w, h);
+  if(o.fill){ ctx.fillStyle = o.fill; ctx.fill(); }
+  if(o.stroke){ ctx.setLineDash(o.dash ? [3,2] : []); ctx.lineWidth = 1; ctx.strokeStyle = o.stroke; ctx.stroke(); ctx.setLineDash([]); }
+  ctx.fillStyle = o.text; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(text, x + padX, y + 0.5);
+  ctx.textBaseline = "alphabetic";
+  return w;
+}
+/* push a sorted list of {y} apart so labels/tags don't overlap; keep inside [top,bot] */
+function spreadYs(items, gap, top, bot){
+  items.sort((a,b)=> a.y - b.y);
+  for(let i=1;i<items.length;i++) if(items[i].y - items[i-1].y < gap) items[i].y = items[i-1].y + gap;
+  for(let i=items.length-1;i>=0;i--){
+    if(items[i].y > bot) items[i].y = bot;
+    if(i>0 && items[i].y - items[i-1].y < gap) items[i-1].y = items[i].y - gap;
+  }
+  for(const it of items) if(it.y < top) it.y = top;
+  return items;
+}
+
 function drawChart(){
   if(!S) return;
   const c = document.getElementById("chartCanvas");
   if(!c) return;
   if(!c._w) fitCanvas(c);
   const ctx = c.getContext("2d");
+  const TC = themeColors();
   const W = c._w, H = c._h;
   const padR = W < 420 ? 52 : 62, padB = 20, padT = 8;
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
 
   const tf = S.ui.chartTF;
   const data = S.candles[tf] || [];
@@ -3928,7 +4036,7 @@ function drawChart(){
   const xOf = i => plotW - (vis.length - i)*unit + gap/2;
 
   // grid + price scale
-  ctx.strokeStyle = "#eef0f2"; ctx.fillStyle = "#9aa1ab"; ctx.font = "10px 'Open Sans',sans-serif";
+  ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px 'Open Sans',sans-serif";
   ctx.textAlign = "left";
   const steps = 5;
   for(let i=0;i<=steps;i++){
@@ -3950,8 +4058,8 @@ function drawChart(){
   for(let i=0;i<vis.length;i++){
     const b = vis[i];
     const up = b.c >= b.o;
-    ctx.strokeStyle = up ? "#0aa85f" : "#e5342b";
-    ctx.fillStyle = up ? "#0aa85f" : "#e5342b";
+    ctx.strokeStyle = up ? TC.up : TC.down;
+    ctx.fillStyle = up ? TC.up : TC.down;
     const cx = xOf(i) + bw/2;
     ctx.beginPath(); ctx.moveTo(cx, y(b.h)); ctx.lineTo(cx, y(b.l)); ctx.stroke();
     const yo = y(b.o), yc = y(b.c);
@@ -3962,7 +4070,7 @@ function drawChart(){
   // bid / ask price lines — cTrader style: GREEN Ask on top, RED Bid below.
   // Ask > Bid and higher price = higher on screen, so green always ends up above red,
   // at every price level and on every timeframe.
-  const CL_ASK = "#0aa85f", CL_BID = "#e5342b";
+  const CL_ASK = TC.up, CL_BID = TC.down;
   const yAsk = y(S.price.ask), yBid = y(S.price.bid);
   const priceLine = (yy, col)=>{
     ctx.strokeStyle = col; ctx.setLineDash([4,3]);
@@ -3985,25 +4093,76 @@ function drawChart(){
   priceTag(tAsk, yAsk, CL_ASK, pxfmt(S.price.ask));
   priceTag(tBid, yBid, CL_BID, pxfmt(S.price.bid));
 
-  // SL/TP of open positions
+  /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
+     Bound directly to S.positions / S.pendings — no separate viz state.
+     open BUY  = solid green line   ·  open SELL = solid red line
+     BUY LIMIT/STOP = dashed green  ·  SELL LIMIT/STOP = dashed red        */
+  const sym = S.symbol.name;
+  const wide = W >= 430;
+  const hline = (yy, col, dashed, wpx)=>{
+    ctx.strokeStyle = col; ctx.lineWidth = wpx || 1;
+    ctx.setLineDash(dashed ? [6,4] : []);
+    ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineWidth = 1;
+  };
+  const chips = [];   // left-edge markers  {y, text, fill, stroke, textCol, dash}
+  const rtags = [];   // right-axis price tags  {y, price, col}
+
+  // SL / TP first (thin, behind the entry lines)
   for(const p of S.positions){
-    if(p.sl){ const yy=y(p.sl); ctx.strokeStyle="#e5342b"; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); ctx.setLineDash([]); }
-    if(p.tp){ const yy=y(p.tp); ctx.strokeStyle="#0aa85f"; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); ctx.setLineDash([]); }
-    const yy=y(p.entry); ctx.strokeStyle="#2f7bf6"; ctx.setLineDash([1,2]); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); ctx.setLineDash([]);
+    if(p.symbol !== sym) continue;
+    if(p.sl){ const ys=y(p.sl); ctx.strokeStyle=TC.down; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(0,ys); ctx.lineTo(plotW,ys); ctx.stroke(); ctx.setLineDash([]); }
+    if(p.tp){ const yt=y(p.tp); ctx.strokeStyle=TC.up;   ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(0,yt); ctx.lineTo(plotW,yt); ctx.stroke(); ctx.setLineDash([]); }
+  }
+  // open positions — SOLID line at the entry price
+  for(const p of S.positions){
+    if(p.symbol !== sym) continue;
+    const col = p.side === "buy" ? TC.up : TC.down;
+    const yy = y(p.entry);
+    hline(yy, col, false, 1.6);
+    const arrow = p.side === "buy" ? "↑" : "↓";
+    chips.push({ y: yy, text: wide ? `${fmt(p.volume,2)} Лоты ${arrow}` : `${fmt(p.volume,2)} ${arrow}`,
+                 fill: col, stroke: null, textCol: "#fff", dash: false });
+    rtags.push({ y: yy, price: p.entry, col });
+  }
+  // pending orders — DASHED line at the order price
+  for(const o of S.pendings){
+    if(o.symbol !== sym) continue;
+    const isBuy = o.type.includes("buy");
+    const col = isBuy ? TC.up : TC.down;
+    const yy = y(o.price);
+    hline(yy, col, true, 1.4);
+    const kind = o.type.includes("limit") ? "LIMIT" : "STOP";
+    chips.push({ y: yy, text: wide ? `${isBuy?"BUY":"SELL"} ${kind} ${fmt(o.volume,2)}` : `${kind} ${fmt(o.volume,2)} ${isBuy?"↑":"↓"}`,
+                 fill: TC.bg, stroke: col, textCol: col, dash: true });
+    rtags.push({ y: yy, price: o.price, col });
+  }
+  // de-collide the left chips, then draw. Shift a chip right of the on-canvas
+  // zoom buttons (bottom-left ~[8..46] x [H-150..H-20]) so it isn't hidden.
+  spreadYs(chips, 16, 24, H - 9);
+  const zoomZone = (yy)=> yy > H - 150 && yy < H - 18;
+  for(const ch of chips) chartChip(ctx, zoomZone(ch.y) ? 48 : 2, ch.y, ch.text, { fill: ch.fill, stroke: ch.stroke, text: ch.textCol, dash: ch.dash });
+  // right-axis price tags — skip any that would sit on top of the Bid/Ask tags
+  spreadYs(rtags, 15, 22, H - 9);
+  for(const rt of rtags){
+    if(Math.abs(rt.y - tAsk) < 15 || Math.abs(rt.y - tBid) < 15) continue;
+    ctx.fillStyle = rt.col; ctx.fillRect(plotW, rt.y - 7, padR, 14);
+    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px 'Open Sans',sans-serif";
+    ctx.fillText(pxfmt(rt.price), plotW + 3, rt.y + 3);
   }
 
   // crosshair
   const info = document.getElementById("chartInfo");
   if(chart.cross && chart.cross.x < plotW){
     const cx = chart.cross.x, cy = chart.cross.y;
-    ctx.strokeStyle = "#9aa1ab"; ctx.setLineDash([3,3]);
+    ctx.strokeStyle = TC.cross; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H-padB); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(plotW,cy); ctx.stroke();
     ctx.setLineDash([]);
     const idx = clamp(Math.round((cx - (plotW - vis.length*unit))/unit), 0, vis.length-1);
     const b = vis[idx];
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
-    ctx.fillStyle = "#111"; ctx.fillRect(plotW, cy-8, padR, 16);
+    ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
     ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.fillText(pxfmt(price), plotW+3, cy+3);
     if(b && info){
       const d = new Date(b.t*1000);
@@ -4024,8 +4183,9 @@ function drawMini(){
   if(!c) return;
   if(!c._w) fitCanvas(c);
   const ctx = c.getContext("2d");
+  const TC = themeColors();
   const W = c._w, H = c._h, padR = 52;
-  ctx.clearRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle=TC.bg; ctx.fillRect(0,0,W,H);
   const data = (S.candles.M1||[]).slice(-90);
   if(!data.length) return;
   let hi=-Infinity, lo=Infinity;
@@ -4037,23 +4197,33 @@ function drawMini(){
   const bw = plotW/data.length;
   for(let i=0;i<data.length;i++){
     const b=data[i], up=b.c>=b.o;
-    ctx.strokeStyle=up?"#0aa85f":"#e5342b"; ctx.fillStyle=up?"#0aa85f":"#e5342b";
+    ctx.strokeStyle=up?TC.up:TC.down; ctx.fillStyle=up?TC.up:TC.down;
     const cx=i*bw+bw/2;
     ctx.beginPath(); ctx.moveTo(cx,y(b.h)); ctx.lineTo(cx,y(b.l)); ctx.stroke();
     const yo=y(b.o),yc=y(b.c);
     ctx.fillRect(i*bw+0.5, Math.min(yo,yc), Math.max(1,bw-1.5), Math.max(1,Math.abs(yc-yo)));
   }
+  // open positions (solid) + pending orders (dashed) — same S.positions / S.pendings
+  const mSym = S.symbol.name;
+  ctx.lineWidth = 1;
+  for(const p of S.positions){ if(p.symbol!==mSym) continue;
+    ctx.strokeStyle = p.side==="buy"?TC.up:TC.down; ctx.setLineDash([]);
+    const yy=y(p.entry); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); }
+  for(const o of S.pendings){ if(o.symbol!==mSym) continue;
+    ctx.strokeStyle = o.type.includes("buy")?TC.up:TC.down; ctx.setLineDash([5,3]);
+    const yy=y(o.price); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); }
+  ctx.setLineDash([]);
   // GREEN Ask on top, RED Bid below (cTrader style) — holds at any price / timeframe
   const yb=y(S.price.bid), ya=y(S.price.ask);
   ctx.setLineDash([4,3]);
-  ctx.strokeStyle="#0aa85f"; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW,ya); ctx.stroke();
-  ctx.strokeStyle="#e5342b"; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW,yb); ctx.stroke();
+  ctx.strokeStyle=TC.up; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW,ya); ctx.stroke();
+  ctx.strokeStyle=TC.down; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW,yb); ctx.stroke();
   ctx.setLineDash([]);
   let la=ya, lb=yb;
   if(lb-la<15){ const mid=(ya+yb)/2; la=mid-7.5; lb=mid+7.5; }
   ctx.font="10px 'Open Sans',sans-serif"; ctx.textAlign="left";
-  ctx.fillStyle="#0aa85f"; ctx.fillRect(plotW,la-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.ask),plotW+3,la+3);
-  ctx.fillStyle="#e5342b"; ctx.fillRect(plotW,lb-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.bid),plotW+3,lb+3);
+  ctx.fillStyle=TC.up; ctx.fillRect(plotW,la-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.ask),plotW+3,la+3);
+  ctx.fillStyle=TC.down; ctx.fillRect(plotW,lb-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.bid),plotW+3,lb+3);
 }
 
 /* =========================================================================
@@ -4283,6 +4453,10 @@ function normalizeState(){
   if(S.market.ticksPerSecond == null || !(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2;
   if(!S.ui) S.ui = { ...d.ui };
   if(S.ui.marketOpen == null) S.ui.marketOpen = false;   // land on the "Рынки" watchlist
+  // theme: a local override (last used on THIS device) wins, else the saved state, else light
+  { let lt = null; try{ lt = localStorage.getItem("xc_theme"); }catch(e){}
+    S.ui.theme = (lt === "dark" || lt === "light") ? lt : (S.ui.theme === "dark" ? "dark" : "light");
+    applyTheme(S.ui.theme); }
   if(!S.wallet) S.wallet = { ...d.wallet, ledger: [] };
   if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
   if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
