@@ -300,27 +300,27 @@ body.route-wallet #app{padding-bottom:0}
 body.route-wallet .bottomnav,body.route-wallet .appbar{display:none}
 html:has(body.route-wallet){background:#0c0a08}
 
+/* The wallet is its OWN scroll container (position:fixed + overflow-y:auto), not
+   the document. Mobile browsers only retract the URL bar on *document* scroll,
+   so here the visual viewport — and anything sized to it — never changes while
+   you scroll. That's what finally stops the background photo from drifting;
+   `position:fixed`/`100vh`/`inset:0` on the document all fail because the URL
+   bar keeps resizing them. */
 .wallet-page{
   --wg:#e3b877; --wg2:#a9884f; --wtxt:#f3ece0; --wmut:#9a917e;
   --wpanel:rgba(19,15,12,.82); --wline:#3d352a;
-  position:relative;isolation:isolate;min-height:100vh;color:var(--wtxt);
-  padding:14px clamp(14px,4vw,44px) 0;background:#0b0908;
+  position:fixed;inset:0;isolation:isolate;color:var(--wtxt);background:#0b0908;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
 }
-/* wallet background — a real photo at /wallet-bg.jpg wins; SVG skyline is the fallback.
-   `position:fixed` + a height locked in PIXELS by JS (walletBgLock) to more than
-   any viewport can grow to, refreshed only on rotate — never on scroll. Every
-   viewport-relative height (100vh / 100lvh / inset:0) is re-evaluated by mobile
-   browsers as the URL bar shows/hides, which resizes the box and drags
-   `background-size:cover` with it (the photo appears to pan while scrolling). */
-.wallet-bg{position:fixed;top:0;left:0;width:100%;height:100vh;
-  z-index:0;pointer-events:none;background-color:#0b0908;
-  background-image:url(/wallet-bg.svg);background-size:cover;background-position:center 30%;background-repeat:no-repeat;
-}
-.wallet-bg.has-photo{background-image:url(/wallet-bg.jpg)}
-/* readability overlay — `fixed` so it stays a clean viewport-height band (a
-   gradient has no detail, so a few px of URL-bar resize here is invisible; only
-   the photo underneath must be pinned, which walletBgLock handles). */
-.wallet-bg::after{content:"";position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;
+/* photo: pinned with position:sticky inside that container (sticky has far
+   better in-app-webview support than fixed). height:0 + absolutely-placed
+   pseudos = zero layout space, content scrolls straight over it. */
+.wallet-bg{position:sticky;top:0;height:0;z-index:0;pointer-events:none}
+.wallet-bg::before,.wallet-bg::after{content:"";position:absolute;top:0;left:0;
+  width:100%;height:100vh;height:100lvh;pointer-events:none}
+.wallet-bg::before{background:#0b0908 center 30%/cover no-repeat;background-image:url(/wallet-bg.svg)}
+.wallet-bg.has-photo::before{background-image:url(/wallet-bg.jpg)}
+.wallet-bg::after{
   background:linear-gradient(180deg,
     rgba(9,7,5,.06) 0%,rgba(9,7,5,.14) 30%,rgba(9,7,5,.4) 52%,
     rgba(8,6,4,.74) 72%,rgba(6,5,4,.94) 100%)}
@@ -329,7 +329,7 @@ html:has(body.route-wallet){background:#0c0a08}
     linear-gradient(180deg,rgba(6,5,4,.34) 0%,rgba(6,5,4,.24) 18%,rgba(6,5,4,.38) 42%,rgba(5,4,3,.62) 66%,rgba(4,3,2,.9) 100%),
     radial-gradient(150% 50% at 50% 0%,rgba(0,0,0,0),rgba(0,0,0,.24) 100%)}
 .wallet-inner,.wfoot{position:relative;z-index:1}
-.wallet-inner{max-width:1000px;margin:0 auto}
+.wallet-inner{max-width:1000px;margin:0 auto;padding:14px clamp(14px,4vw,44px) 0}
 .wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:800;font-size:12px;
   letter-spacing:.08em;padding:8px 2px;background:none}
 .wp-back:active{opacity:.65}
@@ -2096,7 +2096,6 @@ function render(){
   html += bottomNav();
   app().innerHTML = html;
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
-  if(t === "wallet") walletBgLock(true);                            // pin the fixed photo's height
   bindScreen();
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -2520,21 +2519,6 @@ function walletProbePhoto(){
   const im = new Image();
   im.onload = () => { _walletBg = "jpg"; if(S && S.ui && S.ui.tab === "wallet") render(); };
   im.src = "/wallet-bg.jpg?v=1";
-}
-/* Pin .wallet-bg's height in real px, well past any viewport, so the mobile URL
-   bar showing/hiding can't resize the box (which would pan the photo). Only the
-   width matters for a re-lock (rotation) — height changes from the URL bar are
-   ignored. */
-let _wbgW = -1;
-function walletBgLock(force){
-  const bg = document.querySelector(".wallet-bg");
-  if(!bg) return;
-  const w = window.innerWidth || document.documentElement.clientWidth || 0;
-  if(!force && w === _wbgW) return;
-  _wbgW = w;
-  const vh = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0,
-                      (window.screen && screen.height) || 0, 700);
-  bg.style.height = Math.round(vh + 220) + "px";
 }
 function walletCardMarkup(){
   const W = S.wallet;
@@ -4296,9 +4280,7 @@ window.addEventListener("resize", ()=>{
   ids.forEach(id=>{ const c = document.getElementById(id); if(c){ c._w = 0; fitCanvas(c); } });
   if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
   drawMini();
-  walletBgLock();                              // re-lock only if the width changed (rotation)
 });
-window.addEventListener("orientationchange", ()=> setTimeout(()=> walletBgLock(true), 120));
 
 /* ---------------- news self-test (20×4 offline simulations) ---------------- */
 function runNewsTests(n){
