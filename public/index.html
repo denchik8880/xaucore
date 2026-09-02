@@ -306,8 +306,13 @@ html:has(body.route-wallet){background:#0c0a08}
   position:relative;isolation:isolate;min-height:100vh;color:var(--wtxt);
   padding:14px clamp(14px,4vw,44px) 0;background:#0b0908;
 }
-/* wallet background — a real photo at /wallet-bg.jpg wins; SVG skyline is the fallback */
-.wallet-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:#0b0908;
+/* wallet background — a real photo at /wallet-bg.jpg wins; SVG skyline is the fallback.
+   top/left + a STABLE height (never `inset:0` / `bottom:0`): on mobile the browser
+   URL bar pins a fixed element's bottom to the shrinking visual viewport, which
+   resizes the box every scroll and drags `background-size:cover` with it. 100lvh
+   is the URL-bar-hidden height, so the box — and the photo — never move. */
+.wallet-bg{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;
+  z-index:0;pointer-events:none;background:#0b0908;
   background-image:url(/wallet-bg.svg);background-size:cover;background-position:center top;background-repeat:no-repeat;
 }
 .wallet-bg.has-photo{background-image:url(/wallet-bg.jpg);background-position:center 28%}
@@ -2474,7 +2479,6 @@ function screenMore(){
         <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}">☀️ Светлая</button>
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}">🌙 Тёмная</button>
       </div>
-      <div class="hint" style="margin-top:6px">Применяется ко всему интерфейсу. Выбор запоминается; торговое состояние, позиции, ордера и цена не меняются.</div>
     </div>
     <div class="menu-item" data-act="gotowallet"><span>💳 Брокерский кошелёк</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>
     <div class="menu-item" data-act="gotosettings"><span>⚙️ Настройки симулятора</span><span>›</span></div>
