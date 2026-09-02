@@ -307,16 +307,20 @@ html:has(body.route-wallet){background:#0c0a08}
   padding:14px clamp(14px,4vw,44px) 0;background:#0b0908;
 }
 /* wallet background — a real photo at /wallet-bg.jpg wins; SVG skyline is the fallback.
-   top/left + a STABLE height (never `inset:0` / `bottom:0`): on mobile the browser
-   URL bar pins a fixed element's bottom to the shrinking visual viewport, which
-   resizes the box every scroll and drags `background-size:cover` with it. 100lvh
-   is the URL-bar-hidden height, so the box — and the photo — never move. */
-.wallet-bg{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;
-  z-index:0;pointer-events:none;background:#0b0908;
-  background-image:url(/wallet-bg.svg);background-size:cover;background-position:center top;background-repeat:no-repeat;
+   `position:fixed` + a height locked in PIXELS by JS (walletBgLock) to more than
+   any viewport can grow to, refreshed only on rotate — never on scroll. Every
+   viewport-relative height (100vh / 100lvh / inset:0) is re-evaluated by mobile
+   browsers as the URL bar shows/hides, which resizes the box and drags
+   `background-size:cover` with it (the photo appears to pan while scrolling). */
+.wallet-bg{position:fixed;top:0;left:0;width:100%;height:100vh;
+  z-index:0;pointer-events:none;background-color:#0b0908;
+  background-image:url(/wallet-bg.svg);background-size:cover;background-position:center 30%;background-repeat:no-repeat;
 }
-.wallet-bg.has-photo{background-image:url(/wallet-bg.jpg);background-position:center 28%}
-.wallet-bg::after{content:"";position:absolute;inset:0;
+.wallet-bg.has-photo{background-image:url(/wallet-bg.jpg)}
+/* readability overlay — `fixed` so it stays a clean viewport-height band (a
+   gradient has no detail, so a few px of URL-bar resize here is invisible; only
+   the photo underneath must be pinned, which walletBgLock handles). */
+.wallet-bg::after{content:"";position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;
   background:linear-gradient(180deg,
     rgba(9,7,5,.06) 0%,rgba(9,7,5,.14) 30%,rgba(9,7,5,.4) 52%,
     rgba(8,6,4,.74) 72%,rgba(6,5,4,.94) 100%)}
@@ -2092,6 +2096,7 @@ function render(){
   html += bottomNav();
   app().innerHTML = html;
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
+  if(t === "wallet") walletBgLock(true);                            // pin the fixed photo's height
   bindScreen();
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -2515,6 +2520,21 @@ function walletProbePhoto(){
   const im = new Image();
   im.onload = () => { _walletBg = "jpg"; if(S && S.ui && S.ui.tab === "wallet") render(); };
   im.src = "/wallet-bg.jpg?v=1";
+}
+/* Pin .wallet-bg's height in real px, well past any viewport, so the mobile URL
+   bar showing/hiding can't resize the box (which would pan the photo). Only the
+   width matters for a re-lock (rotation) — height changes from the URL bar are
+   ignored. */
+let _wbgW = -1;
+function walletBgLock(force){
+  const bg = document.querySelector(".wallet-bg");
+  if(!bg) return;
+  const w = window.innerWidth || document.documentElement.clientWidth || 0;
+  if(!force && w === _wbgW) return;
+  _wbgW = w;
+  const vh = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0,
+                      (window.screen && screen.height) || 0, 700);
+  bg.style.height = Math.round(vh + 220) + "px";
 }
 function walletCardMarkup(){
   const W = S.wallet;
@@ -4276,7 +4296,9 @@ window.addEventListener("resize", ()=>{
   ids.forEach(id=>{ const c = document.getElementById(id); if(c){ c._w = 0; fitCanvas(c); } });
   if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
   drawMini();
+  walletBgLock();                              // re-lock only if the width changed (rotation)
 });
+window.addEventListener("orientationchange", ()=> setTimeout(()=> walletBgLock(true), 120));
 
 /* ---------------- news self-test (20×4 offline simulations) ---------------- */
 function runNewsTests(n){
