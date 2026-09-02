@@ -2873,6 +2873,7 @@ function screenSettings(){
     </details>`;
   };
   return appbar("Настройки симулятора",{back:true}) + `<div class="wrap">
+    <div class="card" id="lockCard" style="display:none"></div>
     <div class="card"><h3>Счёт</h3>
       ${F("set_bal","Баланс (USD)", fmt(A.balance,2))}
       ${F("set_cur","Валюта", A.currency)}
@@ -2956,6 +2957,73 @@ function screenSettings(){
     <button class="btn ghost" data-act="applybalance">Применить баланс (позиции сохраняются)</button>
     <button class="btn red" data-act="reset">Сбросить симулятор (начальная цена / свечи)</button>
   </div>`;
+}
+
+/* ---------- "🔒 Доступ к сайту" card (Settings) ----------
+   Talks to /api/lock + /api/owner. The real enforcement is server-side
+   (middleware.js); this card is just the switch + owner sign-in. */
+async function refreshLockCard(){
+  const card = document.getElementById("lockCard");
+  if(!card) return;
+  let info;
+  try{ info = await xcApi("GET", "/api/lock"); }
+  catch(e){ return; }                              // leave the card hidden on error
+
+  if(!info.configured){ card.remove(); return; }   // feature not set up on the server — stays hidden
+  card.style.display = "";
+
+  const stateRow = (locked)=>`<div class="row" style="margin-bottom:8px">
+      <span class="k">Для обычных посетителей</span>
+      <span class="v" style="color:${locked?'var(--red)':'var(--green)'}">${locked?'ЗАКРЫТ':'ОТКРЫТ'}</span></div>`;
+
+  if(info.isOwner){
+    card.innerHTML = `<h3>🔒 САЙТ ЗАКРЫТ</h3>
+      ${stateRow(info.locked)}
+      <div class="pill-toggle" id="lockPills">
+        <button data-lock="1" class="${info.locked?'on':''}">ON · закрыт</button>
+        <button data-lock="0" class="${info.locked?'':'on'}">OFF · открыт</button>
+      </div>
+      <div class="hint" style="margin-top:8px">«ON» — посетители видят страницу технических работ. Ваш вход владельца, симулятор, данные и прогресс не сбрасываются. Применяется в течение ~5 секунд.</div>
+      <button class="btn ghost" id="ownerLogout" style="margin-top:10px">Выйти из режима владельца</button>`;
+    card.querySelectorAll("[data-lock]").forEach(b=> b.onclick = async ()=>{
+      const want = b.dataset.lock === "1";
+      if(want === !!info.locked) return;
+      b.disabled = true;
+      try{
+        await xcApi("POST", "/api/lock", { locked: want });
+        toast("", want ? "🔒 Сайт закрыт для посетителей" : "🔓 Сайт снова открыт");
+      }catch(e){ toast("o", e.message || "Не удалось изменить"); }
+      refreshLockCard();
+    });
+    card.querySelector("#ownerLogout").onclick = async ()=>{
+      try{ await xcApi("DELETE", "/api/owner"); }catch(e){}
+      toast("", "Режим владельца выключен на этом устройстве");
+      refreshLockCard();
+    };
+    return;
+  }
+
+  // not the owner — show status + an inline owner sign-in
+  card.innerHTML = `<h3>🔒 Доступ к сайту</h3>
+    <div class="row"><span class="k">Статус</span><span class="v">${info.locked?'закрыт для посетителей':'открыт'}</span></div>
+    <div class="field" style="margin:10px 0 0">
+      <label>Ключ владельца</label>
+      <input id="ownerKey" type="password" autocomplete="off" placeholder="••••••••">
+      <div class="hint" id="ownerMsg" style="min-height:14px"></div>
+    </div>
+    <button class="btn ghost" id="ownerLogin">Войти как владелец</button>`;
+  const doLogin = async ()=>{
+    const inp = card.querySelector("#ownerKey"), msg = card.querySelector("#ownerMsg"), btn = card.querySelector("#ownerLogin");
+    if(!inp.value){ inp.focus(); return; }
+    btn.disabled = true; msg.textContent = "";
+    try{
+      await xcApi("POST", "/api/owner", { key: inp.value });
+      toast("", "Вы вошли как владелец");
+      refreshLockCard();
+    }catch(e){ msg.style.color = "var(--red)"; msg.textContent = "Неверный ключ"; btn.disabled = false; }
+  };
+  card.querySelector("#ownerLogin").onclick = doLogin;
+  card.querySelector("#ownerKey").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
 }
 
 /* ---------- bottom nav ---------- */
@@ -3141,6 +3209,7 @@ function bindScreen(){
   // settings
   act("savesettings", saveSettingsFromForm);
   act("applybalance", ()=>{ saveSettingsFromForm(true); applyNewBalance(); });
+  if(document.getElementById("lockCard")) refreshLockCard();
 
   // ---- ticks-per-second: live control (slider / number / presets) ----
   (function(){

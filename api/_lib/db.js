@@ -40,6 +40,10 @@ const SCHEMA = [
      data       TEXT NOT NULL,
      updated_at INTEGER NOT NULL
    )`,
+  `CREATE TABLE IF NOT EXISTS settings(
+     key   TEXT PRIMARY KEY,
+     value TEXT
+   )`,
   `CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)`,
 ];
 

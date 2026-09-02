@@ -15,7 +15,8 @@ simulator **freezes when you leave the site and resumes exactly where it stopped
 | Layer | Choice | Notes |
 |---|---|---|
 | **Frontend** | Single self-contained `public/index.html` (vanilla JS, canvas chart). Unchanged from the original project. | The whole simulator is one `S` object; that object *is* the save. Vercel serves `public/` statically. |
-| **API** | One file per route under `api/` — standard Vercel serverless functions (`@vercel/node`, ESM). | `api/health.js`, `api/me.js`, `api/state.js`, `api/auth/{register,login,guest,upgrade,logout}.js`. Shared code in `api/_lib/` (not routed). |
+| **API** | One file per route under `api/` — standard Vercel serverless functions (`@vercel/node`, ESM). | `api/health.js`, `api/me.js`, `api/state.js`, `api/lock.js`, `api/owner.js`, `api/auth/{register,login,guest,upgrade,logout}.js`. Shared code in `api/_lib/` (not routed). |
+| **Access gate** | `middleware.js` (root, Node runtime) runs before every request. Enforces the "site closed" switch (README §4). Fail-open. | Logic in `api/_lib/gate.js`, shared with `dev-server.js`. |
 | **Database** | **Turso / libSQL** via `@libsql/client`. Tables `users`, `sessions`, `states`. | No local file in production (Vercel's FS is read-only). Local dev falls back to `file:./data/local.db` automatically. |
 | **Auth** | Email + password (`scrypt`) **or** anonymous *guest*. Opaque random session tokens, 1-year TTL, revocable. Guests can *upgrade* and keep progress. | No JWT library. |
 | **Sync** | `localStorage` (per-user key `xc_state_<id>`) = fast cache / offline fallback. Turso = source of truth. Pushed on change (debounced), force-pushed on tab-hide, and a **synchronous XHR on `pagehide`** (the ~220 KB state exceeds `sendBeacon`'s 64 KB limit). | Multi-device, offline-tolerant. |
@@ -41,6 +42,11 @@ GET  /api/me              (auth)                 -> {id,email,isGuest}
 GET  /api/state           (auth)                 -> {state,updatedAt}
 PUT  /api/state           {state}  (auth)        -> {updatedAt}     also accepts ?token= (unload beacon)
 GET  /api/health                                 -> {ok:true}
+GET  /api/lock                                   -> {locked,configured,isOwner}   (see §4)
+POST /api/lock            {locked}  (owner cookie)
+GET  /api/owner                                  -> {configured,isOwner}
+POST /api/owner           {key}                  -> Set-Cookie xc_owner
+DELETE /api/owner                                -> clears xc_owner
 ```
 
 ---
@@ -101,6 +107,7 @@ In the Vercel project → **Settings → Environment Variables** add (Production
 |---|---|
 | `TURSO_DATABASE_URL` | `libsql://xaucore-....turso.io` |
 | `TURSO_AUTH_TOKEN`   | the token from `turso db tokens create` |
+| `OWNER_KEY` *(optional)* | any long random secret — enables the "site closed" mode (see §7) |
 
 Then:
 
@@ -108,12 +115,59 @@ Then:
 vercel --prod
 ```
 
-No build step, no framework — Vercel serves `public/` statically and runs each `api/**/*.js`
-file as a serverless function. `npm install` runs automatically.
+No build step, no framework — Vercel serves `public/` statically, runs each `api/**/*.js`
+file as a serverless function, and runs `middleware.js` before page requests. `npm install`
+runs automatically.
 
 ---
 
-## 4. Custom domain `xaucore.io`
+## 4. "Site closed" mode (maintenance / private access)
+
+A single switch that closes the site to visitors while you keep working on it. Nothing is
+reset — the simulator, every account and all saved state are untouched; it is purely an
+access gate.
+
+**Enable it:** set an `OWNER_KEY` env var (any long random string) in the Vercel project and
+redeploy. Without `OWNER_KEY` the feature is dormant and the site behaves exactly as before.
+
+**Use it:** open **Настройки симулятора → 🔒 Доступ к сайту**.
+* Not signed in as owner → enter the `OWNER_KEY` to sign in (sets a signed `HttpOnly` cookie).
+* Signed in as owner → an **ON / OFF** switch. `ON` = closed.
+
+**What visitors see when closed:** a self-contained "Система временно недоступна" page
+(served by `middleware.js` with HTTP 503) — no app, no assets, no internal detail. A discreet
+**Доступ владельца** link on that page lets you sign in with the `OWNER_KEY` from anywhere.
+New sign-ins (`/api/auth/login|register|guest`) are refused too, so the closed site can't be
+scripted into.
+
+**Why it can't be bypassed:** the page check runs in `middleware.js`, before routing and
+before any static file is served, so deleting CSS, editing JS in DevTools, or deep-linking an
+internal route all still hit the gate first (the app is an SPA — every "route" is just `/`).
+Owner identity is a HMAC-signed cookie (key = `sha256("xaucore-owner-v2|" + OWNER_KEY)`) —
+visible in DevTools but impossible to forge without `OWNER_KEY`. The state-sync API
+(`/api/state`) is left on its normal fast path; it is per-user and token-gated, and a blocked
+visitor never gets a token.
+
+**Toggling does not redeploy.** The flag lives in the Turso `settings` table (`site_locked`),
+so `ON`/`OFF` takes effect within ~5 seconds with no new deployment and no state change.
+
+**Locked out?** Two independent recoveries, both instant:
+1. Remove the `OWNER_KEY` env var and redeploy → the gate goes dormant (site fully open).
+2. In the Turso DB: `DELETE FROM settings WHERE key = 'site_locked';` (or set its value to `0`).
+
+| Route | Purpose |
+|---|---|
+| `GET  /api/lock` | `{ locked, configured, isOwner }` — public |
+| `POST /api/lock` `{locked}` | flip the switch — owner cookie required |
+| `GET  /api/owner` | `{ configured, isOwner }` |
+| `POST /api/owner` `{key}` | validate `OWNER_KEY` → set owner cookie |
+| `DELETE /api/owner` | sign out of owner mode |
+
+Local dev: `OWNER_KEY=whatever npm run dev` — `dev-server.js` runs the same gate.
+
+---
+
+## 5. Custom domain `xaucore.io`
 
 1. Vercel project → **Settings → Domains** → add `xaucore.io` and `www.xaucore.io`.
 2. At your DNS provider create the records Vercel shows:
@@ -123,7 +177,7 @@ file as a serverless function. `npm install` runs automatically.
 
 ---
 
-## 5. What is saved (per user, in Turso)
+## 6. What is saved (per user, in Turso)
 
 Current XAUUSD price · Bid / Ask / Spread · Balance · Equity · Margin · Free Margin · Margin Level ·
 all open positions (volume, entry, SL, TP, swap, commission) · Floating P/L · full trade history +
@@ -136,7 +190,7 @@ Re-opening the site (same browser or a different device signed into the same acc
 
 ---
 
-## 6. Verified test scenario
+## 7. Verified test scenario
 
 1. Open the site → register / login (or play as guest).
 2. Trade — open a few positions, set SL/TP.

@@ -13,6 +13,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { gateDecision, MAINTENANCE_HTML, STATIC_SKIP } from "./api/_lib/gate.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 8777;
@@ -61,6 +62,26 @@ const server = http.createServer(async (req, res) => {
   }
 
   const key = u.pathname.replace(/\/+$/, "") || "/";
+
+  // access gate — mirrors middleware.js (see api/_lib/gate.js).
+  // Needs OWNER_KEY in the env to do anything; otherwise always "pass".
+  try {
+    const decision = STATIC_SKIP.test(key)
+      ? "pass"
+      : await gateDecision({ pathname: key, cookieHeader: req.headers.cookie || "" });
+    if (decision === "maintenance") {
+      res.statusCode = 503;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "no-store");
+      return res.end(MAINTENANCE_HTML);
+    }
+    if (decision === "block-api") {
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(503).json({ error: "Сайт закрыт на техническое обслуживание" });
+    }
+  } catch (e) {
+    console.error("[gate]", e);   // fail open
+  }
 
   if (key.startsWith("/api/")) {
     const file = routes.get(key);
