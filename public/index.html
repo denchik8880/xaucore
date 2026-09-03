@@ -4009,6 +4009,25 @@ function spreadYs(items, gap, top, bot){
   for(const it of items) if(it.y < top) it.y = top;
   return items;
 }
+/* Geometry-only reshape of the LIVE (right-edge) candle so the Bid / Ask lines
+   sit on its edge or in clear space, never through the body. Up candle -> close
+   drawn ~Bid, wick up to Ask; down candle -> close drawn ~Ask, wick down to Bid;
+   `dir` blends the two so a candle oscillating around its open doesn't jump.
+   Returns a new bar (raw candle data is never mutated), or null when there is
+   no live bar to reshape. */
+function liveChartBar(raw, isLive){
+  const sp = S.price.spread;
+  if(!raw || !isLive || !(sp > 0)) return null;
+  const dir = clamp((raw.c - raw.o) / sp, -1, 1);     // +1 up … -1 down
+  return {
+    t: raw.t,
+    o: raw.o,
+    c: raw.c - (sp / 2) * dir,                         // up → ~Bid ; down → ~Ask
+    h: Math.max(raw.h, S.price.ask),                   // wick always reaches the Ask line
+    l: Math.min(raw.l, S.price.bid),                   // …and the Bid line
+    v: raw.v,
+  };
+}
 
 function drawChart(){
   if(!S) return;
@@ -4031,25 +4050,23 @@ function drawChart(){
   let endIdx = data.length - Math.round(chart.offset);
   endIdx = clamp(endIdx, 1, data.length);
   let startIdx = Math.max(0, endIdx - nVisible);
-  let vis = data.slice(startIdx, endIdx);
+  const vis = data.slice(startIdx, endIdx);
   if(!vis.length) return;
 
-  /* BID-referenced chart (cTrader style). Candles are sampled from `mid`; draw
-     them one half-spread LOWER so the Bid line sits exactly on the last candle's
-     close and the Ask line floats a full spread above it — instead of both lines
-     cutting through the candle body. Pure display shift: S.candles, the Price
-     Engine, the spread and P/L are all untouched. `S.price.bid` / `S.price.ask`
-     stay the anchors for the two lines. */
-  const _spBase = (S.trading.spreadMode === "fixed" ? S.trading.fixedSpread : S.market.baseSpread) || 0;
-  // clamp keeps every visible candle shifting by a near-constant amount, so a
-  // 20-second news spread blow-up doesn't lurch the whole chart; the live Bid
-  // line stays glued to the last candle for any normal / dynamic spread.
-  const halfSp = _spBase > 0 ? clamp(S.price.spread, _spBase * 0.5, _spBase * 4) / 2 : 0;
-  if(halfSp) vis = vis.map(b => ({ t:b.t, o:b.o-halfSp, h:b.h-halfSp, l:b.l-halfSp, c:b.c-halfSp, v:b.v }));
+  /* The LAST (still-forming) candle only: draw its "current price" edge on the
+     side you'd exit toward — Bid for an up candle, Ask for a down candle — with
+     a spread-long wick reaching the other line. So the Bid and Ask lines always
+     land on the candle's EDGE or in clear space, never slicing through the body
+     (which is what "mid" candles + a ± half-spread do on a directional move).
+     `dir` slides smoothly between the two sides so a candle wobbling around its
+     open doesn't jump. Storage / Price Engine / spread / P&L are untouched —
+     only the geometry of this one bar changes. `S.price.bid` / `S.price.ask`
+     stay the anchors of the two lines. */
+  const liveBar = liveChartBar(vis[vis.length-1], endIdx === data.length);
+  const barAt = i => (i === vis.length-1 && liveBar) ? liveBar : vis[i];
 
   let hi = -Infinity, lo = Infinity;
-  for(const b of vis){ hi = Math.max(hi,b.h); lo = Math.min(lo,b.l); }
-  // keep the real Bid/Ask lines in view — these are the true prices, not shifted
+  for(let i=0;i<vis.length;i++){ const b = barAt(i); hi = Math.max(hi,b.h); lo = Math.min(lo,b.l); }
   hi = Math.max(hi, S.price.ask); lo = Math.min(lo, S.price.bid);
   const pad = (hi-lo)*0.08 || 1;
   hi += pad; lo -= pad;
@@ -4077,7 +4094,7 @@ function drawChart(){
 
   // candles
   for(let i=0;i<vis.length;i++){
-    const b = vis[i];
+    const b = barAt(i);
     const up = b.c >= b.o;
     ctx.strokeStyle = up ? TC.up : TC.down;
     ctx.fillStyle = up ? TC.up : TC.down;
@@ -4181,18 +4198,18 @@ function drawChart(){
     ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(plotW,cy); ctx.stroke();
     ctx.setLineDash([]);
     const idx = clamp(Math.round((cx - (plotW - vis.length*unit))/unit), 0, vis.length-1);
-    const b = vis[idx];
+    const b = barAt(idx);
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
     ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
     ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.fillText(pxfmt(price), plotW+3, cy+3);
     if(b && info){
-      const d = new Date(b.t*1000);
+      const rb = vis[idx];                          // raw OHLC for the text readout
+      const d = new Date(rb.t*1000);
       info.style.display = "block";
-      info.textContent = `${pad2(d.getUTCMonth()+1)}/${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}  О ${pxfmt(b.o)}  Н ${pxfmt(b.h)}  Л ${pxfmt(b.l)}  З ${pxfmt(b.c)}`;
+      info.textContent = `${pad2(d.getUTCMonth()+1)}/${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}  О ${pxfmt(rb.o)}  Н ${pxfmt(rb.h)}  Л ${pxfmt(rb.l)}  З ${pxfmt(rb.c)}`;
     }
   }else if(info){
-    const lr = data[data.length-1];
-    const last = halfSp ? { o:lr.o-halfSp, h:lr.h-halfSp, l:lr.l-halfSp, c:lr.c-halfSp } : lr;
+    const last = data[data.length-1];
     info.style.display = "block";
     info.textContent = `${tf}   О ${pxfmt(last.o)}  Н ${pxfmt(last.h)}  Л ${pxfmt(last.l)}  З ${pxfmt(last.c)}`;
   }
@@ -4208,21 +4225,20 @@ function drawMini(){
   const TC = themeColors();
   const W = c._w, H = c._h, padR = 52;
   ctx.clearRect(0,0,W,H); ctx.fillStyle=TC.bg; ctx.fillRect(0,0,W,H);
-  let data = (S.candles.M1||[]).slice(-90);
+  const data = (S.candles.M1||[]).slice(-90);
   if(!data.length) return;
-  // bid-referenced candles — same half-spread shift as drawChart (display only)
-  const _spB = (S.trading.spreadMode === "fixed" ? S.trading.fixedSpread : S.market.baseSpread) || 0;
-  const hsp = _spB > 0 ? clamp(S.price.spread, _spB * 0.5, _spB * 4) / 2 : 0;
-  if(hsp) data = data.map(b => ({ t:b.t, o:b.o-hsp, h:b.h-hsp, l:b.l-hsp, c:b.c-hsp, v:b.v }));
+  // reshape only the live (last) bar — same rule as drawChart
+  const mLive = liveChartBar(data[data.length-1], true);
+  const mBar = i => (i === data.length-1 && mLive) ? mLive : data[i];
   let hi=-Infinity, lo=Infinity;
-  for(const b of data){ hi=Math.max(hi,b.h); lo=Math.min(lo,b.l); }
+  for(let i=0;i<data.length;i++){ const b=mBar(i); hi=Math.max(hi,b.h); lo=Math.min(lo,b.l); }
   hi=Math.max(hi,S.price.ask); lo=Math.min(lo,S.price.bid);
   const pad=(hi-lo)*0.1||1; hi+=pad; lo-=pad;
   const plotW = W-padR;
   const y = p => 6 + (hi-p)/(hi-lo)*(H-12);
   const bw = plotW/data.length;
   for(let i=0;i<data.length;i++){
-    const b=data[i], up=b.c>=b.o;
+    const b=mBar(i), up=b.c>=b.o;
     ctx.strokeStyle=up?TC.up:TC.down; ctx.fillStyle=up?TC.up:TC.down;
     const cx=i*bw+bw/2;
     ctx.beginPath(); ctx.moveTo(cx,y(b.h)); ctx.lineTo(cx,y(b.l)); ctx.stroke();
