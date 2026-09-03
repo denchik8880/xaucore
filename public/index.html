@@ -543,7 +543,7 @@ const DEFAULTS = () => ({
   account: { initialBalance: 10000, balance: 10000, currency: "USD" },
   symbol: {
     name: "XAUUSD", contractSize: 100, minLot: 0.01, maxLot: 50, lotStep: 0.01,
-    leverage: 100, digits: 2
+    leverage: 2000, digits: 2
   },
   trading: {
     commissionType: "usd_per_lot",   // usd_per_lot | usd_per_million | percent | quote_per_lot
@@ -561,7 +561,7 @@ const DEFAULTS = () => ({
   /* NORMAL MARKET — regime-switching autonomous engine (no static anchor) */
   market: {
     initialBid: 4457.02, initialAsk: 4457.24,
-    dayDurationMin: 50,     // SIMULATED DAY DURATION — 50 real minutes = 1 simulated trading day
+    dayDurationMin: 45,     // SIMULATED DAY DURATION — 45 real minutes = 1 simulated trading day
     dayVolProbs: dayVolProbDefaults(),
     intradayNoise: 1.0,     // global multiplier on tick noise amplitude
     regimeDriftScale: 1.0,  // global multiplier on regime directional drift
@@ -636,8 +636,10 @@ function migrateState(){
   const d = DEFAULTS();
   S.version = d.version;
   for(const k in d.market) if(S.market[k] === undefined) S.market[k] = d.market[k];
+  for(const k in d.symbol) if(S.symbol[k] === undefined) S.symbol[k] = d.symbol[k];
   if(!S.market.dayVolProbs) S.market.dayVolProbs = dayVolProbDefaults();
-  if(S.market.dayDurationMin === undefined) S.market.dayDurationMin = 50;
+  if(!(S.market.dayDurationMin > 0) || S.market.dayDurationMin === 50) S.market.dayDurationMin = 45;   // day = 45 real min
+  if(S.symbol.leverage === 100 || !(S.symbol.leverage > 0)) S.symbol.leverage = 2000;                 // default 1:2000
   if(!(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2.0;
   S.market.ticksPerSecond = clamp(S.market.ticksPerSecond, 0.1, 20);
   if(!TIME_SCALES.includes(S.market.timeScale)) S.market.timeScale = 1;
@@ -951,7 +953,7 @@ function nextRegimeName(cur){
 /* real-time within one game-day (ms). Time is ACCUMULATED, never derived from
    an absolute Date.now() endpoint — so the whole simulation stays frozen while
    the user is away and resumes exactly where it stopped. */
-function dayDurationMs(){ return Math.max(S.market.dayDurationMin || 50, 1) * 60000; }
+function dayDurationMs(){ return Math.max(S.market.dayDurationMin || 45, 1) * 60000; }
 function regimeDurationMs(){ return (S.regime ? S.regime.durDays : 8) * dayDurationMs(); }
 
 function startRegime(forcedName){
@@ -1035,7 +1037,7 @@ function marketActivity(){
        * (S.day ? clamp(S.day.targetRange / 42, 0.6, 3.2) : 1);
 }
 
-function daySpeedNow(){ return 1440 / Math.max(S.market.dayDurationMin || 50, 1); }   // sim-minutes per real-minute
+function daySpeedNow(){ return 1440 / Math.max(S.market.dayDurationMin || 45, 1); }   // sim-minutes per real-minute
 function normalTps(){ return clamp(S.market.ticksPerSecond || 2, 0.1, 20); }
 
 /* accumulate ACTIVE wall-time (capped) into the day/regime clocks. A big delta —
@@ -1686,7 +1688,11 @@ function updateCandles(){
     const bt = Math.floor(tsec / TF[tf]) * TF[tf];
     const last = arr[arr.length-1];
     if(!last || last.t < bt){
-      arr.push({ t:bt, o:price, h:price, l:price, c:price, v:vol });
+      // a new bar OPENS exactly at the previous bar's close — no intraday gaps.
+      // Only a day boundary is allowed to gap (rolloverDay adds the $0-2.5 jump).
+      const sameDay = last && Math.floor(last.t/86400) === Math.floor(bt/86400);
+      const o = sameDay ? last.c : price;
+      arr.push({ t:bt, o, h:Math.max(o,price), l:Math.min(o,price), c:price, v:vol });
       if(arr.length > TF_CAP[tf]) arr.splice(0, arr.length - TF_CAP[tf]);
     }else{
       last.h = Math.max(last.h, price);
@@ -2970,7 +2976,7 @@ function screenSettings(){
       ${F("set_minlot","Мин. лот", sym.minLot)}
       ${F("set_maxlot","Макс. лот", sym.maxLot)}
       ${F("set_step","Шаг лота", sym.lotStep)}
-      ${SEL("set_lev","Кредитное плечо",[[10,"1:10"],[20,"1:20"],[30,"1:30"],[50,"1:50"],[100,"1:100"],[200,"1:200"],[500,"1:500"]],sym.leverage)}
+      ${SEL("set_lev","Кредитное плечо",[[50,"1:50"],[100,"1:100"],[200,"1:200"],[500,"1:500"],[1000,"1:1000"],[2000,"1:2000"],[3000,"1:3000"]],sym.leverage)}
     </div>
     <div class="card"><h3>Торговля</h3>
       ${SEL("set_ctype","Тип комиссии",[["usd_per_lot","USD за лот"],["usd_per_million","USD за миллион USD оборота"],["percent","Процент от объёма сделки"],["quote_per_lot","Валюта котировки за лот"]],T.commissionType)}
@@ -3009,7 +3015,7 @@ function screenSettings(){
     <div class="card"><h3>Обычный рынок — движок режимов</h3>
       ${F("set_ib","Начальный Bid", M.initialBid, "применяется только при сбросе")}
       ${F("set_ia","Начальный Ask", M.initialAsk)}
-      ${F("set_ddur","Длительность торгового дня (реальных минут)", M.dayDurationMin, "50 реальных минут = 1 торговый день")}
+      ${F("set_ddur","Длительность торгового дня (реальных минут)", M.dayDurationMin, "45 реальных минут = 1 торговый день")}
       ${F("set_inoise","Внутридневной шум (×)", M.intradayNoise, "множитель амплитуды шума")}
       ${F("set_rds","Масштаб дрейфа режима (×)", M.regimeDriftScale, "сила направленного движения трендовых режимов")}
       ${F("set_mb","Макро-бычий дрейф (×)", M.macroBull, "долгосрочный бычий уклон золота ("+MACRO_DRIFT+" $/день)")}
@@ -3674,7 +3680,7 @@ function saveSettingsFromForm(silent){
   sym.minLot = num("set_minlot", sym.minLot);
   sym.maxLot = num("set_maxlot", sym.maxLot);
   sym.lotStep = num("set_step", sym.lotStep);
-  sym.leverage = parseInt(document.getElementById("set_lev").value)||100;
+  sym.leverage = parseInt(document.getElementById("set_lev").value)||2000;
   T.commissionType = document.getElementById("set_ctype").value;
   T.commission = num("set_comm", T.commission);
   T.spreadMode = document.getElementById("set_spmode").value;
@@ -4013,23 +4019,15 @@ function spreadYs(items, gap, top, bot){
    every visible bar drops half a spread (clamped so a news spread spike doesn't
    lurch the whole chart) so the LIVE bar's close sits exactly ON the Bid line —
    no floating gap, any direction or size — and so a bar doesn't hop when it
-   stops being the live one. The live bar, when it's a DOWN bar, additionally has
-   its body top capped at the Ask line: the Ask then sits on the body's top EDGE
-   instead of slicing through it, and the real open shows as an upper wick.
-   Raw S.candles / Price Engine / spread / P&L are untouched; the two lines still
-   anchor to the real S.price.bid / S.price.ask. */
-function bidCandles(vis, isLive){
+   stops being the live one. OHLC only shifts; bars stay chained (no gaps). The
+   Ask line is kept off the live down-bar's *body* by a draw-time cap in the
+   candle loop, not here. Raw S.candles / Price Engine / spread / P&L untouched;
+   the two lines still anchor to the real S.price.bid / S.price.ask. */
+function bidCandles(vis){
   const base = (S.trading.spreadMode === "fixed" ? S.trading.fixedSpread : S.market.baseSpread) || 0;
   const hs = base > 0 ? clamp(S.price.spread, base * 0.5, base * 4) / 2 : 0;
-  const ask = S.price.ask, n = vis.length;
-  return vis.map((b, i) => {
-    let o = b.o - hs, c = b.c - hs, h = b.h - hs, l = b.l - hs;
-    if(isLive && i === n - 1 && c < o){                 // live down bar
-      if(o > ask) o = ask;                              // body top -> Ask edge
-      h = Math.max(h, ask);                             // wick still reaches the real open / Ask
-    }
-    return { t: b.t, o, h, l, c, v: b.v };
-  });
+  if(!hs) return vis;
+  return vis.map(b => ({ t: b.t, o: b.o - hs, h: b.h - hs, l: b.l - hs, c: b.c - hs, v: b.v }));
 }
 
 function drawChart(){
@@ -4053,8 +4051,9 @@ function drawChart(){
   let endIdx = data.length - Math.round(chart.offset);
   endIdx = clamp(endIdx, 1, data.length);
   let startIdx = Math.max(0, endIdx - nVisible);
-  const vis = bidCandles(data.slice(startIdx, endIdx), endIdx === data.length);
+  const vis = bidCandles(data.slice(startIdx, endIdx));
   if(!vis.length) return;
+  const liveIdx = endIdx === data.length ? vis.length - 1 : -1;   // the still-forming bar
 
   let hi = -Infinity, lo = Infinity;
   for(const b of vis){ hi = Math.max(hi,b.h); lo = Math.min(lo,b.l); }
@@ -4091,7 +4090,11 @@ function drawChart(){
     ctx.fillStyle = up ? TC.up : TC.down;
     const cx = xOf(i) + bw/2;
     ctx.beginPath(); ctx.moveTo(cx, y(b.h)); ctx.lineTo(cx, y(b.l)); ctx.stroke();
-    const yo = y(b.o), yc = y(b.c);
+    let yo = y(b.o), yc = y(b.c);
+    // live DOWN bar: stop the FILLED body at the Ask line so the Ask isn't buried
+    // in the block — the wick above already shows the true open, and the OHLC is
+    // untouched so the bar still chains to its neighbours (no gap).
+    if(i === liveIdx && !up) yc = Math.min(yc, y(S.price.ask));
     const top = Math.min(yo,yc), hgt = Math.max(1, Math.abs(yc-yo));
     ctx.fillRect(xOf(i), top, Math.max(1,bw), hgt);
   }
@@ -4216,7 +4219,7 @@ function drawMini(){
   const TC = themeColors();
   const W = c._w, H = c._h, padR = 52;
   ctx.clearRect(0,0,W,H); ctx.fillStyle=TC.bg; ctx.fillRect(0,0,W,H);
-  const data = bidCandles((S.candles.M1||[]).slice(-90), true);
+  const data = bidCandles((S.candles.M1||[]).slice(-90));
   if(!data.length) return;
   let hi=-Infinity, lo=Infinity;
   for(const b of data){ hi=Math.max(hi,b.h); lo=Math.min(lo,b.l); }
@@ -4230,7 +4233,8 @@ function drawMini(){
     ctx.strokeStyle=up?TC.up:TC.down; ctx.fillStyle=up?TC.up:TC.down;
     const cx=i*bw+bw/2;
     ctx.beginPath(); ctx.moveTo(cx,y(b.h)); ctx.lineTo(cx,y(b.l)); ctx.stroke();
-    const yo=y(b.o),yc=y(b.c);
+    let yo=y(b.o),yc=y(b.c);
+    if(i === data.length-1 && !up) yc = Math.min(yc, y(S.price.ask));   // live down bar: body stops at Ask
     ctx.fillRect(i*bw+0.5, Math.min(yo,yc), Math.max(1,bw-1.5), Math.max(1,Math.abs(yc-yo)));
   }
   // open positions (solid) + pending orders (dashed) — same S.positions / S.pendings
