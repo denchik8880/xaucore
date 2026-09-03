@@ -286,8 +286,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-spark{flex:0 0 118px;height:38px;overflow:hidden}
 .wl-spark svg{display:block;width:100%;height:100%}
 .wl-stats{font-size:10.5px;color:var(--ink3);text-align:right;line-height:1.5;overflow-wrap:anywhere}
-.wl-quote{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.wl-q{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:7px 4px}
+.wl-quote{display:flex;gap:8px}
+.wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:7px 4px}
 .wl-q b{font-size:9px;letter-spacing:.04em;color:var(--ink3)}
 .wl-q .mono{font-size:15px;font-weight:800}
 .wl-q.sell{border-color:var(--sell-line);color:var(--red)}
@@ -2180,7 +2180,7 @@ function screenMarketsList(){
       <span class="wl-name">XAU69 <span style="color:var(--ink3)">▾</span></span>
       <span class="wl-tools"><span class="ic" data-act="addinstr">＋</span><span class="ic" data-act="addinstr">✎</span></span>
     </div>
-    <button class="wl-row" data-act="openxau">
+    <div class="wl-row" role="button" tabindex="0" data-act="openxau">
       <div class="wl-top">
         <span class="wl-sym" id="wlSym"><span class="ck">✓</span>XAUUSD${wlCountBadge()}</span>
         <span class="wl-chg mono ${w.chg>=0?'pos':'neg'}" id="wlChg">${signMoney(w.chg)} (${w.chg>=0?'+':''}${fmt(w.chgPct,2)}%)</span>
@@ -2193,7 +2193,7 @@ function screenMarketsList(){
         <span class="wl-q sell"><b>ПРОДАТЬ</b><span class="mono" id="wlBid">${pxfmt(S.price.bid)}</span></span>
         <span class="wl-q buy"><b>КУПИТЬ</b><span class="mono" id="wlAsk">${pxfmt(S.price.ask)}</span></span>
       </div>
-    </button>
+    </div>
     <button class="btn dark" data-act="addinstr" style="margin-top:14px">＋ Добавить инструменты</button>
     <div class="hint" style="text-align:center;margin-top:16px">DEMO • SYNTHETIC DATA — в демо-режиме доступен только XAUUSD</div>
     <button class="bignew" data-act="newticket">Новый ордер</button>
