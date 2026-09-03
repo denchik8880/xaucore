@@ -10,10 +10,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="XAUCORE">
-<link rel="preload" as="font" type="font/woff2" href="/fonts/opensans-latin.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="/fonts/opensans-cyrillic.woff2" crossorigin>
 <style>
-/* Open Sans — self-hosted (no external requests), whole app uses one sans-serif */
+/* Primary UI type is the platform system font (SF Pro on iOS/macOS, Segoe UI on
+   Windows, Roboto on Android) for a native, lighter feel. Open Sans stays
+   self-hosted as a deep fallback for devices without a clean system sans —
+   no longer preloaded since it is rarely the active face. */
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
@@ -23,7 +24,7 @@
   --line:#e8eaed; --green:#0aa85f; --green-bg:#e7f7ef; --red:#e5342b;
   --red-bg:#fdecea; --orange:#f5820d; --orange-bg:#fff2e2; --blue:#2f7bf6;
   --radius:16px; --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
-  --font:'Open Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue","Open Sans",Arial,sans-serif;
   /* --- theming tokens (see [data-theme="dark"] below) --- */
   --field-bg:#fbfbfc;        /* inputs / sunken surfaces */
   --press:#eef0f2;           /* :active / hover background */
@@ -54,7 +55,8 @@
 html{overflow-x:clip;overscroll-behavior-y:none}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
   font-family:var(--font);
-  font-size:15px;line-height:1.35}
+  font-size:15px;line-height:1.4;letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 body{max-width:520px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);width:100%;overflow-x:clip}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
 input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
@@ -65,18 +67,18 @@ img,canvas,svg,video{max-width:100%}
 .row .v{text-align:right;overflow-wrap:anywhere}
 .appbar{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:8px;padding:12px 14px;min-height:52px}
-.appbar .ttl{font-weight:700;font-size:18px;display:flex;align-items:center;gap:6px}
+.appbar .ttl{font-weight:600;font-size:18px;display:flex;align-items:center;gap:6px}
 .appbar .sp{flex:1}
 .iconbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--ink2);font-size:18px}
 .iconbtn:active{background:var(--line)}
-.badge-demo{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--orange);
+.badge-demo{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--orange);
   background:var(--orange-bg);border:1px solid #f6cfa0;padding:3px 7px;border-radius:999px;white-space:nowrap}
 .subtabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
 .subtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
 .wrap{padding:12px}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
-.card h3{margin:0 0 10px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);font-weight:700}
+.card h3{margin:0 0 10px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);font-weight:600}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .row+.row{margin-top:8px}
 .k{color:var(--ink2)}
@@ -89,19 +91,19 @@ img,canvas,svg,video{max-width:100%}
 /* trade panel — ПРОДАТЬ | лоты | КУПИТЬ. Must fit full Bid/Ask on ~360-412px with no clipping. */
 .tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(58px,88px) minmax(0,1fr);gap:6px;align-items:stretch;width:100%}
 .tbtn{border-radius:14px;padding:12px 5px;text-align:center;display:flex;flex-direction:column;gap:5px;justify-content:center;min-height:92px;border:1px solid transparent;overflow:hidden;min-width:0}
-.tbtn .lbl{font-weight:800;font-size:clamp(10px,3vw,13.5px);letter-spacing:.02em;white-space:nowrap}
-.tbtn .px{display:block;width:100%;font-size:clamp(14px,4.7vw,21px);font-weight:800;white-space:nowrap;overflow:hidden;letter-spacing:-.01em;line-height:1.15}
+.tbtn .lbl{font-weight:600;font-size:clamp(10px,3vw,13.5px);letter-spacing:.02em;white-space:nowrap}
+.tbtn .px{display:block;width:100%;font-size:clamp(14px,4.7vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;letter-spacing:-.01em;line-height:1.15}
 .tbtn .sub{font-size:10.5px;opacity:.75;font-weight:600}
 .tbtn.sell{background:var(--red-bg);color:var(--red);border-color:var(--sell-line)}
 .tbtn.buy{background:var(--green-bg);color:var(--green);border-color:var(--buy-line)}
 .tbtn:active{filter:brightness(.96)}
 .tbtn:disabled{opacity:.45}
 .lotbox{background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 3px;gap:4px;min-width:0}
-.lotbox .cap{font-size:8.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.02em;font-weight:700;text-align:center;line-height:1.15}
+.lotbox .cap{font-size:8.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.02em;font-weight:600;text-align:center;line-height:1.15}
 .lotctl{display:flex;align-items:center;gap:3px;width:100%}
-.lotctl button{width:24px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--line);font-size:16px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.lotctl button{width:24px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--line);font-size:16px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .lotctl button:active{background:var(--press)}
-.lotctl .val{flex:1 1 auto;min-width:30px;text-align:center;font-weight:800;font-size:15px;border:none;background:none;width:100%;padding:2px 0}
+.lotctl .val{flex:1 1 auto;min-width:30px;text-align:center;font-weight:600;font-size:15px;border:none;background:none;width:100%;padding:2px 0}
 @media (max-width:400px){
   .tradepanel{grid-template-columns:minmax(0,1fr) minmax(64px,82px) minmax(0,1fr);gap:4px}
   .tbtn{padding:11px 3px}
@@ -113,14 +115,14 @@ img,canvas,svg,video{max-width:100%}
   .lotctl .val{font-size:14px;min-width:28px}
 }
 .lotctl .val:focus{outline:2px solid var(--blue);border-radius:6px}
-.spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;margin-top:10px}
+.spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:999px;margin-top:10px}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-.miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:700;font-size:12px;color:var(--ink2)}
+.miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:12px;color:var(--ink2)}
 .miniquick button:active{background:var(--press)}
 .loterr{color:var(--red);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
 
 .bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 24px));
-  background:var(--invert);color:var(--invert-ink);font-weight:800;letter-spacing:.02em;padding:15px;border-radius:14px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  background:var(--invert);color:var(--invert-ink);font-weight:600;letter-spacing:.02em;padding:15px;border-radius:14px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .bignew:active{filter:brightness(.9)}
 
 /* bottom nav */
@@ -129,24 +131,24 @@ img,canvas,svg,video{max-width:100%}
 .bottomnav button{padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:10.5px;font-weight:600}
 .bottomnav button.on{color:var(--blue)}
 .bottomnav .ic{font-size:19px;line-height:1;position:relative}
-.navpill{position:absolute;top:-4px;right:-11px;background:var(--blue);color:#fff;border-radius:999px;font-size:9px;font-weight:800;padding:1px 4px;min-width:14px;text-align:center}
+.navpill{position:absolute;top:-4px;right:-11px;background:var(--blue);color:#fff;border-radius:999px;font-size:9px;font-weight:600;padding:1px 4px;min-width:14px;text-align:center}
 
 /* list rows */
 .lrow{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
 .lrow .top{display:flex;justify-content:space-between;align-items:baseline}
-.lrow .sym{font-weight:800}
-.tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
+.lrow .sym{font-weight:600}
+.tag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
 .tag.buy{background:var(--green-bg);color:var(--green)}
 .tag.sell{background:var(--red-bg);color:var(--red)}
 .lrow .mid{display:flex;justify-content:space-between;color:var(--ink2);font-size:12.5px}
-.lrow .pnl{font-weight:800;font-size:16px}
+.lrow .pnl{font-weight:600;font-size:16px}
 .muted{color:var(--ink3);text-align:center;padding:32px 10px;font-size:13.5px}
 
 /* chart */
 .chartwrap{background:var(--card);border-radius:0;max-width:100%;overflow:hidden}
 .tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tfbar::-webkit-scrollbar{display:none}
-.tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:800;font-size:12.5px;color:var(--ink2);background:var(--line)}
+.tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:600;font-size:12.5px;color:var(--ink2);background:var(--line)}
 .tfbar button.on{background:var(--blue);color:#fff}
 #chartCanvas,#miniCanvas,#domCanvas{width:100%;display:block;max-width:100%}
 /* pan-y lets a vertical swipe scroll the PAGE even when it starts on the chart;
@@ -156,7 +158,7 @@ img,canvas,svg,video{max-width:100%}
 .chartbox{position:relative;background:var(--card);max-width:100%;overflow:hidden}
 .chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartzoom{position:absolute;left:8px;bottom:26px;display:flex;flex-direction:column;gap:6px;z-index:5}
-.chartzoom button{width:36px;height:36px;border-radius:11px;background:var(--chart-glass);border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
+.chartzoom button{width:36px;height:36px;border-radius:11px;background:var(--chart-glass);border:1px solid var(--line);font-size:18px;font-weight:600;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
 .chartzoom button:active{background:var(--line)}
 .chartzoom button.rst{font-size:14px}
 
@@ -166,13 +168,13 @@ img,canvas,svg,video{max-width:100%}
 .sheet h2{margin:2px 0 14px;font-size:17px}
 .sheet .close{position:absolute;right:16px;top:14px}
 .field{margin-bottom:12px}
-.field label{display:block;font-size:12px;color:var(--ink2);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
+.field label{display:block;font-size:12px;color:var(--ink2);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
 .field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--field-bg);color:var(--ink)}
 .field .hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
 .seg{display:flex;gap:4px;background:var(--line);border-radius:11px;padding:3px}
-.seg button{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:13px;color:var(--ink2)}
+.seg button{flex:1;padding:9px;border-radius:9px;font-weight:600;font-size:13px;color:var(--ink2)}
 .seg button.on{background:var(--raise);color:var(--ink);box-shadow:var(--shadow)}
-.btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:800;text-align:center;margin-top:6px}
+.btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:600;text-align:center;margin-top:6px}
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
 .btn.dark{background:var(--invert);color:var(--invert-ink)}
@@ -192,72 +194,72 @@ img,canvas,svg,video{max-width:100%}
 .dom-grid>div{padding:5px 8px;border-bottom:1px solid var(--line)}
 .dom-bid{text-align:right;color:var(--green);position:relative}
 .dom-ask{text-align:left;color:var(--red);position:relative}
-.dom-px{text-align:center;font-weight:800}
+.dom-px{text-align:center;font-weight:600}
 .dom-bar{position:absolute;top:0;bottom:0;opacity:.14}
 .dom-bar.b{right:0;background:var(--green)}
 .dom-bar.a{left:0;background:var(--red)}
 .evt{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
 .evt:last-child{border-bottom:none}
-.evt .nm{font-weight:700}
-.evt .impact{font-size:10px;font-weight:800;padding:1px 5px;border-radius:5px;background:var(--orange-bg);color:var(--orange)}
+.evt .nm{font-weight:600}
+.evt .impact{font-size:10px;font-weight:600;padding:1px 5px;border-radius:5px;background:var(--orange-bg);color:var(--orange)}
 .evt small{color:var(--ink3)}
 hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .pill-toggle{display:flex;gap:6px}
-.pill-toggle button{flex:1 1 0;min-width:0;padding:9px 4px;border-radius:9px;background:var(--line);font-weight:800;font-size:12px;color:var(--ink2);white-space:nowrap}
+.pill-toggle button{flex:1 1 0;min-width:0;padding:9px 4px;border-radius:9px;background:var(--line);font-weight:600;font-size:12px;color:var(--ink2);white-space:nowrap}
 .pill-toggle button.on{background:var(--blue);color:#fff}
 
 /* macro news engine */
 .news-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 8px}
-.news-btns button{background:var(--orange-bg);color:var(--orange);border:1px solid #f3c98f;border-radius:11px;padding:12px 4px;font-weight:800;font-size:12.5px;letter-spacing:.02em}
+.news-btns button{background:var(--orange-bg);color:var(--orange);border:1px solid #f3c98f;border-radius:11px;padding:12px 4px;font-weight:600;font-size:12.5px;letter-spacing:.02em}
 .news-btns button:active{filter:brightness(.94)}
 .news-btns button:disabled{opacity:.35}
 .news-btns button.wide{grid-column:span 3;background:var(--invert);color:var(--invert-ink);border-color:var(--invert)}
 .news-lock{position:sticky;top:0;z-index:60;background:linear-gradient(90deg,#f5820d,#e5342b);color:#fff;padding:10px 14px 11px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.2)}
-.news-lock .nl-title{font-size:11px;font-weight:800;letter-spacing:.06em;opacity:.95}
-.news-lock .nl-count{font-size:28px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.news-lock .nl-title{font-size:11px;font-weight:600;letter-spacing:.06em;opacity:.95}
+.news-lock .nl-count{font-size:28px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .news-lock .nl-sub{font-size:10px;font-weight:600;opacity:.92}
 .news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
 .news-res .row:last-child{border-bottom:none}
 .ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
-.ne-card summary{font-weight:800;font-size:13px;cursor:pointer;list-style:none}
+.ne-card summary{font-weight:600;font-size:13px;cursor:pointer;list-style:none}
 .ne-card summary::-webkit-details-marker{display:none}
 .ne-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .ne-grid .field{margin-bottom:4px}
 .ne-grid .field label{font-size:10px}
 .ne-grid .field input,.ne-grid .field select{padding:8px 9px;font-size:13px}
 .lastnews{background:var(--field-bg);border-radius:10px;padding:9px 11px;font-size:12px;margin-top:4px}
-.lastnews b{font-weight:800}
+.lastnews b{font-weight:600}
 
 /* ticks-per-second control */
-.tps-val{font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;color:var(--blue)}
+.tps-val{font-weight:600;font-size:20px;font-variant-numeric:tabular-nums;color:var(--blue)}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:2px 0;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:999px;background:var(--line)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;margin-top:-8.5px;border-radius:50%;background:var(--blue);border:3px solid var(--card);box-shadow:0 1px 5px rgba(0,0,0,.25)}
 input[type=range]::-moz-range-track{height:7px;border-radius:999px;background:var(--line)}
 input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid var(--card)}
 .tps-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.tps-presets button{flex:1 1 auto;min-width:54px;background:var(--line);border-radius:9px;padding:10px 4px;font-weight:800;font-size:12.5px;color:var(--ink2)}
+.tps-presets button{flex:1 1 auto;min-width:54px;background:var(--line);border-radius:9px;padding:10px 4px;font-weight:600;font-size:12.5px;color:var(--ink2)}
 .tps-presets button.on{background:var(--blue);color:#fff}
 .tps-presets button:active{filter:brightness(.95)}
 
 /* manual market control (god mode) */
 .godpanel{background:#1b1f24;color:#fff;border-radius:16px;padding:13px 13px 14px;margin-bottom:12px;box-shadow:0 6px 20px rgba(0,0,0,.28)}
-.godpanel .gp-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#ffb85c}
+.godpanel .gp-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.06em;color:#ffb85c}
 .godpanel .gp-hd .dot{width:8px;height:8px;border-radius:50%;background:#ffb85c;box-shadow:0 0 8px #ffb85c}
-.godpanel .gp-px{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.godpanel .gp-px{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;margin:6px 0 2px}
 .godpanel .gp-sub{font-size:11px;color:#9aa4af;font-weight:600;margin-bottom:4px}
-.godpanel .gp-state{margin-top:7px;font-size:10.5px;font-weight:800;letter-spacing:.03em;text-align:center;padding:6px 8px;border-radius:8px}
+.godpanel .gp-state{margin-top:7px;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-align:center;padding:6px 8px;border-radius:8px}
 .godpanel .gp-state.on{background:#14351f;color:#5fe0a0}
 .godpanel .gp-state.off{background:#3a2417;color:#ffb85c}
 .godpanel .gp-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.godpanel button{flex:1 1 auto;min-width:0;background:#2b3138;color:#fff;border-radius:9px;padding:9px 6px;font-weight:800;font-size:12px;border:1px solid #3a424b}
+.godpanel button{flex:1 1 auto;min-width:0;background:#2b3138;color:#fff;border-radius:9px;padding:9px 6px;font-weight:600;font-size:12px;border:1px solid #3a424b}
 .godpanel button:active{background:#353d46}
 .godpanel button.on{background:#f5820d;border-color:#f5820d}
 .godpanel button.up{color:#5fe0a0}.godpanel button.dn{color:#ff8a80}
 .godpanel input{background:#12151a;border:1px solid #3a424b;color:#fff;border-radius:9px;padding:9px 8px;width:100%;min-width:0}
 .godpanel .gp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .godpanel .gp-grid>div{min-width:0}
-.godpanel .gp-lbl{font-size:10px;color:#9aa4af;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.godpanel .gp-lbl{font-size:10px;color:#9aa4af;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
 .godpanel .gp-half{flex:1}
 
 /* markets watchlist ("Рынки" list -> tap XAUUSD -> existing terminal screen) */
@@ -270,18 +272,18 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-search-ic{font-size:14px;opacity:.65}
 .wl-search:active{filter:brightness(.97)}
 .wl-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
-.wl-name{font-weight:800;font-size:15px}
+.wl-name{font-weight:600;font-size:15px}
 .wl-tools{display:flex;gap:6px}
 .wl-tools .ic{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--line);font-size:14px;color:var(--ink2)}
 .wl-row{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:9px;cursor:pointer;width:100%;text-align:left}
 .wl-row:active{background:var(--press)}
 .wl-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.wl-sym{font-weight:800;font-size:17px}
+.wl-sym{font-weight:600;font-size:17px}
 .wl-sym .ck{color:var(--green);margin-right:3px}
 .wl-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;
-  margin-left:8px;border:1.5px solid var(--ink3);border-radius:6px;font-size:12px;font-weight:800;
+  margin-left:8px;border:1.5px solid var(--ink3);border-radius:6px;font-size:12px;font-weight:600;
   font-variant-numeric:tabular-nums;color:var(--ink2);vertical-align:2px;line-height:1}
-.wl-chg{font-weight:700;font-size:12.5px;white-space:nowrap}
+.wl-chg{font-weight:600;font-size:12.5px;white-space:nowrap}
 .wl-mid{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .wl-spark{flex:0 0 118px;height:38px;overflow:hidden}
 .wl-spark svg{display:block;width:100%;height:100%}
@@ -289,10 +291,10 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-quote{display:flex;gap:8px}
 .wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:10px;padding:7px 4px}
 .wl-q b{font-size:9px;letter-spacing:.04em;color:var(--ink3)}
-.wl-q .mono{font-size:15px;font-weight:800}
+.wl-q .mono{font-size:15px;font-weight:600}
 .wl-q.sell{border-color:var(--sell-line);color:var(--red)}
 .wl-q.buy{border-color:var(--buy-line);color:var(--green)}
-.ab-bal{background:var(--line);color:var(--ink);font-weight:800;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ab-bal{background:var(--line);color:var(--ink);font-weight:600;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 /* ===== BROKER WALLET (dark, premium) — its own full-screen dark surface ===== */
 body.route-wallet{max-width:none;background:#0c0a08}
@@ -330,10 +332,10 @@ html:has(body.route-wallet){background:#0c0a08}
     radial-gradient(150% 50% at 50% 0%,rgba(0,0,0,0),rgba(0,0,0,.24) 100%)}
 .wallet-inner,.wfoot{position:relative;z-index:1}
 .wallet-inner{max-width:1000px;margin:0 auto;padding:14px clamp(14px,4vw,44px) 0}
-.wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:800;font-size:12px;
+.wp-back{display:inline-flex;align-items:center;gap:7px;color:var(--wg);font-weight:600;font-size:12px;
   letter-spacing:.08em;padding:8px 2px;background:none}
 .wp-back:active{opacity:.65}
-.wp-h1{font-size:clamp(30px,7.4vw,46px);font-weight:800;line-height:1.04;margin:8px 0 8px;color:#fff;letter-spacing:-.015em}
+.wp-h1{font-size:clamp(30px,7.4vw,46px);font-weight:700;line-height:1.04;margin:8px 0 8px;color:#fff;letter-spacing:-.017em}
 .wp-sub{color:var(--wmut);font-size:clamp(13px,3.3vw,15px);max-width:430px;line-height:1.45;margin-bottom:18px}
 
 .wpanel{background:var(--wpanel);border:1px solid var(--wline);border-radius:22px;
@@ -346,33 +348,33 @@ html:has(body.route-wallet){background:#0c0a08}
 .wcard::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:radial-gradient(130% 92% at 8% 2%,rgba(255,255,255,.34),transparent 44%),
              radial-gradient(94% 82% at 98% 106%,rgba(58,36,12,.34),transparent 52%)}
-.wc-wm{position:absolute;z-index:0;left:-8%;top:32%;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+.wc-wm{position:absolute;z-index:0;left:-8%;top:32%;font-family:Georgia,'Times New Roman',serif;font-weight:600;
   font-size:clamp(66px,23vw,132px);line-height:.78;color:rgba(74,49,20,.17);white-space:nowrap;
   pointer-events:none;user-select:none;letter-spacing:-.045em}
 .wc-row1,.wc-owner{position:relative;z-index:2}
 .wc-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.wc-brand{font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:clamp(18px,5.1vw,25px);
+.wc-brand{font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:clamp(18px,5.1vw,25px);
   color:#fffaf0;letter-spacing:.02em;text-shadow:0 1px 2px rgba(78,48,14,.3)}
 .wc-tag{text-align:right;min-width:0}
-.wc-tag-l{font-size:clamp(9px,2.5vw,11px);color:rgba(46,29,9,.6);font-weight:700}
-.wc-tag-n{font-weight:800;font-size:clamp(12px,3.4vw,15px);color:#fffaf0;letter-spacing:.03em;margin-top:2px;
+.wc-tag-l{font-size:clamp(9px,2.5vw,11px);color:rgba(46,29,9,.6);font-weight:600}
+.wc-tag-n{font-weight:600;font-size:clamp(12px,3.4vw,15px);color:#fffaf0;letter-spacing:.03em;margin-top:2px;
   text-shadow:0 1px 2px rgba(78,48,14,.3);word-break:break-all}
-.wc-owner{font-size:clamp(12px,3.5vw,15px);font-weight:700;letter-spacing:.05em;color:#1c1509}
+.wc-owner{font-size:clamp(12px,3.5vw,15px);font-weight:600;letter-spacing:.05em;color:#1c1509}
 
 .wpanel-info{min-width:0}
-.wpi-title{color:var(--wtxt);font-size:clamp(15px,3.8vw,19px);font-weight:700;margin-bottom:10px}
-.wpi-bal{font-size:clamp(25px,7.6vw,44px);font-weight:800;color:var(--wg);line-height:1.04;white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
-.wpi-bal .u{font-size:.46em;font-weight:700;color:var(--wg2);margin-left:.3em;letter-spacing:.04em}
+.wpi-title{color:var(--wtxt);font-size:clamp(15px,3.8vw,19px);font-weight:600;margin-bottom:10px}
+.wpi-bal{font-size:clamp(25px,7.6vw,44px);font-weight:700;color:var(--wg);line-height:1.04;white-space:nowrap;overflow:hidden;letter-spacing:-.015em}
+.wpi-bal .u{font-size:.46em;font-weight:600;color:var(--wg2);margin-left:.3em;letter-spacing:.04em}
 .wpi-div{border-top:1px solid var(--wline);margin:clamp(14px,3vw,22px) 0 12px}
 .wpi-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .wpi-row-k{color:var(--wmut);font-size:13px}
-.wpi-row-v{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--wtxt);overflow-wrap:anywhere}
+.wpi-row-v{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--wtxt);overflow-wrap:anywhere}
 .wpi-copy{background:none;color:var(--wg2);font-size:15px;padding:2px;line-height:1}
 .wpi-copy:active{color:var(--wg)}
 
 .wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 0}
 .wbtn{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 12px;border-radius:999px;
-  font-weight:800;font-size:13px;letter-spacing:.03em;white-space:nowrap;min-width:0;
+  font-weight:600;font-size:13px;letter-spacing:.03em;white-space:nowrap;min-width:0;
   border:1px solid var(--wg2);color:var(--wg);background:rgba(227,184,119,.04);
   transition:background .14s,transform .06s}
 .wbtn .wbtn-ic{font-size:15px}
@@ -383,14 +385,14 @@ html:has(body.route-wallet){background:#0c0a08}
 
 .wsec{background:var(--wpanel);border:1px solid var(--wline);border-radius:18px;padding:clamp(15px,2.4vw,22px);margin-top:16px}
 .wsec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.wsec-hd h3{margin:0;font-size:14px;font-weight:700;color:var(--wtxt);text-transform:none;letter-spacing:0}
-.wsec-all{color:var(--wg2);font-size:11px;font-weight:800;letter-spacing:.06em;background:none}
+.wsec-hd h3{margin:0;font-size:14px;font-weight:600;color:var(--wtxt);text-transform:none;letter-spacing:0}
+.wsec-all{color:var(--wg2);font-size:11px;font-weight:600;letter-spacing:.06em;background:none}
 .wstats{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,3vw,30px)}
 .wstat{display:flex;flex-direction:column;gap:8px;min-width:0}
 .wstat-ic{width:40px;height:40px;border-radius:12px;background:rgba(227,184,119,.1);border:1px solid var(--wline);
   display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--wg)}
 .wstat-k{color:var(--wmut);font-size:12.5px}
-.wstat-v{font-weight:800;font-size:clamp(15px,3.6vw,19px);color:var(--wtxt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wstat-v{font-weight:600;font-size:clamp(15px,3.6vw,19px);color:var(--wtxt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wstat-v .u{font-size:.62em;color:var(--wg2);margin-left:.25em}
 .wledger-empty{text-align:center;padding:20px 8px;color:var(--wmut)}
 .wledger-empty .ic{font-size:22px;color:var(--wg2);display:block;margin-bottom:8px}
@@ -398,7 +400,7 @@ html:has(body.route-wallet){background:#0c0a08}
 .wl-item:last-child{border-bottom:none}
 .wl-item .k{color:var(--wtxt);font-size:13px}
 .wl-item .k small{color:var(--wmut);display:block;font-size:11px;margin-top:2px}
-.wl-item .amt{font-weight:800;font-size:14px;white-space:nowrap}
+.wl-item .amt{font-weight:600;font-size:14px;white-space:nowrap}
 .wl-item .amt.pos{color:#5cc98b}.wl-item .amt.neg{color:#e08b6a}
 
 .wfoot{margin-top:26px;padding:24px clamp(14px,4vw,44px) 30px;border-top:1px solid var(--wline);
@@ -407,7 +409,7 @@ html:has(body.route-wallet){background:#0c0a08}
 .wfeat{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,3vw,32px)}
 .wfeat > div{min-width:0}
 .wfeat-ic{font-size:17px;color:var(--wg);margin-bottom:7px}
-.wfeat-t{font-weight:700;font-size:13px;color:var(--wtxt);margin-bottom:4px}
+.wfeat-t{font-weight:600;font-size:13px;color:var(--wtxt);margin-bottom:4px}
 .wfeat-d{color:var(--wmut);font-size:11.5px;line-height:1.45}
 .wfoot-cr{text-align:center;color:#6b6353;font-size:11.5px;margin-top:22px;line-height:1.9}
 .wfoot-cr a{color:#8a8171}
@@ -420,9 +422,9 @@ html:has(body.route-wallet){background:#0c0a08}
 .sheet.sheet-dark .hint{color:#8a8171}
 .sheet.sheet-dark .loterr{color:#e08b6a}
 .wm-balance{background:#211d18;border:1px solid #332c22;border-radius:11px;padding:10px 12px;font-size:13px;color:#b6ac98;margin-bottom:12px}
-.wm-balance b{color:#e3b877;font-weight:800}
+.wm-balance b{color:#e3b877;font-weight:600}
 .wm-quick{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px}
-.wm-quick button{flex:1 1 auto;min-width:66px;background:#26221c;border-radius:9px;padding:9px 4px;font-weight:800;font-size:12px;color:#c9bfa8}
+.wm-quick button{flex:1 1 auto;min-width:66px;background:#26221c;border-radius:9px;padding:9px 4px;font-weight:600;font-size:12px;color:#c9bfa8}
 .wm-quick button:active{filter:brightness(1.15)}
 .sheet.sheet-dark .btn.ghost{background:#26221c;color:#c9bfa8}
 .sheet.sheet-dark .btn.green,.sheet.sheet-dark .btn.dark{background:linear-gradient(180deg,#eecb8a,#d6a961);color:#1c1408}
@@ -447,6 +449,21 @@ html:has(body.route-wallet){background:#0c0a08}
 .sheet{overflow-wrap:anywhere}
 .appbar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge-demo{flex:0 0 auto}
+
+/* --- iOS-style tactile feedback: a quick, subtle squish + dim on press --- */
+.btn,.tbtn,.menu-item,.wl-row,.seg button,.tfbar button,.miniquick button,
+.pill-toggle button,.tps-presets button,.news-btns button,.iconbtn,.lotctl button,
+.chartzoom button,.bignew{
+  transition:transform .13s cubic-bezier(.2,.7,.3,1),filter .13s ease,background-color .13s ease,color .13s ease;
+}
+.btn:active,.menu-item:active,.wl-row:active,.tbtn:active,.seg button:active,
+.tfbar button:active,.miniquick button:active,.pill-toggle button:active,
+.tps-presets button:active,.news-btns button:active,.lotctl button:active{transform:scale(.97)}
+.iconbtn:active,.chartzoom button:active{transform:scale(.9)}
+.bignew:active{transform:translateX(-50%) scale(.985)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
 </style>
 
 <div id="app"></div>
@@ -687,14 +704,22 @@ function migrateState(){
   if(!S.day) startNewDay(S.price.mid);
 }
 let saveTimer = null;
+const _idle = window.requestIdleCallback
+  ? (fn)=> window.requestIdleCallback(fn, { timeout: 800 })
+  : (fn)=> setTimeout(fn, 0);
 function save(){
   if(saveTimer) return;
+  // Coalesce the ~2.5 writes/sec the engine asks for into ~1/sec, and run the
+  // 200 KB JSON.stringify + localStorage write off the animation path so a busy
+  // frame never stalls on it. saveNow()/unload handlers still flush immediately.
   saveTimer = setTimeout(()=>{
     saveTimer = null;
-    try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
-    catch(e){ console.warn("save failed", e); }
+    _idle(()=>{
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+      catch(e){ console.warn("save failed", e); }
+    });
     if(typeof xcPushState === "function") xcPushState();     // mirror to the server (debounced)
-  }, 400);
+  }, 1000);
 }
 function saveNow(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
@@ -2307,7 +2332,7 @@ function mktOverview(){
 
     <div class="card">
       <div class="row" style="margin-bottom:2px"><h3 style="margin:0">Торговый день · СИНТЕТИКА</h3>
-        <button class="k" data-act="gotodebug" style="color:var(--blue);font-weight:700">Debug</button></div>
+        <button class="k" data-act="gotodebug" style="color:var(--blue);font-weight:600">Debug</button></div>
       ${dayCardMarkup()}
     </div>
 
@@ -2329,7 +2354,7 @@ function mktOverview(){
     <div class="card">
       <div class="row" style="margin-bottom:2px">
         <h3 style="margin:0">Macro News Engine · SYNTHETIC</h3>
-        <button class="k" data-act="gotocal" style="color:var(--blue);font-weight:700">Календарь</button>
+        <button class="k" data-act="gotocal" style="color:var(--blue);font-weight:600">Календарь</button>
       </div>
       <div class="hint" style="font-size:11px">Каждый запуск уникален. Ровно 20 реальных секунд. Торговля блокируется, цена и позиции продолжают работать.</div>
       ${newsButtonsMarkup()}
@@ -2499,7 +2524,7 @@ function screenMore(){
     <div class="menu-item" data-act="mknews"><span>📰 Создать Synthetic News (календарь)</span><span>+</span></div>
     <div class="menu-item" data-act="newsresult"><span>📊 Последний News Result</span><span>›</span></div>
     <hr class="d">
-    <div class="hint" style="margin:4px 2px 8px;font-weight:700;color:var(--ink2)">MACRO NEWS ENGINE — запустить сейчас</div>
+    <div class="hint" style="margin:4px 2px 8px;font-weight:600;color:var(--ink2)">MACRO NEWS ENGINE — запустить сейчас</div>
     ${newsButtonsMarkup()}
     <div class="menu-item" data-act="triggerroll"><span>▶️ Форсировать смену дня / своп (тест)</span><span>⚡</span></div>
     <hr class="d">
@@ -2768,7 +2793,7 @@ function screenCalendar(){
   const evs = [...S.events].sort((a,b)=>a.time-b.time);
   return appbar("Экономический календарь",{back:true}) + `<div class="wrap">
     <div class="card">
-      <div class="hint" style="color:var(--orange);font-weight:700">SYNTHETIC / DEMO — все события генерируются симулятором</div>
+      <div class="hint" style="color:var(--orange);font-weight:600">SYNTHETIC / DEMO — все события генерируются симулятором</div>
     </div>
     <div class="card">
       ${evs.map(e=>{
@@ -2872,7 +2897,7 @@ function screenDebug(){
   const bandRu = {LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"};
   return appbar("Debug-консоль",{back:true}) + `<div class="wrap">
     <div class="card">
-      <div class="hint" style="color:var(--orange);font-weight:700">DEMO • SYNTHETIC DATA</div>
+      <div class="hint" style="color:var(--orange);font-weight:600">DEMO • SYNTHETIC DATA</div>
       <h3 style="margin-top:8px">Режим рынка</h3>
       ${RG ? `<div class="row"><span class="k">Текущий</span><span class="v mono">${RG.label}</span></div>
       <div class="row"><span class="k">Длительность</span><span class="v mono">${fmt(S.regime.durDays,1)} игр. дней (осталось ${fmt(regLeftMin,0)} мин)</span></div>
@@ -3777,8 +3802,12 @@ function setTimeScale(v){
 function setTxt(id, txt, cls){
   const e = document.getElementById(id);
   if(!e) return;
-  e.textContent = txt;
-  if(cls !== undefined) e.className = e.className.replace(/\b(pos|neg)\b/g,"").trim() + (cls?(" "+cls):"");
+  txt = String(txt);
+  if(e.textContent !== txt) e.textContent = txt;              // skip no-op DOM writes (most fields don't change every 120ms)
+  if(cls !== undefined){
+    const next = e.className.replace(/\b(pos|neg)\b/g,"").trim() + (cls?(" "+cls):"");
+    if(e.className !== next) e.className = next;
+  }
 }
 /* guarantee a value ALWAYS shows in full — shrink font (to a readable floor) only if it would clip.
    Skips the work when neither the text length nor the box width changed. */
@@ -3978,7 +4007,9 @@ function setupChartCanvas(){
 }
 function tdist(e){ const a=e.touches[0], b=e.touches[1]; return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
 function fitCanvas(c){
-  const dpr = window.devicePixelRatio||1;
+  // Cap the backing store at 2× — on 3×/3.5× phones that is ~45% fewer pixels to
+  // fill every redraw with no visible loss on 1px candle strokes / text.
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const w = (c.parentElement && c.parentElement.clientWidth) || c.clientWidth || 320;
   // logical height comes ONLY from data-h — never from the height attribute, which
   // canvas mirrors from the .height property we set below (would double each call).
@@ -3992,7 +4023,7 @@ function fitCanvas(c){
 }
 /* rounded pill label used for position / pending markers on the chart */
 function chartChip(ctx, x, y, text, o){
-  ctx.font = "700 10px 'Open Sans',sans-serif";
+  ctx.font = "600 10px system-ui,'Open Sans',sans-serif";
   const padX = 5, h = 15, w = Math.ceil(ctx.measureText(text).width) + padX*2;
   const ry = y - h/2;
   ctx.beginPath();
@@ -4064,7 +4095,7 @@ function drawChart(){
   const xOf = i => plotW - (vis.length - i)*unit + gap/2;
 
   // grid + price scale
-  ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px 'Open Sans',sans-serif";
+  ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
   ctx.textAlign = "left";
   const steps = 5;
   for(let i=0;i<=steps;i++){
@@ -4116,7 +4147,7 @@ function drawChart(){
   if(tBid - tAsk < 17){ const mid = (yAsk + yBid)/2; tAsk = mid - 8.5; tBid = mid + 8.5; }
   const priceTag = (yTag, yLine, col, label)=>{
     ctx.fillStyle = col; ctx.fillRect(plotW, yTag-8, padR, 16);
-    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px 'Open Sans',sans-serif";
+    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px system-ui,'Open Sans',sans-serif";
     ctx.fillText(label, plotW+3, yTag+3);
     if(Math.abs(yTag - yLine) > 1){
       ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(plotW, yLine); ctx.lineTo(plotW+3, yTag); ctx.stroke();
@@ -4179,7 +4210,7 @@ function drawChart(){
   for(const rt of rtags){
     if(Math.abs(rt.y - tAsk) < 15 || Math.abs(rt.y - tBid) < 15) continue;
     ctx.fillStyle = rt.col; ctx.fillRect(plotW, rt.y - 7, padR, 14);
-    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px 'Open Sans',sans-serif";
+    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px system-ui,'Open Sans',sans-serif";
     ctx.fillText(pxfmt(rt.price), plotW + 3, rt.y + 3);
   }
 
@@ -4255,7 +4286,7 @@ function drawMini(){
   ctx.setLineDash([]);
   let la=ya, lb=yb;
   if(lb-la<15){ const mid=(ya+yb)/2; la=mid-7.5; lb=mid+7.5; }
-  ctx.font="10px 'Open Sans',sans-serif"; ctx.textAlign="left";
+  ctx.font="10px system-ui,'Open Sans',sans-serif"; ctx.textAlign="left";
   ctx.fillStyle=TC.up; ctx.fillRect(plotW,la-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.ask),plotW+3,la+3);
   ctx.fillStyle=TC.down; ctx.fillRect(plotW,lb-7,padR,14); ctx.fillStyle="#fff"; ctx.fillText(pxfmt(S.price.bid),plotW+3,lb+3);
 }
@@ -4426,7 +4457,7 @@ function screenAuth(msg){
     <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div><span class="badge-demo">DEMO • SYNTHETIC DATA</span></div>
     <div class="wrap" style="max-width:420px;margin:0 auto">
       <div class="card" style="text-align:center;padding:22px 16px">
-        <div style="font-size:26px;font-weight:900;letter-spacing:.02em">XAUCORE</div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:.04em">XAUCORE</div>
         <div class="hint" style="margin-top:4px">Синтетический DEMO-терминал XAUUSD. Не подключает реальные счета или брокеров.</div>
       </div>
       <div class="card">
@@ -4434,7 +4465,7 @@ function screenAuth(msg){
           <button data-am="login" class="${t==='login'?'on':''}">Вход</button>
           <button data-am="register" class="${t==='register'?'on':''}">Регистрация</button>
         </div>
-        ${msg?`<div class="hint" style="color:${/ошиб|занят|невер/i.test(msg)?'var(--red)':'var(--green)'};font-weight:700;margin-bottom:8px">${msg}</div>`:""}
+        ${msg?`<div class="hint" style="color:${/ошиб|занят|невер/i.test(msg)?'var(--red)':'var(--green)'};font-weight:600;margin-bottom:8px">${msg}</div>`:""}
         <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" autocomplete="email" value="${XC.email||''}"></div>
         <div class="field"><label>Пароль${t==='register'?' (мин. 6 символов)':''}</label><input id="au-pass" type="password" autocomplete="${t==='register'?'new-password':'current-password'}"></div>
         <button class="btn green" id="au-go">${t==='login'?'Войти':'Создать аккаунт'}</button>
