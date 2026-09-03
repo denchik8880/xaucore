@@ -4294,7 +4294,7 @@ function drawMini(){
 /* =========================================================================
    Loop
    ========================================================================= */
-let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false;
+let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false, _bootPaused = false;
 function restartLoop(){
   if(rtTimer){ clearInterval(rtTimer); rtTimer = null; }
   if(!_loopRunning) return;                        // paused / tab hidden -> stay stopped
@@ -4329,6 +4329,22 @@ function startLoop(){
       updateLive();
     }catch(e){ console.error(e); }
   }, 120);
+}
+
+/* The sim SHOULD be advancing right now (booted, not debug-paused, tab visible). */
+function loopShouldRun(){
+  return XC.booted && !_bootPaused &&
+    document.visibilityState !== "hidden" && !document.hidden;
+}
+/* Resume after the tab comes back. Mobile in-app WebViews (Telegram, etc.) often
+   DON'T fire visibilitychange->visible — and some suspend the interval timers
+   without ever firing visibilitychange->hidden, so _loopRunning can still say
+   "true" while nothing actually ticks. Detect that via a stale engine frame and
+   force a clean restart. startLoop() resets _lastFrameReal, so no time leaps. */
+function resumeLoop(){
+  if(!loopShouldRun()) return;
+  const stale = _loopRunning && (Date.now() - _lastFrameReal > 3000);
+  if(!_loopRunning || stale) startLoop();
 }
 
 window.addEventListener("resize", ()=>{
@@ -4535,16 +4551,33 @@ function finishBoot(){
   normalizeState();
   render();
   // start advancing only if the page is actually visible; ?boot=paused -> restore only (debug).
-  // if it loads into a background tab, the loop starts on the first visibilitychange->visible.
-  const bootPaused = /[?&]boot=paused/.test(location.search);
-  if(!bootPaused && document.visibilityState !== "hidden") startLoop();
+  // if it loads into a background tab, the loop starts on the first resume signal.
+  _bootPaused = /[?&]boot=paused/.test(location.search);
+  if(!_bootPaused && document.visibilityState !== "hidden") startLoop();
   syncBadge();
 
+  wireLifecycle();
+}
+
+/* one-time — finishBoot() re-runs after logout/login, addEventListener dedups the
+   handlers but setInterval would stack, so guard the whole block. */
+let _lifecycleWired = false;
+function wireLifecycle(){
+  if(_lifecycleWired) return;
+  _lifecycleWired = true;
   // pause the WHOLE simulation while the tab is hidden -> nothing advances while away
   document.addEventListener("visibilitychange", ()=>{
     if(document.hidden){ if(_loopRunning){ stopLoop(); xcPushState(true); } }
-    else { if(!_loopRunning && XC.booted && !bootPaused){ startLoop(); } }
+    else resumeLoop();
   });
+  // Belt-and-suspenders resume: Telegram / other in-app WebViews are unreliable
+  // about visibilitychange, and can suspend the interval timers outright. Catch
+  // every "we're back" signal, plus a slow watchdog that self-heals a dead loop.
+  window.addEventListener("pageshow", resumeLoop);          // bfcache restore
+  window.addEventListener("focus", resumeLoop);
+  document.addEventListener("resume", resumeLoop);          // Page Lifecycle (Chromium)
+  window.addEventListener("touchstart", resumeLoop, { passive:true });
+  setInterval(resumeLoop, 2000);
   window.addEventListener("pagehide", xcPushBeacon);
   window.addEventListener("beforeunload", xcPushBeacon);
 }
