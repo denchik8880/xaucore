@@ -3221,16 +3221,24 @@ function bindScreen(){
     }, 30);
   });
   act("mknews", ()=> openNewsModal());
-  act("reset", ()=>{ if(confirm("Сбросить симулятор к начальному состоянию?")) resetAll(); });
+  act("reset", ()=> confirmSheet({
+    title: "Сбросить симулятор?",
+    text: "Цена, баланс, позиции, ордера, история, день и график вернутся к начальному состоянию.",
+    yes: "Сбросить всё", danger: true
+  }, resetAll));
   act("triggerroll", ()=>{ forceRollover(); render(); });
   act("syncnow", ()=>{ xcPushState(true); toast("", "Синхронизация…"); setTimeout(()=>{ syncBadge(); toast(XC.online?"g":"o", XC.online?"Сохранено в облако":"Нет связи с сервером"); }, 900); });
-  act("logout", async ()=>{
-    if(XC.token && !confirm("Выйти из аккаунта? Локальная копия останется на этом устройстве.")) return;
+  const doLogout = async ()=>{
     xcPushState(true);
     try{ if(XC.token) await xcApi("POST","/api/auth/logout"); }catch(e){}
     xcClearSession();
     stopLoop(); XC.booted = false;
     _authMode = "login"; screenAuth("Вы вышли из аккаунта");
+  };
+  act("logout", ()=>{
+    if(!XC.token) return doLogout();
+    confirmSheet({ title:"Выйти из аккаунта?", text:"Локальная копия состояния останется на этом устройстве.",
+                   yes:"Выйти", danger:true }, doLogout);
   });
   act("upgrade", ()=>{
     openSheet(`
@@ -3690,6 +3698,19 @@ function openSheet(html, sheetCls){
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
 }
 function closeModal(){ if(modalEl){ modalEl.remove(); modalEl = null; } }
+
+/* In-app confirmation sheet. NEVER use window.confirm() for this — in Telegram's
+   in-app WebView (and other embedded browsers) it is suppressed and silently
+   returns false, so the action just never happens and the button looks dead. */
+function confirmSheet(o, onYes){
+  openSheet(`
+    <h2>${o.title}</h2>
+    ${o.text ? `<div class="hint" style="margin-bottom:12px">${o.text}</div>` : ""}
+    <button class="btn ${o.danger ? "red" : "dark"}" id="cf-yes">${o.yes || "Подтвердить"}</button>
+    <button class="btn ghost" data-close>${o.no || "Отмена"}</button>
+  `, o.sheetCls);
+  document.getElementById("cf-yes").onclick = ()=>{ closeModal(); onYes(); };
+}
 
 /* ---------- settings save ---------- */
 function num(id, def){ const v = parseFloat((document.getElementById(id).value||"").replace(/[\s,]/g,"")); return isFinite(v)?v:def; }
