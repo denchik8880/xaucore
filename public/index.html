@@ -4045,6 +4045,29 @@ function fitCanvas(c){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   c._w = w; c._h = h;
 }
+/* cTrader-style price scale: pick a "nice" grid step (1 / 2 / 2.5 / 5 x 10^n) so
+   every gridline lands on a round price, then snap the range outward to it. That
+   is what makes cTrader read 4406.00 / 4408.00 / 4410.00 instead of an even split
+   of the data range (4433.25 / 4437.10 / 4441.43). */
+function niceStep(range, lines){
+  const raw = Math.max(range, 1e-9) / Math.max(lines, 1);
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / mag;
+  const mult = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
+  return mult * mag;
+}
+/* Auto-scale a plot to the data + the live Bid/Ask, then snap to round levels.
+   Returns { lo, hi, step } ready for the gridline loop. */
+function autoScale(hi, lo, plotH, minPx){
+  if(!(hi > lo)){ const c = (hi + lo)/2 || S.price.mid; hi = c + 0.5; lo = c - 0.5; }
+  const padFrac = 0.08;
+  const pad = (hi - lo) * padFrac;
+  hi += pad; lo -= pad;
+  const lines = clamp(Math.round(plotH / (minPx || 52)), 3, 9);
+  const step = niceStep(hi - lo, lines);
+  return { lo: Math.floor(lo/step)*step, hi: Math.ceil(hi/step)*step, step };
+}
+
 /* rounded pill label used for position / pending markers on the chart */
 function chartChip(ctx, x, y, text, o){
   ctx.font = "600 10px system-ui,'Open Sans',sans-serif";
@@ -4093,7 +4116,18 @@ function drawChart(){
   const ctx = c.getContext("2d");
   const TC = themeColors();
   const W = c._w, H = c._h;
-  const padR = W < 420 ? 52 : 62, padB = 20, padT = 8;
+  const padR = W < 420 ? 52 : 62, padB = 20;
+  // Top padding = whatever the floating OHLC readout actually occupies, so the
+  // top gridline label is never tucked under it. Measured (it wraps to two lines
+  // on a narrow screen) and cached per width + text length, so the 120ms redraw
+  // does not force a layout every frame.
+  const infoEl = document.getElementById("chartInfo");
+  let padT = 30;
+  if(infoEl){
+    const k = W + "/" + infoEl.textContent.length;
+    if(infoEl._padKey !== k){ infoEl._padKey = k; infoEl._padH = Math.ceil(infoEl.getBoundingClientRect().height) || 18; }
+    padT = 6 + infoEl._padH + 9;
+  }
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
 
@@ -4101,8 +4135,10 @@ function drawChart(){
   const data = S.candles[tf] || [];
   if(!data.length) return;
   const bw = chart.barW, gap = chart.gap, unit = bw+gap;
-  const plotW = W - padR;
-  const nVisible = Math.floor(plotW/unit);
+  const plotW = W - padR;               // gridlines / price lines end here, the axis begins
+  const barsW = plotW - 7;              // candles stop short of it — cTrader keeps this gap so
+                                        // the newest bar never touches the Bid/Ask tags
+  const nVisible = Math.floor(barsW/unit);
   let endIdx = data.length - Math.round(chart.offset);
   endIdx = clamp(endIdx, 1, data.length);
   let startIdx = Math.max(0, endIdx - nVisible);
@@ -4110,22 +4146,31 @@ function drawChart(){
   if(!vis.length) return;
   const liveIdx = endIdx === data.length ? vis.length - 1 : -1;   // the still-forming bar
 
-  let hi = -Infinity, lo = Infinity;
-  for(const b of vis){ hi = Math.max(hi,b.h); lo = Math.min(lo,b.l); }
-  hi = Math.max(hi, S.price.ask); lo = Math.min(lo, S.price.bid);
-  const pad = (hi-lo)*0.08 || 1;
-  hi += pad; lo -= pad;
+  let dHi = -Infinity, dLo = Infinity;
+  for(const b of vis){ dHi = Math.max(dHi,b.h); dLo = Math.min(dLo,b.l); }
+  dHi = Math.max(dHi, S.price.ask); dLo = Math.min(dLo, S.price.bid);
+  const sc = autoScale(dHi, dLo, H - padT - padB, 52);
+  const hi = sc.hi, lo = sc.lo;
   const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
-  const xOf = i => plotW - (vis.length - i)*unit + gap/2;
+  const xOf = i => barsW - (vis.length - i)*unit + gap/2;
 
-  // grid + price scale
+  // Bid/Ask tag positions are needed before the grid so a scale label sitting
+  // under a tag can be suppressed — cTrader does exactly this (its 4405.89 tag
+  // hides what would be the 4406.00 label).
+  const yAsk = y(S.price.ask), yBid = y(S.price.bid);
+  let tAsk = yAsk, tBid = yBid;
+  if(tBid - tAsk < 17){ const m = (yAsk + yBid)/2; tAsk = m - 8.5; tBid = m + 8.5; }
+
+  // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00
   ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
   ctx.textAlign = "left";
-  const steps = 5;
-  for(let i=0;i<=steps;i++){
-    const p = lo + (hi-lo)*i/steps;
+  for(let i = 0; ; i++){
+    const p = lo + sc.step*i;
+    if(p > hi + sc.step*1e-6) break;                 // index-stepped: no float drift
     const yy = y(p);
+    if(yy < padT - 1 || yy > H - padB + 1) continue;
     ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
+    if(Math.abs(yy - tAsk) < 9 || Math.abs(yy - tBid) < 9) continue;   // hidden by a price tag
     ctx.fillText(pxfmt(p), plotW+4, yy+3);
   }
   // time scale
@@ -4158,7 +4203,6 @@ function drawChart(){
   // Ask > Bid and higher price = higher on screen, so green always ends up above red,
   // at every price level and on every timeframe.
   const CL_ASK = TC.up, CL_BID = TC.down;
-  const yAsk = y(S.price.ask), yBid = y(S.price.bid);
   const priceLine = (yy, col)=>{
     ctx.strokeStyle = col; ctx.setLineDash([4,3]);
     ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
@@ -4166,9 +4210,7 @@ function drawChart(){
   };
   priceLine(yAsk, CL_ASK);
   priceLine(yBid, CL_BID);
-  // right-scale tags — keep both readable when the spread is only a few pixels
-  let tAsk = yAsk, tBid = yBid;
-  if(tBid - tAsk < 17){ const mid = (yAsk + yBid)/2; tAsk = mid - 8.5; tBid = mid + 8.5; }
+  // right-scale tags (tAsk / tBid were separated above, before the grid)
   const priceTag = (yTag, yLine, col, label)=>{
     ctx.fillStyle = col; ctx.fillRect(plotW, yTag-8, padR, 16);
     ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.font = "10px system-ui,'Open Sans',sans-serif";
@@ -4194,6 +4236,10 @@ function drawChart(){
   };
   const chips = [];   // left-edge markers  {y, text, fill, stroke, textCol, dash}
   const rtags = [];   // right-axis price tags  {y, price, col}
+  // A level outside the visible range gets NO marker. spreadYs() clamps labels
+  // into the canvas, so without this an entry far above the highs was pinned to
+  // the top edge and read like a price that is actually on screen.
+  const inView = p => p >= lo && p <= hi;
 
   // SL / TP first (thin, behind the entry lines)
   for(const p of S.positions){
@@ -4205,6 +4251,7 @@ function drawChart(){
   for(const p of S.positions){
     if(p.symbol !== sym) continue;
     const col = p.side === "buy" ? TC.up : TC.down;
+    if(!inView(p.entry)) continue;
     const yy = y(p.entry);
     hline(yy, col, false, 1.6);
     const arrow = p.side === "buy" ? "↑" : "↓";
@@ -4217,6 +4264,7 @@ function drawChart(){
     if(o.symbol !== sym) continue;
     const isBuy = o.type.includes("buy");
     const col = isBuy ? TC.up : TC.down;
+    if(!inView(o.price)) continue;
     const yy = y(o.price);
     hline(yy, col, true, 1.4);
     const kind = o.type.includes("limit") ? "LIMIT" : "STOP";
@@ -4239,14 +4287,16 @@ function drawChart(){
   }
 
   // crosshair
-  const info = document.getElementById("chartInfo");
+  const info = infoEl;
   if(chart.cross && chart.cross.x < plotW){
     const cx = chart.cross.x, cy = chart.cross.y;
     ctx.strokeStyle = TC.cross; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H-padB); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(plotW,cy); ctx.stroke();
     ctx.setLineDash([]);
-    const idx = clamp(Math.round((cx - (plotW - vis.length*unit))/unit), 0, vis.length-1);
+    // which bar the cursor is OVER: floor into the unit-wide slot. Math.round()
+    // here picked the neighbouring candle across half of every bar's width.
+    const idx = clamp(Math.floor((cx - (barsW - vis.length*unit))/unit), 0, vis.length-1);
     const b = vis[idx];
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
     ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
