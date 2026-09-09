@@ -450,17 +450,16 @@ html:has(body.route-wallet){background:#0c0a08}
 .appbar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge-demo{flex:0 0 auto}
 
-/* --- live mirror banner: this device follows another one's terminal --- */
-.mirror-banner{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:9px;
-  background:linear-gradient(90deg,#2f7bf6,#1e5fd0);color:#fff;padding:8px 12px}
-.mirror-banner .mb-dot{width:8px;height:8px;border-radius:50%;background:#fff;flex:0 0 auto;
+/* --- live mirror strip: this device follows another one's terminal --- */
+.mirror-banner{position:sticky;top:0;z-index:60;display:flex;align-items:center;
+  background:linear-gradient(90deg,#2f7bf6,#1e5fd0);color:#fff;padding:4px 10px;min-height:28px}
+.mirror-banner .mb-dot{width:7px;height:7px;border-radius:50%;background:#fff;flex:0 0 auto;
   animation:mbpulse 1.4s ease-in-out infinite}
 @keyframes mbpulse{0%,100%{opacity:1}50%{opacity:.25}}
-.mirror-banner .mb-txt{flex:1;min-width:0;font-size:11px;font-weight:600;letter-spacing:.04em;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mirror-banner .mb-btn{flex:0 0 auto;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;
-  padding:6px 10px;font-size:11px;font-weight:600;white-space:nowrap}
-.mirror-banner .mb-btn:active{background:rgba(255,255,255,.32)}
+.mirror-banner .mb-sp{flex:1}
+.mirror-banner .mb-btn{flex:0 0 auto;background:rgba(255,255,255,.2);color:#fff;border-radius:7px;
+  padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;line-height:1.3}
+.mirror-banner .mb-btn:active{background:rgba(255,255,255,.34)}
 
 /* --- iOS-style tactile feedback: a quick, subtle squish + dim on press --- */
 .btn,.tbtn,.menu-item,.wl-row,.seg button,.tfbar button,.miniquick button,
@@ -2186,9 +2185,11 @@ function render(){
 function topBanner(){
   let b = "";
   if(XC.follower){
+    // Slim strip: a pulsing dot says "this is a mirror", the button takes the
+    // wheel back. No caption — it only ever truncated on a phone.
     b += `<div class="mirror-banner">
-      <span class="mb-dot"></span>
-      <span class="mb-txt">ЗЕРКАЛО · торгует другое устройство</span>
+      <span class="mb-dot" aria-hidden="true"></span>
+      <span class="mb-sp"></span>
       <button class="mb-btn" data-act="takeover">Торговать здесь</button>
     </div>`;
   }
