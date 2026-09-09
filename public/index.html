@@ -660,6 +660,31 @@ function load(allowLegacy){
   S = DEFAULTS();
   seedMarket();
 }
+/* Guest mode was removed, so a device that used to play as a guest still has its
+   whole simulation sitting in localStorage under the old per-user key. On the
+   first sign-in of an account that has nothing on the server, adopt the newest
+   such blob instead of starting from scratch — otherwise the update would quietly
+   throw the player's progress away. Returns true if something was adopted. */
+function adoptOrphanState(){
+  let best = null, bestAt = -1;
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k || !k.startsWith("xc_state_") || k === LS_KEY) continue;
+      let p = null;
+      try{ p = JSON.parse(localStorage.getItem(k)); }catch(e){ continue; }
+      if(!p || !(p.version >= 2) || !p.account || !p.candles) continue;
+      const at = Number(p.simClock || p.createdAt || 0);
+      if(at > bestAt){ bestAt = at; best = p; }
+    }
+  }catch(e){ return false; }
+  if(!best) return false;
+  S = best;
+  migrateState();
+  saveNow();                       // re-home it under the signed-in account's key
+  return true;
+}
+
 /* bring an older saved state up to the current schema */
 function migrateState(){
   const d = DEFAULTS();
@@ -4889,7 +4914,11 @@ async function bootAfterAuth(){
       XC.online = true; XC.remoteAt = r.updatedAt; XC.rev = r.rev || 0;
       saveNow();
     } else {
-      load(true);                       // brand-new account -> local cache, legacy once, else fresh
+      // nothing on the server for this account
+      load(true);                       // per-user cache -> legacy once -> fresh
+      if(!localStorage.getItem(LS_KEY) && adoptOrphanState()){
+        toast("g", "Прогресс с этого устройства перенесён в аккаунт");
+      }
     }
   }catch(e){
     if(e.status === 401){ xcClearSession(); return screenAuth("Сессия истекла — войдите снова"); }
