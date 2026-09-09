@@ -86,9 +86,40 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     const body = await readJson(req);
 
+    // An order placed on a device that is not currently driving the market.
+    // Trading is allowed from ANY device: the order is queued here and the
+    // driver executes it through the real engine on its next heartbeat.
+    if (body && body.op === "order") {
+      const order = body.order;
+      if (!order || typeof order !== "object") return json(res, 400, { error: "bad order" });
+      const r = await db.execute({ sql: "SELECT ops FROM states WHERE user_id = ?", args: [user.id] });
+      let q = [];
+      try { q = JSON.parse((r.rows[0] && r.rows[0].ops) || "[]") || []; } catch { q = []; }
+      if (q.length >= 50) return json(res, 429, { error: "Слишком много ордеров в очереди" });
+      q.push({ ...order, _id: `${now}-${Math.random().toString(36).slice(2, 8)}`, _at: now, _from: String(body.sid || "") });
+      await db.execute({
+        sql: `INSERT INTO states(user_id, data, updated_at, ops, rev) VALUES(?,'null',0,?,0)
+              ON CONFLICT(user_id) DO UPDATE SET ops = excluded.ops`,
+        args: [user.id, JSON.stringify(q)],
+      });
+      return json(res, 200, { queued: true, pending: q.length });
+    }
+
+    // Release the lease on the way out (tab hidden / closed) so another device
+    // picks the market up in ~1s instead of waiting for the TTL.
+    if (body && body.op === "release") {
+      const sid = String(body.sid || "");
+      await db.execute({
+        sql: "UPDATE states SET lease_exp = 0 WHERE user_id = ? AND lease_sid = ?",
+        args: [user.id, sid],
+      });
+      return json(res, 200, { ok: true });
+    }
+
     // The mirror heartbeat: a few KB of price / positions / candle tips, written
     // ~1/s by the driver so other devices follow live. Touches only the `live`
-    // column — the heavy state blob is left alone — and renews the lease.
+    // column — the heavy state blob is left alone — renews the lease, and hands
+    // back any orders other devices queued so the driver can execute them.
     if (body && body.op === "live") {
       const sid = String(body.sid || "");
       const row = await readRow(user.id);
@@ -96,16 +127,21 @@ export default async function handler(req, res) {
       if (!(cur.free || cur.mine)) return json(res, 409, { error: "Симуляция запущена в другой сессии", lease: cur });
       const frame = JSON.stringify(body.live || null);
       if (frame.length > 512 * 1024) return json(res, 413, { error: "live frame too large" });
+      const qr = await db.execute({ sql: "SELECT ops FROM states WHERE user_id = ?", args: [user.id] });
+      let ops = [];
+      try { ops = JSON.parse((qr.rows[0] && qr.rows[0].ops) || "[]") || []; } catch { ops = []; }
       await db.execute({
-        sql: `INSERT INTO states(user_id, data, updated_at, live, live_at, lease_sid, lease_exp, lease_at, rev)
-              VALUES(?,'null',0,?,?,?,?,?,0)
+        sql: `INSERT INTO states(user_id, data, updated_at, live, live_at, lease_sid, lease_exp, lease_at, rev, ops)
+              VALUES(?,'null',0,?,?,?,?,?,0,'[]')
               ON CONFLICT(user_id) DO UPDATE SET live      = excluded.live,
                                                  live_at   = excluded.live_at,
                                                  lease_sid = excluded.lease_sid,
-                                                 lease_exp = excluded.lease_exp`,
+                                                 lease_exp = excluded.lease_exp,
+                                                 ops       = '[]'`,
         args: [user.id, frame, now, sid || null, now + LEASE_MS, now],
       });
-      return json(res, 200, { ok: true, liveAt: now, lease: { holder: sid, exp: now + LEASE_MS, mine: true, free: false } });
+      return json(res, 200, { ok: true, liveAt: now, ops,
+                              lease: { holder: sid, exp: now + LEASE_MS, mine: true, free: false } });
     }
 
     if (!body || body.op !== "claim") return json(res, 400, { error: "bad op" });

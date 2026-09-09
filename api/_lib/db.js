@@ -59,6 +59,9 @@ const MIGRATIONS = [
   // devices can follow live without re-downloading the ~250 KB state blob
   `ALTER TABLE states ADD COLUMN live      TEXT`,
   `ALTER TABLE states ADD COLUMN live_at   INTEGER NOT NULL DEFAULT 0`,
+  // orders placed on a device that is not currently driving the market; the
+  // driver drains this queue and executes them through the real engine
+  `ALTER TABLE states ADD COLUMN ops       TEXT`,
 ];
 
 let schemaReady = null;
