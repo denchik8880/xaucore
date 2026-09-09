@@ -15,10 +15,10 @@ simulator **freezes when you leave the site and resumes exactly where it stopped
 | Layer | Choice | Notes |
 |---|---|---|
 | **Frontend** | Single self-contained `public/index.html` (vanilla JS, canvas chart). Unchanged from the original project. | The whole simulator is one `S` object; that object *is* the save. Vercel serves `public/` statically. |
-| **API** | One file per route under `api/` — standard Vercel serverless functions (`@vercel/node`, ESM). | `api/health.js`, `api/me.js`, `api/state.js`, `api/lock.js`, `api/owner.js`, `api/auth/{register,login,guest,upgrade,logout}.js`. Shared code in `api/_lib/` (not routed). |
+| **API** | One file per route under `api/` — standard Vercel serverless functions (`@vercel/node`, ESM). | `api/health.js`, `api/me.js`, `api/state.js`, `api/lock.js`, `api/owner.js`, `api/auth/{register,login,logout}.js`. Shared code in `api/_lib/` (not routed). |
 | **Access gate** | `middleware.js` (root, Node runtime) runs before every request. Enforces the "site closed" switch (README §4). Fail-open. | Logic in `api/_lib/gate.js`, shared with `dev-server.js`. |
 | **Database** | **Turso / libSQL** via `@libsql/client`. Tables `users`, `sessions`, `states`. | No local file in production (Vercel's FS is read-only). Local dev falls back to `file:./data/local.db` automatically. |
-| **Auth** | Email + password (`scrypt`) **or** anonymous *guest*. Opaque random session tokens, 1-year TTL, revocable. Guests can *upgrade* and keep progress. | No JWT library. |
+| **Auth** | Email + password (`scrypt`) — an account is **required**, there is no guest mode. Opaque random session tokens, 1-year TTL, revocable. | No JWT library. |
 | **Sync** | `localStorage` (per-user key `xc_state_<id>`) = fast cache / offline fallback. Turso = source of truth. Pushed on change (debounced), force-pushed on tab-hide, and a **synchronous XHR on `pagehide`** (the ~220 KB state exceeds `sendBeacon`'s 64 KB limit). | Multi-device, offline-tolerant. |
 
 ### The "freeze while away" guarantee
@@ -33,14 +33,14 @@ simulator **freezes when you leave the site and resumes exactly where it stopped
 ### API
 
 ```
-POST /api/auth/register   {email,password}      -> {token,id,email,isGuest}
-POST /api/auth/login      {email,password}       -> {token,id,email,isGuest}
-POST /api/auth/guest                             -> {token,id,email:null,isGuest:true}
-POST /api/auth/upgrade    {email,password}  (auth, guest only)  -> {email,isGuest:false}
+POST /api/auth/register   {email,password}      -> {token,id,email}
+POST /api/auth/login      {email,password}       -> {token,id,email}
 POST /api/auth/logout     (auth)
-GET  /api/me              (auth)                 -> {id,email,isGuest}
-GET  /api/state           (auth)                 -> {state,updatedAt}
-PUT  /api/state           {state}  (auth)        -> {updatedAt}     also accepts ?token= (unload beacon)
+GET  /api/me              (auth)                 -> {id,email}
+GET  /api/state           (auth) [?sid&meta=1]   -> {state,updatedAt,rev,lease}   meta=1 omits the blob
+POST /api/state           {op:"claim",sid,force}  (auth) -> {granted,lease}       take the driving lease
+PUT  /api/state           {state,sid}  (auth)     -> {updatedAt,rev,lease}  409 if another sid holds it
+                                                                    also accepts ?token= (unload beacon)
 GET  /api/health                                 -> {ok:true}
 GET  /api/lock                                   -> {locked,configured,isOwner}   (see §4)
 POST /api/lock            {locked}  (owner cookie)
@@ -137,7 +137,7 @@ redeploy. Without `OWNER_KEY` the feature is dormant and the site behaves exactl
 **What visitors see when closed:** a self-contained "Система временно недоступна" page
 (served by `middleware.js` with HTTP 503) — no app, no assets, no internal detail. A discreet
 **Доступ владельца** link on that page lets you sign in with the `OWNER_KEY` from anywhere.
-New sign-ins (`/api/auth/login|register|guest`) are refused too, so the closed site can't be
+New sign-ins (`/api/auth/login|register`) are refused too, so the closed site can't be
 scripted into.
 
 **Why it can't be bypassed:** the page check runs in `middleware.js`, before routing and
@@ -192,7 +192,7 @@ Re-opening the site (same browser or a different device signed into the same acc
 
 ## 7. Verified test scenario
 
-1. Open the site → register / login (or play as guest).
+1. Open the site → register an account, then sign in.
 2. Trade — open a few positions, set SL/TP.
 3. Note price, balance, positions, day, time.
 4. Fully close the site (or clear the browser).

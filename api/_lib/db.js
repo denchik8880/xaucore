@@ -47,12 +47,26 @@ const SCHEMA = [
   `CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)`,
 ];
 
+/* Additive migrations for databases created before a column existed. SQLite has
+   no "ADD COLUMN IF NOT EXISTS", so re-running these throws "duplicate column
+   name" — which is exactly the success case and is swallowed below. */
+const MIGRATIONS = [
+  `ALTER TABLE states ADD COLUMN lease_sid TEXT`,
+  `ALTER TABLE states ADD COLUMN lease_exp INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE states ADD COLUMN lease_at  INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE states ADD COLUMN rev       INTEGER NOT NULL DEFAULT 0`,
+];
+
 let schemaReady = null;
 /** Create tables on first use. Cached for the life of the (warm) instance. */
 export function ensureSchema() {
   if (!schemaReady) {
     schemaReady = (async () => {
       for (const sql of SCHEMA) await db.execute(sql);
+      for (const sql of MIGRATIONS) {
+        try { await db.execute(sql); }
+        catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
+      }
     })().catch((e) => { schemaReady = null; throw e; });
   }
   return schemaReady;

@@ -7,5 +7,5 @@ export default async function handler(req, res) {
   await ensureSchema();
   const user = await userFromReq(req);
   if (!user) return json(res, 401, { error: "Не авторизован" });
-  json(res, 200, { id: user.id, email: user.email || null, isGuest: !!user.is_guest });
+  json(res, 200, { id: user.id, email: user.email || null });
 }

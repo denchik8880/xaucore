@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (!password || String(password).length < 6) return json(res, 400, { error: "Пароль минимум 6 символов" });
   if (await getUserByEmail(e)) return json(res, 409, { error: "Этот email уже занят" });
 
-  const id = await createUser(e, password, 0);
+  const id = await createUser(e, password);
   const token = await createSession(id);
   json(res, 200, sessionInfo(await getUserById(id), token));
 }

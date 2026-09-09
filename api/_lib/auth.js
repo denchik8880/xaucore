@@ -19,13 +19,13 @@ export function timingSafeEq(a, b) {
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
 }
 
-export async function createUser(email, password, isGuest) {
+export async function createUser(email, password) {
   const id = newId();
   const salt = newSalt();
-  const ph = password ? hashPw(password, salt) : null;
+  const ph = hashPw(password, salt);
   await db.execute({
-    sql: "INSERT INTO users(id,email,pass_hash,salt,is_guest,created_at) VALUES(?,?,?,?,?,?)",
-    args: [id, email || null, ph, salt, isGuest ? 1 : 0, Date.now()],
+    sql: "INSERT INTO users(id,email,pass_hash,salt,is_guest,created_at) VALUES(?,?,?,?,0,?)",
+    args: [id, email, ph, salt, Date.now()],
   });
   return id;
 }
@@ -71,9 +71,6 @@ export async function userFromReq(req) {
   return getUserById(row.user_id);
 }
 
-export const sessionInfo = (u, token) => ({
-  token,
-  id: u.id,
-  email: u.email || null,
-  isGuest: !!u.is_guest,
-});
+/* Every account is a real, registered account — guest mode was removed, so the
+   simulation always belongs to an email + password. */
+export const sessionInfo = (u, token) => ({ token, id: u.id, email: u.email || null });

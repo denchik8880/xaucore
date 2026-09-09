@@ -731,7 +731,7 @@ function resetAll(){
   saveNow();
   const done = ()=> location.reload();
   if(typeof XC !== "undefined" && XC.token){
-    xcApi("PUT", "/api/state", { state: S }).then(done).catch(done);
+    xcApi("PUT", "/api/state", { state: S, sid: XC.sid }).then(done).catch(done);
   } else done();
 }
 
@@ -2110,6 +2110,7 @@ function themeColors(){
 /* ---------- top-level render ---------- */
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
+  if(XC.follower){ screenBusy(); return; }   // another device drives this account
   const t = S.ui.tab;
   let html = "";
   html += topBanner();
@@ -2495,21 +2496,16 @@ function listOrders(){
 
 /* ---------- MORE ---------- */
 function screenMore(){
-  const acct = XC.token
-    ? (XC.guest
-        ? `Гость <span class="hint" style="font-weight:400">(только это устройство)</span>`
-        : `<b>${XC.email||"аккаунт"}</b>`)
-    : `Не выполнен вход`;
+  const acct = XC.token ? `<b>${XC.email||"аккаунт"}</b>` : `Не выполнен вход`;
   return appbar("Ещё") + `<div class="wrap">
     <div class="card">
       <div class="row"><span class="k">Аккаунт</span><span class="v">${acct}</span></div>
       <div class="row"><span class="k">Синхронизация</span><span class="v mono" id="xcSync">…</span></div>
-      ${XC.guest ? `<button class="btn green" data-act="upgrade" style="margin-top:8px">Создать аккаунт (сохранить прогресс)</button>` : ""}
       <div class="grid2" style="margin-top:8px">
         <button class="btn ghost" data-act="syncnow">Синхронизировать сейчас</button>
         <button class="btn ghost" data-act="logout">${XC.token?"Выйти":"Войти"}</button>
       </div>
-      <div class="hint" style="margin-top:6px">Состояние (цена, баланс, позиции, день, время, график) замирает при выходе и продолжается при следующем входе — с любого устройства при входе в аккаунт.</div>
+      <div class="hint" style="margin-top:6px">Симуляция (цена, баланс, позиции, день, график) принадлежит аккаунту: она замирает, когда вы уходите, и продолжается с того же места при входе с любого устройства. Одновременно терминал активен только на одном устройстве.</div>
     </div>
     <div class="card">
       <div class="row"><span class="k">Тема оформления</span></div>
@@ -3227,7 +3223,7 @@ function bindScreen(){
     yes: "Сбросить всё", danger: true
   }, resetAll));
   act("triggerroll", ()=>{ forceRollover(); render(); });
-  act("syncnow", ()=>{ xcPushState(true); toast("", "Синхронизация…"); setTimeout(()=>{ syncBadge(); toast(XC.online?"g":"o", XC.online?"Сохранено в облако":"Нет связи с сервером"); }, 900); });
+  act("syncnow", ()=>{ xcPushState(true); xcResync(); toast("", "Синхронизация…"); setTimeout(()=>{ syncBadge(); toast(XC.online?"g":"o", XC.online?"Сохранено в облако":"Нет связи с сервером"); }, 900); });
   const doLogout = async ()=>{
     xcPushState(true);
     try{ if(XC.token) await xcApi("POST","/api/auth/logout"); }catch(e){}
@@ -3237,29 +3233,8 @@ function bindScreen(){
   };
   act("logout", ()=>{
     if(!XC.token) return doLogout();
-    confirmSheet({ title:"Выйти из аккаунта?", text:"Локальная копия состояния останется на этом устройстве.",
+    confirmSheet({ title:"Выйти из аккаунта?", text:"Симуляция сохранена за аккаунтом — вы продолжите с этого же места при следующем входе.",
                    yes:"Выйти", danger:true }, doLogout);
-  });
-  act("upgrade", ()=>{
-    openSheet(`
-      <h2>Создать аккаунт</h2>
-      <div class="hint" style="margin-bottom:10px">Текущий прогресс сохранится за новым аккаунтом. После этого симулятор доступен с любого устройства.</div>
-      <div class="field"><label>Email</label><input id="up-email" type="email" inputmode="email"></div>
-      <div class="field"><label>Пароль (мин. 6 символов)</label><input id="up-pass" type="password"></div>
-      <button class="btn green" id="up-go">Создать</button>
-      <button class="btn ghost" data-close>Отмена</button>
-    `);
-    document.getElementById("up-go").onclick = async ()=>{
-      const b = document.getElementById("up-go"); b.disabled = true; b.textContent = "…";
-      try{
-        const res = await xcApi("POST","/api/auth/upgrade",{ email:(document.getElementById("up-email").value||"").trim(), password:document.getElementById("up-pass").value||"" });
-        XC.email = res.email; XC.guest = false;
-        localStorage.setItem("xc_email", XC.email); localStorage.setItem("xc_guest","0");
-        xcPushState(true);
-        closeModal(); render();
-        toast("g","Аккаунт создан: "+XC.email);
-      }catch(e){ b.disabled = false; b.textContent = "Создать"; toast("r", e.message||"Ошибка"); }
-    };
   });
   act("newsresult", ()=>{ if(S.newsLog[0]) showNewsResult(S.newsLog[0]); });
 
@@ -3851,7 +3826,7 @@ function fitText(el, minPx){
   }
 }
 function updateLive(){
-  if(!S) return;
+  if(!S || XC.follower) return;
   recalcAccount();
   const A = S._acc;
   // overview
@@ -4407,7 +4382,7 @@ function startLoop(){
 
 /* The sim SHOULD be advancing right now (booted, not debug-paused, tab visible). */
 function loopShouldRun(){
-  return XC.booted && !_bootPaused &&
+  return XC.booted && !_bootPaused && !XC.follower &&
     document.visibilityState !== "hidden" && !document.hidden;
 }
 /* Resume after the tab comes back. Mobile in-app WebViews (Telegram, etc.) often
@@ -4418,7 +4393,11 @@ function loopShouldRun(){
 function resumeLoop(){
   if(!loopShouldRun()) return;
   const stale = _loopRunning && (Date.now() - _lastFrameReal > 3000);
-  if(!_loopRunning || stale) startLoop();
+  if(!_loopRunning || stale){
+    startLoop();
+    // the account may have been driven elsewhere while this tab slept
+    if(typeof xcResync === "function") xcResync();
+  }
 }
 
 window.addEventListener("resize", ()=>{
@@ -4458,13 +4437,36 @@ function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return
 
 /* =========================================================================
    CLOUD SYNC + ACCOUNTS
-   The full simulator state (S) is the save. It is stored locally (fast, offline)
-   and mirrored to the server so the SAME frozen state resumes on any device.
+   The simulation BELONGS TO THE ACCOUNT. The full simulator state (S) is the
+   save: stored locally for speed and mirrored to the server, so signing in on
+   any device resumes the same market, balance and positions.
+
+   The price engine runs in the browser, so two devices on one account used to
+   advance two different markets and overwrite each other. A short server-side
+   LEASE now makes exactly one session the driver:
+
+     driver   — holds the lease, runs the engine, pushes state (which renews it)
+     follower — lease held elsewhere: engine stays OFF, shows a takeover screen,
+                polls the cheap ?meta=1 endpoint and promotes itself the moment
+                the driver goes away (tab closed / lease expired)
+
+   Whoever drives always PULLS the authoritative state first, so the two devices
+   can never show different gold prices for the same account.
    ========================================================================= */
 const XC = {
   token: localStorage.getItem("xc_token") || null,
   email: localStorage.getItem("xc_email") || null,
-  guest: localStorage.getItem("xc_guest") === "1",
+  // The lease identifies a DEVICE, not a page load: it lives in localStorage so a
+  // refresh reclaims its own lease instead of locking itself out for the TTL.
+  sid: (function(){
+    let v = null;
+    try{ v = localStorage.getItem("xc_sid"); }catch(e){}
+    if(!v){ v = Math.random().toString(36).slice(2) + Date.now().toString(36);
+            try{ localStorage.setItem("xc_sid", v); }catch(e){} }
+    return v;
+  })(),
+  lease: { holder:null, exp:0, mine:false, free:true },
+  follower: false, rev: 0, _pollT: null,
   online: false, remoteAt: 0, _pushT: null, _pushMax: 0, _dirty: false, _inflight: false, booted: false
 };
 async function xcApi(method, path, body){
@@ -4472,36 +4474,90 @@ async function xcApi(method, path, body){
   if(XC.token) h["Authorization"] = "Bearer " + XC.token;
   const r = await fetch(path, { method, headers: h, body: body ? JSON.stringify(body) : undefined });
   let data = null; try{ data = await r.json(); }catch(e){}
-  if(!r.ok){ const err = new Error((data && data.error) || ("HTTP " + r.status)); err.status = r.status; throw err; }
+  if(!r.ok){ const err = new Error((data && data.error) || ("HTTP " + r.status)); err.status = r.status; err.data = data; throw err; }
   return data;
 }
 function xcSetSession(res){
-  XC.token = res.token; XC.email = res.email || null; XC.guest = !!res.isGuest;
+  XC.token = res.token; XC.email = res.email || null;
   localStorage.setItem("xc_token", XC.token);
   if(XC.email) localStorage.setItem("xc_email", XC.email); else localStorage.removeItem("xc_email");
-  localStorage.setItem("xc_guest", XC.guest ? "1" : "0");
 }
 function xcClearSession(){
-  XC.token = null; XC.email = null; XC.guest = false; XC.online = false;
+  XC.token = null; XC.email = null; XC.online = false;
+  XC.follower = false; XC.lease = { holder:null, exp:0, mine:false, free:true };
+  if(XC._pollT){ clearInterval(XC._pollT); XC._pollT = null; }
   LS_KEY = "xc_state_local";   // stop writing to the previous account's local cache
   localStorage.removeItem("xc_token"); localStorage.removeItem("xc_email"); localStorage.removeItem("xc_guest");
 }
+
+/* ---- lease: who is allowed to advance this account's market ---- */
+async function xcClaimLease(force){
+  const r = await xcApi("POST", "/api/state", { op:"claim", sid: XC.sid, force: !!force });
+  XC.lease = r.lease; XC.follower = false;
+  return true;
+}
+/* Turn this tab into a read-only follower: stop the engine, watch for the lease
+   to free up, and offer a one-tap takeover. */
+function xcBecomeFollower(lease){
+  if(XC.follower) return;
+  XC.follower = true;
+  XC.lease = lease || { holder:"other", exp:0, mine:false, free:false };
+  stopLoop();
+  if(!XC._pollT) XC._pollT = setInterval(xcPollLease, 4000);
+  screenBusy();
+}
+async function xcPollLease(){
+  if(!XC.token || !XC.follower) return;
+  try{
+    const m = await xcApi("GET", "/api/state?meta=1&sid=" + encodeURIComponent(XC.sid));
+    XC.online = true;
+    if(m.lease && (m.lease.free || m.lease.mine)) await xcTakeOver(false);   // driver left -> promote
+  }catch(e){ XC.online = false; }
+}
+/* Become the driver: claim (optionally stealing), pull the authoritative state,
+   then run. This is the ONLY way a session starts advancing the market. */
+async function xcTakeOver(force){
+  try{
+    await xcClaimLease(force);
+    const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+    if(r && r.state){ S = r.state; migrateState(); XC.rev = r.rev || 0; XC.remoteAt = r.updatedAt; saveNow(); }
+    else if(!S) load(true);              // nothing on the server yet -> local cache / fresh
+    XC.follower = false;
+    if(XC._pollT){ clearInterval(XC._pollT); XC._pollT = null; }
+    normalizeState();
+    render();
+    startLoop();
+    toast("g", "Терминал активен на этом устройстве");
+    xcPushState(true);
+  }catch(e){
+    if(e.status === 409){ xcBecomeFollower(e.data && e.data.lease); return; }
+    toast("r", "Не удалось подключиться: " + (e.message || "ошибка"));
+  }
+}
+
 function xcPushState(force){
-  if(!XC.token) return;
+  if(!XC.token || XC.follower) return;          // a follower must never write the account's market
   XC._dirty = true;
   const go = ()=>{
     clearTimeout(XC._pushT); clearTimeout(XC._pushMax); XC._pushT = null; XC._pushMax = 0;
     if(!XC._dirty || XC._inflight) return;
     XC._inflight = true; XC._dirty = false;
-    xcApi("PUT", "/api/state", { state: S })
-      .then(res=>{ XC._inflight = false; XC.online = true; XC.remoteAt = res.updatedAt; syncBadge(); })
-      .catch(()=>{ XC._inflight = false; XC._dirty = true; XC.online = false; syncBadge(); });
+    xcApi("PUT", "/api/state", { state: S, sid: XC.sid })
+      .then(res=>{ XC._inflight = false; XC.online = true; XC.remoteAt = res.updatedAt;
+                   XC.rev = res.rev; XC.lease = res.lease; syncBadge(); })
+      .catch(e=>{
+        XC._inflight = false; XC.online = false;
+        // another device took the terminal over -> stand down instead of fighting it
+        if(e.status === 409){ XC._dirty = false; xcBecomeFollower(e.data && e.data.lease); return; }
+        XC._dirty = true; syncBadge();
+      });
   };
   if(force){ go(); return; }
   clearTimeout(XC._pushT);
   XC._pushT = setTimeout(go, 3500);
-  // the 3.5 s debounce gets starved during continuous play -> hard flush at least every 15 s
-  if(!XC._pushMax) XC._pushMax = setTimeout(go, 15000);
+  // the 3.5 s debounce gets starved during continuous play; a flush every 8 s also
+  // renews the lease well inside its 20 s TTL
+  if(!XC._pushMax) XC._pushMax = setTimeout(go, 8000);
 }
 /* Reliable save on the way out. visibilitychange->hidden already fired an async
    force-push; this is the belt-and-suspenders path for real page teardown.
@@ -4509,11 +4565,11 @@ function xcPushState(force){
    synchronous same-origin XHR is used during unload (permitted for unload handlers). */
 function xcPushBeacon(){
   saveNow();
-  if(!XC.token) return;                 // always flush the latest state on the way out
+  if(!XC.token || XC.follower) return;   // always flush the latest state on the way out
   const t = Date.now();
   if(t - (XC._beaconAt || 0) < 1500) return;   // pagehide + beforeunload both fire -> send once
   XC._beaconAt = t;
-  const body = JSON.stringify({ state: S });
+  const body = JSON.stringify({ state: S, sid: XC.sid });
   try{
     if(body.length < 60000 && navigator.sendBeacon){
       const blob = new Blob([body], { type: "application/json" });
@@ -4535,14 +4591,17 @@ function xcPushBeacon(){
 function syncBadge(){
   const el = document.getElementById("xcSync");
   if(!el) return;
-  el.textContent = XC.token ? (XC.online ? "● облако" : "○ офлайн") : "○ локально";
-  el.style.color = XC.online ? "var(--green)" : "var(--ink3)";
+  el.textContent = XC.follower ? "◐ другое устройство" : (XC.online ? "● облако" : "○ нет связи");
+  el.style.color = XC.follower ? "var(--orange)" : (XC.online ? "var(--green)" : "var(--ink3)");
 }
 
-/* ---------- auth screen ---------- */
-let _authMode = "login";
-function screenAuth(msg){
-  const t = _authMode;
+/* ---------- auth screen ----------
+   Account required — guest mode was removed. A new visitor lands on
+   "Регистрация" because they must create an account before they can sign in. */
+let _authMode = localStorage.getItem("xc_email") ? "login" : "register";
+function screenAuth(msg, kind){
+  const t = _authMode, reg = t === "register";
+  const bad = kind === "err" || (kind === undefined && /ошиб|занят|невер|мин|недоступ|истек/i.test(msg||""));
   app().innerHTML = `
     <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div><span class="badge-demo">DEMO • SYNTHETIC DATA</span></div>
     <div class="wrap" style="max-width:420px;margin:0 auto">
@@ -4552,36 +4611,71 @@ function screenAuth(msg){
       </div>
       <div class="card">
         <div class="seg" style="margin-bottom:14px">
-          <button data-am="login" class="${t==='login'?'on':''}">Вход</button>
-          <button data-am="register" class="${t==='register'?'on':''}">Регистрация</button>
+          <button data-am="register" class="${reg?'on':''}">Регистрация</button>
+          <button data-am="login" class="${!reg?'on':''}">Вход</button>
         </div>
-        ${msg?`<div class="hint" style="color:${/ошиб|занят|невер/i.test(msg)?'var(--red)':'var(--green)'};font-weight:600;margin-bottom:8px">${msg}</div>`:""}
+        ${msg?`<div class="hint" style="color:${bad?'var(--red)':'var(--green)'};font-weight:600;margin-bottom:8px">${msg}</div>`:""}
         <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" autocomplete="email" value="${XC.email||''}"></div>
-        <div class="field"><label>Пароль${t==='register'?' (мин. 6 символов)':''}</label><input id="au-pass" type="password" autocomplete="${t==='register'?'new-password':'current-password'}"></div>
-        <button class="btn green" id="au-go">${t==='login'?'Войти':'Создать аккаунт'}</button>
-        <button class="btn ghost" id="au-guest">Играть без аккаунта (гость)</button>
-        <div class="hint" style="margin-top:8px;text-align:center">Аккаунт нужен, чтобы продолжить симуляцию с другого устройства или браузера. Гость — только это устройство.</div>
+        <div class="field"><label>Пароль${reg?' (минимум 6 символов)':''}</label><input id="au-pass" type="password" autocomplete="${reg?'new-password':'current-password'}"></div>
+        ${reg?`<div class="field"><label>Повторите пароль</label><input id="au-pass2" type="password" autocomplete="new-password"></div>`:""}
+        <button class="btn green" id="au-go">${reg?'Создать аккаунт':'Войти'}</button>
+        <div class="hint" style="margin-top:10px;text-align:center">
+          ${reg ? "Аккаунт хранит вашу симуляцию: цену, баланс, позиции и историю. Войдя с любого устройства, вы продолжите с того же места."
+                : "Ещё нет аккаунта? Откройте «Регистрация» — это займёт полминуты."}
+        </div>
       </div>
     </div>`;
   app().querySelectorAll("[data-am]").forEach(b=> b.onclick = ()=>{ _authMode = b.dataset.am; screenAuth(); });
-  const em = ()=> (document.getElementById("au-email").value||"").trim();
-  const pw = ()=> document.getElementById("au-pass").value||"";
-  document.getElementById("au-go").onclick = async ()=>{
+  const val = id => (document.getElementById(id) ? (document.getElementById(id).value||"") : "");
+  const go = async ()=>{
+    const email = val("au-email").trim(), pass = val("au-pass");
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return screenAuth("Введите корректный email", "err");
+    if(reg){
+      if(pass.length < 6) return screenAuth("Пароль минимум 6 символов", "err");
+      if(pass !== val("au-pass2")) return screenAuth("Пароли не совпадают", "err");
+    }else if(!pass) return screenAuth("Введите пароль", "err");
     const btn = document.getElementById("au-go"); btn.disabled = true; btn.textContent = "…";
     try{
-      const res = await xcApi("POST", _authMode==="login" ? "/api/auth/login" : "/api/auth/register", { email: em(), password: pw() });
+      const res = await xcApi("POST", reg ? "/api/auth/register" : "/api/auth/login", { email, password: pass });
       xcSetSession(res);
       await bootAfterAuth(true);
-    }catch(e){ screenAuth(e.message || "Ошибка"); }
+    }catch(e){
+      if(reg && e.status === 409){ _authMode = "login"; return screenAuth("Этот email уже зарегистрирован — войдите", "err"); }
+      screenAuth(e.message || "Ошибка", "err");
+    }
   };
-  document.getElementById("au-guest").onclick = async ()=>{
-    try{
-      const res = await xcApi("POST", "/api/auth/guest");
-      xcSetSession(res);
-      await bootAfterAuth(false);
-    }catch(e){ screenAuth("Сервер недоступен — работаем офлайн"); localStorage.setItem("xc_offline","1"); startOffline(); }
+  document.getElementById("au-go").onclick = go;
+  ["au-pass","au-pass2","au-email"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener("keydown", e=>{ if(e.key === "Enter") go(); });
+  });
+}
+
+/* ---------- another device is driving this account ---------- */
+function screenBusy(){
+  app().innerHTML = `
+    <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div><span class="badge-demo">DEMO • SYNTHETIC DATA</span></div>
+    <div class="wrap" style="max-width:420px;margin:0 auto">
+      <div class="card" style="text-align:center;padding:24px 16px">
+        <div style="font-size:40px;line-height:1;margin-bottom:10px">📱💻</div>
+        <h2 style="margin:0 0 8px;font-size:19px">Терминал открыт на другом устройстве</h2>
+        <div class="hint" style="line-height:1.5">
+          Симуляция принадлежит аккаунту <b>${XC.email||""}</b> и одновременно идёт только в одном месте —
+          иначе на устройствах разошлись бы цены и сделки.
+        </div>
+        <button class="btn dark" id="bs-take" style="margin-top:16px">Продолжить здесь</button>
+        <div class="hint" style="margin-top:8px">На другом устройстве терминал перейдёт в режим ожидания.
+          Состояние подтянется актуальное — ничего не потеряется.</div>
+        <button class="btn ghost" id="bs-out" style="margin-top:14px">Выйти из аккаунта</button>
+      </div>
+    </div>`;
+  document.getElementById("bs-take").onclick = async ()=>{
+    const b = document.getElementById("bs-take"); b.disabled = true; b.textContent = "Подключаюсь…";
+    await xcTakeOver(true);
   };
-  document.getElementById("au-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("au-go").click(); });
+  document.getElementById("bs-out").onclick = ()=>{
+    xcClearSession(); XC.booted = false; _authMode = "login"; screenAuth("Вы вышли из аккаунта");
+  };
 }
 
 /* ---------- state fixups applied whenever S is (re)loaded ---------- */
@@ -4656,31 +4750,46 @@ function wireLifecycle(){
   window.addEventListener("beforeunload", xcPushBeacon);
 }
 
-/* start without a server (fallback if backend is unreachable) */
+/* start without a server (only reachable for an already-signed-in session whose
+   network is down — the local cache keeps the account playable offline) */
 function startOffline(){
   load();
   finishBoot();
 }
 
-/* after a successful auth: pull the frozen server state (if any) and resume it */
-async function bootAfterAuth(preferRemote){
+/* After a successful auth: identify the account, take the driving lease, then
+   pull ITS state. The server copy always wins — that is what makes two devices
+   on one account show the same market instead of two drifting ones. */
+async function bootAfterAuth(){
   try{
     const me = await xcApi("GET", "/api/me");
-    XC.email = me.email || null; XC.guest = !!me.isGuest;
+    XC.email = me.email || null;
     if(me.id) LS_KEY = "xc_state_" + me.id;   // per-user local cache -> no cross-account bleed
-    localStorage.setItem("xc_guest", XC.guest ? "1" : "0");
     if(XC.email) localStorage.setItem("xc_email", XC.email);
-  }catch(e){}
+  }catch(e){
+    if(e.status === 401){ xcClearSession(); return screenAuth("Сессия истекла — войдите снова"); }
+  }
+
+  try{ await xcClaimLease(false); }
+  catch(e){
+    if(e.status === 409){
+      if(!S) load(true);                 // keep a usable S so a takeover has something to fall back on
+      XC.booted = true;
+      xcBecomeFollower(e.data && e.data.lease);
+      return;
+    }
+    // any other failure (offline) -> carry on with the local cache
+  }
+
   try{
-    const r = await xcApi("GET", "/api/state");
-    if(r && r.state && (preferRemote || !localStorage.getItem(LS_KEY))){
-      S = r.state;                      // frozen server state wins -> exact resume
+    const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+    if(r && r.state){
+      S = r.state;                      // the account's own state wins -> exact resume
       if(S.version >= 2) migrateState();
-      XC.online = true; XC.remoteAt = r.updatedAt;
+      XC.online = true; XC.remoteAt = r.updatedAt; XC.rev = r.rev || 0;
       saveNow();
     } else {
-      load(true);                       // no server state -> per-user local cache, then legacy once, else fresh
-      if(r && r.state && r.updatedAt > 0){ /* keep local; it will be pushed */ }
+      load(true);                       // brand-new account -> local cache, legacy once, else fresh
     }
   }catch(e){
     if(e.status === 401){ xcClearSession(); return screenAuth("Сессия истекла — войдите снова"); }
@@ -4688,16 +4797,33 @@ async function bootAfterAuth(preferRemote){
     load(true);                         // network error -> offline cache
   }
   finishBoot();
-  xcPushState(true);                    // make sure server has the current state
+  xcPushState(true);                    // make sure the server has the current state
+}
+
+/* Coming back to a tab that has been idle: the account may have been driven from
+   another device meanwhile, so re-take the lease and re-pull before resuming. */
+async function xcResync(){
+  if(!XC.token || !XC.booted || XC.follower) return;
+  if(Date.now() - (XC._syncAt || 0) < 4000) return;
+  XC._syncAt = Date.now();
+  try{
+    const m = await xcApi("GET", "/api/state?meta=1&sid=" + encodeURIComponent(XC.sid));
+    XC.online = true;
+    if(m.lease && !m.lease.free && !m.lease.mine){ xcBecomeFollower(m.lease); return; }
+    if((m.rev || 0) > XC.rev){          // someone else advanced it -> adopt their state
+      const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+      if(r && r.state){ S = r.state; migrateState(); normalizeState(); XC.rev = r.rev || 0; saveNow(); render(); }
+    }
+    await xcClaimLease(false).catch(()=>{});
+  }catch(e){ XC.online = false; }
 }
 
 /* ---------------- boot ---------------- */
 walletProbePhoto();                    // use /wallet-bg.jpg if it exists, else the SVG fallback
 if(XC.token){
-  bootAfterAuth(true).catch(()=>{ load(); finishBoot(); });
+  bootAfterAuth().catch(()=>{ load(); finishBoot(); });
 } else {
-  load();                             // load local cache so it survives even before login
-  screenAuth();
+  screenAuth();                        // account required — no guest mode
 }
 
 window.__sim = { S:()=>S, openPosition, closePosition, commissionFor, posMetrics, recalcAccount,
