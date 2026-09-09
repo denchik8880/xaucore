@@ -450,6 +450,18 @@ html:has(body.route-wallet){background:#0c0a08}
 .appbar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge-demo{flex:0 0 auto}
 
+/* --- live mirror banner: this device follows another one's terminal --- */
+.mirror-banner{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:9px;
+  background:linear-gradient(90deg,#2f7bf6,#1e5fd0);color:#fff;padding:8px 12px}
+.mirror-banner .mb-dot{width:8px;height:8px;border-radius:50%;background:#fff;flex:0 0 auto;
+  animation:mbpulse 1.4s ease-in-out infinite}
+@keyframes mbpulse{0%,100%{opacity:1}50%{opacity:.25}}
+.mirror-banner .mb-txt{flex:1;min-width:0;font-size:11px;font-weight:600;letter-spacing:.04em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mirror-banner .mb-btn{flex:0 0 auto;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;
+  padding:6px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+.mirror-banner .mb-btn:active{background:rgba(255,255,255,.32)}
+
 /* --- iOS-style tactile feedback: a quick, subtle squish + dim on press --- */
 .btn,.tbtn,.menu-item,.wl-row,.seg button,.tfbar button,.miniquick button,
 .pill-toggle button,.tps-presets button,.news-btns button,.iconbtn,.lotctl button,
@@ -1141,7 +1153,7 @@ function finishFrame(nowR, newsOn){
 let normalTickTimer = null;
 function restartNormalTicks(){
   if(normalTickTimer){ clearInterval(normalTickTimer); normalTickTimer = null; }
-  if(!_loopRunning) return;                        // don't run ticks while paused / tab hidden
+  if(!_loopRunning || XC.follower) return;         // don't run ticks while paused / hidden / mirroring
   const ms = Math.max(50, Math.round(1000 / normalTps()));
   normalTickTimer = setInterval(normalTickFire, ms);
 }
@@ -1809,8 +1821,16 @@ function validateLot(v){
   if(Math.abs(steps - Math.round(steps)) > 1e-6) return "Объём должен быть кратен "+fmt(lotStep,2);
   return null;
 }
+/* A mirror shows another device's terminal; trading from it would fork the
+   account's book. Offer to take the wheel instead. */
+function guardMirror(){
+  if(!XC.follower) return false;
+  toast("o", "Это зеркало другого устройства — нажмите «Торговать здесь» вверху");
+  return true;
+}
 function openPosition(side, volume, opts){
   opts = opts || {};
+  if(guardMirror()) return null;
   if(guardLock()) return null;
   if(marketClosed()){ toast("r","Рынок закрыт — исполнение недоступно"); return null; }
   const err = validateLot(volume);
@@ -1850,6 +1870,7 @@ function openPosition(side, volume, opts){
   return pos;
 }
 function closePosition(id, reason){
+  if(guardMirror()) return;
   const i = S.positions.findIndex(p=>p.id===id);
   if(i<0) return;
   const pos = S.positions[i];
@@ -1871,6 +1892,7 @@ function closePosition(id, reason){
   save();
 }
 function modifyPosition(id, sl, tp){
+  if(guardMirror()) return;
   if(guardLock()) return;
   const p = S.positions.find(x=>x.id===id);
   if(!p) return;
@@ -1907,6 +1929,7 @@ function processPositionSLTP(){
 
 /* ---------------- pending orders ---------------- */
 function addPending(o){
+  if(guardMirror()) return null;
   if(guardLock()) return null;
   const err = validateLot(o.volume);
   if(err){ toast("r", err); return null; }
@@ -1920,6 +1943,7 @@ function addPending(o){
   return ord;
 }
 function cancelPending(id){
+  if(guardMirror()) return;
   if(guardLock()) return;
   const i = S.pendings.findIndex(o=>o.id===id);
   if(i>=0){ S.pendings.splice(i,1); toast("","Ордер отменён"); save(); }
@@ -2110,7 +2134,6 @@ function themeColors(){
 /* ---------- top-level render ---------- */
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
-  if(XC.follower){ screenBusy(); return; }   // another device drives this account
   const t = S.ui.tab;
   let html = "";
   html += topBanner();
@@ -2137,6 +2160,13 @@ function render(){
 
 function topBanner(){
   let b = "";
+  if(XC.follower){
+    b += `<div class="mirror-banner">
+      <span class="mb-dot"></span>
+      <span class="mb-txt">ЗЕРКАЛО · торгует другое устройство</span>
+      <button class="mb-btn" data-act="takeover">Торговать здесь</button>
+    </div>`;
+  }
   if(marketClosed()){
     b += `<div class="warn-banner">Рынки по этому инструменту закрыты. Торговля ограничена. (Synthetic weekend)</div>`;
   }
@@ -3199,6 +3229,10 @@ function bindScreen(){
   act("gotosettings", ()=> nav("settings"));
   act("gotohistory", ()=> nav("history"));
   act("gotodom", ()=> nav("dom"));
+  act("takeover", async ()=>{
+    toast("", "Переключаю терминал на это устройство…");
+    await xcTakeOver(true);
+  });
   act("gotodebug", ()=> nav("debug"));
   act("simdays100", ()=>{
     const box = document.getElementById("sim100");
@@ -3826,7 +3860,7 @@ function fitText(el, minPx){
   }
 }
 function updateLive(){
-  if(!S || XC.follower) return;
+  if(!S) return;
   recalcAccount();
   const A = S._acc;
   // overview
@@ -4346,7 +4380,9 @@ function drawMini(){
 let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false, _bootPaused = false;
 function restartLoop(){
   if(rtTimer){ clearInterval(rtTimer); rtTimer = null; }
-  if(!_loopRunning) return;                        // paused / tab hidden -> stay stopped
+  if(normalTickTimer && XC.follower){ clearInterval(normalTickTimer); normalTickTimer = null; }
+  // A mirror renders but never advances the market — only the lease holder does.
+  if(!_loopRunning || XC.follower) return;         // paused / tab hidden / mirroring -> stay stopped
   rtTimer = setInterval(()=>{ try{ engineFrame(); }catch(e){ console.error(e); } }, RT_MS);
   restartNormalTicks();
 }
@@ -4382,7 +4418,7 @@ function startLoop(){
 
 /* The sim SHOULD be advancing right now (booted, not debug-paused, tab visible). */
 function loopShouldRun(){
-  return XC.booted && !_bootPaused && !XC.follower &&
+  return XC.booted && !_bootPaused &&
     document.visibilityState !== "hidden" && !document.hidden;
 }
 /* Resume after the tab comes back. Mobile in-app WebViews (Telegram, etc.) often
@@ -4496,23 +4532,104 @@ async function xcClaimLease(force){
   XC.lease = r.lease; XC.follower = false;
   return true;
 }
-/* Turn this tab into a read-only follower: stop the engine, watch for the lease
-   to free up, and offer a one-tap takeover. */
+/* ---- the mirror frame ----
+   A few KB the driver publishes ~1/s: everything that changes moment to moment,
+   plus the last candles of each timeframe so a mirror's chart keeps drawing.
+   The heavy blob (full candle history, settings, logs) still goes through the
+   normal state push every few seconds. */
+function xcLiveFrame(){
+  const tail = {};
+  for(const tf in S.candles){ const a = S.candles[tf]; if(a && a.length) tail[tf] = a.slice(-3); }
+  return {
+    simClock: S.simClock,
+    price: S.price,
+    day: S.day, regime: S.regime,
+    account: S.account,
+    positions: S.positions,
+    pendings: S.pendings,
+    histTop: S.history.slice(0, 15), histLen: S.history.length,
+    walletBalance: S.wallet ? S.wallet.balance : null,
+    lock: S.lock,
+    news: { active: S.news.active, type: S.news.type, progress: S.news.progress },
+    candles: tail
+  };
+}
+/* Apply a frame onto this device's S. Only live fields are touched — the local
+   chart history, settings and UI state stay as they are. */
+function xcApplyLive(L){
+  if(!L || !S) return;
+  if(L.price) S.price = L.price;
+  if(L.simClock) S.simClock = L.simClock;
+  if(L.day) S.day = L.day;
+  if(L.regime) S.regime = L.regime;
+  if(L.account) S.account = L.account;
+  if(L.positions) S.positions = L.positions;
+  if(L.pendings) S.pendings = L.pendings;
+  if(L.lock) S.lock = L.lock;
+  if(L.walletBalance != null && S.wallet) S.wallet.balance = L.walletBalance;
+  if(L.news){ S.news.active = L.news.active; S.news.type = L.news.type; S.news.progress = L.news.progress; }
+  // closed trades that happened on the driver
+  if(Array.isArray(L.histTop) && L.histLen !== S.history.length){
+    const known = new Set(S.history.slice(0, 60).map(h => h.id));
+    const fresh = L.histTop.filter(h => !known.has(h.id));
+    if(fresh.length) S.history = fresh.concat(S.history);
+  }
+  // merge the candle tips: update the forming bar, append new ones
+  for(const tf in (L.candles || {})){
+    const cur = S.candles[tf] || (S.candles[tf] = []);
+    for(const b of L.candles[tf]){
+      const last = cur[cur.length - 1];
+      if(last && last.t === b.t) cur[cur.length - 1] = b;
+      else if(!last || b.t > last.t) cur.push(b);
+      else { const i = cur.lastIndexOf(cur.find(x => x.t === b.t)); if(i >= 0) cur[i] = b; }
+    }
+    if(cur.length > TF_CAP[tf]) cur.splice(0, cur.length - TF_CAP[tf]);
+  }
+  recalcAccount();
+}
+
+/* Turn this tab into a live MIRROR: the engine stops (only the driver may move
+   the market) but the terminal keeps rendering, fed by the driver's frames —
+   prices tick, candles grow, positions appear and close on their own. */
 function xcBecomeFollower(lease){
+  XC.lease = lease || { holder:"other", exp:0, mine:false, free:false };
   if(XC.follower) return;
   XC.follower = true;
-  XC.lease = lease || { holder:"other", exp:0, mine:false, free:false };
-  stopLoop();
-  if(!XC._pollT) XC._pollT = setInterval(xcPollLease, 4000);
-  screenBusy();
+  restartLoop();                                  // drops the engine timers, keeps the UI loop
+  if(!XC._pollT) XC._pollT = setInterval(xcPollLive, 1200);
+  xcPollLive();
+  render();
 }
-async function xcPollLease(){
+/* Mirror heartbeat: pull the driver's frame, apply it, and promote this device
+   the moment the driver stops holding the lease. */
+async function xcPollLive(){
   if(!XC.token || !XC.follower) return;
   try{
-    const m = await xcApi("GET", "/api/state?meta=1&sid=" + encodeURIComponent(XC.sid));
+    const m = await xcApi("GET", "/api/state?live=1&sid=" + encodeURIComponent(XC.sid));
     XC.online = true;
-    if(m.lease && (m.lease.free || m.lease.mine)) await xcTakeOver(false);   // driver left -> promote
+    if(m.lease && (m.lease.free || m.lease.mine)) return xcTakeOver(false);   // driver left -> take the wheel
+    if(m.live) xcApplyLive(m.live);
+    // the driver pushed a full state (new day, settings, long history) -> resync
+    if((m.rev || 0) > XC.rev){
+      XC.rev = m.rev;
+      const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+      if(r && r.state){ const ui = S && S.ui; S = r.state; migrateState(); if(ui) S.ui = ui; normalizeState(); }
+    }
+    if(!modalEl) render();
   }catch(e){ XC.online = false; }
+}
+/* Driver side: publish the frame ~1/s so mirrors stay in step. */
+function xcStartLivePublish(){
+  if(XC._liveT) return;
+  XC._liveT = setInterval(()=>{
+    if(!XC.token || XC.follower || !S || !_loopRunning) return;
+    if(XC._liveBusy) return;
+    XC._liveBusy = true;
+    xcApi("POST", "/api/state", { op:"live", sid: XC.sid, live: xcLiveFrame() })
+      .then(()=>{ XC._liveBusy = false; XC.online = true; })
+      .catch(e=>{ XC._liveBusy = false;
+        if(e.status === 409) xcBecomeFollower(e.data && e.data.lease); });
+  }, 1200);
 }
 /* Become the driver: claim (optionally stealing), pull the authoritative state,
    then run. This is the ONLY way a session starts advancing the market. */
@@ -4527,6 +4644,7 @@ async function xcTakeOver(force){
     normalizeState();
     render();
     startLoop();
+    xcStartLivePublish();
     toast("g", "Терминал активен на этом устройстве");
     xcPushState(true);
   }catch(e){
@@ -4651,33 +4769,6 @@ function screenAuth(msg, kind){
   });
 }
 
-/* ---------- another device is driving this account ---------- */
-function screenBusy(){
-  app().innerHTML = `
-    <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div><span class="badge-demo">DEMO • SYNTHETIC DATA</span></div>
-    <div class="wrap" style="max-width:420px;margin:0 auto">
-      <div class="card" style="text-align:center;padding:24px 16px">
-        <div style="font-size:40px;line-height:1;margin-bottom:10px">📱💻</div>
-        <h2 style="margin:0 0 8px;font-size:19px">Терминал открыт на другом устройстве</h2>
-        <div class="hint" style="line-height:1.5">
-          Симуляция принадлежит аккаунту <b>${XC.email||""}</b> и одновременно идёт только в одном месте —
-          иначе на устройствах разошлись бы цены и сделки.
-        </div>
-        <button class="btn dark" id="bs-take" style="margin-top:16px">Продолжить здесь</button>
-        <div class="hint" style="margin-top:8px">На другом устройстве терминал перейдёт в режим ожидания.
-          Состояние подтянется актуальное — ничего не потеряется.</div>
-        <button class="btn ghost" id="bs-out" style="margin-top:14px">Выйти из аккаунта</button>
-      </div>
-    </div>`;
-  document.getElementById("bs-take").onclick = async ()=>{
-    const b = document.getElementById("bs-take"); b.disabled = true; b.textContent = "Подключаюсь…";
-    await xcTakeOver(true);
-  };
-  document.getElementById("bs-out").onclick = ()=>{
-    xcClearSession(); XC.booted = false; _authMode = "login"; screenAuth("Вы вышли из аккаунта");
-  };
-}
-
 /* ---------- state fixups applied whenever S is (re)loaded ---------- */
 function normalizeState(){
   const d = DEFAULTS();
@@ -4773,8 +4864,17 @@ async function bootAfterAuth(){
   try{ await xcClaimLease(false); }
   catch(e){
     if(e.status === 409){
-      if(!S) load(true);                 // keep a usable S so a takeover has something to fall back on
+      // Another device drives this account: pull its full state once (chart
+      // history, settings), then follow it live frame by frame.
+      try{
+        const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+        if(r && r.state){ S = r.state; migrateState(); XC.rev = r.rev || 0; }
+      }catch(e2){}
+      if(!S) load(true);
+      normalizeState();
       XC.booted = true;
+      wireLifecycle();
+      startLoop();                       // UI loop only — restartLoop() withholds the engine
       xcBecomeFollower(e.data && e.data.lease);
       return;
     }
@@ -4797,6 +4897,7 @@ async function bootAfterAuth(){
     load(true);                         // network error -> offline cache
   }
   finishBoot();
+  xcStartLivePublish();                 // mirrors on other devices follow these frames
   xcPushState(true);                    // make sure the server has the current state
 }
 

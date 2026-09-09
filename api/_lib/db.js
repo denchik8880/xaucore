@@ -55,6 +55,10 @@ const MIGRATIONS = [
   `ALTER TABLE states ADD COLUMN lease_exp INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE states ADD COLUMN lease_at  INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE states ADD COLUMN rev       INTEGER NOT NULL DEFAULT 0`,
+  // small, high-frequency mirror frame (price / positions / candle tips) so other
+  // devices can follow live without re-downloading the ~250 KB state blob
+  `ALTER TABLE states ADD COLUMN live      TEXT`,
+  `ALTER TABLE states ADD COLUMN live_at   INTEGER NOT NULL DEFAULT 0`,
 ];
 
 let schemaReady = null;

@@ -52,19 +52,25 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     const sid = String((req.query && req.query.sid) || "");
-    // ?meta=1 answers "who holds the lease / has anything changed" without
-    // shipping the ~250 KB blob — that is what a waiting follower polls.
-    if (req.query && req.query.meta) {
+    // ?live=1 is the mirror poll: the small frame the driver publishes ~1/s plus
+    // the lease + rev, WITHOUT the ~250 KB state blob. ?meta=1 is the same minus
+    // the frame (just "who is driving / has anything changed").
+    if (req.query && (req.query.meta || req.query.live)) {
+      const wantLive = !!req.query.live;
       const r = await db.execute({
-        sql: "SELECT updated_at, lease_sid, lease_exp, rev FROM states WHERE user_id = ?",
+        sql: `SELECT updated_at, lease_sid, lease_exp, rev, live_at${wantLive ? ", live" : ""}
+              FROM states WHERE user_id = ?`,
         args: [user.id],
       });
       const row = r.rows[0] || null;
-      return json(res, 200, {
+      const out = {
         updatedAt: row ? Number(row.updated_at) : 0,
         rev: row ? Number(row.rev || 0) : 0,
+        liveAt: row ? Number(row.live_at || 0) : 0,
         lease: leaseOf(row, sid, now),
-      });
+      };
+      if (wantLive && row && row.live) { try { out.live = JSON.parse(row.live); } catch { /* ignore */ } }
+      return json(res, 200, out);
     }
     const row = await readRow(user.id);
     let state = null;
@@ -79,6 +85,29 @@ export default async function handler(req, res) {
 
   if (req.method === "POST") {
     const body = await readJson(req);
+
+    // The mirror heartbeat: a few KB of price / positions / candle tips, written
+    // ~1/s by the driver so other devices follow live. Touches only the `live`
+    // column — the heavy state blob is left alone — and renews the lease.
+    if (body && body.op === "live") {
+      const sid = String(body.sid || "");
+      const row = await readRow(user.id);
+      const cur = leaseOf(row, sid, now);
+      if (!(cur.free || cur.mine)) return json(res, 409, { error: "Симуляция запущена в другой сессии", lease: cur });
+      const frame = JSON.stringify(body.live || null);
+      if (frame.length > 512 * 1024) return json(res, 413, { error: "live frame too large" });
+      await db.execute({
+        sql: `INSERT INTO states(user_id, data, updated_at, live, live_at, lease_sid, lease_exp, lease_at, rev)
+              VALUES(?,'null',0,?,?,?,?,?,0)
+              ON CONFLICT(user_id) DO UPDATE SET live      = excluded.live,
+                                                 live_at   = excluded.live_at,
+                                                 lease_sid = excluded.lease_sid,
+                                                 lease_exp = excluded.lease_exp`,
+        args: [user.id, frame, now, sid || null, now + LEASE_MS, now],
+      });
+      return json(res, 200, { ok: true, liveAt: now, lease: { holder: sid, exp: now + LEASE_MS, mine: true, free: false } });
+    }
+
     if (!body || body.op !== "claim") return json(res, 400, { error: "bad op" });
     const sid = String(body.sid || "");
     if (!sid) return json(res, 400, { error: "sid required" });
