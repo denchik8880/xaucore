@@ -90,10 +90,9 @@ img,canvas,svg,video{max-width:100%}
 
 /* trade panel — ПРОДАТЬ | лоты | КУПИТЬ. Must fit full Bid/Ask on ~360-412px with no clipping. */
 .tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(74px,92px) minmax(0,1fr);gap:6px;align-items:stretch;width:100%}
-.tbtn{border-radius:14px;padding:12px 5px;text-align:center;display:flex;flex-direction:column;gap:5px;justify-content:center;min-height:92px;border:1px solid transparent;overflow:hidden;min-width:0}
+.tbtn{border-radius:14px;padding:12px 5px;text-align:center;display:flex;flex-direction:column;gap:7px;justify-content:center;min-height:92px;border:1px solid transparent;overflow:hidden;min-width:0}
 .tbtn .lbl{font-weight:600;font-size:clamp(10px,3vw,13.5px);letter-spacing:.02em;white-space:nowrap}
-.tbtn .px{display:block;width:100%;font-size:clamp(14px,4.7vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;letter-spacing:-.01em;line-height:1.15}
-.tbtn .sub{font-size:10.5px;opacity:.75;font-weight:600}
+.tbtn .px{display:block;width:100%;font-size:clamp(16px,5.6vw,25px);font-weight:600;white-space:nowrap;overflow:hidden;letter-spacing:-.015em;line-height:1.12}
 .tbtn.sell{background:var(--red-bg);color:var(--red);border-color:var(--sell-line)}
 .tbtn.buy{background:var(--green-bg);color:var(--green);border-color:var(--buy-line)}
 .tbtn:active{filter:brightness(.96)}
@@ -2367,7 +2366,6 @@ function mktOverview(){
         <button class="tbtn sell" data-act="quicksell" id="btnSell">
           <span class="lbl">ПРОДАТЬ</span>
           <span class="px mono" id="ovBid">${pxfmt(S.price.bid)}</span>
-          <span class="sub">Bid</span>
         </button>
         <div class="lotbox">
           <span class="cap">Количество (Лоты)</span>
@@ -2380,7 +2378,6 @@ function mktOverview(){
         <button class="tbtn buy" data-act="quickbuy" id="btnBuy">
           <span class="lbl">КУПИТЬ</span>
           <span class="px mono" id="ovAsk">${pxfmt(S.price.ask)}</span>
-          <span class="sub">Ask</span>
         </button>
       </div>
       <div class="loterr" id="lotErr"></div>
