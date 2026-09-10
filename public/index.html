@@ -89,7 +89,7 @@ img,canvas,svg,video{max-width:100%}
 .err-banner{background:var(--red);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 
 /* trade panel — ПРОДАТЬ | лоты | КУПИТЬ. Must fit full Bid/Ask on ~360-412px with no clipping. */
-.tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(74px,92px) minmax(0,1fr);gap:6px;align-items:stretch;width:100%}
+.tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(98px,112px) minmax(0,1fr);gap:6px;align-items:stretch;width:100%}
 /* cTrader's own layout: the lot sits level with the SELL/BUY captions and the
    prices run underneath. Two rows everywhere — caption/lot on top, price/steppers
    below — so no box carries a row the others lack. The earlier 3-row version left
@@ -106,14 +106,21 @@ img,canvas,svg,video{max-width:100%}
 .tbtn.buy{background:var(--green-bg);color:var(--green);border-color:var(--buy-line)}
 .tbtn:active{filter:brightness(.96)}
 .tbtn:disabled{opacity:.45}
-.lotbox{background:var(--card);border:1px solid var(--line)}
+/* cTrader notches "Количество (Лоты)" into the lot field's top border rather
+   than stacking it inside, so the caption costs no grid row — which is what
+   used to leave the trade buttons with an empty third row. overflow must stay
+   visible for the label to sit on the border. */
+.lotbox{position:relative;overflow:visible;background:var(--card);border:1px solid var(--line)}
+.lotbox .cap{position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+  background:var(--card);padding:0 5px;font-size:9px;line-height:1.5;font-weight:600;
+  color:var(--ink3);white-space:nowrap;letter-spacing:.01em}
 .lotbox .val{width:100%;min-width:0;text-align:center;font-weight:600;font-size:15px;
   border:none;background:none;color:inherit;padding:0;line-height:1.2}
 .lotctl{display:flex;align-items:center;gap:4px;width:100%;align-self:stretch}
 .lotctl button{flex:1 1 0;min-width:0;height:100%;border-radius:8px;background:var(--line);font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .lotctl button:active{background:var(--press)}
 @media (max-width:400px){
-  .tradepanel{grid-template-columns:minmax(0,1fr) minmax(70px,84px) minmax(0,1fr);gap:4px;--tp-r1:18px}
+  .tradepanel{grid-template-columns:minmax(0,1fr) minmax(94px,104px) minmax(0,1fr);gap:4px;--tp-r1:18px}
   .tbtn,.lotbox{padding:6px 3px}
   .tbtn .lbl{font-size:10px}
   .lotbox .val{font-size:14px}
@@ -2370,6 +2377,7 @@ function mktOverview(){
           <span class="px mono" id="ovBid">${pxfmt(S.price.bid)}</span>
         </button>
         <div class="lotbox">
+          <span class="cap">Количество (Лоты)</span>
           <input class="val mono" id="lotInput" inputmode="decimal" value="${fmt(lot,2)}">
           <div class="lotctl">
             <button data-act="lotminus" aria-label="Меньше">−</button>
