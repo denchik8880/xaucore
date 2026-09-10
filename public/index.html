@@ -164,9 +164,11 @@ img,canvas,svg,video{max-width:100%}
 .tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:600;font-size:12.5px;color:var(--ink2);background:var(--line)}
 .tfbar button.on{background:var(--blue);color:#fff}
 #chartCanvas,#miniCanvas,#domCanvas{width:100%;display:block;max-width:100%}
-/* pan-y lets a vertical swipe scroll the PAGE even when it starts on the chart;
-   horizontal drag / pinch still go to the chart's own JS handlers */
-#chartCanvas{touch-action:pan-y}
+/* The chart owns both axes: a horizontal drag pans time, a vertical one pans
+   price (cTrader). touch-action must be none or the browser claims the vertical
+   swipe for page scrolling before the handler can. The page still scrolls
+   everywhere outside the canvas. */
+#chartCanvas{touch-action:none}
 #miniCanvas{touch-action:auto}
 .chartbox{position:relative;background:var(--card);max-width:100%;overflow:hidden}
 .chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
@@ -4024,6 +4026,13 @@ function chartVZoom(k){
   chart.vZoom = clamp(chart.vZoom * k, V_MIN, V_MAX);
   drawChart();
 }
+/* Look up / down: shift the anchored centre by however many dollars `dyPx`
+   of screen represents at the current scale. */
+function chartVPan(dyPx, plotH){
+  chartEnterManual();
+  const span = 2 * (chart.vBase || 1) / chart.vZoom;
+  chart.vCenter += dyPx * span / Math.max(plotH || chart._plotH || 200, 1);
+}
 let _chartWinDrag = null;   // shared window mousemove/up handler, added once
 function setupChartCanvas(){
   const c = document.getElementById("chartCanvas");
@@ -4055,9 +4064,12 @@ function setupChartCanvas(){
       window.addEventListener("mousemove", mvA); window.addEventListener("mouseup", upA);
       return;
     }
-    chart.drag = { x:getX(e), off:chart.offset };
+    chart.drag = { x:getX(e), off:chart.offset, ly:getY(e) };
     const mv = ev=>{ if(!chart.drag) return;
       chart.offset = clamp(chart.drag.off + (getX(ev) - chart.drag.x)/(chart.barW+chart.gap), 0, 5000);
+      const ny = getY(ev), stepY = ny - chart.drag.ly;
+      if(stepY) chartVPan(stepY, chart._plotH);
+      chart.drag.ly = ny;
       drawChart(); };
     const up = ()=>{ chart.drag = null; window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
     window.addEventListener("mousemove", mv);
@@ -4082,7 +4094,8 @@ function setupChartCanvas(){
       chart.drag = null;
       chart.cross = null;
     }else{
-      chart.drag = { x:getX(e), y:getY(e), off:chart.offset, active:false, dx:0, dy:0 };
+      chart.drag = { x:getX(e), y:getY(e), lx:getX(e), ly:getY(e),
+                     off:chart.offset, active:false, dx:0, dy:0 };
       chart.holdT = Date.now();
       chart.cross = null;
     }
@@ -4113,18 +4126,22 @@ function setupChartCanvas(){
     chart.drag.dx = nx - chart.drag.x;
     chart.drag.dy = ny - chart.drag.y;
     const held = Date.now() - chart.holdT;
-    // commit to a chart pan only when the move is horizontal-dominant
-    if(!chart.drag.active && Math.abs(chart.drag.dx) > 10 && Math.abs(chart.drag.dx) > Math.abs(chart.drag.dy)*1.3){
+    // any deliberate move becomes a 2-D pan: sideways scrolls time, up/down
+    // scrolls price — the same drag cTrader gives you
+    if(!chart.drag.active && (Math.abs(chart.drag.dx) > 8 || Math.abs(chart.drag.dy) > 8)){
       chart.drag.active = true;
     }
     if(chart.drag.active){
       if(e.cancelable) e.preventDefault();
       chart.offset = clamp(chart.drag.off + chart.drag.dx/(chart.barW+chart.gap), 0, 5000);
+      const stepY = ny - chart.drag.ly;
+      if(stepY) chartVPan(stepY, chart._plotH);
       chart.cross = null;
     }else if(held > 380 && Math.abs(chart.drag.dx) < 10 && Math.abs(chart.drag.dy) < 10){
       chart.cross = { x:nx, y:ny };          // long press without moving -> crosshair
       if(e.cancelable) e.preventDefault();
     }
+    chart.drag.lx = nx; chart.drag.ly = ny;
     drawChart();
   };
   c.ontouchend = e=>{
@@ -4258,12 +4275,18 @@ function drawChart(){
   for(const b of vis){ dHi = Math.max(dHi,b.h); dLo = Math.min(dLo,b.l); }
   dHi = Math.max(dHi, S.price.ask); dLo = Math.min(dLo, S.price.bid);
   // manual price-axis scale (pinch / axis drag) — untouched data range when vZoom is 1
+  let sc;
   if(chart.vCenter != null){
-    const half = (chart.vBase || 1) / chart.vZoom;      // absolute span, not a share of the live range
-    dHi = chart.vCenter + half; dLo = chart.vCenter - half;
+    // Manual scale: keep the user's span to the cent. Snapping the BOUNDS the way
+    // auto-fit does would make the window jump a step every time it is panned.
+    const half = (chart.vBase || 1) / chart.vZoom;
+    const mLo = chart.vCenter - half, mHi = chart.vCenter + half;
+    sc = { lo: mLo, hi: mHi, step: niceStep(mHi - mLo, clamp(Math.round((H - padT - padB)/52), 3, 9)) };
+  }else{
+    sc = autoScale(dHi, dLo, H - padT - padB, 52);
   }
-  const sc = autoScale(dHi, dLo, H - padT - padB, 52);
   chart._lastRange = { hi: sc.hi, lo: sc.lo };   // anchor for the next manual zoom
+  chart._plotH = H - padT - padB;                // px the price range maps onto
   const hi = sc.hi, lo = sc.lo;
   const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
   const xOf = i => barsW - (vis.length - i)*unit + gap/2;
@@ -4278,8 +4301,9 @@ function drawChart(){
   // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00
   ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
   ctx.textAlign = "left";
+  const gridFrom = Math.ceil(lo / sc.step) * sc.step;
   for(let i = 0; ; i++){
-    const p = lo + sc.step*i;
+    const p = gridFrom + sc.step*i;
     if(p > hi + sc.step*1e-6) break;                 // index-stepped: no float drift
     const yy = y(p);
     if(yy < padT - 1 || yy > H - padB + 1) continue;
