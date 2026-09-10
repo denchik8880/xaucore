@@ -4026,6 +4026,31 @@ function chartVZoom(k){
   chart.vZoom = clamp(chart.vZoom * k, V_MIN, V_MAX);
   drawChart();
 }
+/* Zoom the price axis but keep the price under the cursor pinned to that pixel —
+   what makes wheel zoom feel right instead of jumping to the middle. */
+function chartVZoomAt(k, yPx){
+  chartEnterManual();
+  const plotH = chart._plotH || 200, padT = chart._padT || 0;
+  const r = chart._lastRange, span = r ? (r.hi - r.lo) : 1;
+  const frac = clamp((yPx - padT) / plotH, 0, 1);        // 0 = top of the plot
+  const anchor = r ? r.hi - frac * span : chart.vCenter; // price currently under the cursor
+  chart.vZoom = clamp(chart.vZoom * k, V_MIN, V_MAX);
+  const newSpan = 2 * (chart.vBase || 1) / chart.vZoom;
+  chart.vCenter = anchor - (0.5 - frac) * newSpan;
+  drawChart();
+}
+/* Same idea for time: hold the bar under the cursor while the bar width changes. */
+function chartZoomAt(k, xPx){
+  const unitOld = chart.barW + chart.gap;
+  const barsW = (chart._barsW || 0) || 1;
+  const fromRightOld = (barsW - xPx) / unitOld;
+  chart.barW = clamp(chart.barW * k, 1.6, 64);
+  const fromRightNew = (barsW - xPx) / (chart.barW + chart.gap);
+  // barAt(x) = (len - offset) - (barsW - x)/unit; holding that fixed gives
+  // off_new = off_old + (fromRightOld - fromRightNew)
+  chart.offset = clamp(chart.offset + (fromRightOld - fromRightNew), 0, 5000);
+  drawChart();
+}
 /* Look up / down: shift the anchored centre by however many dollars `dyPx`
    of screen represents at the current scale. */
 function chartVPan(dyPx, plotH){
@@ -4044,12 +4069,16 @@ function setupChartCanvas(){
   const getY = e => (e.touches?e.touches[0].clientY:e.clientY) - rc().top;
 
   /* WHEEL: plain wheel scrolls the PAGE (no preventDefault). Ctrl/Cmd+wheel zooms. */
+  /* WHEEL (desktop): plain wheel zooms — over the price axis it scales price,
+     over the plot it scales time, both anchored at the cursor. Ctrl/Cmd+wheel
+     forces the price axis so you can rescale without leaving the candles.
+     Safe to claim the wheel: every screen that shows a chart fits the viewport,
+     so there is no page scroll to steal. */
   c.onwheel = e=>{
-    if(!(e.ctrlKey || e.metaKey)) return;
     e.preventDefault();
-    // over the price axis the wheel scales price, over the plot it scales time
-    if(onAxis(getX(e))) chartVZoom(e.deltaY < 0 ? 1.12 : 0.89);
-    else chartZoom(e.deltaY < 0 ? 1.12 : 0.89);
+    const k = e.deltaY < 0 ? 1.12 : 0.89;
+    if(onAxis(getX(e)) || e.ctrlKey || e.metaKey) chartVZoomAt(k, getY(e));
+    else chartZoomAt(k, getX(e));
   };
 
   /* MOUSE: drag to pan, hover for crosshair. Window listeners live only during a drag. */
@@ -4262,6 +4291,7 @@ function drawChart(){
   const bw = chart.barW, gap = chart.gap, unit = bw+gap;
   const plotW = W - padR;               // gridlines / price lines end here, the axis begins
   const barsW = plotW - 7;              // candles stop short of it — cTrader keeps this gap so
+  chart._barsW = barsW;
                                         // the newest bar never touches the Bid/Ask tags
   const nVisible = Math.floor(barsW/unit);
   let endIdx = data.length - Math.round(chart.offset);
@@ -4287,6 +4317,7 @@ function drawChart(){
   }
   chart._lastRange = { hi: sc.hi, lo: sc.lo };   // anchor for the next manual zoom
   chart._plotH = H - padT - padB;                // px the price range maps onto
+  chart._padT = padT;
   const hi = sc.hi, lo = sc.lo;
   const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
   const xOf = i => barsW - (vis.length - i)*unit + gap/2;
