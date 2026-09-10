@@ -3236,7 +3236,10 @@ function bindScreen(){
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
-  root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{ S.ui.chartTF = b.dataset.tf; render(); save(); });
+  root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{
+    S.ui.chartTF = b.dataset.tf;
+    chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0;   // manual price scale does not carry over
+    render(); save(); });
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
     const a = b.dataset.chz;
     if(a === "in") chartZoom(1.35); else if(a === "out") chartZoom(0.74); else chartReset();
@@ -3994,28 +3997,64 @@ function updateLive(){
    Candlestick chart (canvas) — zoom / pan / crosshair
    ========================================================================= */
 const _coarse = window.matchMedia && window.matchMedia("(pointer:coarse)").matches;
-let chart = { barW: _coarse ? 10 : 7, gap: 2, offset: 0, cross: null, drag:null, pinch:null, holdT:0 };
+/* vZoom/vCenter are the MANUAL price-axis scale, cTrader style. vZoom 1 with a
+   null vCenter means "auto-fit to the visible candles" (the default); a pinch or
+   a drag on the price axis anchors the view and squeezes/stretches the range. */
+let chart = { barW: _coarse ? 10 : 7, gap: 2, offset: 0, cross: null, drag:null, pinch:null, holdT:0,
+              vZoom: 1, vCenter: null, vBase: 0 };
+const V_MIN = 0.18, V_MAX = 14;
 const CHART_BW_DEF = _coarse ? 10 : 7;
 function chartZoom(k){ chart.barW = clamp(chart.barW*k, 1.6, 64); drawChart(); }
-function chartReset(){ chart.barW = CHART_BW_DEF; chart.offset = 0; chart.cross = null; drawChart(); }
+function chartReset(){ chart.barW = CHART_BW_DEF; chart.offset = 0; chart.cross = null;
+  chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0; drawChart(); }
+/* Freeze the price axis at what is on screen right now. Once manual, the range
+   is an ABSOLUTE span in dollars — cTrader keeps it put while price moves, it
+   does not keep re-fitting. chartReset() (the ⤢ button) goes back to auto-fit. */
+function chartEnterManual(){
+  if(chart.vCenter != null) return;
+  const r = chart._lastRange;
+  const hi = r ? r.hi : (S ? S.price.mid + 1 : 1);
+  const lo = r ? r.lo : (S ? S.price.mid - 1 : -1);
+  chart.vCenter = (hi + lo)/2;
+  chart.vBase = ((hi - lo)/2) * chart.vZoom || 1;
+}
+/* Scale the price axis about its current centre. k>1 zooms in (tighter range). */
+function chartVZoom(k){
+  chartEnterManual();
+  chart.vZoom = clamp(chart.vZoom * k, V_MIN, V_MAX);
+  drawChart();
+}
 let _chartWinDrag = null;   // shared window mousemove/up handler, added once
 function setupChartCanvas(){
   const c = document.getElementById("chartCanvas");
   if(!c) return;
   c._w = 0; fitCanvas(c);
-  chart.cross = null; chart.drag = null; chart.pinch = null;
+  chart.cross = null; chart.drag = null; chart.pinch = null; chart.axis = null;
   const rc = () => c.getBoundingClientRect();
   const getX = e => (e.touches?e.touches[0].clientX:e.clientX) - rc().left;
   const getY = e => (e.touches?e.touches[0].clientY:e.clientY) - rc().top;
 
   /* WHEEL: plain wheel scrolls the PAGE (no preventDefault). Ctrl/Cmd+wheel zooms. */
   c.onwheel = e=>{
-    if(e.ctrlKey || e.metaKey){ e.preventDefault(); chartZoom(e.deltaY < 0 ? 1.12 : 0.89); }
+    if(!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    // over the price axis the wheel scales price, over the plot it scales time
+    if(onAxis(getX(e))) chartVZoom(e.deltaY < 0 ? 1.12 : 0.89);
+    else chartZoom(e.deltaY < 0 ? 1.12 : 0.89);
   };
 
   /* MOUSE: drag to pan, hover for crosshair. Window listeners live only during a drag. */
   c.onmousedown = e=>{
     if(e.button !== 0) return;
+    if(onAxis(getX(e))){
+      chartEnterManual();
+      const a = { y:getY(e), vz:chart.vZoom };
+      const mvA = ev=>{
+        chart.vZoom = clamp(a.vz * Math.exp((a.y - getY(ev))/160), V_MIN, V_MAX); drawChart(); };
+      const upA = ()=>{ window.removeEventListener("mousemove", mvA); window.removeEventListener("mouseup", upA); };
+      window.addEventListener("mousemove", mvA); window.addEventListener("mouseup", upA);
+      return;
+    }
     chart.drag = { x:getX(e), off:chart.offset };
     const mv = ev=>{ if(!chart.drag) return;
       chart.offset = clamp(chart.drag.off + (getX(ev) - chart.drag.x)/(chart.barW+chart.gap), 0, 5000);
@@ -4029,10 +4068,19 @@ function setupChartCanvas(){
 
   /* TOUCH: touch-action:pan-y already lets a vertical swipe scroll the page.
      We only take over (and preventDefault) for a clearly HORIZONTAL drag or a pinch. */
+  // x of the price axis strip, where a vertical drag rescales the price range
+  const onAxis = x => x >= (c._w - (c._w < 420 ? 52 : 62));
   c.ontouchstart = e=>{
+    if(e.touches.length === 1 && onAxis(getX(e))){
+      chartEnterManual();
+      chart.axis = { y: getY(e), vz: chart.vZoom };
+      chart.drag = null; chart.cross = null;
+      return;
+    }
     if(e.touches.length >= 2){
-      chart.pinch = { d: tdist(e), w: chart.barW };
+      chart.pinch = { d: tdist(e), dx: tspanX(e), dy: tspanY(e), w: chart.barW, vz: chart.vZoom };
       chart.drag = null;
+      chart.cross = null;
     }else{
       chart.drag = { x:getX(e), y:getY(e), off:chart.offset, active:false, dx:0, dy:0 };
       chart.holdT = Date.now();
@@ -4040,9 +4088,23 @@ function setupChartCanvas(){
     }
   };
   c.ontouchmove = e=>{
+    if(chart.axis && e.touches.length === 1){
+      if(e.cancelable) e.preventDefault();
+      // drag up = squeeze the range (zoom in), down = widen it
+      chart.vZoom = clamp(chart.axis.vz * Math.exp((chart.axis.y - getY(e))/160), V_MIN, V_MAX);
+      drawChart();
+      return;
+    }
     if(e.touches.length >= 2 && chart.pinch){
       e.preventDefault();
-      chart.barW = clamp(chart.pinch.w * tdist(e)/chart.pinch.d, 1.6, 64);
+      const P = chart.pinch;
+      // each axis follows its own component of the pinch; a span below ~24px is
+      // too noisy to derive a ratio from, so that axis is simply left alone
+      if(P.dx > 24) chart.barW = clamp(P.w * tspanX(e)/P.dx, 1.6, 64);
+      if(P.dy > 24){
+        chartEnterManual();
+        chart.vZoom = clamp(P.vz * tspanY(e)/P.dy, V_MIN, V_MAX);
+      }
       drawChart();
       return;
     }
@@ -4066,12 +4128,16 @@ function setupChartCanvas(){
     drawChart();
   };
   c.ontouchend = e=>{
-    chart.drag = null; chart.pinch = null;
+    chart.drag = null; chart.pinch = null; chart.axis = null;
     if(e.touches.length === 0) setTimeout(()=>{ chart.cross = null; drawChart(); }, 1800);
   };
   drawChart();
 }
 function tdist(e){ const a=e.touches[0], b=e.touches[1]; return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
+/* Pinch spans per axis, so a mostly-horizontal pinch scales time and a
+   mostly-vertical one scales price — the way cTrader behaves. */
+function tspanX(e){ return Math.abs(e.touches[0].clientX - e.touches[1].clientX); }
+function tspanY(e){ return Math.abs(e.touches[0].clientY - e.touches[1].clientY); }
 function fitCanvas(c){
   // Cap the backing store at 2× — on 3×/3.5× phones that is ~45% fewer pixels to
   // fill every redraw with no visible loss on 1px candle strokes / text.
@@ -4191,7 +4257,13 @@ function drawChart(){
   let dHi = -Infinity, dLo = Infinity;
   for(const b of vis){ dHi = Math.max(dHi,b.h); dLo = Math.min(dLo,b.l); }
   dHi = Math.max(dHi, S.price.ask); dLo = Math.min(dLo, S.price.bid);
+  // manual price-axis scale (pinch / axis drag) — untouched data range when vZoom is 1
+  if(chart.vCenter != null){
+    const half = (chart.vBase || 1) / chart.vZoom;      // absolute span, not a share of the live range
+    dHi = chart.vCenter + half; dLo = chart.vCenter - half;
+  }
   const sc = autoScale(dHi, dLo, H - padT - padB, 52);
+  chart._lastRange = { hi: sc.hi, lo: sc.lo };   // anchor for the next manual zoom
   const hi = sc.hi, lo = sc.lo;
   const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
   const xOf = i => barsW - (vis.length - i)*unit + gap/2;
