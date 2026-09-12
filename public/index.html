@@ -309,7 +309,10 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-q .mono{font-size:15px;font-weight:600}
 .wl-q.sell{border-color:var(--sell-line);color:var(--red)}
 .wl-q.buy{border-color:var(--buy-line);color:var(--green)}
-.ab-bal{background:var(--line);color:var(--ink);font-weight:600;font-size:13px;padding:5px 11px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* same pill as the search field beside it — cTrader gives them equal weight;
+   ours used to sit noticeably smaller */
+.ab-bal{flex:0 0 auto;background:var(--line);color:var(--ink);font-weight:600;font-size:15px;
+  padding:11px 14px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 /* ===== BROKER WALLET (dark, premium) — its own full-screen dark surface ===== */
 body.route-wallet{max-width:none;background:#0c0a08}
@@ -2249,8 +2252,18 @@ function watchSparkSVG(){
   const W = 118, H = 38;
   const pts = c.map((v,i) => `${(i/(c.length-1)*W).toFixed(1)},${(H - 2 - (v-lo)/rng*(H-4)).toFixed(1)}`).join(" ");
   const D = S.day;
-  const col = (D ? (S.price.mid - D.open) : (c[c.length-1] - c[0])) >= 0 ? "var(--green)" : "var(--red)";
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  const up = (D ? (S.price.mid - D.open) : (c[c.length-1] - c[0])) >= 0;
+  const col = up ? "var(--green)" : "var(--red)";
+  // cTrader tints the area under the line in the day's colour, fading to nothing
+  const gid = up ? "wsg-up" : "wsg-dn";
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${col}" stop-opacity=".30"/>
+      <stop offset="1" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="${pts} ${W},${H} 0,${H}" fill="url(#${gid})" stroke="none"/>
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
 }
 function watchStats(){
   const D = S.day;
@@ -2519,8 +2532,26 @@ function listPositions(){
       <div class="row"><span class="k">Free Margin</span><span class="v mono" id="pFree">${money(S._acc.freeMargin)}</span></div>
       <div class="row"><span class="k">Margin Level</span><span class="v mono" id="pML">${isFinite(S._acc.marginLevel)?fmt(S._acc.marginLevel,1)+"%":"—"}</span></div>
     </div>
+    ${closeAllBar()}
     ${S.positions.map(posRow).join("")}
   </div>`;
+}
+/* cTrader offers a single "close everything" action once more than one position
+   is open; with one there is already an X on the row itself. */
+function closeAllBar(){
+  if(S.positions.length < 2) return "";
+  let net = 0;
+  for(const p of S.positions) net += posMetrics(p).net;
+  return `<button class="btn ${net>=0?"green":"red"}" data-act="closeall" style="margin:0 0 12px">
+    Закрыть позиции (${S.positions.length}) · ${signMoney(net)}
+  </button>`;
+}
+/* Close every open position at market, newest first. */
+function closeAllPositions(){
+  const ids = S.positions.map(p => p.id);
+  for(const id of ids) closePosition(id, "Закрыто всё");
+  recalcAccount();
+  save(); render();
 }
 function posRow(p){
   const m = posMetrics(p);
@@ -3271,6 +3302,20 @@ function bindScreen(){
   act("gotosettings", ()=> nav("settings"));
   act("gotohistory", ()=> nav("history"));
   act("gotodom", ()=> nav("dom"));
+  act("closeall", ()=>{
+    if(guardMirror()) return;
+    if(guardLock()) return;
+    const n = S.positions.length;
+    if(!n) return;
+    let net = 0, lots = 0;
+    for(const p of S.positions){ net += posMetrics(p).net; lots += p.volume; }
+    confirmSheet({
+      title: `Закрыть ${n} ${n===1?"позицию":(n<5?"позиции":"позиций")}?`,
+      text: `Суммарный объём ${fmt(lots,2)} лот · результат <b class="${net>=0?"pos":"neg"}">${signMoney(net)}</b>. `
+          + `Закрытие пройдёт по текущим ценам Bid/Ask, итог может немного отличаться.`,
+      yes: `Закрыть всё · ${signMoney(net)}`, danger: net < 0
+    }, closeAllPositions);
+  });
   act("gotodebug", ()=> nav("debug"));
   act("simdays100", ()=>{
     const box = document.getElementById("sim100");
@@ -3371,8 +3416,10 @@ function bindScreen(){
     save(); render();
   });
 
-  act("quickbuy", ()=> confirmMarket("buy"));
-  act("quicksell", ()=> confirmMarket("sell"));
+  // cTrader fills straight from these buttons; the detailed path with SL/TP is
+  // "Новый ордер" (openTicket). Asking first made every trade a two-tap affair.
+  act("quickbuy", ()=> quickTrade("buy"));
+  act("quicksell", ()=> quickTrade("sell"));
   act("dombuy", ()=> confirmMarket("buy"));
   act("domsell", ()=> confirmMarket("sell"));
 
@@ -3467,6 +3514,18 @@ function stepLot(dir){
 }
 
 /* ---------- market confirm ---------- */
+/* Market order at the panel's lot, executed immediately — no sheet. Everything
+   that guards a trade (mirror, news lock, lot bounds, margin) still runs inside
+   openPosition(); the toast it raises is the fill confirmation. */
+function quickTrade(side){
+  if(guardMirror()) return;
+  if(guardLock()) return;
+  const v = S.ui.lot;
+  const err = validateLot(v);
+  if(err){ toast("r", err); return; }
+  const p = openPosition(side, v);
+  if(p) render();
+}
 function confirmMarket(side){
   if(guardLock()) return;
   const v = S.ui.lot;
