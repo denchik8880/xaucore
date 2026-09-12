@@ -2538,13 +2538,16 @@ function listPositions(){
 }
 /* cTrader offers a single "close everything" action once more than one position
    is open; with one there is already an X on the row itself. */
-function closeAllBar(){
-  if(S.positions.length < 2) return "";
+function closeAllNet(){
   let net = 0;
   for(const p of S.positions) net += posMetrics(p).net;
-  return `<button class="btn ${net>=0?"green":"red"}" data-act="closeall" style="margin:0 0 12px">
-    Закрыть позиции (${S.positions.length}) · ${signMoney(net)}
-  </button>`;
+  return net;
+}
+function closeAllLabel(net){ return `Закрыть позиции (${S.positions.length}) · ${signMoney(net)}`; }
+function closeAllBar(){
+  if(S.positions.length < 2) return "";
+  const net = closeAllNet();
+  return `<button class="btn ${net>=0?"green":"red"}" data-act="closeall" id="closeAllBtn" style="margin:0 0 12px">${closeAllLabel(net)}</button>`;
 }
 /* Close every open position at market, newest first. */
 function closeAllPositions(){
@@ -3311,10 +3314,18 @@ function bindScreen(){
     for(const p of S.positions){ net += posMetrics(p).net; lots += p.volume; }
     confirmSheet({
       title: `Закрыть ${n} ${n===1?"позицию":(n<5?"позиции":"позиций")}?`,
-      text: `Суммарный объём ${fmt(lots,2)} лот · результат <b class="${net>=0?"pos":"neg"}">${signMoney(net)}</b>. `
-          + `Закрытие пройдёт по текущим ценам Bid/Ask, итог может немного отличаться.`,
+      text: `Суммарный объём ${fmt(lots,2)} лот · результат <b id="ca-net" class="${net>=0?"pos":"neg"}">${signMoney(net)}</b>. `
+          + `Закрытие пройдёт по текущим ценам Bid/Ask.`,
       yes: `Закрыть всё · ${signMoney(net)}`, danger: net < 0
     }, closeAllPositions);
+    // the figure must not freeze at the moment the sheet opened — it is the
+    // number the user is acting on
+    if(modalEl) modalEl._live = ()=>{
+      const v = closeAllNet();
+      const el = document.getElementById("ca-net"), go = document.getElementById("cf-yes");
+      if(el){ el.textContent = signMoney(v); el.className = v>=0 ? "pos" : "neg"; }
+      if(go) go.textContent = `Закрыть всё · ${signMoney(v)}`;
+    };
   });
   act("gotodebug", ()=> nav("debug"));
   act("simdays100", ()=>{
@@ -4005,6 +4016,14 @@ function updateLive(){
   setTxt("pFree", money(A.freeMargin));
   setTxt("pML", isFinite(A.marginLevel)? fmt(A.marginLevel,1)+"%":"—");
   // per position rows
+  const caBtn = document.getElementById("closeAllBtn");
+  if(caBtn){
+    const caNet = closeAllNet();
+    const caTxt = closeAllLabel(caNet);
+    if(caBtn.textContent !== caTxt) caBtn.textContent = caTxt;
+    const caCls = "btn " + (caNet >= 0 ? "green" : "red");
+    if(caBtn.className !== caCls) caBtn.className = caCls;
+  }
   for(const p of S.positions){
     const m = posMetrics(p);
     setTxt(`pr-${p.id}-net`, signMoney(m.net), m.net>=0?"pos":"neg");
