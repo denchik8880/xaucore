@@ -195,6 +195,25 @@ img,canvas,svg,video{max-width:100%}
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
 .btn.dark{background:var(--invert);color:var(--invert-ink)}
+/* Charts tab trade bar, cTrader layout: SELL | Лоты | BUY in one rounded bar, the lot
+   tab notched into its top edge between the two halves (tap it to pick the volume) */
+.chtrade{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:62px;border-radius:14px;overflow:hidden}
+.cht{display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:#fff;padding:8px 14px}
+.cht.sell{background:var(--red);align-items:flex-start;padding-right:52px}
+.cht.buy{background:var(--green);align-items:flex-end;padding-left:52px}
+.cht-lbl{font-size:13px;font-weight:600;opacity:.95;white-space:nowrap;line-height:1.2}
+.cht-px{display:block;max-width:100%;font-size:clamp(15px,5vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;line-height:1.15;letter-spacing:-.01em}
+.cht-lot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:88px;padding:5px 10px 8px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--card);color:var(--ink);border-radius:0 0 12px 12px}
+.cht-lot .cht-lbl{color:var(--ink2);display:flex;align-items:center;justify-content:space-between;width:100%}
+.cht-lot .cht-val{font-size:17px;font-weight:600;line-height:1.15}
+.cht:active{filter:brightness(.95)}
+.cht-lot:active{background:var(--press)}
+/* lot picker sheet */
+.lotsheet{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-top:4px}
+.ls-step{height:52px;border-radius:12px;background:var(--line);font-size:22px;font-weight:600;color:var(--ink)}
+.ls-step:active{background:var(--press)}
+.ls-val{width:100%;min-width:0;height:52px;text-align:center;font-size:22px;font-weight:600;border:1px solid var(--line);border-radius:12px;background:var(--field-bg);color:var(--ink)}
 .btn.ghost{background:var(--line);color:var(--ink)}
 .btn:active{filter:brightness(.95)}
 .btn:disabled{opacity:.5}
@@ -254,7 +273,7 @@ body.trade-locked .tx{display:inline}
 .tbtn .tx{font-size:17px;line-height:1}
 body.trade-locked [data-act="quicksell"],body.trade-locked [data-act="quickbuy"],
 body.trade-locked [data-act="domsell"],body.trade-locked [data-act="dombuy"],
-body.trade-locked [data-act="newticket"]{opacity:.5;pointer-events:none}
+body.trade-locked [data-act="newticket"],body.trade-locked [data-act="chartlot"]{opacity:.5;pointer-events:none}
 .news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
 .news-res .row:last-child{border-bottom:none}
 .ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
@@ -2426,6 +2445,8 @@ function wlTickDir(){
   wlTick.px = px;
   return wlTick.dir;
 }
+/* the ↑/↓ next to the prices on the Charts tab trade bar (cTrader shows the last tick) */
+function chartDirArrow(){ return wlTick.dir === "dn" ? "↓" : "↑"; }
 function screenMarketsList(){
   recalcAccount();
   const w = watchStats();
@@ -3273,9 +3294,19 @@ function chartMarkup(h){
       <button class="rst" data-chz="reset" aria-label="сброс">⤢</button>
     </div>
   </div>
-  <div class="wrap"><div class="grid2">
-    <button class="btn red" data-act="quicksell"><span class="tcap">ПРОДАТЬ ${fmt(S.ui.lot,2)} ·</span><span class="tx">✕ ·</span> <span id="chBid">${pxfmt(S.price.bid)}</span></button>
-    <button class="btn green" data-act="quickbuy"><span class="tcap">КУПИТЬ ${fmt(S.ui.lot,2)} ·</span><span class="tx">✕ ·</span> <span id="chAsk">${pxfmt(S.price.ask)}</span></button>
+  <div class="wrap"><div class="chtrade">
+    <button class="cht sell" data-act="quicksell">
+      <span class="cht-lbl"><span class="tcap">Продать</span><span class="tx">✕</span></span>
+      <span class="cht-px mono"><span id="chBid">${pxfmt(S.price.bid)}</span> <span class="cht-dir" id="chDirS">${chartDirArrow()}</span></span>
+    </button>
+    <button class="cht buy" data-act="quickbuy">
+      <span class="cht-lbl"><span class="tcap">Купить</span><span class="tx">✕</span></span>
+      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${chartDirArrow()}</span> <span id="chAsk">${pxfmt(S.price.ask)}</span></span>
+    </button>
+    <button class="cht-lot" data-act="chartlot" aria-label="Выбрать объём">
+      <span class="cht-lbl">Лоты <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="cht-val mono" id="chLot">${fmt(S.ui.lot,2)}</span>
+    </button>
   </div></div>`;
 }
 
@@ -3643,6 +3674,7 @@ function bindScreen(){
   // "Новый ордер" (openTicket). Asking first made every trade a two-tap affair.
   act("quickbuy", ()=> quickTrade("buy"));
   act("quicksell", ()=> quickTrade("sell"));
+  act("chartlot", openLotSheet);
   act("dombuy", ()=> confirmMarket("buy"));
   act("domsell", ()=> confirmMarket("sell"));
 
@@ -3718,6 +3750,44 @@ function bindScreen(){
   });
 }
 
+/* Charts tab: the volume picker behind the cTrader-style «Лоты» tab between SELL and BUY */
+function openLotSheet(){
+  if(guardLock()) return;
+  const quick = [0.01, 0.10, 0.50, 1.00, 5.00, 10.00];
+  openSheet(`
+    <h2>Объём (лоты)</h2>
+    <div class="lotsheet">
+      <button class="ls-step" data-ls="-1" aria-label="Меньше">−</button>
+      <input class="ls-val mono" id="lsInput" inputmode="decimal" value="${fmt(S.ui.lot,2)}">
+      <button class="ls-step" data-ls="1" aria-label="Больше">+</button>
+    </div>
+    <div class="loterr" id="lsErr"></div>
+    <div class="miniquick">${quick.map(v=>`<button data-lsv="${v}">${fmt(v,2)}</button>`).join("")}<button data-lsv="max">MAX ${fmt(S.symbol.maxLot,0)}</button></div>
+    <div class="hint" style="margin-top:10px">От ${fmt(S.symbol.minLot,2)} до ${fmt(S.symbol.maxLot,2)} · маржа ≈ <b class="mono" id="lsMargin"></b></div>
+    <button class="btn dark" id="lsDone" style="margin-top:14px">Готово</button>`);
+  const inp = document.getElementById("lsInput"), err = document.getElementById("lsErr");
+  const show = ()=>{
+    inp.value = fmt(S.ui.lot, 2);
+    err.textContent = "";
+    const m = document.getElementById("lsMargin");
+    if(m) m.textContent = money(S.ui.lot * S.symbol.contractSize * S.price.mid / S.symbol.leverage);
+    setTxt("chLot", fmt(S.ui.lot, 2));
+  };
+  const setLot = v => { S.ui.lot = clamp(roundTo(v, 2), S.symbol.minLot, S.symbol.maxLot); save(); show(); };
+  const commit = ()=>{
+    const v = parseFloat(String(inp.value).replace(/[\s,]/g, ""));
+    const e = validateLot(v);
+    if(e){ err.textContent = "⚠ " + e; return false; }
+    setLot(v); return true;
+  };
+  modalEl.querySelectorAll("[data-ls]").forEach(b=> b.onclick = ()=> setLot(S.ui.lot + (+b.dataset.ls) * S.symbol.lotStep));
+  modalEl.querySelectorAll("[data-lsv]").forEach(b=> b.onclick = ()=> setLot(b.dataset.lsv === "max" ? S.symbol.maxLot : parseFloat(b.dataset.lsv)));
+  inp.onfocus = ()=> inp.select();
+  inp.onchange = commit;
+  inp.addEventListener("keydown", e=>{ if(e.key === "Enter") inp.blur(); });
+  document.getElementById("lsDone").onclick = ()=>{ if(commit()){ closeModal(); render(); } };
+  show();
+}
 function setTradeEnabled(on){
   ["btnBuy","btnSell"].forEach(id=>{ const el = document.getElementById(id); if(el) el.disabled = !on; });
 }
@@ -4215,6 +4285,11 @@ function updateLive(){
   setTxt("acFloat", signMoney(A.floating + A.swaps), (A.floating+A.swaps)>=0?"pos":"neg");
   setTxt("chBid", pxfmt(S.price.bid));
   setTxt("chAsk", pxfmt(S.price.ask));
+  if(document.getElementById("chLot")){                    // Charts tab trade bar
+    setTxt("chLot", fmt(S.ui.lot, 2));
+    const dir = wlTickDir() === "dn" ? "↓" : "↑";
+    setTxt("chDirS", dir); setTxt("chDirB", dir);
+  }
   // positions summary
   setTxt("pBal", money(A.balance));
   setTxt("pEq", money(A.equity));
