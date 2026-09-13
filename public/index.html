@@ -4521,7 +4521,11 @@ function axisTag(ctx, x, yc, w, h, text, col, bg){
   if(ctx.roundRect) ctx.roundRect(x + 0.5, top, w - 1, h - 1, r); else ctx.rect(x + 0.5, top, w - 1, h - 1);
   ctx.fillStyle = bg; ctx.fill();
   ctx.setLineDash([]); ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1;
+  // the price fills its tag like cTrader's: the largest font that fits the width with
+  // ~2 px either side, capped by the tag height (a fixed 10 px left air on both sides)
   ctx.font = "10px system-ui,'Open Sans',sans-serif";
+  const fs = Math.max(9, Math.min(h * 0.88, 10 * (w - 5) / (ctx.measureText(text).width || 1)));
+  ctx.font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
   ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(text, x + w/2, yc + 0.5);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
@@ -4830,8 +4834,8 @@ function drawMini(){
   ctx.strokeStyle=TC.down; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW+6,yb); ctx.stroke();
   const la=ya, lb=yb;
   ctx.font="10px system-ui,'Open Sans',sans-serif"; ctx.textAlign="left";
-  axisTag(ctx, plotW+2, la, padR-4, 14, pxfmt(S.price.ask), TC.up, TC.bg);
-  axisTag(ctx, plotW+2, lb, padR-4, 14, pxfmt(S.price.bid), TC.down, TC.bg);
+  axisTag(ctx, plotW+2, la, padR-4, 16, pxfmt(S.price.ask), TC.up, TC.bg);
+  axisTag(ctx, plotW+2, lb, padR-4, 16, pxfmt(S.price.bid), TC.down, TC.bg);
 }
 
 /* =========================================================================
