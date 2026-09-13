@@ -4631,7 +4631,9 @@ function drawChart(){
   // hides what would be the 4406.00 label).
   const yAsk = y(S.price.ask), yBid = y(S.price.bid);
   let tAsk = yAsk, tBid = yBid;
-  if(tBid - tAsk < 16){ const m = (yAsk + yBid)/2; tAsk = m - 8; tBid = m + 8; }   // tags just touch, so each line still meets its own tag
+  // cTrader never pushes the two tags apart: each is centred on its own line, and at a
+  // tight spread they simply overlap (Bid drawn over Ask). Nudging them apart put the
+  // lines on the tags' edges instead of through the middle of the price.
 
   // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00
   ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
@@ -4684,12 +4686,8 @@ function drawChart(){
   };
   priceLine(yAsk, CL_ASK);
   priceLine(yBid, CL_BID);
-  // right-scale tags (tAsk / tBid were separated above, before the grid)
-  // No slanted connector: when the two tags have to sit apart, the old 3 px link from
-  // the line to the tag's centre read as the Bid line dipping and the Ask line rising.
+  // right-scale Bid/Ask tags: centred on their lines, drawn at the very end (on top)
   const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 16, label, col, TC.bg);
-  priceTag(tAsk, CL_ASK, pxfmt(S.price.ask));
-  priceTag(tBid, CL_BID, pxfmt(S.price.bid));
 
   /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
      Bound directly to S.positions / S.pendings — no separate viz state.
@@ -4726,7 +4724,7 @@ function drawChart(){
     const arrow = p.side === "buy" ? "↑" : "↓";
     chips.push({ y: yy, text: wide ? `${fmt(p.volume,2)} Лоты ${arrow}` : `${fmt(p.volume,2)} ${arrow}`,
                  fill: TC.bg, stroke: col, textCol: col, dash: false });     // outlined, not filled
-    rtags.push({ y: yy, yl: yy, lw: 1.6, price: p.entry, col });
+    rtags.push({ y: yy, lw: 1.6, price: p.entry, col });
   }
   // pending orders — DASHED line at the order price
   for(const o of S.pendings){
@@ -4739,25 +4737,24 @@ function drawChart(){
     const kind = o.type.includes("limit") ? "LIMIT" : "STOP";
     chips.push({ y: yy, text: wide ? `${isBuy?"BUY":"SELL"} ${kind} ${fmt(o.volume,2)}` : `${kind} ${fmt(o.volume,2)} ${isBuy?"↑":"↓"}`,
                  fill: TC.bg, stroke: col, textCol: col, dash: true });
-    rtags.push({ y: yy, yl: yy, lw: 1.4, price: o.price, col });
+    rtags.push({ y: yy, lw: 1.4, price: o.price, col });
   }
   // de-collide the left chips, then draw. Shift a chip right of the on-canvas
   // zoom buttons (bottom-left ~[8..46] x [H-150..H-20]) so it isn't hidden.
   spreadYs(chips, 16, 24, H - 9);
   const zoomZone = (yy)=> yy > H - 150 && yy < H - 18;
   for(const ch of chips) chartChip(ctx, zoomZone(ch.y) ? 48 : 2, ch.y, ch.text, { fill: ch.fill, stroke: ch.stroke, text: ch.textCol, dash: ch.dash });
-  // right-axis price tags — skip any that would sit on top of the Bid/Ask tags
-  spreadYs(rtags, 15, 22, H - 9);
+  // right-axis tags for positions / pending orders — centred on their own line like
+  // cTrader (overlapping rather than nudged apart), the line running straight into the
+  // middle of the tag; the live Bid/Ask tags go on last so they stay on top
   for(const rt of rtags){
-    if(Math.abs(rt.y - tAsk) < 15 || Math.abs(rt.y - tBid) < 15) continue;
-    // the level's line runs straight into its tag while the tag still spans it (spreadYs may nudge tags)
-    if(Math.abs(rt.y - rt.yl) <= 7){
-      ctx.strokeStyle = rt.col; ctx.lineWidth = rt.lw;
-      ctx.beginPath(); ctx.moveTo(plotW - 1, rt.yl); ctx.lineTo(plotW + 6, rt.yl); ctx.stroke();
-      ctx.lineWidth = 1;
-    }
+    ctx.strokeStyle = rt.col; ctx.lineWidth = rt.lw;
+    ctx.beginPath(); ctx.moveTo(plotW - 1, rt.y); ctx.lineTo(plotW + 6, rt.y); ctx.stroke();
+    ctx.lineWidth = 1;
     axisTag(ctx, plotW + 2, rt.y, padR - 4, 15, pxfmt(rt.price), rt.col, TC.bg);
   }
+  priceTag(tAsk, CL_ASK, pxfmt(S.price.ask));
+  priceTag(tBid, CL_BID, pxfmt(S.price.bid));
 
   // crosshair
   const info = infoEl;
@@ -4827,12 +4824,11 @@ function drawMini(){
   ctx.setLineDash([]);
   // GREEN Ask on top, RED Bid below (cTrader style) — holds at any price / timeframe
   const yb=y(S.price.bid), ya=y(S.price.ask);
-  // solid and straight into the tag (its fill hides the tail); tags only just touch when
-  // pushed apart, so each line still meets its own tag — no bend near the price
+  // solid, straight into the middle of its tag (the tag's fill hides the tail); tags are
+  // centred on their lines and simply overlap at a tight spread — like cTrader
   ctx.strokeStyle=TC.up; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW+6,ya); ctx.stroke();
   ctx.strokeStyle=TC.down; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW+6,yb); ctx.stroke();
-  let la=ya, lb=yb;
-  if(lb-la<14){ const mid=(ya+yb)/2; la=mid-7; lb=mid+7; }
+  const la=ya, lb=yb;
   ctx.font="10px system-ui,'Open Sans',sans-serif"; ctx.textAlign="left";
   axisTag(ctx, plotW+2, la, padR-4, 14, pxfmt(S.price.ask), TC.up, TC.bg);
   axisTag(ctx, plotW+2, lb, padR-4, 14, pxfmt(S.price.bid), TC.down, TC.bg);
