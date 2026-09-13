@@ -213,6 +213,16 @@ img,canvas,svg,video{max-width:100%}
 .dom-bar{position:absolute;top:0;bottom:0;opacity:.14}
 .dom-bar.b{right:0;background:var(--green)}
 .dom-bar.a{left:0;background:var(--red)}
+/* live book: a size that just changed flashes for a moment */
+.dom-bid.up,.dom-ask.up{animation:domUp .5s ease-out}
+.dom-bid.dn,.dom-ask.dn{animation:domDn .5s ease-out}
+.dom-bid.nw,.dom-ask.nw{animation:domNw .7s ease-out}
+@keyframes domUp{from{background:rgba(10,168,95,.26)}to{background:transparent}}
+@keyframes domDn{from{background:rgba(229,52,43,.22)}to{background:transparent}}
+@keyframes domNw{from{background:rgba(47,123,246,.18)}to{background:transparent}}
+.dom-imb-l{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;margin:0 2px 4px;font-variant-numeric:tabular-nums}
+.dom-imb{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:0 2px 8px;background:var(--line)}
+.dom-imb .b{background:var(--green)}.dom-imb .a{background:var(--red)}
 .evt{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
 .evt:last-child{border-bottom:none}
 .evt .nm{font-weight:600}
@@ -507,6 +517,16 @@ const NEWS_LABEL = { NFP:"NFP", CPI:"CPI", PPI:"PPI", FOMC:"FOMC", FED_SPEECH:"F
 const DAYVOL_ORDER = ["LOW","NORMAL","ACTIVE","EXTREME"];
 const DAYVOL_RANGE = { LOW:[16,27], NORMAL:[26,46], ACTIVE:[45,75], EXTREME:[80,150] };
 function dayVolProbDefaults(){ return { LOW:0.22, NORMAL:0.42, ACTIVE:0.26, EXTREME:0.10 }; }
+/* The bands above were written for gold near $2 600. Gold's volatility is roughly
+   constant in PERCENT, so every $ amplitude of the engine scales by price / VOL_REF_PX. */
+const VOL_REF_PX = 2600;
+function pxVolScale(px){ return clamp((px || VOL_REF_PX) / VOL_REF_PX, 0.5, 3); }
+
+/* Volume limits are fixed on the broker side — not a setting. */
+const LOT_MIN = 0.01, LOT_MAX = 30, LOT_STEP = 0.01;
+/* every new account (and a simulator reset) opens gold at a random price in this range */
+const START_PX_MIN = 3900, START_PX_MAX = 5100;
+function randomStartMid(){ return roundTo(START_PX_MIN + Math.random() * (START_PX_MAX - START_PX_MIN), 2); }
 
 /* ---- SIMULATION ACCELERATOR — multiplies ALL simulated time (market, ticks,
         candles, trading day, regimes, events, news impulses, swaps, timers).
@@ -574,11 +594,11 @@ function newsEngineDefaults(){
   };
 }
 
-const DEFAULTS = () => ({
+const DEFAULTS = () => { const m0 = randomStartMid(); return {
   version: 5,
   account: { initialBalance: 10000, balance: 10000, currency: "USD" },
   symbol: {
-    name: "XAUUSD", contractSize: 100, minLot: 0.01, maxLot: 50, lotStep: 0.01,
+    name: "XAUUSD", contractSize: 100, minLot: LOT_MIN, maxLot: LOT_MAX, lotStep: LOT_STEP,
     leverage: 2000, digits: 2
   },
   trading: {
@@ -596,7 +616,7 @@ const DEFAULTS = () => ({
   },
   /* NORMAL MARKET — regime-switching autonomous engine (no static anchor) */
   market: {
-    initialBid: 4457.02, initialAsk: 4457.24,
+    initialBid: roundTo(m0 - 0.11, 2), initialAsk: roundTo(m0 + 0.11, 2),   // random start per account
     dayDurationMin: 45,     // SIMULATED DAY DURATION — 45 real minutes = 1 simulated trading day
     dayVolProbs: dayVolProbDefaults(),
     intradayNoise: 1.0,     // global multiplier on tick noise amplitude
@@ -619,8 +639,8 @@ const DEFAULTS = () => ({
             cardBrand: "Core Wallet", ledger: [] },
 
   /* live runtime — currentMarketPrice == price.mid is the single source of truth */
-  price: { bid:4457.02, ask:4457.24, mid:4457.13, prevMid:4457.13,
-           ema:4457.13, emaFast:4457.13, spread:0.22, vel:0, volCluster:1, volume:0, lastVol:0 },
+  price: { bid:roundTo(m0 - 0.11, 2), ask:roundTo(m0 + 0.11, 2), mid:m0, prevMid:m0,
+           ema:m0, emaFast:m0, spread:0.22, vel:0, volCluster:1, volume:0, lastVol:0 },
   regime: null,            // current market regime (built by startRegime)
   day: null,               // current simulated trading day (built by startNewDay)
   dayLog: [],              // finished-day statistics (newest first)
@@ -640,7 +660,7 @@ const DEFAULTS = () => ({
   ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false, theme: "light" },
   seq: { pos: 1, ord: 1, evt: 1 },
   createdAt: Date.now()
-});
+}; };
 
 let S = null;
 
@@ -667,37 +687,20 @@ function load(allowLegacy){
   S = DEFAULTS();
   seedMarket();
 }
-/* Guest mode was removed, so a device that used to play as a guest still has its
-   whole simulation sitting in localStorage under the old per-user key. On the
-   first sign-in of an account that has nothing on the server, adopt the newest
-   such blob instead of starting from scratch — otherwise the update would quietly
-   throw the player's progress away. Returns true if something was adopted. */
-function adoptOrphanState(){
-  let best = null, bestAt = -1;
-  try{
-    for(let i = 0; i < localStorage.length; i++){
-      const k = localStorage.key(i);
-      if(!k || !k.startsWith("xc_state_") || k === LS_KEY) continue;
-      let p = null;
-      try{ p = JSON.parse(localStorage.getItem(k)); }catch(e){ continue; }
-      if(!p || !(p.version >= 2) || !p.account || !p.candles) continue;
-      const at = Number(p.simClock || p.createdAt || 0);
-      if(at > bestAt){ bestAt = at; best = p; }
-    }
-  }catch(e){ return false; }
-  if(!best) return false;
-  S = best;
-  migrateState();
-  saveNow();                       // re-home it under the signed-in account's key
-  return true;
-}
 
+/* the volume limits are not a setting: re-applied on every load, so an older save
+   (max 50) or a hand-edited one can't bring other values back */
+function lockLotLimits(){
+  S.symbol.minLot = LOT_MIN; S.symbol.maxLot = LOT_MAX; S.symbol.lotStep = LOT_STEP;
+  if(S.ui){ const l = Number(S.ui.lot); S.ui.lot = isFinite(l) && l > 0 ? clamp(roundTo(l, 2), LOT_MIN, LOT_MAX) : 0.10; }
+}
 /* bring an older saved state up to the current schema */
 function migrateState(){
   const d = DEFAULTS();
   S.version = d.version;
   for(const k in d.market) if(S.market[k] === undefined) S.market[k] = d.market[k];
   for(const k in d.symbol) if(S.symbol[k] === undefined) S.symbol[k] = d.symbol[k];
+  lockLotLimits();
   if(!S.market.dayVolProbs) S.market.dayVolProbs = dayVolProbDefaults();
   if(!(S.market.dayDurationMin > 0) || S.market.dayDurationMin === 50) S.market.dayDurationMin = 45;   // day = 45 real min
   if(S.symbol.leverage === 100 || !(S.symbol.leverage > 0)) S.symbol.leverage = 2000;                 // default 1:2000
@@ -804,6 +807,10 @@ function pad2(n){ return String(n).padStart(2,"0"); }
 function simDate(){ return new Date(S.simClock); }
 function simTimeStr(){ const d = simDate(); return pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes())+":"+pad2(d.getUTCSeconds()); }
 function simDateStr(t){ const d = new Date(t==null?S.simClock:t); return d.getUTCFullYear()+"-"+pad2(d.getUTCMonth()+1)+"-"+pad2(d.getUTCDate()); }
+/* dates and times on screen are in the device's own time zone, like cTrader — the
+   engine itself (sessions, rollover, swaps, D1 bars) keeps working in UTC */
+function fmtYMD(t){ const d = new Date(t==null?S.simClock:t); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function fmtHM(t){ const d = new Date(t==null?S.simClock:t); return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
 function fmtDur(ms){
   const s = Math.floor(ms/1000);
   const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), ss = s%60;
@@ -891,7 +898,7 @@ function seedMarket(){
 function genBars(count, sec, endMid, endMs){
   const digits = S.symbol.digits;
   const bars = [];
-  const perBar = 42/3.4 * Math.sqrt(sec/86400);      // stdev per bar (typical daily range ~$42)
+  const perBar = 42/3.4 * Math.sqrt(sec/86400) * pxVolScale(endMid);   // stdev per bar (daily range ~$42 at $2 600, scaled with price)
   let m = endMid + gauss() * perBar * Math.sqrt(count) * 0.5;
   let anchor = m;
   const tEnd = Math.floor(endMs/1000/sec) * sec;
@@ -1075,6 +1082,38 @@ function startNewDay(open){
     regimeAtOpen: S.regime ? S.regime.name : "RANGE"
   };
 }
+/* ---- the market clock follows REAL time ----
+   A trading day opens at the real current moment. The market clock then runs
+   faster than the wall clock (a whole day in dayDurationMin real minutes), so by
+   the end of the day it is ahead of it; the next day re-anchors to "now" by moving
+   the recorded history back in WHOLE days — candles, trades and events keep their
+   spacing and time of day (every timeframe stays aligned), only the date shifts. */
+const DAY_MS = 86400000;
+function shiftSimTime(ms){
+  if(!ms) return;
+  const sec = ms / 1000;
+  const day = s => s ? simDateStr(Date.parse(s + "T00:00:00Z") + ms) : s;
+  S.simClock += ms;
+  S.lastSimDay = day(S.lastSimDay);
+  for(const tf in S.candles) for(const b of (S.candles[tf] || [])) b.t += sec;
+  for(const p of (S.positions || [])){ p.openTime += ms; p.lastSwapDay = day(p.lastSwapDay); }
+  for(const o of (S.pendings || [])) if(o.createTime) o.createTime += ms;
+  for(const h of (S.history || [])){ if(h.openTime) h.openTime += ms; if(h.closeTime) h.closeTime += ms; }
+  for(const e of (S.events || [])) if(e.time) e.time += ms;
+  for(const t of _tickBuf) t.t += ms;
+  _lastShockMin = Math.floor(S.simClock / 60000);
+}
+/* openNow = a new trading day starts: the clock lands exactly on real time.
+   Otherwise (boot) only a whole-day offset is removed, so the running day keeps
+   its time of day and an old or idle account simply comes to today's date. */
+function anchorClockToReal(openNow){
+  const now = Date.now(), off = now - S.simClock;          // + : the market clock is behind
+  const days = off >= 0 ? Math.floor(off / DAY_MS)
+             : -(openNow ? Math.ceil(-off / DAY_MS) : Math.floor(-off / DAY_MS));
+  if(days) shiftSimTime(days * DAY_MS);
+  if(openNow && S.simClock < now) S.simClock = now;
+  return days;
+}
 function rolloverDay(){
   const D = S.day;
   D.close = S.price.mid;
@@ -1091,10 +1130,11 @@ function rolloverDay(){
   const gap = rnd(0, 2.5) * (Math.random() < 0.5 ? 1 : -1);
   const newOpen = Math.max(0.01, roundTo(D.close + gap, S.symbol.digits));
   S.price.mid = newOpen; S.price.prevMid = newOpen;
-  const dd = simDate();
-  S.simClock = Date.UTC(dd.getUTCFullYear(), dd.getUTCMonth(), dd.getUTCDate() + 1, 0, 0, 0);
+  anchorClockToReal(true);                           // the new day opens at the real current time
+  S.lastSimDay = simDateStr(S.simClock - DAY_MS);    // …and counts as exactly one swap day
   startNewDay(newOpen);
   checkRollover();
+  if(typeof xcPushState === "function") xcPushState(true);   // history moved: mirrors re-pull it
   S._needRender = true;
   toast("o", "DAY " + stat.index + " · O " + pxfmt(stat.open) + "  C " + pxfmt(stat.close) +
     "  Range $" + fmt(stat.range, 2) + " · " + signMoney(stat.change) + " · " + stat.regime);
@@ -1142,18 +1182,25 @@ function engineFrame(){
   advanceRegime();
 
   if(newsOn || impulseOn){
+    // Manual Market Control keeps its five-ticks-per-M1 candles here too: ticks come
+    // at the normal TPS and each one moves the clock by exactly 12 game-seconds.
+    const manualCandles = S.manual.enabled;
     // NFP-style "one candle" release: sim-time HOLDS, only the news impulse drives price
-    const oneShot = newsOn && S.news.scenario && S.news.scenario.oneCandle;
-    const hz = newsOn ? rnd(S.newsEngine.tickHzNewsMin, S.newsEngine.tickHzNewsMax) : rnd(18, 34);
+    const oneShot = !manualCandles && newsOn && S.news.scenario && S.news.scenario.oneCandle;
+    const hz = manualCandles ? normalTps()
+             : newsOn ? rnd(S.newsEngine.tickHzNewsMin, S.newsEngine.tickHzNewsMax) : rnd(18, 34);
     _tickAcc += hz * RT_MS / 1000;
     let nTicks = clamp(Math.floor(_tickAcc), 0, 60);
     _tickAcc -= Math.floor(_tickAcc);
-    if(!oneShot) _simDebtMs += RT_MS * daySpeedNow() * simSpeed();
+    if(!oneShot && !manualCandles) _simDebtMs += RT_MS * daySpeedNow() * simSpeed();
     if(nTicks > 0){
-      const simPerTick = oneShot ? 0 : _simDebtMs / nTicks;
+      const simPerTick = (oneShot || manualCandles) ? 0 : _simDebtMs / nTicks;
       _simDebtMs = 0;
       for(let i=0;i<nTicks;i++){
-        if(!oneShot){
+        if(manualCandles){
+          manualClockStep();
+          if(!S.manual.frozen) priceStep((MANUAL_TICK_MS/1000) * (closed ? 0.2 : 1));   // PAUSE: only the impulse moves
+        }else if(!oneShot){
           S.simClock += simPerTick;
           priceStep((simPerTick/1000) * (closed ? 0.2 : 1));   // the day keeps moving under the news
         }
@@ -1194,18 +1241,27 @@ function normalTickFire(){
     if(S.news.active || S.manual.impulse) return;                 // news / impulse drive price via engineFrame
     if(S.manual.enabled && S.manual.frozen) return;               // God Mode PAUSE
     if(marketClosed()){ recalcAccount(); return; }
-    const tps = normalTps();
-    const gameMs = (1000 / tps) * daySpeedNow() * simSpeed();     // game-time advanced per real tick (× accelerator)
-    // keep each price sub-step small (~<=14 game-sec) so candles stay smooth at any TPS / accelerator
-    let sub = clamp(Math.round(gameMs / 14000), 1, 40);
-    if(sub < 2 && marketActivity() > 2.6 && Math.random() < 0.18) sub = 2;   // occasional micro-burst
-    const stepMs = gameMs / sub;
-    for(let i=0;i<sub;i++){
-      S.simClock += stepMs;
-      priceStep(stepMs / 1000);
+    if(S.manual.enabled){
+      // Manual Market Control: one tick = exactly 12 game-seconds -> five ticks per M1 candle
+      manualClockStep();
+      priceStep(MANUAL_TICK_MS / 1000);
       applyPriceDerived();
       pushTick();
       updateCandles();
+    }else{
+      const tps = normalTps();
+      const gameMs = (1000 / tps) * daySpeedNow() * simSpeed();     // game-time advanced per real tick (× accelerator)
+      // keep each price sub-step small (~<=14 game-sec) so candles stay smooth at any TPS / accelerator
+      let sub = clamp(Math.round(gameMs / 14000), 1, 40);
+      if(sub < 2 && marketActivity() > 2.6 && Math.random() < 0.18) sub = 2;   // occasional micro-burst
+      const stepMs = gameMs / sub;
+      for(let i=0;i<sub;i++){
+        S.simClock += stepMs;
+        priceStep(stepMs / 1000);
+        applyPriceDerived();
+        pushTick();
+        updateCandles();
+      }
     }
     processPendings();
     processPositionSLTP();
@@ -1223,12 +1279,26 @@ function marketTick(){
   recalcAccount(); checkStopOut(); save();
 }
 
-/* ---- the price step (dt in GAME seconds).  No anchor. ---- */
+/* ---- the price step (dt in GAME seconds).  No anchor. ----
+   A day's realised High-Low lands around its volatility band, scaled with the price
+   level (pxVolScale). The move of one step is built from:
+     diffusion with fat tails ................. ordinary order flow
+     a slow swing drift (Ornstein-Uhlenbeck) ... intraday legs: impulse, pullback
+     regime drift + pull to the EMA ............ multi-day structure
+     bursts that give part of the move back .... liquidity sweeps / stop runs
+     hesitation at round $5 levels ............. resting liquidity
+     a wiggle that is taken back next tick ..... bid/ask bounce (negative lag-1)
+   The old AR(1) velocity made every tick continue the last one (lag-1 +0.49) and
+   blew day ranges up to ~4x their band; real tick data does the opposite.      */
+const VOL_NORM = 1.0;            // calibration: realised day range ~ band x price scale
+const SWING_SHARE = 0.45;        // share of the diffusion variance carried by swing legs
+function fatTail(){ return (Math.random() < 0.12 ? gauss() * 2.2 : gauss()) / 1.2086; }   // unit variance
 function priceStep(dt){
   const P = S.price, M = S.market, RG = regimeCfg();
   dt = Math.max(dt, 0.002);
 
-  const dayRange = S.day ? S.day.targetRange : 35;
+  const ps = pxVolScale(P.mid);
+  const dayRange = (S.day ? S.day.targetRange : 35) * ps;
   const dayStdev = dayRange / 3.2;                 // close-to-close stdev ~ Range / 3.2
   const sf = sessionInfo().vol;
 
@@ -1236,31 +1306,63 @@ function priceStep(dt){
   const persist = clamp(M.volClusterPersist || 0.992, 0.90, 0.9995);
   P.volCluster = clamp(persist*(P.volCluster || 1) + (1-persist)*(0.72 + Math.abs(gauss())*0.7), 0.5, 2.4);
 
-  const volMul = RG.vol * sf * P.volCluster * (M.intradayNoise || 1);
-  const sigma = (dayStdev / Math.sqrt(86400)) * Math.sqrt(dt) * volMul;
-  const shock = gauss() * sigma;
+  const volMul = RG.vol * sf * P.volCluster * (M.intradayNoise || 1) / VOL_NORM;
+  const perSec = dayStdev / Math.sqrt(86400) * volMul;            // $ per sqrt(game-second)
+  const sigma = perSec * Math.sqrt(dt * (1 - SWING_SHARE));
+  let move = fatTail() * sigma;
 
-  // momentum (AR-1 velocity)
-  P.vel = clamp(RG.mom, 0, 0.92) * (P.vel || 0) + shock;
+  // swing legs — regimes with more momentum hold a leg longer (~25-70 game-min)
+  const tau = 1500 + 3000 * clamp(RG.mom, 0, 0.9);
+  const keep = Math.exp(-dt / tau);
+  P.swing = (P.swing || 0) * keep + Math.sqrt(1 - keep*keep) * perSec * Math.sqrt(SWING_SHARE / (2*tau)) * gauss();
+  move += P.swing * dt;
+
+  // short-lived impulse left by a breakout, news follow-through or a manual impulse
+  P.vel = (P.vel || 0) * 0.55;
+  move += P.vel;
 
   // regime directional drift ($ per game-day). Scale with daily stdev but CAP it so an
   // extreme-vol day does not create runaway trend drift.
-  const driftPerDay = RG.drift * clamp(dayStdev, 4, 13) * (M.regimeDriftScale || 1)
-                    + MACRO_DRIFT * (M.macroBull || 1);
-  P.mid += P.vel + driftPerDay * (dt / 86400);
+  const driftPerDay = RG.drift * clamp(dayStdev, 4, 13 * ps) * (M.regimeDriftScale || 1)
+                    + MACRO_DRIFT * ps * (M.macroBull || 1);
+  move += driftPerDay * (dt / 86400);
+
+  // a burst in progress: a few fast ticks one way, then part of it is given back
+  const B = P.burst;
+  if(B){
+    if(B.push > 0){
+      const part = B.step * rnd(0.55, 1.45);
+      move += part; B.moved += part;
+      if(--B.push === 0) B.back = -B.moved * B.retrace / Math.max(B.pull, 1);
+    }else if(B.pull > 0){
+      move += B.back * rnd(0.4, 1.6); B.pull--;
+    }
+    if(B.push <= 0 && B.pull <= 0) P.burst = null;
+  }
+
+  // resting liquidity at round $5 levels: an approach is often absorbed for a moment
+  const lvl = Math.round(P.mid / 5) * 5, toLvl = lvl - P.mid;
+  if(toLvl !== 0 && Math.abs(toLvl) < 0.6 * ps && Math.sign(move) === Math.sign(toLvl) && Math.random() < 0.35) move *= 0.35;
+
+  // bid/ask bounce: a wiggle that is taken back on the next tick
+  const jit = gauss() * sigma * 0.5;
+  move += jit - (P.jit || 0);
+  P.jit = jit;
+
+  P.mid += move;
 
   // DYNAMIC EQUILIBRIUM — range-like regimes circulate around the slow EMA (which follows price)
   if(RG.rangePull > 0){
     const pull = 1 - Math.exp(-RG.rangePull * dt / 90);
     const dev = P.mid - P.ema;
-    const half = (S.regime && S.regime.channelHalf) || dayRange * 2;
+    const half = ((S.regime && S.regime.channelHalf) || dayRange * 2 / ps) * ps;
     const wall = Math.abs(dev) > half ? clamp((Math.abs(dev)/half - 1) * 0.6, 0, 0.4) : 0;
     P.mid += (P.ema - P.mid) * (pull + wall);
-    // rare real breakout out of a long consolidation
-    if(Math.random() < 0.00008 * dt){
+    // rare real breakout out of a long consolidation (was ~7 a day — ranges never lasted)
+    if(Math.random() < 0.00001 * dt){
       const dir = dev >= 0 ? 1 : -1;
       startRegime(dir > 0 ? (Math.random()<0.5?"BULL":"STRONG_BULL") : (Math.random()<0.5?"BEAR":"STRONG_BEAR"));
-      P.vel += dir * dayStdev * rnd(0.8, 1.8);
+      P.vel += dir * dayStdev * rnd(0.3, 0.8);
     }
   }
 
@@ -1272,23 +1374,25 @@ function priceStep(dt){
 
   if(P.mid < 0.01) P.mid = 0.01;
   trackDayExtremes();
-  P.lastVol = Math.max(1, Math.round(Math.abs(P.vel)/Math.max(sigma,1e-9) * rnd(2,8) + rnd(1,5)));
+  P.lastVol = Math.max(1, Math.round(Math.abs(move)/Math.max(sigma,1e-9) * rnd(2,8) + rnd(1,5)));
 }
 function normalMicroStep(dt){ priceStep(dt); }   // back-compat alias
 
-/* small ordinary market shock ($2-5 common, $5-10, rarely $10-20) — never $50+ */
+/* ordinary market burst ($2-5 common, $5-10, rarely $10-20 at $2 600, scaled with
+   price) — a sweep over a few ticks that gives part of the move back, instead of
+   one tick teleporting the price. Never $50+. */
 let _lastShockMin = -1;
 function microShock(dt){
-  if(S.news.active || S.manual.impulse) return;
+  if(S.news.active || S.manual.impulse || S.price.burst) return;
   const simMin = Math.floor(S.simClock/60000);
   if(simMin === _lastShockMin) return;
   _lastShockMin = simMin;
-  if(Math.random() > 0.012) return;                // ~ a handful per game-day
+  if(Math.random() > 0.008) return;                // ~ a dozen per game-day
   const r = Math.random();
-  const mag = r < 0.70 ? rnd(2,5) : r < 0.93 ? rnd(5,10) : rnd(10,20);
+  const mag = (r < 0.70 ? rnd(2,5) : r < 0.93 ? rnd(5,10) : rnd(10,20)) * pxVolScale(S.price.mid) * 0.75;
   const dir = Math.random() < 0.5 ? 1 : -1;
-  S.price.mid += dir*mag;
-  S.price.vel += dir*mag*0.30;
+  const n = Math.max(2, Math.round(rnd(3, 6) + mag / 5));          // bigger sweeps take a few more ticks
+  S.price.burst = { push: n, step: dir * mag / n, moved: 0, retrace: rnd(0.2, 0.6), pull: Math.round(rnd(5, 14)), back: 0 };
   S.price.volCluster = Math.min(5, (S.price.volCluster || 1) + 0.7);
   S.price.lastVol = Math.round(mag*9);
 }
@@ -1298,11 +1402,36 @@ function trackDayExtremes(){
   if(S.price.mid < D.low)  D.low  = S.price.mid;
 }
 
-/* ---- MANUAL MARKET CONTROL (God Mode) ---- */
+/* ---- MANUAL MARKET CONTROL (God Mode) ----
+   While it is on:
+     * every tick moves the market clock by exactly 12 game-seconds, so an M1 candle
+       is built from exactly five ticks (:00 :12 :24 :36 :48) — auto ticks, manual
+       taps and impulse ticks alike. The first manual tick opens a fresh minute.
+     * the spread is generated tick by tick between 0.16 and 0.24: it sits at 16-17
+       for one to three ticks, pops to 18-24 for a tick or two, then settles back. */
+const MANUAL_TICK_MS = 12000;
+function manualClockStep(){
+  const c = S.simClock;
+  S.simClock = (c % MANUAL_TICK_MS === 0) ? c + MANUAL_TICK_MS : (Math.floor(c / 60000) + 1) * 60000;
+}
+const _mSpr = { pts: 16, hold: 0 };
+function manualSpread(){
+  const Q = _mSpr;
+  if(Q.hold > 0){ Q.hold--; return Q.pts / 100; }
+  if(Math.random() < (Q.pts <= 17 ? 0.40 : 0.70)){
+    Q.pts = Math.random() < 0.6 ? 16 : 17;
+    Q.hold = weightedIdx([0.30, 0.45, 0.25]);                             // 1-3 ticks
+  }else{
+    Q.pts = 18 + weightedIdx([0.30, 0.20, 0.17, 0.14, 0.10, 0.06, 0.03]);  // 18…24
+    Q.hold = Math.random() < 0.8 ? 0 : 1;                                 // 1-2 ticks
+  }
+  return Q.pts / 100;
+}
 function manualSyncAll(){
-  applyPriceDerived(); updateCandles(); trackDayExtremes();
+  if(S.manual.enabled) manualClockStep();          // a manual tick is one of the candle's five
+  applyPriceDerived(); pushTick(); updateCandles(); trackDayExtremes();
   processPendings(); processPositionSLTP(); recalcAccount(); checkStopOut();
-  pushTick(); save();
+  save();
 }
 function manualSetPrice(v){
   if(!isFinite(v) || v <= 0.01){ toast("r", "Некорректная цена"); return; }
@@ -1386,7 +1515,9 @@ function applyPriceDerived(){
   const P = S.price, d = S.symbol.digits, base = S.market.baseSpread;
   const mv = Math.abs(P.mid - (P.prevMid||P.mid));
   let spread;
-  if(S.trading.spreadMode === "fixed"){
+  if(S.manual.enabled){
+    spread = manualSpread();                                     // 0.16-0.24, generated tick by tick
+  }else if(S.trading.spreadMode === "fixed"){
     spread = S.trading.fixedSpread;
   }else{
     const sf = sessionInfo().vol;
@@ -1403,12 +1534,12 @@ function applyPriceDerived(){
     if(S.manual.impulse) spread = base*(1.6 + 2.4*(1-Math.abs(S.manual.impulse.delta/Math.max(S.manual.impulse.usd,1)))) + mv*3;
     spread = clamp(spread, base*0.6, base*60);                   // spread guard only — not a price corridor
   }
-  if(marketClosed()) spread *= 3;
+  if(marketClosed() && !S.manual.enabled) spread *= 3;
   P.prevMid = P.mid;
   P.mid = roundTo(P.mid, d);
   P.spread = roundTo(spread, d);
-  P.bid = roundTo(P.mid - spread/2, d);
-  P.ask = roundTo(P.mid + spread/2, d);
+  P.bid = roundTo(P.mid - P.spread/2, d);
+  P.ask = roundTo(P.bid + P.spread, d);                        // Ask − Bid is exactly the quoted spread
   P.volume += P.lastVol || 1;
 }
 
@@ -1605,7 +1736,7 @@ function endNews(){
   N.decayUntil = Date.now() + 4500;
   // seal a "one candle" release: nudge sim-time past the current M1 so the next
   // tick opens a FRESH candle instead of extending the (now huge) news candle.
-  if(sc && sc.oneCandle) S.simClock += (TF.M1 + 1) * 1000;
+  if(sc && sc.oneCandle && !S.manual.enabled) S.simClock += (TF.M1 + 1) * 1000;   // manual mode ticks 5 per M1 anyway
   // the news move is already baked into price.mid tick by tick — it simply persists,
   // and the EMA equilibrium re-forms around the new level.
   const start = N.startPrice, final = S.price.mid;
@@ -1663,63 +1794,43 @@ function simulateNewsOffline(type){
    ========================================================================= */
 function simDaysOffline(nDays){
   nDays = nDays || 100;
-  const START = 4457;
-  let price = START, ema = price, vel = 0, vc = 1;
-  let minP = price, maxP = price, peak = price, maxDD = 0;
-  const days = [];
-  let regName = weightedKey({ RANGE:.4, BULL:.3, BEAR:.2, ACCUMULATION:.1 });
-  let regDaysLeft = rnd(MARKET_REGIMES[regName].durDays[0], MARKET_REGIMES[regName].durDays[1]);
-  let channelHalf = 35 * rnd(1.4, 3.8);
-  const regimeCounts = {};
-  const stepsPerDay = 900, dtSec = 86400 / stepsPerDay;
-  for(let d=0; d<nDays; d++){
-    regimeCounts[regName] = (regimeCounts[regName] || 0) + 1;
-    // day volatility band (with clustering bias)
-    const pr = S.market.dayVolProbs || dayVolProbDefaults();
-    const bias = clamp(vc - 1, -0.45, 1.6);
-    const adj = { LOW:Math.max(0.02,(pr.LOW||0)*(1-bias*0.55)), NORMAL:(pr.NORMAL||0),
-                  ACTIVE:(pr.ACTIVE||0)*(1+bias*0.45), EXTREME:(pr.EXTREME||0)*(1+bias*1.3) };
-    const band = weightedKey(adj);
-    let range = rnd(DAYVOL_RANGE[band][0], DAYVOL_RANGE[band][1]);
-    if(band === "EXTREME") range += expRand()*16;
-    const dayStdev = range / 3.2;
-    const dOpen = price;
-    let hi = price, lo = price;
-    for(let s=0;s<stepsPerDay;s++){
-      const RG = MARKET_REGIMES[regName];
-      vc = clamp((S.market.volClusterPersist||0.992)*vc + (1-(S.market.volClusterPersist||0.992))*(0.72 + Math.abs(gauss())*0.7), 0.5, 2.4);
-      const sf = 0.80 + 0.55*Math.abs(Math.sin((d*stepsPerDay+s)/stepsPerDay * Math.PI * 1.7));
-      const sigma = (dayStdev/Math.sqrt(86400)) * Math.sqrt(dtSec) * RG.vol * sf * vc * (S.market.intradayNoise||1);
-      vel = clamp(RG.mom,0,0.92)*vel + gauss()*sigma;
-      const driftPerDay = RG.drift*clamp(dayStdev,4,13)*(S.market.regimeDriftScale||1) + MACRO_DRIFT*(S.market.macroBull||1);
-      price += vel + driftPerDay*(dtSec/86400);
-      if(RG.rangePull > 0){
-        const pull = 1 - Math.exp(-RG.rangePull*dtSec/90);
-        const dev = price - ema;
-        const wall = Math.abs(dev) > channelHalf ? clamp((Math.abs(dev)/channelHalf - 1)*0.6, 0, 0.4) : 0;
-        price += (ema - price)*(pull + wall);
+  // Runs the LIVE engine (priceStep, regimes, day bands) at the real tick size on
+  // the current state, then puts the state back exactly as it was — so the debug
+  // statistics can never drift away from what the market actually does.
+  const snap = JSON.stringify(S), shockMin = _lastShockMin;
+  try{
+    const realTick = 1000 / normalTps();
+    const gameMs = realTick * daySpeedNow();
+    const ticksPerDay = Math.max(1, Math.round(dayDurationMs() / realTick));
+    const START = S.price.mid;
+    let minP = START, maxP = START, peak = START, maxDD = 0;
+    const days = [], regimeCounts = {};
+    for(let d=0; d<nDays; d++){
+      const regName = S.regime.name, band = S.day.band, dOpen = S.price.mid;
+      regimeCounts[regName] = (regimeCounts[regName] || 0) + 1;
+      let hi = dOpen, lo = dOpen;
+      for(let s=0; s<ticksPerDay; s++){
+        S.simClock += gameMs;
+        priceStep(gameMs / 1000);
+        const price = S.price.mid;
+        if(price > hi) hi = price;
+        if(price < lo) lo = price;
+        if(price > peak) peak = price;
+        maxDD = Math.max(maxDD, (peak - price) / peak);
+        S.day.elapsedMs += realTick; S.regime.ageMs += realTick;
       }
-      ema += (price - ema)*(1 - Math.exp(-dtSec/5400));
-      if(s % 60 === 0 && Math.random() < 0.10){          // a few small shocks per day
-        const r = Math.random(); const mag = r<0.7?rnd(2,5):r<0.93?rnd(5,10):rnd(10,20);
-        price += (Math.random()<0.5?1:-1)*mag; vc = Math.min(5, vc+0.7);
-      }
-      if(price < 0.01) price = 0.01;
-      hi = Math.max(hi, price); lo = Math.min(lo, price);
-      peak = Math.max(peak, price);
-      maxDD = Math.max(maxDD, (peak - price)/peak);
+      minP = Math.min(minP, lo); maxP = Math.max(maxP, hi);
+      days.push({ range: hi-lo, band, regime: regName, open: dOpen, close: S.price.mid, change: S.price.mid-dOpen });
+      S.price.mid = Math.max(0.01, S.price.mid + rnd(0,2.5)*(Math.random()<0.5?1:-1));   // inter-session gap
+      if(S.regime.ageMs >= regimeDurationMs()) startRegime(null);
+      startNewDay(S.price.mid);
     }
-    minP = Math.min(minP, lo); maxP = Math.max(maxP, hi);
-    days.push({ range: hi-lo, band, regime: regName, open: dOpen, close: price, change: price-dOpen });
-    price = Math.max(0.01, price + rnd(0,2.5)*(Math.random()<0.5?1:-1));   // inter-session gap
-    if(--regDaysLeft <= 0){
-      regName = nextRegimeName(regName);
-      regDaysLeft = rnd(MARKET_REGIMES[regName].durDays[0], MARKET_REGIMES[regName].durDays[1]);
-      channelHalf = range * rnd(1.4, 3.8);
-    }
+    return { days, priceStart: START, priceEnd: S.price.mid, minPrice: minP, maxPrice: maxP,
+             maxDrawdownPct: maxDD*100, regimeCounts };
+  }finally{
+    S = JSON.parse(snap);
+    _lastShockMin = shockMin;
   }
-  return { days, priceStart: START, priceEnd: price, minPrice: minP, maxPrice: maxP,
-           maxDrawdownPct: maxDD*100, regimeCounts };
 }
 function runDayTests(n){
   n = n || 100;
@@ -2419,7 +2530,7 @@ function mktOverview(){
       <div class="loterr" id="lotErr"></div>
       <div class="miniquick">
         ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
-        <button data-lot="max">MAX 50</button>
+        <button data-lot="max">MAX ${fmt(S.symbol.maxLot,0)}</button>
       </div>
       <div>
         <span class="spreadchip">Spread <span class="mono" id="ovSpread">${pxfmt(S.price.spread)}</span></span>
@@ -2474,8 +2585,9 @@ function dayCardMarkup(){
   const range = D.high - D.low, chg = S.price.mid - D.open;
   const chgPct = chg / (D.open||1) * 100;
   return `
-    <div class="row"><span class="k">День</span><span class="v mono">#${D.index} · ${simDateStr()} · <span id="dSess">${sessionInfo().names.join("+")}</span></span></div>
+    <div class="row"><span class="k">День</span><span class="v mono">#${D.index} · ${fmtYMD()} · <span id="dSess">${sessionInfo().names.join("+")}</span></span></div>
     <div class="row"><span class="k">Режим рынка</span><span class="v mono" id="dRegime">${S.regime?MARKET_REGIMES[S.regime.name].label:"—"}</span></div>
+    <div class="row"><span class="k">Время рынка</span><span class="v mono" id="dClock">${fmtYMD()} ${fmtHM()}</span></div>
     <div class="row"><span class="k">Время в дне</span><span class="v mono" id="dTime">${fmtClock(el)} / ${Math.round(dur/60000)}:00</span></div>
     <div class="row"><span class="k">Открытие</span><span class="v mono">${pxfmt(D.open)}</span></div>
     <div class="row"><span class="k">Максимум / Минимум</span><span class="v mono"><span id="dHi">${pxfmt(D.high)}</span> / <span id="dLo">${pxfmt(D.low)}</span></span></div>
@@ -2682,7 +2794,7 @@ function walletCardMarkup(){
 }
 function walletLedgerRow(l){
   const d = new Date(l.ts);
-  const when = simDateStr(l.ts) + " " + pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes());
+  const when = fmtYMD(l.ts) + " " + fmtHM(l.ts);
   const label = l.type === "deposit" ? "Пополнение" : l.type === "withdraw" ? "Вывод средств" : "Перевод";
   const neg = l.type !== "deposit";
   return `<div class="wl-item">
@@ -2878,7 +2990,7 @@ function screenHistory(){
 }
 function histRow(t){
   const d = new Date(t.closeTime);
-  const dstr = simDateStr(t.closeTime)+" "+pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes());
+  const dstr = fmtYMD(t.closeTime)+" "+fmtHM(t.closeTime);
   return `<div class="lrow">
     <div class="top">
       <span class="sym">${t.symbol} <span class="tag ${t.side}">${t.side.toUpperCase()} ${fmt(t.volume,2)}</span></span>
@@ -2915,7 +3027,7 @@ function screenCalendar(){
         return `<div class="evt">
           <div>
             <div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span> ${e.manual?'<span class="impact" style="background:var(--press);color:var(--ink2)">manual</span>':''}</div>
-            <small>${e.released?`Released · ${simDateStr(e.time)}`:`через ~${mins} мин`}</small><br>
+            <small>${e.released?`Released · ${fmtYMD(e.time)} ${fmtHM(e.time)}`:`через ~${mins} мин`}</small><br>
             <small>Previous ${fmt(e.previous,e.unit==="K"?0:2)}${e.unit} · Forecast ${fmt(e.forecast,e.unit==="K"?0:2)}${e.unit}
             ${e.actual!=null?` · <b>Actual ${fmt(e.actual,e.unit==="K"?0:2)}${e.unit}</b>`:""}</small>
           </div>
@@ -2927,12 +3039,18 @@ function screenCalendar(){
   </div>`;
 }
 
-/* ---------- DOM ---------- */
+/* ---------- DOM ----------
+   Synthetic depth that behaves like a live book: each level keeps its size between
+   refreshes and churns (adds, partial cancels, now and then a large resting order);
+   when the price moves, the levels it went through are consumed and fresh ones
+   queue up on the other side. Every change flashes, ~4 refreshes a second. */
 function screenDOM(){
+  const rows = domRows();                          // steps the book first; the imbalance reads it
   return appbar("Стакан заявок (DOM)",{back:true}) + `<div class="wrap">
     <div class="card" style="padding:8px">
       <div class="hint" style="text-align:center;margin-bottom:6px">Синтетическая ликвидность — DEMO</div>
-      <div class="dom-grid" id="domGrid">${domRows()}</div>
+      <div id="domImb">${domImbMarkup()}</div>
+      <div class="dom-grid" id="domGrid">${rows}</div>
       <div class="grid2" style="margin-top:10px">
         <button class="btn red" data-act="domsell">ПРОДАТЬ ${fmt(S.ui.lot,2)} @ Bid</button>
         <button class="btn green" data-act="dombuy">КУПИТЬ ${fmt(S.ui.lot,2)} @ Ask</button>
@@ -2940,25 +3058,79 @@ function screenDOM(){
     </div>
   </div>`;
 }
+const DOM_LEVELS = 10;
+let _book = null;
+function domLot(x){ return x >= 10 ? fmt(x, 0) : fmt(x, x >= 1 ? 1 : 2); }
+function domGap(){ const r = Math.random(); return roundTo(r < 0.35 ? rnd(0.02, 0.05) : r < 0.80 ? rnd(0.05, 0.12) : rnd(0.12, 0.25), 2); }
+function domLevel(i){
+  const wall = Math.random() < 0.03 ? rnd(3, 8) : 1;                 // the odd large resting order
+  return { g: domGap(), sz: roundTo((0.4 + Math.random()*2.6) * (1 + i*0.55) * wall, 2), f: 0, born: false };
+}
+/* how many levels a move of `dist` went through: the touch, plus every level that
+   sat closer than `dist` behind it */
+function domPassed(side, dist){
+  if(dist < 0.005) return 0;
+  let n = 1, off = 0;
+  while(n < DOM_LEVELS && off + side[n].g < dist){ off += side[n].g; n++; }
+  return n;
+}
+function domStep(){
+  const bid = S.price.bid, ask = S.price.ask;
+  if(!_book){
+    _book = { bid, ask, a: [], b: [] };
+    for(let i=0;i<DOM_LEVELS;i++){ _book.a.push(domLevel(i)); _book.b.push(domLevel(i)); }
+  }
+  const B = _book;
+  const mv = ((bid + ask) - (B.bid + B.ask)) / 2;                    // mid move, $
+  const eat  = (side, n) => { for(let k=0;k<n;k++){ side.shift(); side.push(domLevel(DOM_LEVELS-1)); } };
+  const grow = (side, n) => { for(let k=0;k<n;k++){ side.pop(); const l = domLevel(0); l.f = 2; l.born = true; side.unshift(l); } };
+  if(mv > 0){ const n = domPassed(B.a, mv); eat(B.a, n); grow(B.b, n); }        // up: asks taken, bids step up behind
+  else if(mv < 0){ const n = domPassed(B.b, -mv); eat(B.b, n); grow(B.a, n); }
+  B.bid = bid; B.ask = ask;
+  for(const side of [B.a, B.b]){
+    side.forEach((l, i)=>{
+      if(l.born){ l.born = false; return; }        // a fresh level keeps its flash for this refresh
+      l.f = 0;
+      const r = Math.random();
+      if(r < 0.33){
+        const nz = roundTo(Math.max(0.01, l.sz * rnd(0.72, 1.32) + rnd(-0.4, 0.7)), 2);
+        l.f = nz > l.sz ? 1 : nz < l.sz ? -1 : 0;
+        l.sz = nz;
+      }else if(r < 0.38){
+        l.sz = domLevel(i).sz; l.f = 2;
+      }
+      if(Math.random() < 0.04) l.g = domGap();
+    });
+  }
+}
 function domRows(){
-  const step = 0.05 + S.price.spread*0.15;
-  const asks = [], bids = [];
-  let acc = S.price.ask;
-  const aLevels = [];
-  for(let i=1;i<=5;i++){ acc = roundTo(acc + step*rnd(0.7,1.5), 2); aLevels.push(acc); }
-  for(let i=5;i>=1;i--){ asks.push({px:aLevels[i-1], sz: Math.round(rnd(3,45)*i)}); }
-  acc = S.price.bid;
-  for(let i=1;i<=5;i++){ acc = roundTo(acc - step*rnd(0.7,1.5), 2); bids.push({px:acc, sz: Math.round(rnd(3,45)*i)}); }
-  const maxSz = Math.max(...asks.map(a=>a.sz), ...bids.map(b=>b.sz), 1);
+  domStep();
+  const B = _book, fl = f => f === 1 ? " up" : f === -1 ? " dn" : f === 2 ? " nw" : "";
+  const aPx = [], bPx = [];
+  let acc = B.ask; for(let i=0;i<DOM_LEVELS;i++){ if(i) acc = roundTo(acc + B.a[i].g, 2); aPx.push(acc); }
+  acc = B.bid;     for(let i=0;i<DOM_LEVELS;i++){ if(i) acc = roundTo(acc - B.b[i].g, 2); bPx.push(acc); }
+  const maxSz = Math.max(...B.a.map(l=>l.sz), ...B.b.map(l=>l.sz), 0.01);
   let html = "";
-  for(const a of asks){
-    html += `<div></div><div class="dom-px mono">${pxfmt(a.px)}</div><div class="dom-ask mono"><span class="dom-bar a" style="width:${a.sz/maxSz*100}%"></span>${a.sz}</div>`;
+  for(let i=DOM_LEVELS-1;i>=0;i--){
+    const l = B.a[i];
+    html += `<div></div><div class="dom-px mono">${pxfmt(aPx[i])}</div><div class="dom-ask mono${fl(l.f)}"><span class="dom-bar a" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div>`;
   }
   html += `<div class="dom-bid mono" style="color:var(--ink2)">спред</div><div class="dom-px mono" style="color:var(--orange)">${pxfmt(S.price.spread)}</div><div class="dom-ask mono" style="color:var(--ink2)"></div>`;
-  for(const b of bids){
-    html += `<div class="dom-bid mono"><span class="dom-bar b" style="width:${b.sz/maxSz*100}%"></span>${b.sz}</div><div class="dom-px mono">${pxfmt(b.px)}</div><div></div>`;
+  for(let i=0;i<DOM_LEVELS;i++){
+    const l = B.b[i];
+    html += `<div class="dom-bid mono${fl(l.f)}"><span class="dom-bar b" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div><div class="dom-px mono">${pxfmt(bPx[i])}</div><div></div>`;
   }
   return html;
+}
+/* which side is heavier right now: total resting size on each side of the book */
+function domImbMarkup(){
+  if(!_book) return "";
+  let b = 0, a = 0;
+  for(const l of _book.b) b += l.sz;
+  for(const l of _book.a) a += l.sz;
+  const pb = Math.round(b / ((a + b) || 1) * 100);
+  return `<div class="dom-imb-l"><span class="pos">Покупатели ${pb}% · ${domLot(b)} лот</span><span class="neg">${domLot(a)} лот · ${100-pb}% Продавцы</span></div>
+    <div class="dom-imb"><span class="b" style="width:${pb}%"></span><span class="a" style="width:${100-pb}%"></span></div>`;
 }
 function drawDOMCanvasMaybe(){}
 
@@ -2975,12 +3147,13 @@ function dayStats(days){
 function engineLiveCard(){
   const M = S.market, NE = S.newsEngine, P = S.price;
   const RG = regimeCfg();
-  const dayRange = S.day ? S.day.targetRange : 35;
+  const ps = pxVolScale(P.mid);
+  const dayRange = (S.day ? S.day.targetRange : 35) * ps;
   const dayStdev = dayRange / 3.2;
   const sessV = sessionInfo().vol;
-  const volMul = RG.vol * sessV * (P.volCluster||1) * (M.intradayNoise||1);
+  const volMul = RG.vol * sessV * (P.volCluster||1) * (M.intradayNoise||1) / VOL_NORM;
   const sigMin = (dayStdev/Math.sqrt(86400)) * Math.sqrt(60) * volMul;      // ~$ move stdev per game-minute
-  const driftDay = RG.drift * clamp(dayStdev,4,13) * (M.regimeDriftScale||1) + MACRO_DRIFT * (M.macroBull||1);
+  const driftDay = RG.drift * clamp(dayStdev,4,13*ps) * (M.regimeDriftScale||1) + MACRO_DRIFT * ps * (M.macroBull||1);
   const tickMs = Math.max(50, Math.round(1000 / normalTps()));
   const row = (k,v)=>`<div class="row"><span class="k">${k}</span><span class="v mono">${v}</span></div>`;
   return `<div class="card">
@@ -3022,7 +3195,7 @@ function screenDebug(){
     <div class="card">
       <h3 style="margin-top:0">Текущий день</h3>
       ${D ? `<div class="row"><span class="k">День #${D.index}</span><span class="v mono">полоса ${bandRu[D.band]||D.band}</span></div>
-      <div class="row"><span class="k">Целевой диапазон (скрыт в UI)</span><span class="v mono">$${fmt(D.targetRange,1)}</span></div>
+      <div class="row"><span class="k">Целевой диапазон (скрыт в UI)</span><span class="v mono">$${fmt(D.targetRange*pxVolScale(S.price.mid),1)}</span></div>
       <div class="row"><span class="k">Откр / Макс / Мин / сейчас</span><span class="v mono">${pxfmt(D.open)} / ${pxfmt(D.high)} / ${pxfmt(D.low)} / ${pxfmt(S.price.mid)}</span></div>
       <div class="row"><span class="k">Диапазон за день</span><span class="v mono">$${fmt(D.high-D.low,2)}</span></div>` : ""}
     </div>
@@ -3112,10 +3285,12 @@ function screenSettings(){
     </div>
     <div class="card"><h3>Инструмент — XAUUSD</h3>
       ${F("set_cs","Размер контракта (унций в лоте)", sym.contractSize)}
-      ${F("set_minlot","Мин. лот", sym.minLot)}
-      ${F("set_maxlot","Макс. лот", sym.maxLot)}
-      ${F("set_step","Шаг лота", sym.lotStep)}
-      ${SEL("set_lev","Кредитное плечо",[[50,"1:50"],[100,"1:100"],[200,"1:200"],[500,"1:500"],[1000,"1:1000"],[2000,"1:2000"],[3000,"1:3000"]],sym.leverage)}
+      <div class="row"><span class="k">Мин. лот</span><span class="v mono">${fmt(LOT_MIN,2)}</span></div>
+      <div class="row"><span class="k">Макс. лот</span><span class="v mono">${fmt(LOT_MAX,2)}</span></div>
+      <div class="row"><span class="k">Шаг лота</span><span class="v mono">${fmt(LOT_STEP,2)}</span></div>
+      <div class="hint" style="margin:2px 0 10px">Лимиты объёма фиксированы и в настройках не меняются.</div>
+      ${SEL("set_lev","Кредитное плечо",[[50,"1:50"],[100,"1:100"],[200,"1:200"],[500,"1:500"],[1000,"1:1000"],[2000,"1:2000"],[3000,"1:3000"],[4000,"1:4000"],[10000,"1:10000"]],sym.leverage)}
+      <div class="hint">Маржа = лоты × ${fmt(sym.contractSize,0)} oz × цена ÷ плечо. Сейчас (1:${sym.leverage}) 1 лот ≈ ${money(sym.contractSize*S.price.mid/sym.leverage)}.</div>
     </div>
     <div class="card"><h3>Торговля</h3>
       ${SEL("set_ctype","Тип комиссии",[["usd_per_lot","USD за лот"],["usd_per_million","USD за миллион USD оборота"],["percent","Процент от объёма сделки"],["quote_per_lot","Валюта котировки за лот"]],T.commissionType)}
@@ -3130,7 +3305,7 @@ function screenSettings(){
       ${F("set_mc","Уровень Margin Call (%)", T.marginCallLevel)}
     </div>
     <div class="card"><h3>Частота генерации тиков (TPS)</h3>
-      <div class="hint" style="margin-bottom:8px">Скорость обновления обычного рынка. Интервал таймера = 1000 / TPS мс. Свечи закрываются строго по таймфрейму (M1 — за 60 сек рыночного времени) независимо от числа тиков внутри. Применяется мгновенно, без перезагрузки.</div>
+      <div class="hint" style="margin-bottom:8px">Скорость обновления обычного рынка. Интервал таймера = 1000 / TPS мс. Свечи закрываются строго по таймфрейму (M1 — за 60 сек рыночного времени) независимо от числа тиков внутри (при ручном управлении рынком свеча M1 — ровно 5 тиков). Применяется мгновенно, без перезагрузки.</div>
       <div class="row" style="margin-bottom:6px"><span class="k">Тиков в секунду</span><span class="v tps-val mono" id="tpsVal">${fmt(M.ticksPerSecond,1)}</span></div>
       <div class="field" style="margin-bottom:8px"><label>Точное значение (0.1 – 20, шаг 0.1)</label>
         <input id="set_tps" type="number" min="0.1" max="20" step="0.1" value="${M.ticksPerSecond}"></div>
@@ -3152,8 +3327,8 @@ function screenSettings(){
       </div>
     </div>
     <div class="card"><h3>Обычный рынок — движок режимов</h3>
-      ${F("set_ib","Начальный Bid", M.initialBid, "применяется только при сбросе")}
-      ${F("set_ia","Начальный Ask", M.initialAsk)}
+      <div class="row"><span class="k">Стартовая цена</span><span class="v mono">случайная $${fmt(START_PX_MIN,0)}–$${fmt(START_PX_MAX,0)}</span></div>
+      <div class="hint" style="margin:2px 0 10px">Каждый новый аккаунт (и сброс симулятора) открывает золото по случайной цене в этом диапазоне.</div>
       ${F("set_ddur","Длительность торгового дня (реальных минут)", M.dayDurationMin, "45 реальных минут = 1 торговый день")}
       ${F("set_inoise","Внутридневной шум (×)", M.intradayNoise, "множитель амплитуды шума")}
       ${F("set_rds","Масштаб дрейфа режима (×)", M.regimeDriftScale, "сила направленного движения трендовых режимов")}
@@ -3164,13 +3339,13 @@ function screenSettings(){
       ${SEL("set_fo","Принудительно открытый рынок (игнорировать выходные)",[["true","Да"],["false","Нет"]],String(M.forceOpen))}
     </div>
     <div class="card"><h3>Полосы дневной волатильности — целевой дневной диапазон ($)</h3>
-      <div class="hint" style="margin-bottom:6px">Вероятность каждой полосы на новый день (нормируется автоматически; кластеризация волатильности сдвигает выбор):</div>
+      <div class="hint" style="margin-bottom:6px">Вероятность каждой полосы на новый день (нормируется автоматически; кластеризация волатильности сдвигает выбор). Диапазоны заданы для цены $2 600 и растут вместе с ценой — при $4 500 примерно в 1.7 раза:</div>
       ${DAYVOL_ORDER.map(k=>F("set_dv_"+k, ({LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"}[k]||k)+" — $"+DAYVOL_RANGE[k][0]+"–"+DAYVOL_RANGE[k][1]+(k==="EXTREME"?"+":""), (M.dayVolProbs[k]!=null?M.dayVolProbs[k]:dayVolProbDefaults()[k]))).join("")}
     </div>
     <div class="card"><h3>Ручное управление рынком (Manual Market Control)</h3>
       ${SEL("set_god","Режим ручного управления",[["false","Выкл — работает авто Price Engine"],["true","Вкл — ручное управление XAUUSD"]],String(S.manual.enabled))}
       ${F("set_nbr","Вероятность слома режима новостью (0…1)", NE.newsBreaksRegimeProb)}
-      <div class="hint">По умолчанию выключено — цена движется автоматическим Price Engine. При включении на экране «Обзор» появляется панель: PAUSE/RESUME авто-движка, ручные тики UP/DOWN с заданным шагом, ручное изменение цены на нужную величину, точная установка цены и плавный импульс. Bid/Ask, график, P/L и SL/TP сразу используют новую цену.</div>
+      <div class="hint">По умолчанию выключено — цена движется автоматическим Price Engine. При включении на экране «Обзор» появляется панель: PAUSE/RESUME авто-движка, ручные тики UP/DOWN с заданным шагом, ручное изменение цены на нужную величину, точная установка цены и плавный импульс. Bid/Ask, график, P/L и SL/TP сразу используют новую цену. Пока режим включён, спред генерируется сам в пределах 0.16–0.24, а каждая свеча M1 строится ровно из 5 тиков (ручные тики тоже считаются).</div>
     </div>
     <div class="card"><h3>Движок новостей</h3>
       <div class="hint" style="margin-bottom:6px">Запустить синтетическое событие (20 реальных секунд, независимо от дневного цикла):</div>
@@ -3687,7 +3862,7 @@ function openPosDetail(id){
         <div class="row"><span class="k">Volume</span><span class="v mono">${fmt(cur.volume,2)} lot · ${fmt(cur.volume*S.symbol.contractSize,0)} oz</span></div>
         <div class="row"><span class="k">Entry</span><span class="v mono">${pxfmt(cur.entry)}</span></div>
         <div class="row"><span class="k">Current (${cur.side==="buy"?"Bid":"Ask"})</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur))}</span></div>
-        <div class="row"><span class="k">Open time</span><span class="v mono">${simDateStr(cur.openTime)} ${pad2(new Date(cur.openTime).getUTCHours())}:${pad2(new Date(cur.openTime).getUTCMinutes())}</span></div>
+        <div class="row"><span class="k">Open time</span><span class="v mono">${fmtYMD(cur.openTime)} ${fmtHM(cur.openTime)}</span></div>
         <div class="row"><span class="k">Duration</span><span class="v mono" id="pd-dur">${fmtDur(S.simClock-cur.openTime)}</span></div>
         <div class="row"><span class="k">SL</span><span class="v mono">${cur.sl?pxfmt(cur.sl):"—"}</span></div>
         <div class="row"><span class="k">TP</span><span class="v mono">${cur.tp?pxfmt(cur.tp):"—"}</span></div>
@@ -3855,9 +4030,7 @@ function saveSettingsFromForm(silent){
     recalcAccount();
   }
   sym.contractSize = num("set_cs", sym.contractSize);
-  sym.minLot = num("set_minlot", sym.minLot);
-  sym.maxLot = num("set_maxlot", sym.maxLot);
-  sym.lotStep = num("set_step", sym.lotStep);
+  lockLotLimits();                                  // volume limits are fixed, not a setting
   sym.leverage = parseInt(document.getElementById("set_lev").value)||2000;
   T.commissionType = document.getElementById("set_ctype").value;
   T.commission = num("set_comm", T.commission);
@@ -3870,8 +4043,6 @@ function saveSettingsFromForm(silent){
   T.stopOutLevel = num("set_so", T.stopOutLevel);
   T.marginCallLevel = num("set_mc", T.marginCallLevel);
   // Normal Market
-  M.initialBid = num("set_ib", M.initialBid);
-  M.initialAsk = num("set_ia", M.initialAsk);
   M.dayDurationMin = clamp(num("set_ddur", M.dayDurationMin), 1, 600);
   M.intradayNoise = clamp(num("set_inoise", M.intradayNoise), 0.1, 5);
   M.regimeDriftScale = clamp(num("set_rds", M.regimeDriftScale), 0, 4);
@@ -4011,6 +4182,7 @@ function updateLive(){
     setTxt("dChg", signMoney(chg)+" ("+(chg>=0?"+":"")+fmt(chgPct,2)+"%)", chg>=0?"pos":"neg");
     setTxt("dTime", fmtClock(el)+" / "+Math.round(dur/60000)+":00");
     setTxt("dSess", sessionInfo().names.join("+"));
+    setTxt("dClock", fmtYMD()+" "+fmtHM());
     const bar = document.getElementById("dBar"); if(bar) bar.style.width = (p*100).toFixed(1)+"%";
   }
   setTxt("acBal", money(A.balance));
@@ -4049,7 +4221,10 @@ function updateLive(){
   }
   // dom
   const dg = document.getElementById("domGrid");
-  if(dg && Date.now() - (dg._t||0) > 900){ dg.innerHTML = domRows(); dg._t = Date.now(); }
+  if(dg && Date.now() - (dg._t||0) > 260){
+    dg.innerHTML = domRows(); dg._t = Date.now();
+    const di = document.getElementById("domImb"); if(di) di.innerHTML = domImbMarkup();
+  }
   // news lock countdown + control disabling
   const locked = tradingLocked();
   const nl = document.getElementById("nlCount");
@@ -4438,8 +4613,8 @@ function drawChart(){
   ctx.textAlign = "center";
   for(let i=0;i<vis.length;i+=Math.max(1,Math.floor(vis.length/6))){
     const d = new Date(vis[i].t*1000);
-    const lbl = (tf==="D1")? (pad2(d.getUTCMonth()+1)+"/"+pad2(d.getUTCDate()))
-              : pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes());
+    const lbl = (tf==="D1")? (pad2(d.getUTCMonth()+1)+"/"+pad2(d.getUTCDate()))   // D1 bars are UTC days
+              : pad2(d.getHours())+":"+pad2(d.getMinutes());                      // intraday: device time
     ctx.fillText(lbl, xOf(i)+bw/2, H-6);
   }
 
@@ -4566,7 +4741,7 @@ function drawChart(){
       const rb = data[startIdx + idx] || b;         // raw OHLC for the text readout
       const d = new Date(rb.t*1000);
       info.style.display = "block";
-      info.textContent = `${pad2(d.getUTCMonth()+1)}/${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}  О ${pxfmt(rb.o)}  Н ${pxfmt(rb.h)}  Л ${pxfmt(rb.l)}  З ${pxfmt(rb.c)}`;
+      info.textContent = `${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${pxfmt(rb.o)}  Н ${pxfmt(rb.h)}  Л ${pxfmt(rb.l)}  З ${pxfmt(rb.c)}`;
     }
   }else if(info){
     const last = data[data.length-1];
@@ -4898,6 +5073,7 @@ async function xcTakeOver(force){
     XC.follower = false;
     if(XC._pollT){ clearInterval(XC._pollT); XC._pollT = null; }
     normalizeState();
+    anchorClockToReal(false);            // an idle account's calendar comes to today
     render();
     startLoop();
     xcStartLivePublish();
@@ -5056,6 +5232,7 @@ function normalizeState(){
   if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
   if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
   if(!S.wallet.cardBrand) S.wallet.cardBrand = d.wallet.cardBrand;
+  lockLotLimits();
   recalcAccount();
 }
 
@@ -5063,6 +5240,7 @@ function finishBoot(){
   if(XC.booted) return;
   XC.booted = true;
   normalizeState();
+  if(anchorClockToReal(false)) saveNow();   // an old or idle account's calendar comes to today
   render();
   // start advancing only if the page is actually visible; ?boot=paused -> restore only (debug).
   // if it loads into a background tab, the loop starts on the first resume signal.
@@ -5151,10 +5329,11 @@ async function bootAfterAuth(){
       saveNow();
     } else {
       // nothing on the server for this account
-      load(true);                       // per-user cache -> legacy once -> fresh
-      if(!localStorage.getItem(LS_KEY) && adoptOrphanState()){
-        toast("g", "Прогресс с этого устройства перенесён в аккаунт");
-      }
+      // nothing on the server for this account: its own cache on this device, else a
+      // FRESH market at a random start price. Other accounts' caches and the old
+      // single-player save are never adopted — a new registration used to inherit
+      // their gold price instead of getting its own.
+      load();
     }
   }catch(e){
     if(e.status === 401){ xcClearSession(); return screenAuth("Сессия истекла — войдите снова"); }
