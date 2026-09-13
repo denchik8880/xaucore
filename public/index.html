@@ -90,46 +90,33 @@ img,canvas,svg,video{max-width:100%}
 .warn-banner{background:var(--orange);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 .err-banner{background:var(--red);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 
-/* trade panel — ПРОДАТЬ | лоты | КУПИТЬ. Must fit full Bid/Ask on ~360-412px with no clipping. */
-.tradepanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(98px,112px) minmax(0,1fr);gap:6px;align-items:stretch;width:100%}
-/* cTrader's own layout: the lot sits level with the SELL/BUY captions and the
-   prices run underneath. Two rows everywhere — caption/lot on top, price/steppers
-   below — so no box carries a row the others lack. The earlier 3-row version left
-   the trade buttons with an empty third row: 10px of air above the label against
-   38px of void below the price. */
-.tbtn,.lotbox{display:grid;grid-template-rows:var(--tp-r1) minmax(0,auto);
-  align-items:center;justify-items:center;gap:4px;padding:8px 5px;border-radius:14px;
-  text-align:center;overflow:hidden;min-width:0}
-.tradepanel{--tp-r1:20px}
-.tbtn{border:1px solid transparent}
-.tbtn .lbl{font-weight:600;font-size:clamp(10px,3vw,13.5px);letter-spacing:.02em;white-space:nowrap}
-.tbtn .px{display:block;width:100%;font-size:clamp(17px,6.2vw,28px);font-weight:600;white-space:nowrap;overflow:hidden;letter-spacing:-.02em;line-height:1.1}
-.tbtn.sell{background:var(--red-bg);color:var(--red);border-color:var(--sell-line)}
-.tbtn.buy{background:var(--green-bg);color:var(--green);border-color:var(--buy-line)}
-.tbtn:active{filter:brightness(.96)}
-.tbtn:disabled{opacity:.45}
-/* cTrader notches "Количество (Лоты)" into the lot field's top border rather
-   than stacking it inside, so the caption costs no grid row — which is what
-   used to leave the trade buttons with an empty third row. overflow must stay
-   visible for the label to sit on the border. */
-.lotbox{position:relative;overflow:visible;background:var(--card);border:1px solid var(--line)}
-.lotbox .cap{position:absolute;top:-7px;left:50%;transform:translateX(-50%);
-  background:var(--card);padding:0 5px;font-size:9px;line-height:1.5;font-weight:600;
-  color:var(--ink3);white-space:nowrap;letter-spacing:.01em}
-.lotbox .val{width:100%;min-width:0;text-align:center;font-weight:600;font-size:15px;
-  border:none;background:none;color:inherit;padding:0;line-height:1.2}
-.lotctl{display:flex;align-items:center;gap:4px;width:100%;align-self:stretch}
-.lotctl button{flex:1 1 0;min-width:0;height:100%;border-radius:8px;background:var(--line);font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center}
-.lotctl button:active{background:var(--press)}
-@media (max-width:400px){
-  .tradepanel{grid-template-columns:minmax(0,1fr) minmax(94px,104px) minmax(0,1fr);gap:4px;--tp-r1:18px}
-  .tbtn,.lotbox{padding:6px 3px}
-  .tbtn .lbl{font-size:10px}
-  .lotbox .val{font-size:14px}
-  .lotctl{gap:3px}
-  .lotctl button{font-size:14px}
-}
-.lotbox .val:focus{outline:2px solid var(--blue);border-radius:6px}
+/* Markets → XAUUSD trade panel, cTrader's layout: SELL and BUY are solid L-shaped
+   blocks (caption on top, the price running underneath towards the middle) and the
+   «Количество (Лоты)» dropdown sits between the two captions — tapping it opens the
+   same lot sheet as the Charts tab. The inside corner where a caption meets its
+   price block is filleted with a small radial-gradient square. */
+.ctp{display:grid;grid-template-columns:24fr 23fr 23fr 24fr;column-gap:10px;row-gap:0;width:100%}
+.ctp-cap,.ctp-px{color:#fff;min-width:0}
+.ctp-cap{grid-row:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:54px;padding:0 4px;
+  font-weight:700;font-size:clamp(11px,3.5vw,15px);letter-spacing:.01em;white-space:nowrap}
+.ctp-cap.sell{grid-column:1;background:var(--red);border-radius:10px 8px 0 0}
+.ctp-cap.buy{grid-column:4;background:var(--green);border-radius:8px 10px 0 0}
+.ctp-cap::after{content:"";position:absolute;bottom:0;width:8px;height:8px;pointer-events:none}
+.ctp-cap.sell::after{right:-8px;background:radial-gradient(circle at 100% 0,transparent 7.5px,var(--red) 8px)}
+.ctp-cap.buy::after{left:-8px;background:radial-gradient(circle at 0 0,transparent 7.5px,var(--green) 8px)}
+.ctp-px{grid-row:2;display:flex;align-items:center;min-height:58px;padding:0 12px;overflow:hidden}
+.ctp-px.sell{grid-column:1 / span 2;background:var(--red);border-radius:0 8px 10px 10px}
+.ctp-px.buy{grid-column:3 / span 2;background:var(--green);border-radius:8px 0 10px 10px}
+.ctp-px .v{display:block;width:100%;font-weight:700;font-size:clamp(20px,7.4vw,30px);line-height:1.1;white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
+.ctp-px.sell .v{text-align:right}
+.ctp-px.buy .v{text-align:left}
+.ctp-cap:active,.ctp-px:active{filter:brightness(.94)}
+.ctp-lot{grid-column:2 / span 2;grid-row:1;align-self:start;position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  height:46px;margin:0 0 8px;padding:0 12px;border:1px solid var(--ink3);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}
+.ctp-lot-cap{position:absolute;top:-8px;left:9px;padding:0 5px;background:var(--card);font-size:11px;line-height:15px;color:var(--ink2);white-space:nowrap;max-width:calc(100% - 18px);overflow:hidden}
+.ctp-lot-val{font-size:18px;font-weight:500}
+.ctp-caret{flex:0 0 auto;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--ink2)}
+.ctp-lot:active{background:var(--press)}
 .spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:999px;margin-top:10px}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:12px;color:var(--ink2)}
@@ -270,10 +257,10 @@ hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .tx{display:none}
 body.trade-locked .tcap{display:none}
 body.trade-locked .tx{display:inline}
-.tbtn .tx{font-size:17px;line-height:1}
+.ctp-cap .tx{font-size:18px;line-height:1}
 body.trade-locked [data-act="quicksell"],body.trade-locked [data-act="quickbuy"],
 body.trade-locked [data-act="domsell"],body.trade-locked [data-act="dombuy"],
-body.trade-locked [data-act="newticket"],body.trade-locked [data-act="chartlot"]{opacity:.5;pointer-events:none}
+body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"]{opacity:.5;pointer-events:none}
 .news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
 .news-res .row:last-child{border-bottom:none}
 .ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
@@ -2555,25 +2542,17 @@ function mktOverview(){
   return `<div class="wrap">
     ${godPanelMarkup()}
     <div class="card">
-      <div class="tradepanel">
-        <button class="tbtn sell" data-act="quicksell" id="btnSell">
-          <span class="lbl"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span></span>
-          <span class="px mono" id="ovBid">${pxfmt(S.price.bid)}</span>
+      <div class="ctp">
+        <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span></button>
+        <button class="ctp-lot" data-act="lotpick" aria-label="Выбрать объём">
+          <span class="ctp-lot-cap">Количество (Лоты)</span>
+          <span class="ctp-lot-val mono" id="ovLot">${fmt(lot,2)}</span>
+          <span class="ctp-caret" aria-hidden="true"></span>
         </button>
-        <div class="lotbox">
-          <span class="cap">Количество (Лоты)</span>
-          <input class="val mono" id="lotInput" inputmode="decimal" value="${fmt(lot,2)}">
-          <div class="lotctl">
-            <button data-act="lotminus" aria-label="Меньше">−</button>
-            <button data-act="lotplus" aria-label="Больше">+</button>
-          </div>
-        </div>
-        <button class="tbtn buy" data-act="quickbuy" id="btnBuy">
-          <span class="lbl"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span></span>
-          <span class="px mono" id="ovAsk">${pxfmt(S.price.ask)}</span>
-        </button>
+        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span></button>
+        <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${pxfmt(S.price.bid)}</span></button>
+        <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${pxfmt(S.price.ask)}</span></button>
       </div>
-      <div class="loterr" id="lotErr"></div>
       <div class="miniquick">
         ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
         <button data-lot="max">MAX ${fmt(S.symbol.maxLot,0)}</button>
@@ -3303,7 +3282,7 @@ function chartMarkup(h){
       <span class="cht-lbl"><span class="tcap">Купить</span><span class="tx">✕</span></span>
       <span class="cht-px mono"><span class="cht-dir" id="chDirB">${chartDirArrow()}</span> <span id="chAsk">${pxfmt(S.price.ask)}</span></span>
     </button>
-    <button class="cht-lot" data-act="chartlot" aria-label="Выбрать объём">
+    <button class="cht-lot" data-act="lotpick" aria-label="Выбрать объём">
       <span class="cht-lbl">Лоты <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="cht-val mono" id="chLot">${fmt(S.ui.lot,2)}</span>
     </button>
@@ -3642,28 +3621,7 @@ function bindScreen(){
     save();
   });
 
-  // lot controls
-  const lotInput = document.getElementById("lotInput");
-  if(lotInput){
-    const commit = ()=>{
-      if(tradingLocked()){ lotInput.value = fmt(S.ui.lot,2); return; }
-      let v = parseFloat(lotInput.value.replace(/[\s,]/g,""));
-      const err = validateLot(v);
-      const errEl = document.getElementById("lotErr");
-      if(err){ errEl.textContent = "⚠ "+err; setTradeEnabled(false); return; }
-      errEl.textContent = "";
-      S.ui.lot = roundTo(v,2);
-      lotInput.value = fmt(S.ui.lot,2);
-      setTradeEnabled(true);
-      save();
-    };
-    lotInput.onchange = commit;
-    lotInput.onblur = commit;
-    lotInput.onfocus = ()=> lotInput.select();
-    lotInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ lotInput.blur(); }});
-  }
-  act("lotminus", ()=> stepLot(-1));
-  act("lotplus", ()=> stepLot(1));
+  // lot presets under the Markets trade panel (the «Количество» dropdown itself is "lotpick")
   root.querySelectorAll("[data-lot]").forEach(b=> b.onclick = ()=>{
     const raw = b.dataset.lot;
     S.ui.lot = raw==="max" ? S.symbol.maxLot : roundTo(parseFloat(raw),2);
@@ -3674,7 +3632,7 @@ function bindScreen(){
   // "Новый ордер" (openTicket). Asking first made every trade a two-tap affair.
   act("quickbuy", ()=> quickTrade("buy"));
   act("quicksell", ()=> quickTrade("sell"));
-  act("chartlot", openLotSheet);
+  act("lotpick", openLotSheet);          // «Лоты» on the Charts bar and «Количество» on Markets
   act("dombuy", ()=> confirmMarket("buy"));
   act("domsell", ()=> confirmMarket("sell"));
 
@@ -3772,6 +3730,7 @@ function openLotSheet(){
     const m = document.getElementById("lsMargin");
     if(m) m.textContent = money(S.ui.lot * S.symbol.contractSize * S.price.mid / S.symbol.leverage);
     setTxt("chLot", fmt(S.ui.lot, 2));
+    setTxt("ovLot", fmt(S.ui.lot, 2));
   };
   const setLot = v => { S.ui.lot = clamp(roundTo(v, 2), S.symbol.minLot, S.symbol.maxLot); save(); show(); };
   const commit = ()=>{
@@ -3790,20 +3749,6 @@ function openLotSheet(){
 }
 function setTradeEnabled(on){
   ["btnBuy","btnSell"].forEach(id=>{ const el = document.getElementById(id); if(el) el.disabled = !on; });
-}
-function stepLot(dir){
-  if(guardLock()) return;
-  const step = S.symbol.lotStep;
-  let v = roundTo(S.ui.lot + dir*step, 2);
-  v = clamp(v, S.symbol.minLot, S.symbol.maxLot);
-  S.ui.lot = v;
-  const li = document.getElementById("lotInput");
-  if(li) li.value = fmt(v,2);
-  const errEl = document.getElementById("lotErr"); if(errEl) errEl.textContent="";
-  setTradeEnabled(true);
-  save();
-  // update quick trade button labels elsewhere
-  updateLive();
 }
 
 /* ---------- market confirm ---------- */
@@ -4251,6 +4196,7 @@ function updateLive(){
   setTxt("ovAsk", pxfmt(S.price.ask));
   fitText(document.getElementById("ovBid"), 13);
   fitText(document.getElementById("ovAsk"), 13);
+  setTxt("ovLot", fmt(S.ui.lot, 2));
   setTxt("ovSpread", pxfmt(S.price.spread));
   setTxt("ovSess", sessionInfo().names.join(" · "));
   setTxt("abBal", money(A.equity), abBalCls());
