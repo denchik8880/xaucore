@@ -1414,16 +1414,19 @@ function trackDayExtremes(){
      * every tick moves the market clock by exactly 12 game-seconds, so an M1 candle
        is built from exactly five ticks (:00 :12 :24 :36 :48) — auto ticks, manual
        taps and impulse ticks alike. The first manual tick opens a fresh minute.
-     * the spread is generated tick by tick between 0.16 and 0.24: it sits at 16-17
-       for one to three ticks, pops to 18-24 for a tick or two, then settles back. */
+     * the spread (autoSpread, 0.16-0.24) is not widened even by a news release. */
 const MANUAL_TICK_MS = 12000;
 function manualClockStep(){
   const c = S.simClock;
   S.simClock = (c % MANUAL_TICK_MS === 0) ? c + MANUAL_TICK_MS : (Math.floor(c / 60000) + 1) * 60000;
 }
-const _mSpr = { pts: 16, hold: 0 };
-function manualSpread(){
-  const Q = _mSpr;
+/* ---- spread: generated tick by tick in 0.16-0.24, in every mode — not a setting ----
+   It sits at 16-17 for one to three ticks, pops to 18-24 for a tick or two, then
+   settles back. Only a news release widens it (and the short decay after one). */
+const SPREAD_MIN = 0.16, SPREAD_MAX = 0.24;
+const _spr = { pts: 16, hold: 0 };
+function autoSpread(){
+  const Q = _spr;
   if(Q.hold > 0){ Q.hold--; return Q.pts / 100; }
   if(Math.random() < (Q.pts <= 17 ? 0.40 : 0.70)){
     Q.pts = Math.random() < 0.6 ? 16 : 17;
@@ -1517,31 +1520,22 @@ function stepNews(){
 }
 function newsMicroStep(){ stepNews(); }   // back-compat alias
 
-/* ---- derive bid/ask/spread from mid + dynamic spread engine ---- */
+/* ---- derive bid/ask/spread from mid ---- */
 function applyPriceDerived(){
-  const P = S.price, d = S.symbol.digits, base = S.market.baseSpread;
+  const P = S.price, d = S.symbol.digits;
   const mv = Math.abs(P.mid - (P.prevMid||P.mid));
-  let spread;
-  if(S.manual.enabled){
-    spread = manualSpread();                                     // 0.16-0.24, generated tick by tick
-  }else if(S.trading.spreadMode === "fixed"){
-    spread = S.trading.fixedSpread;
-  }else{
-    const sf = sessionInfo().vol;
-    spread = base * (0.75 + 0.28*sf) + mv * 0.7;                 // session + micro-move widening
+  let spread = autoSpread();                                     // 0.16-0.24, generated tick by tick
+  if(!S.manual.enabled){                                         // manual mode: never widened
     if(S.news.active){
       const cfg = S.newsEngine.perEvent[S.news.type];
       const p = S.news.progress || 0;
       const shape = clamp(Math.exp(-2.4*p) + 0.55*Math.exp(-26*Math.pow(p-0.5,2)) + 0.35, 0.1, 1.3);
-      spread = base * (1 + (cfg.spreadMul - 1) * shape) + mv * 3.2;   // impulse spikes
+      spread = spread * (1 + (cfg.spreadMul - 1) * shape) + mv * 3.2;   // news impulse spikes
     }else if(S.news.decayUntil && Date.now() < S.news.decayUntil){
       const k = (S.news.decayUntil - Date.now()) / 4000;
-      spread *= (1 + 3.0*k);                                     // gradual return to normal
+      spread *= (1 + 3.0*k);                                     // gradual return after the news
     }
-    if(S.manual.impulse) spread = base*(1.6 + 2.4*(1-Math.abs(S.manual.impulse.delta/Math.max(S.manual.impulse.usd,1)))) + mv*3;
-    spread = clamp(spread, base*0.6, base*60);                   // spread guard only — not a price corridor
   }
-  if(marketClosed() && !S.manual.enabled) spread *= 3;
   P.prevMid = P.mid;
   P.mid = roundTo(P.mid, d);
   P.spread = roundTo(spread, d);
@@ -1952,7 +1946,7 @@ function slippage(){
     const cfg = S.newsEngine.perEvent[S.news.type];
     const p = S.news.progress || 0;
     const shape = clamp(Math.exp(-2*p) + 0.35, 0.2, 1.35);
-    const spreadFactor = clamp(S.price.spread / Math.max(S.market.baseSpread, 0.01), 1, 8);
+    const spreadFactor = clamp(S.price.spread / SPREAD_MAX, 1, 8);
     mx = S.market.normalSlippage * cfg.slipMul * shape * (0.5 + spreadFactor/4);
   }else if(currentVolFactor() > 1.9){
     mx *= 2.5;                                            // high normal volatility
@@ -2560,7 +2554,6 @@ function mktOverview(){
       </div>
       <div>
         <span class="spreadchip">Spread <span class="mono" id="ovSpread">${pxfmt(S.price.spread)}</span></span>
-        <span class="spreadchip">${S.trading.spreadMode==="fixed"?"Fixed":"Dynamic"}</span>
         <span class="spreadchip" id="ovSess">${sessionInfo().names.join(" · ")}</span>
       </div>
     </div>
@@ -3191,7 +3184,7 @@ function engineLiveCard(){
     ${row("Память волатильности", fmt(M.volClusterPersist,4)+"  (тек. кластер ×"+fmt(P.volCluster||1,2)+")")}
     ${row("Частота тиков (TPS)", fmt(M.ticksPerSecond,1)+" т/с  (таймер "+tickMs+" мс)")}
     ${row("Ускоритель симуляции", "×"+simSpeed()+"  (игр. время идёт в "+simSpeed()+"× быстрее)")}
-    ${row("Базовый спред", "$"+fmt(M.baseSpread,2)+"  → текущий спред $"+fmt(P.spread,2))}
+    ${row("Спред", "авто $0.16–0.24  → сейчас $"+fmt(P.spread,2))}
     ${row("Обычное проскальзывание", "$"+fmt(M.normalSlippage,2)+" макс")}
     ${row("Целевой диапазон дня", "$"+fmt(dayRange,1)+"  → σ ≈ $"+fmt(sigMin,2)+" / игр. мин")}
     ${row("Длительность дня", M.dayDurationMin+" реальных мин  (при NORMAL)")}
@@ -3321,8 +3314,8 @@ function screenSettings(){
     <div class="card"><h3>Торговля</h3>
       ${SEL("set_ctype","Тип комиссии",[["usd_per_lot","USD за лот"],["usd_per_million","USD за миллион USD оборота"],["percent","Процент от объёма сделки"],["quote_per_lot","Валюта котировки за лот"]],T.commissionType)}
       ${F("set_comm","Комиссия (за сторону)", T.commission, "USD за лот за сторону (по умолчанию 6.00)")}
-      ${SEL("set_spmode","Режим спреда",[["fixed","Фиксированный"],["dynamic","Динамический"]],T.spreadMode)}
-      ${F("set_fsp","Фиксированный спред ($)", T.fixedSpread)}
+      <div class="row"><span class="k">Спред</span><span class="v mono">авто 0.16–0.24</span></div>
+      <div class="hint" style="margin:2px 0 10px">Спред генерируется сам на каждом тике и в настройках не задаётся. Шире он становится только во время новостей.</div>
       ${SEL("set_slon","Проскальзывание",[["true","Вкл"],["false","Выкл"]],String(T.slippageOn))}
       ${F("set_swl","Swap Long (USD/лот/день)", T.swapLong)}
       ${F("set_sws","Swap Short (USD/лот/день)", T.swapShort)}
@@ -3360,7 +3353,6 @@ function screenSettings(){
       ${F("set_rds","Масштаб дрейфа режима (×)", M.regimeDriftScale, "сила направленного движения трендовых режимов")}
       ${F("set_mb","Макро-бычий дрейф (×)", M.macroBull, "долгосрочный бычий уклон золота ("+MACRO_DRIFT+" $/день)")}
       ${F("set_vcp","Память кластеризации волатильности (0.90 … 0.999)", M.volClusterPersist, "выше = кластеры волатильности длятся дольше")}
-      ${F("set_bsp","Базовый спред ($)", M.baseSpread)}
       ${F("set_nsl","Обычное проскальзывание ($ макс)", M.normalSlippage)}
       ${SEL("set_fo","Принудительно открытый рынок (игнорировать выходные)",[["true","Да"],["false","Нет"]],String(M.forceOpen))}
     </div>
@@ -4060,8 +4052,6 @@ function saveSettingsFromForm(silent){
   sym.leverage = parseInt(document.getElementById("set_lev").value)||2000;
   T.commissionType = document.getElementById("set_ctype").value;
   T.commission = num("set_comm", T.commission);
-  T.spreadMode = document.getElementById("set_spmode").value;
-  T.fixedSpread = num("set_fsp", T.fixedSpread);
   T.slippageOn = document.getElementById("set_slon").value === "true";
   T.swapLong = num("set_swl", T.swapLong);
   T.swapShort = num("set_sws", T.swapShort);
@@ -4077,7 +4067,6 @@ function saveSettingsFromForm(silent){
   M.ticksPerSecond = clamp(Math.round(num("set_tps", M.ticksPerSecond)*10)/10, 0.1, 20);
   const tsEl = document.getElementById("set_ts");
   if(tsEl){ const ts = parseInt(tsEl.value); if(TIME_SCALES.includes(ts)) M.timeScale = ts; }
-  M.baseSpread = clamp(num("set_bsp", M.baseSpread), 0.02, 20);
   M.normalSlippage = clamp(num("set_nsl", M.normalSlippage), 0, 5);
   M.forceOpen = document.getElementById("set_fo").value === "true";
   // Daily volatility band probabilities
@@ -4112,7 +4101,7 @@ function saveSettingsFromForm(silent){
   if(typeof xcPushState === "function") xcPushState(true);
   if(!silent){
     toast("g", "Применено к движку: шум ×"+fmt(M.intradayNoise,2)+" · дрейф ×"+fmt(M.regimeDriftScale,2)
-      +" · спред $"+fmt(M.baseSpread,2)+" · TPS "+fmt(M.ticksPerSecond,1)+" · ускоритель ×"+simSpeed());
+      +" · спред авто 0.16–0.24 · TPS "+fmt(M.ticksPerSecond,1)+" · ускоритель ×"+simSpeed());
     render();
   }
 }
@@ -4549,7 +4538,7 @@ function spreadYs(items, gap, top, bot){
    candle loop, not here. Raw S.candles / Price Engine / spread / P&L untouched;
    the two lines still anchor to the real S.price.bid / S.price.ask. */
 function bidCandles(vis){
-  const base = (S.trading.spreadMode === "fixed" ? S.trading.fixedSpread : S.market.baseSpread) || 0;
+  const base = (SPREAD_MIN + SPREAD_MAX) / 2;                  // centre of the auto spread
   const hs = base > 0 ? clamp(S.price.spread, base * 0.5, base * 4) / 2 : 0;
   if(!hs) return vis;
   return vis.map(b => ({ t: b.t, o: b.o - hs, h: b.h - hs, l: b.l - hs, c: b.c - hs, v: b.v }));
