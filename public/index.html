@@ -201,6 +201,11 @@ img,canvas,svg,video{max-width:100%}
 .pl-tbl .row:last-child{border-bottom:none}
 .menu-item{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
 .menu-item:active{background:var(--press)}
+/* a menu entry that isn't open yet (the broker wallet): shows «Скоро», goes nowhere */
+.menu-item.soon{cursor:default}
+.menu-item.soon:active{background:var(--card);transform:none}
+.soon-pill{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--orange);background:var(--orange-bg);
+  border-radius:999px;padding:3px 10px;white-space:nowrap}
 .toast-wrap{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:100;width:min(492px,calc(100% - 20px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .toast{background:var(--invert);color:var(--invert-ink);border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin .25s ease}
 .toast.g{background:#0b7a45}.toast.r{background:#c02a22}.toast.o{background:#c96a08}
@@ -2297,8 +2302,13 @@ function themeColors(){
 }
 
 /* ---------- top-level render ---------- */
+/* The broker wallet is closed for now: its "Ещё" entry reads «Скоро» and goes
+   nowhere. The wallet screen itself (screenWallet and everything behind it) is
+   deliberately left untouched — set this to false to open it again. */
+const WALLET_SOON = true;
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
+  if(WALLET_SOON && S.ui.tab === "wallet") S.ui.tab = "more";   // a saved state may still point at it
   const t = S.ui.tab;
   let html = "";
   html += topBanner();
@@ -2753,7 +2763,9 @@ function screenMore(){
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}">🌙 Тёмная</button>
       </div>
     </div>
-    <div class="menu-item" data-act="gotowallet"><span>💳 Брокерский кошелёк</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>
+    ${WALLET_SOON
+      ? `<div class="menu-item soon" aria-disabled="true"><span>💳 Брокерский кошелёк</span><span class="soon-pill">Скоро</span></div>`
+      : `<div class="menu-item" data-act="gotowallet"><span>💳 Брокерский кошелёк</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
     <div class="menu-item" data-act="gotosettings"><span>⚙️ Настройки симулятора</span><span>›</span></div>
     <div class="menu-item" data-act="gotohistory"><span>📜 История сделок</span><span>›</span></div>
     <div class="menu-item" data-act="gotocal"><span>📅 Экономический календарь</span><span>›</span></div>
