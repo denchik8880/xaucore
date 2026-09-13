@@ -477,6 +477,13 @@ html:has(body.route-wallet){background:#0c0a08}
 .grid2>*{min-width:0}
 .sheet{overflow-wrap:anywhere}
 .appbar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a title too long for the bar drifts left and back instead of being cut off (runTitles) */
+.appbar .ttl .ttl-run{display:inline-flex;align-items:center;gap:6px;will-change:transform}
+.appbar .ttl.run{padding:0 12px 0 6px;margin-left:-6px;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 6px,#000 calc(100% - 12px),transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 6px,#000 calc(100% - 12px),transparent 100%)}
+.appbar .ttl.run .ttl-run{animation:ttlRun var(--run-dur,6s) ease-in-out infinite}
+@keyframes ttlRun{0%,20%{transform:translateX(0)}50%,70%{transform:translateX(var(--run-x,0))}100%{transform:translateX(0)}}
 .badge-demo{flex:0 0 auto}
 
 /* --- iOS-style tactile feedback: a quick, subtle squish + dim on press --- */
@@ -2063,12 +2070,12 @@ function modifyPosition(id, sl, tp){
   // trigger on the very next tick. Editing a position must NEVER auto-close it.
   const bid = S.price.bid, ask = S.price.ask;
   if(sl != null && isFinite(sl)){
-    if(p.side === "buy"  && sl >= bid){ toast("r", "SL для BUY должен быть ниже Bid "+pxfmt(bid)+" — позиция не изменена"); return; }
-    if(p.side === "sell" && sl <= ask){ toast("r", "SL для SELL должен быть выше Ask "+pxfmt(ask)+" — позиция не изменена"); return; }
+    if(p.side === "buy"  && sl >= bid){ toast("r", "SL для BUY должен быть ниже текущей цены "+pxfmt(bid)+" — позиция не изменена"); return; }
+    if(p.side === "sell" && sl <= ask){ toast("r", "SL для SELL должен быть выше текущей цены "+pxfmt(ask)+" — позиция не изменена"); return; }
   }
   if(tp != null && isFinite(tp)){
-    if(p.side === "buy"  && tp <= bid){ toast("r", "TP для BUY должен быть выше Bid "+pxfmt(bid)+" — позиция не изменена"); return; }
-    if(p.side === "sell" && tp >= ask){ toast("r", "TP для SELL должен быть ниже Ask "+pxfmt(ask)+" — позиция не изменена"); return; }
+    if(p.side === "buy"  && tp <= bid){ toast("r", "TP для BUY должен быть выше текущей цены "+pxfmt(bid)+" — позиция не изменена"); return; }
+    if(p.side === "sell" && tp >= ask){ toast("r", "TP для SELL должен быть ниже текущей цены "+pxfmt(ask)+" — позиция не изменена"); return; }
   }
   p.sl = (sl != null && isFinite(sl)) ? sl : null;
   p.tp = (tp != null && isFinite(tp)) ? tp : null;
@@ -2319,7 +2326,26 @@ function render(){
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(t === "dom") drawDOMCanvasMaybe();
+  runTitles();
 }
+
+/* A title longer than the room the bar leaves it (the DEMO badge takes most of a
+   phone's width) drifts left and back, ticker-style, instead of being cut off. */
+let _runTitlesT = 0;
+function runTitles(){
+  document.querySelectorAll(".appbar .ttl").forEach(el=>{
+    const run = el.querySelector(".ttl-run");
+    if(!run) return;
+    el.classList.remove("run");
+    const over = run.scrollWidth - el.clientWidth;
+    if(over > 1){
+      el.style.setProperty("--run-x", -(over + 12) + "px");          // +12: the fade padding .run adds
+      el.style.setProperty("--run-dur", (4 + over / 20).toFixed(1) + "s");
+      el.classList.add("run");
+    }
+  });
+}
+window.addEventListener("resize", ()=>{ clearTimeout(_runTitlesT); _runTitlesT = setTimeout(runTitles, 150); });
 
 function topBanner(){
   let b = "";
@@ -2347,7 +2373,7 @@ function appbar(title, opts){
   opts = opts || {};
   return `<div class="appbar">
     ${opts.back?`<button class="iconbtn" data-act="back">‹</button>`:``}
-    <div class="ttl">${title}${opts.caret?` <span style="color:var(--ink3)">▾</span>`:``}</div>
+    <div class="ttl"><span class="ttl-run">${title}${opts.caret?`<span style="color:var(--ink3)">▾</span>`:``}</span></div>
     <div class="sp"></div>
     <span class="badge-demo">DEMO • SYNTHETIC DATA</span>
   </div>`;
@@ -2431,7 +2457,7 @@ function screenMarketsList(){
       </div>
     </div>
     <button class="btn dark" data-act="addinstr" style="margin-top:14px">＋ Добавить инструменты</button>
-    <div class="hint" style="text-align:center;margin-top:16px">DEMO • SYNTHETIC DATA — в демо-режиме доступен только XAUUSD</div>
+    <div class="hint" style="text-align:center;margin-top:16px">Доступно только XAUUSD</div>
     <button class="bignew" data-act="newticket">Новый ордер</button>
   </div>`;
 }
@@ -2458,7 +2484,7 @@ function godPanelMarkup(){
   return `<div class="godpanel">
     <div class="gp-hd"><span class="dot"></span>MANUAL MARKET CONTROL • SYNTHETIC MODE</div>
     <div class="gp-px mono" id="gpPx">${pxfmt(S.price.mid)}</div>
-    <div class="gp-sub mono" id="gpSub">Bid ${pxfmt(S.price.bid)} · Ask ${pxfmt(S.price.ask)} · спред ${pxfmt(S.price.spread)}</div>
+    <div class="gp-sub mono" id="gpSub">Продать ${pxfmt(S.price.bid)} · Купить ${pxfmt(S.price.ask)} · спред ${pxfmt(S.price.spread)}</div>
     <div class="gp-row">
       <button class="gp-half ${paused?'':'on'}" data-god="resume">▶ RESUME (авто)</button>
       <button class="gp-half ${paused?'on':''}" data-god="pause">⏸ PAUSE (авто-движок)</button>
@@ -3052,8 +3078,8 @@ function screenDOM(){
       <div id="domImb">${domImbMarkup()}</div>
       <div class="dom-grid" id="domGrid">${rows}</div>
       <div class="grid2" style="margin-top:10px">
-        <button class="btn red" data-act="domsell">ПРОДАТЬ ${fmt(S.ui.lot,2)} @ Bid</button>
-        <button class="btn green" data-act="dombuy">КУПИТЬ ${fmt(S.ui.lot,2)} @ Ask</button>
+        <button class="btn red" data-act="domsell">ПРОДАТЬ ${fmt(S.ui.lot,2)}</button>
+        <button class="btn green" data-act="dombuy">КУПИТЬ ${fmt(S.ui.lot,2)}</button>
       </div>
     </div>
   </div>`;
@@ -3345,7 +3371,7 @@ function screenSettings(){
     <div class="card"><h3>Ручное управление рынком (Manual Market Control)</h3>
       ${SEL("set_god","Режим ручного управления",[["false","Выкл — работает авто Price Engine"],["true","Вкл — ручное управление XAUUSD"]],String(S.manual.enabled))}
       ${F("set_nbr","Вероятность слома режима новостью (0…1)", NE.newsBreaksRegimeProb)}
-      <div class="hint">По умолчанию выключено — цена движется автоматическим Price Engine. При включении на экране «Обзор» появляется панель: PAUSE/RESUME авто-движка, ручные тики UP/DOWN с заданным шагом, ручное изменение цены на нужную величину, точная установка цены и плавный импульс. Bid/Ask, график, P/L и SL/TP сразу используют новую цену. Пока режим включён, спред генерируется сам в пределах 0.16–0.24, а каждая свеча M1 строится ровно из 5 тиков (ручные тики тоже считаются).</div>
+      <div class="hint">По умолчанию выключено — цена движется автоматическим Price Engine. При включении на экране «Обзор» появляется панель: PAUSE/RESUME авто-движка, ручные тики UP/DOWN с заданным шагом, ручное изменение цены на нужную величину, точная установка цены и плавный импульс. Котировки, график, P/L и SL/TP сразу используют новую цену. Пока режим включён, спред генерируется сам в пределах 0.16–0.24, а каждая свеча M1 строится ровно из 5 тиков (ручные тики тоже считаются).</div>
     </div>
     <div class="card"><h3>Движок новостей</h3>
       <div class="hint" style="margin-bottom:6px">Запустить синтетическое событие (20 реальных секунд, независимо от дневного цикла):</div>
@@ -3502,7 +3528,7 @@ function bindScreen(){
     confirmSheet({
       title: `Закрыть ${n} ${n===1?"позицию":(n<5?"позиции":"позиций")}?`,
       text: `Суммарный объём ${fmt(lots,2)} лот · результат <b id="ca-net" class="${net>=0?"pos":"neg"}">${signMoney(net)}</b>. `
-          + `Закрытие пройдёт по текущим ценам Bid/Ask.`,
+          + `Закрытие пройдёт по текущим рыночным ценам.`,
       yes: `Закрыть всё · ${signMoney(net)}`, danger: net < 0
     }, closeAllPositions);
     // the figure must not freeze at the moment the sheet opened — it is the
@@ -3736,7 +3762,7 @@ function confirmMarket(side){
     <h2>${side==="buy"?"КУПИТЬ (BUY)":"ПРОДАТЬ (SELL)"} XAUUSD</h2>
     <div class="card">
       <div class="row"><span class="k">Объём</span><span class="v mono">${fmt(v,2)} lot (${fmt(v*S.symbol.contractSize,0)} oz)</span></div>
-      <div class="row"><span class="k">Цена (${side==="buy"?"Ask":"Bid"})</span><span class="v mono" id="ck-px">${pxfmt(px)}</span></div>
+      <div class="row"><span class="k">Цена</span><span class="v mono" id="ck-px">${pxfmt(px)}</span></div>
       <div class="row"><span class="k">Execution</span><span class="v">Market${S.trading.slippageOn?" (± slippage)":""}</span></div>
       <div class="row"><span class="k">Commission (open)</span><span class="v mono">${money(comm)}</span></div>
       <div class="row"><span class="k">Commission round-trip</span><span class="v mono">${money(comm*2)}</span></div>
@@ -3861,7 +3887,7 @@ function openPosDetail(id){
       <div class="card pl-tbl">
         <div class="row"><span class="k">Volume</span><span class="v mono">${fmt(cur.volume,2)} lot · ${fmt(cur.volume*S.symbol.contractSize,0)} oz</span></div>
         <div class="row"><span class="k">Entry</span><span class="v mono">${pxfmt(cur.entry)}</span></div>
-        <div class="row"><span class="k">Current (${cur.side==="buy"?"Bid":"Ask"})</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur))}</span></div>
+        <div class="row"><span class="k">Current price</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur))}</span></div>
         <div class="row"><span class="k">Open time</span><span class="v mono">${fmtYMD(cur.openTime)} ${fmtHM(cur.openTime)}</span></div>
         <div class="row"><span class="k">Duration</span><span class="v mono" id="pd-dur">${fmtDur(S.simClock-cur.openTime)}</span></div>
         <div class="row"><span class="k">SL</span><span class="v mono">${cur.sl?pxfmt(cur.sl):"—"}</span></div>
@@ -4163,7 +4189,7 @@ function updateLive(){
   setTxt("ovSess", sessionInfo().names.join(" · "));
   setTxt("abBal", money(A.equity), abBalCls());
   setTxt("gpPx", pxfmt(S.price.mid));
-  setTxt("gpSub", "Bid "+pxfmt(S.price.bid)+" · Ask "+pxfmt(S.price.ask)+" · спред "+pxfmt(S.price.spread));
+  setTxt("gpSub", "Продать "+pxfmt(S.price.bid)+" · Купить "+pxfmt(S.price.ask)+" · спред "+pxfmt(S.price.spread));
   const gpSt = document.getElementById("gpState");
   if(gpSt){
     const pz = !!S.manual.frozen;
