@@ -36,17 +36,19 @@
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
 }
+/* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
+   text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
 :root[data-theme="dark"]{
-  --bg:#0e1116; --card:#171b22; --ink:#e7e9ec; --ink2:#9aa3b0; --ink3:#69707c;
-  --line:#272d38; --green:#2ec27e; --green-bg:rgba(46,194,126,.16); --red:#f0564b;
-  --red-bg:rgba(240,86,75,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3b82f6;
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.35);
-  --field-bg:#0f141b; --press:#20262f; --raise:#2c333e;
-  --invert:#242b35; --invert-ink:#f2f4f7;
-  --scrim:rgba(0,0,0,.62);
-  --buy-line:rgba(46,194,126,.45); --sell-line:rgba(240,86,75,.45);
-  --chart-bg:#12151b; --chart-grid:#232936; --chart-axis:#8a929e;
-  --chart-cross:#8a929e; --chart-tag:#2b323d; --chart-glass:rgba(20,24,30,.92);
+  --bg:#000000; --card:#0d0d0d; --ink:#ffffff; --ink2:#a3a3a3; --ink3:#6b6b6b;
+  --line:#242424; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
+  --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
+  --shadow:none;
+  --field-bg:#0a0a0a; --press:#1a1a1a; --raise:#262626;
+  --invert:#1c1c1c; --invert-ink:#ffffff;
+  --scrim:rgba(0,0,0,.7);
+  --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
+  --chart-bg:#000000; --chart-grid:#161616; --chart-axis:#e6e6e6;
+  --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
@@ -2272,7 +2274,7 @@ function applyTheme(t){
   document.documentElement.dataset.theme = t;
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
-  if(mc) mc.setAttribute("content", t === "dark" ? "#0e1116" : "#f4f5f7");
+  if(mc) mc.setAttribute("content", t === "dark" ? "#000000" : "#f4f5f7");
   try{ localStorage.setItem("xc_theme", t); }catch(e){}
 }
 function setTheme(t){
