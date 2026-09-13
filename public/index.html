@@ -239,10 +239,15 @@ hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .news-btns button:active{filter:brightness(.94)}
 .news-btns button:disabled{opacity:.35}
 .news-btns button.wide{grid-column:span 3;background:var(--invert);color:var(--invert-ink);border-color:var(--invert)}
-.news-lock{position:sticky;top:0;z-index:60;background:linear-gradient(90deg,#f5820d,#e5342b);color:#fff;padding:10px 14px 11px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.2)}
-.news-lock .nl-title{font-size:11px;font-weight:600;letter-spacing:.06em;opacity:.95}
-.news-lock .nl-count{font-size:28px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:.02em}
-.news-lock .nl-sub{font-size:10px;font-weight:600;opacity:.92}
+/* news lock (the 20 s release): no banner, no messages — every trade button just
+   shows a cross in place of its caption until the market unlocks by itself */
+.tx{display:none}
+body.trade-locked .tcap{display:none}
+body.trade-locked .tx{display:inline}
+.tbtn .tx{font-size:17px;line-height:1}
+body.trade-locked [data-act="quicksell"],body.trade-locked [data-act="quickbuy"],
+body.trade-locked [data-act="domsell"],body.trade-locked [data-act="dombuy"],
+body.trade-locked [data-act="newticket"]{opacity:.5;pointer-events:none}
 .news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
 .news-res .row:last-child{border-bottom:none}
 .ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
@@ -1704,8 +1709,7 @@ function tradingLocked(){ return S.lock.active && Date.now() < S.lock.until; }
 function lockSecondsLeft(){ return Math.max(0, (S.lock.until - Date.now())/1000); }
 function guardLock(){
   if(tradingLocked()){
-    toast("o", "🔒 TRADING LOCKED — новость ("+lockSecondsLeft().toFixed(1)+"s)");
-    return true;
+    return true;                                  // silent: the buttons already show a cross
   }
   return false;
 }
@@ -1726,7 +1730,6 @@ function startNews(type, ev){
   S.lock = { active:true, until: now + sc.duration*1000 };
   S._needRender = true;
   if(ev) ev.released = true;
-  toast("o", "📰 "+NEWS_LABEL[type]+" RELEASED — TRADING LOCKED "+sc.duration+"s");
   closeModal();
   save();
 }
@@ -1761,11 +1764,9 @@ function endNews(){
   if(Math.abs(res.finalMove) > sc.R*0.35 && Math.random() < (S.newsEngine.newsBreaksRegimeProb || 0.4)){
     const up = res.finalMove >= 0;
     startRegime(up ? (Math.random()<0.5?"STRONG_BULL":"BULL") : (Math.random()<0.5?"STRONG_BEAR":"BEAR"));
-    toast("o", "📰 Новость сломала режим → " + MARKET_REGIMES[S.regime.name].label);
   }
   S._needRender = true;
-  toast("g", "🔓 TRADING UNLOCKED — "+res.label+" complete");
-  showNewsResult(res);
+  // no popup: the result stays in S.newsLog («Последнее» in Settings opens the sheet)
   save();
 }
 
@@ -2346,15 +2347,7 @@ function topBanner(){
   if(marketClosed()){
     b += `<div class="warn-banner">Рынки по этому инструменту закрыты. Торговля ограничена. (Synthetic weekend)</div>`;
   }
-  if(tradingLocked()){
-    b += `<div class="news-lock">
-      <div class="nl-title">NEWS RELEASE · ${NEWS_LABEL[S.news.type]||""} — TRADING LOCKED</div>
-      <div class="nl-count mono" id="nlCount">${lockSecondsLeft().toFixed(1)}</div>
-      <div class="nl-sub">Цена, график, P/L, SL/TP, Stop Out работают. DEMO • SYNTHETIC DATA</div>
-    </div>`;
-  }else if(S.news.decayUntil && Date.now() < S.news.decayUntil){
-    b += `<div class="warn-banner">📊 Спред нормализуется после новости…</div>`;
-  }
+  // a news release locks trading silently — the trade buttons show a cross (.trade-locked)
   recalcAccount();
   if(isFinite(S._acc.marginLevel) && S._acc.marginLevel < S.trading.marginCallLevel){
     b += `<div class="err-banner">MARGIN CALL — Margin Level ${fmt(S._acc.marginLevel,1)}% (Stop Out ${S.trading.stopOutLevel}%)</div>`;
@@ -2531,7 +2524,7 @@ function mktOverview(){
     <div class="card">
       <div class="tradepanel">
         <button class="tbtn sell" data-act="quicksell" id="btnSell">
-          <span class="lbl">ПРОДАТЬ</span>
+          <span class="lbl"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span></span>
           <span class="px mono" id="ovBid">${pxfmt(S.price.bid)}</span>
         </button>
         <div class="lotbox">
@@ -2543,7 +2536,7 @@ function mktOverview(){
           </div>
         </div>
         <button class="tbtn buy" data-act="quickbuy" id="btnBuy">
-          <span class="lbl">КУПИТЬ</span>
+          <span class="lbl"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span></span>
           <span class="px mono" id="ovAsk">${pxfmt(S.price.ask)}</span>
         </button>
       </div>
@@ -3071,8 +3064,8 @@ function screenDOM(){
       <div id="domImb">${domImbMarkup()}</div>
       <div class="dom-grid" id="domGrid">${rows}</div>
       <div class="grid2" style="margin-top:10px">
-        <button class="btn red" data-act="domsell">ПРОДАТЬ ${fmt(S.ui.lot,2)}</button>
-        <button class="btn green" data-act="dombuy">КУПИТЬ ${fmt(S.ui.lot,2)}</button>
+        <button class="btn red" data-act="domsell"><span class="tcap">ПРОДАТЬ ${fmt(S.ui.lot,2)}</span><span class="tx">✕</span></button>
+        <button class="btn green" data-act="dombuy"><span class="tcap">КУПИТЬ ${fmt(S.ui.lot,2)}</span><span class="tx">✕</span></button>
       </div>
     </div>
   </div>`;
@@ -3267,8 +3260,8 @@ function chartMarkup(h){
     </div>
   </div>
   <div class="wrap"><div class="grid2">
-    <button class="btn red" data-act="quicksell">ПРОДАТЬ ${fmt(S.ui.lot,2)} · <span id="chBid">${pxfmt(S.price.bid)}</span></button>
-    <button class="btn green" data-act="quickbuy">КУПИТЬ ${fmt(S.ui.lot,2)} · <span id="chAsk">${pxfmt(S.price.ask)}</span></button>
+    <button class="btn red" data-act="quicksell"><span class="tcap">ПРОДАТЬ ${fmt(S.ui.lot,2)} ·</span><span class="tx">✕ ·</span> <span id="chBid">${pxfmt(S.price.bid)}</span></button>
+    <button class="btn green" data-act="quickbuy"><span class="tcap">КУПИТЬ ${fmt(S.ui.lot,2)} ·</span><span class="tx">✕ ·</span> <span id="chAsk">${pxfmt(S.price.ask)}</span></button>
   </div></div>`;
 }
 
@@ -3608,7 +3601,7 @@ function bindScreen(){
   const lotInput = document.getElementById("lotInput");
   if(lotInput){
     const commit = ()=>{
-      if(tradingLocked()){ lotInput.value = fmt(S.ui.lot,2); toast("o","🔒 TRADING LOCKED"); return; }
+      if(tradingLocked()){ lotInput.value = fmt(S.ui.lot,2); return; }
       let v = parseFloat(lotInput.value.replace(/[\s,]/g,""));
       const err = validateLot(v);
       const errEl = document.getElementById("lotErr");
@@ -4240,10 +4233,13 @@ function updateLive(){
     dg.innerHTML = domRows(); dg._t = Date.now();
     const di = document.getElementById("domImb"); if(di) di.innerHTML = domImbMarkup();
   }
-  // news lock countdown + control disabling
+  // news lock: the trade buttons show a cross (body.trade-locked), controls are disabled
   const locked = tradingLocked();
-  const nl = document.getElementById("nlCount");
-  if(nl) nl.textContent = lockSecondsLeft().toFixed(1);
+  const bl = document.body.classList;
+  if(bl.contains("trade-locked") !== locked){
+    bl.toggle("trade-locked", locked);
+    if(!locked){ const le = document.getElementById("lotErr"); setTradeEnabled(!(le && le.textContent)); }
+  }
   document.querySelectorAll("[data-news]").forEach(b=>{ b.disabled = locked || S.news.active; });
   if(locked){ setTradeEnabled(false); }
   // modal live
