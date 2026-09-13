@@ -940,16 +940,20 @@ function seedMarket(){
   startRegime(null);
   startNewDay(startMid);
 }
-/* generate `count` synthetic OHLC bars of `sec` seconds each, ending at `endMid` at time `endMs` */
+/* generate `count` synthetic OHLC bars of `sec` seconds each, ending at `endMid` at time
+   `endMs` — the chart history a new account (or a reset) starts with. A free random walk
+   with short swing legs, the same character as the live engine, then translated as a
+   whole so its last close lands exactly on endMid. The old version pulled every sub-step
+   toward an anchor at the start price, so a young account's M30/H1 history was a flat
+   band of long wicks: "gold just stands in one place". Bars still chain (open = last close). */
 function genBars(count, sec, endMid, endMs){
   const digits = S.symbol.digits;
-  const bars = [];
-  const perBar = 42/3.4 * Math.sqrt(sec/86400) * pxVolScale(endMid);   // stdev per bar (daily range ~$42 at $2 600, scaled with price)
-  let m = endMid + gauss() * perBar * Math.sqrt(count) * 0.5;
-  let anchor = m;
+  const perBar = 20 * Math.sqrt(sec/86400) * pxVolScale(endMid);   // ≈ live engine: M30 ~$8, H1 ~$12, D1 ~$75 at $4 500
   const tEnd = Math.floor(endMs/1000/sec) * sec;
   const t0 = tEnd - count*sec;
-  const steps = Math.max(4, Math.min(24, Math.round(sec/30)));
+  const steps = Math.max(4, Math.min(96, Math.round(sec/30)));     // enough sub-steps that a D1 bar's range isn't clipped
+  const raw = [];
+  let m = 0, swing = 0;
   for(let i=0;i<count;i++){
     const t = t0 + i*sec;
     const hh = new Date(t*1000).getUTCHours();
@@ -957,25 +961,21 @@ function genBars(count, sec, endMid, endMs){
     if(hh>=7 && hh<16) sv = 1.2;
     if(hh>=12 && hh<21) sv = 1.35;
     if(hh>=12 && hh<16) sv = 1.7;
+    if(sec >= 86400) sv = 1.45;                        // a daily bar spans every session, not just its 00:00 UTC start
     const o = m; let hi = o, lo = o;
-    const sVol = perBar * sv / Math.sqrt(steps);
+    const sd = perBar * sv / Math.sqrt(steps);
     for(let k=0;k<steps;k++){
-      anchor += (endMid - anchor) * 0.0025;
-      m += (anchor - m) * 0.02 + gauss() * sVol;
-      if(Math.random() < 0.02) m += gauss() * sVol * 3;
-      hi = Math.max(hi, m); lo = Math.min(lo, m);
+      swing = swing * 0.92 + gauss() * sd * 0.08;     // a slow leg: bars trend a little, then turn
+      m += gauss() * sd * 0.8 + swing;
+      if(Math.random() < 0.01) m += gauss() * sd * 2;
+      if(m > hi) hi = m;
+      if(m < lo) lo = m;
     }
-    bars.push({ t, o:roundTo(o,digits), h:roundTo(hi,digits), l:roundTo(lo,digits), c:roundTo(m,digits), v:Math.round(rnd(30,300)*Math.sqrt(sec/60)) });
+    raw.push({ t, o, h:hi, l:lo, c:m, v:Math.round(rnd(30,300)*Math.sqrt(sec/60)) });
   }
-  // ease the last few closes onto endMid so all timeframes agree on "now"
-  const d = endMid - bars[bars.length-1].c;
-  const n = Math.min(bars.length, 15);
-  for(let i=bars.length-n;i<bars.length;i++){
-    const w = (i-(bars.length-n))/n;
-    bars[i].c += d*w; bars[i].o += d*w*0.6;
-    bars[i].h = Math.max(bars[i].h, bars[i].c, bars[i].o);
-    bars[i].l = Math.min(bars[i].l, bars[i].c, bars[i].o);
-  }
+  const shift = endMid - m;                            // the path ends exactly on "now"
+  const bars = raw.map(b => ({ t:b.t, o:roundTo(b.o+shift,digits), h:roundTo(b.h+shift,digits),
+                               l:roundTo(b.l+shift,digits), c:roundTo(b.c+shift,digits), v:b.v }));
   bars[bars.length-1].c = endMid;
   return bars;
 }
@@ -1336,8 +1336,9 @@ function marketTick(){
      a wiggle that is taken back next tick ..... bid/ask bounce (negative lag-1)
    The old AR(1) velocity made every tick continue the last one (lag-1 +0.49) and
    blew day ranges up to ~4x their band; real tick data does the opposite.      */
-const VOL_NORM = 1.0;            // calibration: realised day range ~ band x price scale
-const SWING_SHARE = 0.45;        // share of the diffusion variance carried by swing legs
+const VOL_NORM = 0.9;            // calibration: realised day range ~ band x price scale
+const SWING_SHARE = 0.5;         // share of the diffusion variance carried by swing legs
+const RANGE_VOL_FLOOR = 0.9;     // a consolidation is quieter, not dead (ACCUMULATION was 0.74)
 function fatTail(){ return (Math.random() < 0.12 ? gauss() * 2.2 : gauss()) / 1.2086; }   // unit variance
 function priceStep(dt){
   const P = S.price, M = S.market, RG = regimeCfg();
@@ -1352,13 +1353,14 @@ function priceStep(dt){
   const persist = clamp(M.volClusterPersist || 0.992, 0.90, 0.9995);
   P.volCluster = clamp(persist*(P.volCluster || 1) + (1-persist)*(0.72 + Math.abs(gauss())*0.7), 0.5, 2.4);
 
-  const volMul = RG.vol * sf * P.volCluster * (M.intradayNoise || 1) / VOL_NORM;
+  const regVol = RG.rangePull > 0 ? Math.max(RG.vol, RANGE_VOL_FLOOR) : RG.vol;
+  const volMul = regVol * sf * P.volCluster * (M.intradayNoise || 1) / VOL_NORM;
   const perSec = dayStdev / Math.sqrt(86400) * volMul;            // $ per sqrt(game-second)
   const sigma = perSec * Math.sqrt(dt * (1 - SWING_SHARE));
   let move = fatTail() * sigma;
 
-  // swing legs — regimes with more momentum hold a leg longer (~25-70 game-min)
-  const tau = 1500 + 3000 * clamp(RG.mom, 0, 0.9);
+  // swing legs — regimes with more momentum hold a leg longer (~50-95 game-min)
+  const tau = 2400 + 4800 * clamp(RG.mom, 0, 0.9);
   const keep = Math.exp(-dt / tau);
   P.swing = (P.swing || 0) * keep + Math.sqrt(1 - keep*keep) * perSec * Math.sqrt(SWING_SHARE / (2*tau)) * gauss();
   move += P.swing * dt;
@@ -1388,24 +1390,28 @@ function priceStep(dt){
 
   // resting liquidity at round $5 levels: an approach is often absorbed for a moment
   const lvl = Math.round(P.mid / 5) * 5, toLvl = lvl - P.mid;
-  if(toLvl !== 0 && Math.abs(toLvl) < 0.6 * ps && Math.sign(move) === Math.sign(toLvl) && Math.random() < 0.35) move *= 0.35;
+  if(toLvl !== 0 && Math.abs(toLvl) < 0.6 * ps && Math.sign(move) === Math.sign(toLvl) && Math.random() < 0.3) move *= 0.35;
 
   // bid/ask bounce: a wiggle that is taken back on the next tick
-  const jit = gauss() * sigma * 0.5;
+  const jit = gauss() * sigma * 0.45;
   move += jit - (P.jit || 0);
   P.jit = jit;
 
   P.mid += move;
 
-  // DYNAMIC EQUILIBRIUM — range-like regimes circulate around the slow EMA (which follows price)
+  // CONSOLIDATION — range-like regimes: inside a zone around the slow equilibrium the price
+  // moves freely; only past the zone's edge (support / resistance) is it leaned back, and
+  // the wide channel wall stops a range from wandering off. The old constant pull toward
+  // a 1.5 h EMA made a range day net almost nothing (M30 variance ratio ~0.5): dead.
   if(RG.rangePull > 0){
-    const pull = 1 - Math.exp(-RG.rangePull * dt / 90);
     const dev = P.mid - P.ema;
+    const zone = dayRange * 0.6;
+    const edge = Math.abs(dev) > zone ? 1 - Math.exp(-RG.rangePull * 2 * (Math.abs(dev)/zone - 1) * dt / 90) : 0;
     const half = ((S.regime && S.regime.channelHalf) || dayRange * 2 / ps) * ps;
     const wall = Math.abs(dev) > half ? clamp((Math.abs(dev)/half - 1) * 0.6, 0, 0.4) : 0;
-    P.mid += (P.ema - P.mid) * (pull + wall);
-    // rare real breakout out of a long consolidation (was ~7 a day — ranges never lasted)
-    if(Math.random() < 0.00001 * dt){
+    P.mid += (P.ema - P.mid) * (edge + wall);
+    // real breakout out of a consolidation (≈ one every couple of game-days)
+    if(Math.random() < 0.00002 * dt){
       const dir = dev >= 0 ? 1 : -1;
       startRegime(dir > 0 ? (Math.random()<0.5?"BULL":"STRONG_BULL") : (Math.random()<0.5?"BEAR":"STRONG_BEAR"));
       P.vel += dir * dayStdev * rnd(0.3, 0.8);
@@ -1413,7 +1419,7 @@ function priceStep(dt){
   }
 
   // the EMAs FOLLOW the price — this is what keeps the flat centre non-static
-  P.ema     += (P.mid - P.ema)     * (1 - Math.exp(-dt / 5400));   // ~1.5 game-hour
+  P.ema     += (P.mid - P.ema)     * (1 - Math.exp(-dt / 21600));  // ~6 game-hours: the consolidation's centre
   P.emaFast += (P.mid - P.emaFast) * (1 - Math.exp(-dt / 900));    // ~15 game-min
 
   microShock(dt);
