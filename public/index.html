@@ -35,6 +35,7 @@
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
+  --exec-bg:#b8bcc3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -49,6 +50,7 @@
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
   --chart-bg:#000000; --chart-grid:#161616; --chart-axis:#e6e6e6;
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
+  --exec-bg:#3a3a3d;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
@@ -117,6 +119,25 @@ img,canvas,svg,video{max-width:100%}
 .ctp-lot-val{font-size:18px;font-weight:500}
 .ctp-caret{flex:0 0 auto;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--ink2)}
 .ctp-lot:active{background:var(--press)}
+.ctp-cap{flex-direction:column;gap:5px}
+/* ▲/▼ under ПРОДАТЬ / КУПИТЬ — flips with every quote change, like cTrader */
+.ctp-dir{display:block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid currentColor}
+.ctp-dir.dn{border-bottom:0;border-top:7px solid currentColor}
+/* a trade tap, cTrader-style: the tapped side greys out for a moment while the order
+   fills, and a pill drops in at the top — «Исполнение…», then «ордер исполнен ✓» */
+.ctp-cap,.ctp-px,.cht{transition:background-color .12s ease,color .12s ease}
+.ctp-cap.exec,.ctp-px.exec,.cht.exec{background:var(--exec-bg);color:rgba(255,255,255,.5)}
+.ctp-cap.sell.exec::after{background:radial-gradient(circle at 100% 0,transparent 7.5px,var(--exec-bg) 8px)}
+.ctp-cap.buy.exec::after{background:radial-gradient(circle at 0 0,transparent 7.5px,var(--exec-bg) 8px)}
+.xpill{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:130;width:min(492px,calc(100% - 20px));
+  display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;background:#2a2a2e;color:#fff;
+  font-size:14.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.28);
+  transform:translate(-50%,-160%);opacity:0;pointer-events:none;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .2s}
+:root[data-theme="dark"] .xpill{background:#e9e7ec;color:#1f1f23}
+.xpill.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.xpill svg{flex:0 0 18px;width:18px;height:18px}
+.xp-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xp-go{font-size:24px;line-height:1;font-weight:400;opacity:.8}
 .spreadchip{display:inline-flex;gap:6px;align-items:center;background:var(--line);color:var(--ink2);font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:999px;margin-top:10px}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:12px;color:var(--ink2)}
@@ -2043,7 +2064,8 @@ function openPosition(side, volume, opts){
   S.account.balance -= openComm;   // commission charged on OPEN
   S.positions.push(pos);
   recalcAccount();
-  toast("g", (side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+" @ "+pxfmt(px)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip):""));
+  if(!opts.quiet)                  // the quick-trade pill is the confirmation there
+    toast("g", (side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+" @ "+pxfmt(px)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip):""));
   save();
   return pos;
 }
@@ -2433,7 +2455,17 @@ function wlTickDir(){
   return wlTick.dir;
 }
 /* the ↑/↓ next to the prices on the Charts tab trade bar (cTrader shows the last tick) */
-function chartDirArrow(){ return wlTick.dir === "dn" ? "↓" : "↑"; }
+/* Direction of the last quote change, taken on the mid (Bid + Ask) so the two sides
+   always agree — cTrader's ▲/▼ under ПРОДАТЬ / КУПИТЬ and the ↑/↓ on the Charts bar.
+   Advanced from updateLive(); markup reads _qTick.dir without advancing it. */
+const _qTick = { s: null, dir: "up" };
+function quoteDir(){
+  const s = Math.round((S.price.bid + S.price.ask) * 100);
+  if(_qTick.s !== null && s !== _qTick.s) _qTick.dir = s > _qTick.s ? "up" : "dn";
+  _qTick.s = s;
+  return _qTick.dir;
+}
+function chartDirArrow(){ return _qTick.dir === "dn" ? "↓" : "↑"; }
 function screenMarketsList(){
   recalcAccount();
   const w = watchStats();
@@ -2543,13 +2575,13 @@ function mktOverview(){
     ${godPanelMarkup()}
     <div class="card">
       <div class="ctp">
-        <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span></button>
+        <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirS"></span></button>
         <button class="ctp-lot" data-act="lotpick" aria-label="Выбрать объём">
           <span class="ctp-lot-cap">Количество (Лоты)</span>
           <span class="ctp-lot-val mono" id="ovLot">${fmt(lot,2)}</span>
           <span class="ctp-caret" aria-hidden="true"></span>
         </button>
-        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span></button>
+        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirB"></span></button>
         <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${pxfmt(S.price.bid)}</span></button>
         <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${pxfmt(S.price.ask)}</span></button>
       </div>
@@ -3752,17 +3784,58 @@ function setTradeEnabled(on){
 }
 
 /* ---------- market confirm ---------- */
-/* Market order at the panel's lot, executed immediately — no sheet. Everything
-   that guards a trade (mirror, news lock, lot bounds, margin) still runs inside
-   openPosition(); the toast it raises is the fill confirmation. */
+/* Market order at the panel's lot, no sheet — with cTrader's execution feedback: the
+   tapped side greys out and a pill drops in («Исполнение: …»), the order fills a beat
+   later, then the pill turns into «ордер исполнен ✓» (tap it for Позиции). Mirror
+   routing, the news lock, lot bounds and margin are all enforced inside openPosition().
+   (This used to open with a bare guardMirror() — no kind, no payload — so a tap on a
+   mirroring device queued an empty order the driving device silently dropped.) */
+const EXEC_MS = 180;
 function quickTrade(side){
-  if(guardMirror()) return;
   if(guardLock()) return;
   const v = S.ui.lot;
   const err = validateLot(v);
   if(err){ toast("r", err); return; }
-  const p = openPosition(side, v);
-  if(p) render();
+  execMark(side, true);
+  execPill("run", v);
+  setTimeout(()=>{
+    const mirroring = XC.follower;
+    const p = openPosition(side, v, { quiet: true });
+    execMark(side, false);
+    if(p){ execPill("ok", v); render(); }
+    else if(mirroring) execPill("sent", v);        // queued for the device driving the market
+    else execPill("hide");                         // openPosition already said why (margin, closed…)
+  }, EXEC_MS);
+}
+function execMark(side, on){
+  const s = side === "buy" ? "buy" : "sell";
+  document.querySelectorAll(`.ctp-cap.${s},.ctp-px.${s},.cht.${s}`).forEach(el=> el.classList.toggle("exec", on));
+}
+let _xpill = null, _xpillT = 0;
+function execPill(state, lot){
+  if(!_xpill){
+    _xpill = document.createElement("div");
+    _xpill.className = "xpill";
+    _xpill.onclick = ()=>{ if(_xpill.dataset.go){ _xpill.classList.remove("on"); nav("positions"); } };
+    document.body.appendChild(_xpill);
+  }
+  clearTimeout(_xpillT);
+  if(state === "hide"){ _xpill.classList.remove("on"); return; }
+  const sym = S.symbol.name;
+  const HOURGLASS = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h8M4 14.5h8M5 1.8c0 3.2 3 3.9 3 6.2s-3 3-3 6.2M11 1.8c0 3.2-3 3.9-3 6.2s3 3 3 6.2" fill="none" stroke="#f5820d" stroke-width="1.7" stroke-linecap="round"/></svg>`;
+  const CHECK = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.6l3.4 3.3L13.2 4.6" fill="none" stroke="#1faa5b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  if(state === "run"){
+    _xpill.innerHTML = `${HOURGLASS}<span class="xp-t">Исполнение: ${fmt(lot,2)} лот ${sym}</span>`;
+    delete _xpill.dataset.go;
+  }else if(state === "ok"){
+    _xpill.innerHTML = `${CHECK}<span class="xp-t">${sym} ордер исполнен</span><span class="xp-go">›</span>`;
+    _xpill.dataset.go = "1";
+  }else{
+    _xpill.innerHTML = `${CHECK}<span class="xp-t">${sym} ордер отправлен</span>`;
+    delete _xpill.dataset.go;
+  }
+  _xpill.classList.add("on");
+  if(state !== "run") _xpillT = setTimeout(()=> _xpill.classList.remove("on"), 1500);
 }
 function confirmMarket(side){
   if(guardLock()) return;
@@ -4231,10 +4304,16 @@ function updateLive(){
   setTxt("acFloat", signMoney(A.floating + A.swaps), (A.floating+A.swaps)>=0?"pos":"neg");
   setTxt("chBid", pxfmt(S.price.bid));
   setTxt("chAsk", pxfmt(S.price.ask));
+  // ▲/▼ of the last quote change: the Charts bar arrows and the Markets panel triangles
+  const qd = quoteDir();
   if(document.getElementById("chLot")){                    // Charts tab trade bar
     setTxt("chLot", fmt(S.ui.lot, 2));
-    const dir = wlTickDir() === "dn" ? "↓" : "↑";
-    setTxt("chDirS", dir); setTxt("chDirB", dir);
+    const arrow = qd === "dn" ? "↓" : "↑";
+    setTxt("chDirS", arrow); setTxt("chDirB", arrow);
+  }
+  for(const id of ["ovDirS", "ovDirB"]){
+    const el = document.getElementById(id);
+    if(el){ const c = "ctp-dir " + qd; if(el.className !== c) el.className = c; }
   }
   // positions summary
   setTxt("pBal", money(A.balance));
