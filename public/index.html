@@ -84,7 +84,7 @@ img,canvas,svg,video{max-width:100%}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
 /* dark theme: cells are lighter than the black page and carry a hairline edge (inset, so no
    size change) — at #0d0d0d on #000 with no edge the user couldn't tell where one cell ends */
-:root[data-theme="dark"] .card,:root[data-theme="dark"] .lrow,:root[data-theme="dark"] .menu-item,:root[data-theme="dark"] .wl-row{box-shadow:inset 0 0 0 1px var(--line)}
+:root[data-theme="dark"] .card,:root[data-theme="dark"] .lrow,:root[data-theme="dark"] .menu-item{box-shadow:inset 0 0 0 1px var(--line)}
 /* Markets → instrument header, cTrader's: ★ and ✓ boxes, symbol + description, day change, L · S · H */
 .ovhead{margin:-2px 0 12px}
 .ovh-top{display:flex;align-items:flex-start;gap:8px}
@@ -388,31 +388,41 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-logo svg{width:100%;height:100%;display:block}
 .wl-search{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:9px;background:var(--line);
   color:var(--ink3);border-radius:999px;padding:11px 16px;font-size:15px;font-weight:400;text-align:left}
-.wl-search-ic{font-size:14px;opacity:.65}
+.wl-search-ic{flex:none;opacity:.75}
 .wl-search:active{filter:brightness(.97)}
-.wl-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
-.wl-name{font-weight:600;font-size:15px}
-.wl-tools{display:flex;gap:6px}
-.wl-tools .ic{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--line);font-size:14px;color:var(--ink2)}
-.wl-row{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:9px;cursor:pointer;width:100%;text-align:left}
+/* the watchlist, cTrader's: a name row, then instrument rows edge to edge with a divider (no card) */
+.wl-head{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 14px;border-bottom:1px solid var(--line);margin:0 -14px;padding-left:16px;padding-right:16px}
+.wl-name{font-weight:400;font-size:18px}
+.wl-tools{display:flex;align-items:center;gap:22px}
+.wl-caret{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid var(--ink3);margin-right:14px}
+.wl-tools .ic{display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer}
+.wl-row{display:flex;gap:12px;align-items:stretch;padding:16px 16px 14px;margin:0 -14px;width:calc(100% + 28px);border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left}
 .wl-row:active{background:var(--press)}
-.wl-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.wl-sym{font-weight:600;font-size:17px}
-.wl-sym .ck{color:var(--green);margin-right:3px}
+.wl-left{flex:0 0 41%;min-width:0;display:flex;flex-direction:column;gap:1px}
+.wl-right{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
+.wl-sym{font-weight:500;font-size:22px;line-height:1.15;display:flex;align-items:center;white-space:nowrap}
+.wl-sym .ck{color:var(--green);margin-right:12px;font-size:19px}
 .wl-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;
   margin-left:8px;border:1.5px solid var(--ink3);border-radius:6px;font-size:12px;font-weight:600;
   font-variant-numeric:tabular-nums;color:var(--ink2);vertical-align:2px;line-height:1}
-.wl-chg{font-weight:600;font-size:12.5px;white-space:nowrap}
-.wl-mid{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.wl-spark{flex:0 0 118px;height:38px;overflow:hidden}
+.wl-chg{font-size:14px;white-space:nowrap}
+.wl-spark{display:block;width:100%;height:30px;margin-top:5px;overflow:hidden}
 .wl-spark svg{display:block;width:100%;height:100%}
-.wl-stats{font-size:10.5px;color:var(--ink3);text-align:right;line-height:1.5;overflow-wrap:anywhere}
+.wl-stats{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;color:var(--ink2);white-space:nowrap}
 .wl-quote{display:flex;gap:8px}
+/* «+ Добавить инструменты» — cTrader's centred blue button; «Новый ордер» — its floating action button */
+.wl-addbtn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 0;width:64%;min-width:230px;height:36px;border:0;border-radius:4px;background:#1f4e9c;color:#fff;font-size:15px;font-weight:500}
+.wl-addbtn span{font-size:20px;line-height:1}
+:root[data-theme="dark"] .wl-addbtn{background:#2a6bd0}
+.fabnew{--fab-bg:#d3e3fd;position:fixed;right:max(14px, calc(50% - 246px));bottom:88px;z-index:35;display:flex;align-items:center;gap:14px;padding:13px 22px 13px 18px;border:0;border-radius:16px;background:var(--fab-bg);color:#0b1d38;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+:root[data-theme="dark"] .fabnew{--fab-bg:#0d47a1;color:#dbe7fb}
+.fabnew:active{filter:brightness(.92)}
+body.trade-locked .fabnew{opacity:.5;pointer-events:none}
 /* cTrader tints BOTH boxes — caption, price and border — by the last tick:
    green after an uptick, red after a downtick (.dn on the .wl-quote row) */
-.wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:2px;border:1.5px solid currentColor;border-radius:10px;padding:6.5px 3.5px;color:var(--green)}
-.wl-q b{font-size:9px;letter-spacing:.04em;color:inherit}
-.wl-q .mono{font-size:15px;font-weight:600}
+.wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;border:1px solid currentColor;border-radius:4px;padding:2px 2px 3px;color:var(--green)}
+.wl-q b{font-size:12.5px;font-weight:500;letter-spacing:.02em;line-height:1.25;color:inherit}
+.wl-q span{font-size:17px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums}
 .wl-quote.dn .wl-q{color:var(--red)}
 /* same pill as the search field beside it — cTrader gives them equal weight;
    ours used to sit noticeably smaller */
@@ -2509,6 +2519,11 @@ function watchStats(){
   const spr = Math.round((S.price.ask - S.price.bid) / Math.pow(10, -S.symbol.digits));
   return { chg, chgPct, spr, hi: D ? D.high : S.price.mid, lo: D ? D.low : S.price.mid };
 }
+/* the watchlist change line, cTrader's: in pips (0.01 for gold) and % — «-4596.0 (-1.06%)» */
+function wlChgText(w){
+  const pip = Math.pow(10, -S.symbol.digits), s = w.chg > 0 ? "+" : "";
+  return `${s}${(w.chg / pip).toFixed(1)} (${w.chgPct > 0 ? "+" : ""}${fmt(w.chgPct, 2)}%)`;
+}
 /* open positions on XAUUSD — pending orders do NOT count until they fill */
 function xauOpenCount(){ return S.positions.filter(p => p.symbol === S.symbol.name).length; }
 function wlCountBadge(){ const n = xauOpenCount(); return n > 0 ? ` <span class="wl-count" id="wlCount">${n}</span>` : ""; }
@@ -2545,31 +2560,35 @@ function screenMarketsList(){
       <span class="wl-logo" aria-hidden="true">
         <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#e5342b"/><g fill="#fff"><rect x="10" y="22" width="5" height="8" rx="1.4"/><rect x="17.5" y="16" width="5" height="14" rx="1.4"/><rect x="25" y="11" width="5" height="19" rx="1.4"/></g></svg>
       </span>
-      <button class="wl-search" data-act="search"><span class="wl-search-ic" aria-hidden="true">🔍</span>Search</button>
+      <button class="wl-search" data-act="search"><svg class="wl-search-ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Поиск</button>
       <span class="ab-bal mono ${abBalCls()}" id="abBal">${money(S._acc ? S._acc.equity : S.account.balance)}</span>
     </div>
     <div class="wrap">
     <div class="wl-head">
-      <span class="wl-name">XAU69 <span style="color:var(--ink3)">▾</span></span>
-      <span class="wl-tools"><span class="ic" data-act="addinstr">＋</span><span class="ic" data-act="addinstr">✎</span></span>
+      <span class="wl-name">XAU69</span>
+      <span class="wl-tools">
+        <span class="wl-caret" aria-hidden="true"></span>
+        <span class="ic" data-act="addinstr" aria-label="Добавить инструмент"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M12 7v10M7 12h10" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+        <span class="ic" data-act="addinstr" aria-label="Изменить список"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3.5 20.5h4.2L19.4 8.8a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L3.5 16.3z" fill="currentColor"/></svg></span>
+      </span>
     </div>
     <div class="wl-row" role="button" tabindex="0" data-act="openxau">
-      <div class="wl-top">
+      <div class="wl-left">
         <span class="wl-sym" id="wlSym"><span class="ck">✓</span>XAUUSD${wlCountBadge()}</span>
-        <span class="wl-chg mono ${w.chg>=0?'pos':'neg'}" id="wlChg">${signMoney(w.chg)} (${w.chg>=0?'+':''}${fmt(w.chgPct,2)}%)</span>
-      </div>
-      <div class="wl-mid">
+        <span class="wl-chg ${w.chg>=0?'pos':'neg'}" id="wlChg">${wlChgText(w)}</span>
         <span class="wl-spark" id="wlSparkBox">${watchSparkSVG()}</span>
-        <span class="wl-stats mono">H: <span id="wlHi">${pxfmt(w.hi)}</span> · S: <span id="wlSp">${w.spr}</span> · L: <span id="wlLo">${pxfmt(w.lo)}</span></span>
       </div>
-      <div class="wl-quote ${wlTickDir()}" id="wlQuote">
-        <span class="wl-q sell"><b>ПРОДАТЬ</b><span class="mono" id="wlBid">${pxfmt(S.price.bid)}</span></span>
-        <span class="wl-q buy"><b>КУПИТЬ</b><span class="mono" id="wlAsk">${pxfmt(S.price.ask)}</span></span>
+      <div class="wl-right">
+        <div class="wl-stats"><span>H: <span id="wlHi">${chartPx(w.hi)}</span></span><span>S: <span id="wlSp">${w.spr}</span></span><span>L: <span id="wlLo">${chartPx(w.lo)}</span></span></div>
+        <div class="wl-quote ${wlTickDir()}" id="wlQuote">
+          <span class="wl-q sell"><b>ПРОДАТЬ</b><span id="wlBid">${chartPx(S.price.bid)}</span></span>
+          <span class="wl-q buy"><b>КУПИТЬ</b><span id="wlAsk">${chartPx(S.price.ask)}</span></span>
+        </div>
       </div>
     </div>
-    <button class="btn dark" data-act="addinstr" style="margin-top:14px">＋ Добавить инструменты</button>
+    <button class="wl-addbtn" data-act="addinstr"><span aria-hidden="true">＋</span>Добавить инструменты</button>
     <div class="hint" style="text-align:center;margin-top:16px">Доступно только XAUUSD</div>
-    <button class="bignew" data-act="newticket">Новый ордер</button>
+    <button class="fabnew" data-act="newticket"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 3h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2V4a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M8 11h8M8 14.5h8M8 18h5" stroke="var(--fab-bg)" stroke-width="1.8" stroke-linecap="round"/></svg>Новый ордер</button>
   </div>`;
 }
 function screenMarkets(){
@@ -4689,11 +4708,11 @@ function updateLive(){
   // watchlist row — keep prices/change/spark/position-count live
   if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
     const w = watchStats();
-    setTxt("wlBid", pxfmt(S.price.bid)); setTxt("wlAsk", pxfmt(S.price.ask));
+    setTxt("wlBid", chartPx(S.price.bid)); setTxt("wlAsk", chartPx(S.price.ask));
     const wq = document.getElementById("wlQuote");
     if(wq){ const c = "wl-quote " + wlTickDir(); if(wq.className !== c) wq.className = c; }
-    setTxt("wlHi", pxfmt(w.hi)); setTxt("wlLo", pxfmt(w.lo)); setTxt("wlSp", String(w.spr));
-    setTxt("wlChg", signMoney(w.chg)+" ("+(w.chg>=0?"+":"")+fmt(w.chgPct,2)+"%)", w.chg>=0?"pos":"neg");
+    setTxt("wlHi", chartPx(w.hi)); setTxt("wlLo", chartPx(w.lo)); setTxt("wlSp", String(w.spr));
+    setTxt("wlChg", wlChgText(w), w.chg>=0?"pos":"neg");
     const sym = document.getElementById("wlSym");
     if(sym){ const want = `<span class="ck">✓</span>XAUUSD${wlCountBadge()}`; if(sym.innerHTML !== want) sym.innerHTML = want; }
     const sb = document.getElementById("wlSparkBox");
