@@ -35,7 +35,7 @@
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
-  --exec-bg:#b8bcc3; --bar:var(--card);         /* a SELL/BUY block while its order is executing */
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -44,7 +44,7 @@
   --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
-  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a;
+  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
@@ -382,7 +382,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .godpanel .gp-half{flex:1}
 
 /* markets watchlist ("Рынки" list -> tap XAUUSD -> existing terminal screen) */
-.wl-topbar{position:sticky;top:0;z-index:40;background:var(--bar);border-bottom:1px solid var(--line);
+.wl-topbar{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:0;   /* same ground as the list below, no edge — like cTrader */
   display:flex;align-items:center;gap:10px;padding:14px 14px}
 .wl-logo{flex:0 0 auto;width:38px;height:38px;display:block}
 .wl-logo svg{width:100%;height:100%;display:block}
@@ -391,12 +391,12 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-search-ic{flex:none;opacity:.75}
 .wl-search:active{filter:brightness(.97)}
 /* the watchlist, cTrader's: a name row, then instrument rows edge to edge with a divider (no card) */
-.wl-head{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 14px;border-bottom:1px solid var(--line);margin:0 -14px;padding-left:16px;padding-right:16px}
+.wl-head{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 14px;border-bottom:1px solid var(--wl-div);margin:0 -14px;padding-left:16px;padding-right:16px}
 .wl-name{font-weight:400;font-size:18px}
 .wl-tools{display:flex;align-items:center;gap:22px}
 .wl-caret{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid var(--ink3);margin-right:14px}
 .wl-tools .ic{display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer}
-.wl-row{display:flex;gap:12px;align-items:stretch;padding:16px 16px 14px;margin:0 -14px;width:calc(100% + 28px);border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left}
+.wl-row{display:flex;gap:12px;align-items:stretch;padding:16px 16px 14px;margin:0 -14px;width:calc(100% + 28px);border-bottom:1px solid var(--wl-div);background:none;cursor:pointer;text-align:left}
 .wl-row:active{background:var(--press)}
 .wl-left{flex:0 0 41%;min-width:0;display:flex;flex-direction:column;gap:1px}
 .wl-right{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
