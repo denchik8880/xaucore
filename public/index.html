@@ -35,16 +35,16 @@
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
-  --exec-bg:#b8bcc3;         /* a SELL/BUY block while its order is executing */
+  --exec-bg:#b8bcc3; --bar:var(--card);         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
 :root[data-theme="dark"]{
-  --bg:#000000; --card:#0d0d0d; --ink:#ffffff; --ink2:#a3a3a3; --ink3:#6b6b6b;
-  --line:#242424; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
+  --bg:#000000; --card:#171717; --ink:#ffffff; --ink2:#a3a3a3; --ink3:#6b6b6b;
+  --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
-  --field-bg:#0a0a0a; --press:#1a1a1a; --raise:#262626;
+  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
@@ -69,7 +69,7 @@ img,canvas,svg,video{max-width:100%}
 #app{padding-bottom:92px;overflow-x:clip;max-width:100%}
 .row>*{min-width:0}
 .row .v{text-align:right;overflow-wrap:anywhere}
-.appbar{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--line);
+.appbar{position:sticky;top:0;z-index:40;background:var(--bar);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:8px;padding:12px 14px;min-height:52px}
 .appbar .ttl{font-weight:600;font-size:18px;display:flex;align-items:center;gap:6px}
 .appbar .sp{flex:1}
@@ -77,11 +77,14 @@ img,canvas,svg,video{max-width:100%}
 .iconbtn:active{background:var(--line)}
 .badge-demo{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--orange);
   background:var(--orange-bg);border:1px solid #f6cfa0;padding:3px 7px;border-radius:999px;white-space:nowrap}
-.subtabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
+.subtabs{display:flex;gap:2px;background:var(--bar);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
 .subtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
 .wrap{padding:12px}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+/* dark theme: cells are lighter than the black page and carry a hairline edge (inset, so no
+   size change) — at #0d0d0d on #000 with no edge the user couldn't tell where one cell ends */
+:root[data-theme="dark"] .card,:root[data-theme="dark"] .lrow,:root[data-theme="dark"] .menu-item,:root[data-theme="dark"] .wl-row{box-shadow:inset 0 0 0 1px var(--line)}
 .card h3{margin:0 0 10px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);font-weight:600}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .row+.row{margin-top:8px}
@@ -149,7 +152,7 @@ img,canvas,svg,video{max-width:100%}
 .bignew:active{filter:brightness(.9)}
 
 /* bottom nav */
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--card);border-top:1px solid var(--line);
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bar);border-top:1px solid var(--line);
   display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
 .bottomnav button{padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:10.5px;font-weight:600}
 .bottomnav button.on{color:var(--blue)}
@@ -169,7 +172,7 @@ img,canvas,svg,video{max-width:100%}
 
 /* chart */
 .chartwrap{background:var(--card);border-radius:0;max-width:100%;overflow:hidden}
-.tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:var(--bar);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tfbar::-webkit-scrollbar{display:none}
 .tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:600;font-size:12.5px;color:var(--ink2);background:var(--line)}
 .tfbar button.on{background:var(--blue);color:#fff}
@@ -331,7 +334,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .godpanel .gp-half{flex:1}
 
 /* markets watchlist ("Рынки" list -> tap XAUUSD -> existing terminal screen) */
-.wl-topbar{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--line);
+.wl-topbar{position:sticky;top:0;z-index:40;background:var(--bar);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:10px;padding:14px 14px}
 .wl-logo{flex:0 0 auto;width:38px;height:38px;display:block}
 .wl-logo svg{width:100%;height:100%;display:block}
