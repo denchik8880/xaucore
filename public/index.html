@@ -139,7 +139,11 @@ img,canvas,svg,video{max-width:100%}
 .ctp-lot-cap{position:absolute;top:-8px;left:9px;padding:0 5px;background:var(--card);font-size:11px;line-height:15px;color:var(--ink2);white-space:nowrap;max-width:calc(100% - 18px);overflow:hidden}
 .ctp-lot-val{font-size:18px;font-weight:500}
 .ctp-caret{flex:0 0 auto;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--ink2)}
-.ctp-lot:active{background:var(--press)}
+/* the number is typed straight in (phone keyboard); only the ▼ opens the wheel */
+.ctp-lot input.ctp-lot-val{flex:1;min-width:0;height:100%;padding:0;border:0;outline:none;background:transparent;color:var(--ink);font-size:18px;font-weight:500}
+.ctp-caret-btn{flex:none;align-self:stretch;display:flex;align-items:center;justify-content:center;width:42px;margin-right:-12px;padding:0;border:0;background:none;border-radius:0 8px 8px 0}
+.ctp-caret-btn:active{background:var(--press)}
+body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .ctp-cap{flex-direction:column;gap:5px}
 /* ▲/▼ under ПРОДАТЬ / КУПИТЬ — flips with every quote change, like cTrader */
 .ctp-dir{display:block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid currentColor}
@@ -322,10 +326,7 @@ body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],
 .lw-body canvas{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
 /* the panel's lots field while the wheel is open: «0.01 Лоты», following the wheel (no caret —
    the value comes from the wheel, or from typing after «Edit») */
-.ctp-lot.editing{display:flex;align-items:center;justify-content:center;border-color:var(--ink2)}
-.ctp-lot.editing .ctp-lot-cap,.ctp-lot.editing .ctp-caret{display:none}
-.ctp-lot.editing .ctp-lot-val{flex:none}
-.ctp-lot.editing .ctp-lot-val::after{content:"Лоты";margin-left:6px;font-weight:400}
+.ctp-lot.editing{border-color:var(--ink2)}
 .news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
 .news-res .row:last-child{border-bottom:none}
 .ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
@@ -2658,11 +2659,11 @@ function mktOverview(){
       </div>
       <div class="ctp">
         <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirS"></span></button>
-        <button class="ctp-lot" data-act="lotwheel" aria-label="Выбрать объём">
+        <div class="ctp-lot">
           <span class="ctp-lot-cap">Количество (Лоты)</span>
-          <span class="ctp-lot-val mono" id="ovLot">${fmt(lot,2)}</span>
-          <span class="ctp-caret" aria-hidden="true"></span>
-        </button>
+          <input class="ctp-lot-val mono" id="ovLot" value="${fmt(lot,2)}" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="Объём в лотах">
+          <button type="button" class="ctp-caret-btn" data-act="lotwheel" aria-label="Выбрать объём колесом"><span class="ctp-caret" aria-hidden="true"></span></button>
+        </div>
         <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirB"></span></button>
         <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${chartPx(S.price.bid)}</span></button>
         <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${chartPx(S.price.ask)}</span></button>
@@ -3749,7 +3750,19 @@ function bindScreen(){
   act("quickbuy", ()=> quickTrade("buy"));
   act("quicksell", ()=> quickTrade("sell"));
   act("lotpick", openLotSheet);          // «Лоты» on the Charts bar
-  act("lotwheel", openLotWheel);         // «Количество» on Markets → cTrader's wheel
+  act("lotwheel", openLotWheel);         // the ▼ in «Количество» on Markets → cTrader's wheel
+  // …and the number itself is typed straight in with the phone's keyboard
+  root.querySelectorAll("input#ovLot").forEach(inp=>{
+    const back = ()=>{ inp.value = fmt(S.ui.lot, 2); };
+    inp.onfocus = ()=>{ if(tradingLocked()){ inp.blur(); return; } inp.select(); };
+    inp.onkeydown = e=>{ if(e.key === "Enter") inp.blur(); };
+    inp.onchange = ()=>{
+      const v = roundTo(parseFloat(String(inp.value).replace(/[\s,]/g, "")), 2), e = validateLot(v);
+      if(e){ toast("r", e); back(); return; }
+      if(S.ui.lot !== v){ S.ui.lot = v; save(); }
+      back(); setTxt("chLot", fmt(v, 2));
+    };
+  });
   act("dombuy", ()=> confirmMarket("buy"));
   act("domsell", ()=> confirmMarket("sell"));
 
@@ -4004,7 +4017,7 @@ function openLotWheel(){
     glideTo(base + Math.sign(e.deltaY) * ROW, 90);
   }, { passive: false });
   draw();
-  const outside = ev=>{ if(!el.contains(ev.target) && !ev.target.closest(".ctp-lot")) close(); };
+  const outside = ev=>{ if(!el.contains(ev.target) && !ev.target.closest(".ctp-caret-btn")) close(); };   // tapping the number closes it for typing
   const close = ()=>{
     if(el.classList.contains("out")) return;
     if(anim){ cancelAnimationFrame(anim); anim = 0; }
@@ -4494,6 +4507,7 @@ function setTxt(id, txt, cls){
   const e = document.getElementById(id);
   if(!e) return;
   txt = String(txt);
+  if(e.tagName === "INPUT"){ if(document.activeElement !== e && e.value !== txt) e.value = txt; return; }   // never under the user's typing
   if(e.textContent !== txt) e.textContent = txt;              // skip no-op DOM writes (most fields don't change every 120ms)
   if(cls !== undefined){
     const next = e.className.replace(/\b(pos|neg)\b/g,"").trim() + (cls?(" "+cls):"");
