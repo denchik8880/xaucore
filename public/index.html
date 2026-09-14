@@ -849,6 +849,8 @@ function walletFmt(x){                                       // "3,000,000,000 U
   return n.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: 2 }) + " USD";
 }
 function pxfmt(x){ return fmt(x, S.symbol.digits); }
+/* prices drawn on the chart read like cTrader's — 4307.02, no thousands separator */
+function chartPx(x){ return Number(x).toFixed(S.symbol.digits); }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function simDate(){ return new Date(S.simClock); }
 function simTimeStr(){ const d = simDate(); return pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes())+":"+pad2(d.getUTCSeconds()); }
@@ -4629,28 +4631,58 @@ function axisTag(ctx, x, yc, w, h, text, col, bg){
   if(ctx.roundRect) ctx.roundRect(x + 0.5, top, w - 1, h - 1, r); else ctx.rect(x + 0.5, top, w - 1, h - 1);
   ctx.fillStyle = bg; ctx.fill();
   ctx.setLineDash([]); ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1;
-  // the price fills its tag like cTrader's: the largest font that fits the width with
-  // ~2 px either side, capped by the tag height (a fixed 10 px left air on both sides)
-  ctx.font = "10px system-ui,'Open Sans',sans-serif";
-  const fs = Math.max(9, Math.min(h * 0.88, 10 * (w - 5) / (ctx.measureText(text).width || 1)));
-  ctx.font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  ctx.font = tagFontSize(ctx, text, w, h).toFixed(1) + "px system-ui,'Open Sans',sans-serif";
   ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(text, x + w/2, yc + 0.5);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
-/* rounded pill label used for position / pending markers on the chart */
-function chartChip(ctx, x, y, text, o){
-  ctx.font = "600 10px system-ui,'Open Sans',sans-serif";
-  const padX = 5, h = 15, w = Math.ceil(ctx.measureText(text).width) + padX*2;
-  const ry = y - h/2;
+/* the price fills its tag like cTrader's: the largest font that fits the width with
+   ~2 px either side, capped by the tag height (a fixed 10 px left air on both sides) */
+function tagFontSize(ctx, text, w, h){
+  ctx.font = "10px system-ui,'Open Sans',sans-serif";
+  return Math.max(9, Math.min(h * 0.88, 10 * (w - 5) / (ctx.measureText(text).width || 1)));
+}
+/* cTrader's left-edge marker for a position / pending order: a full pill «0.01 Лоты» +
+   an icon, as tall as the axis tags and with the same digit size.
+   filled  = open position: the side's colour, white text, a solid ↑/↓
+   outline = pending order: drawn like a tag, coloured text, an arrow with a bar */
+function chartPill(ctx, x, yc, h, fs, text, icon, col, o){
+  const padL = fs * 0.66, gapI = fs * 0.66, iw = fs * 0.56, padR = fs * 0.6;
+  ctx.font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  const tw = ctx.measureText(text).width;
+  const w = Math.ceil(padL + tw + gapI + iw + padR), top = yc - h/2 + 0.5;
   ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(x, ry, w, h, 4); else ctx.rect(x, ry, w, h);
-  if(o.fill){ ctx.fillStyle = o.fill; ctx.fill(); }
-  if(o.stroke){ ctx.setLineDash(o.dash ? [3,2] : []); ctx.lineWidth = 1; ctx.strokeStyle = o.stroke; ctx.stroke(); ctx.setLineDash([]); }
-  ctx.fillStyle = o.text; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  ctx.fillText(text, x + padX, y + 0.5);
+  if(ctx.roundRect) ctx.roundRect(x + 0.5, top, w - 1, h - 1, (h - 1)/2); else ctx.rect(x + 0.5, top, w - 1, h - 1);
+  ctx.setLineDash([]);
+  if(o.filled){ ctx.fillStyle = col; ctx.fill(); }
+  else{ ctx.fillStyle = o.bg; ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1; }
+  const ink = o.filled ? "#ffffff" : col;
+  ctx.fillStyle = ink; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(text, x + padL, yc + 0.5);
   ctx.textBaseline = "alphabetic";
+  pillIcon(ctx, x + padL + tw + gapI + iw/2, yc + 0.5, fs, icon, ink);
   return w;
+}
+/* the pill's icon, drawn rather than a font glyph so it is identical on every phone.
+   "up"/"down" = a position's solid arrow. Orders get an arrow and a bar (sell limit = the
+   cTrader screenshot: bar on top, arrow down from it): limit = arrow leaving the bar,
+   stop = arrow running into it — buy limit ↑ from a bottom bar, buy stop ↑ to a top bar,
+   sell stop ↓ to a bottom bar. */
+function pillIcon(ctx, cx, yc, fs, kind, ink){
+  const hh = fs * 0.4, hw = fs * 0.28, bar = 1.5, gap = 1.2, sw = Math.max(1.4, fs * 0.13);
+  const up = kind === "up" || kind.startsWith("buy-");
+  const barAt = kind.endsWith("-limit") ? (up ? "bottom" : "top") : kind.endsWith("-stop") ? (up ? "top" : "bottom") : "";
+  let t = yc - hh, b = yc + hh;
+  ctx.fillStyle = ink;
+  if(barAt === "top"){ ctx.fillRect(cx - hw, t, hw*2, bar); t += bar + gap; }
+  if(barAt === "bottom"){ ctx.fillRect(cx - hw, b - bar, hw*2, bar); b -= bar + gap; }
+  const headH = Math.min(hw * 1.2, (b - t) * 0.55);
+  ctx.beginPath();
+  if(up){ ctx.moveTo(cx, t); ctx.lineTo(cx + hw, t + headH); ctx.lineTo(cx - hw, t + headH); }
+  else{ ctx.moveTo(cx, b); ctx.lineTo(cx + hw, b - headH); ctx.lineTo(cx - hw, b - headH); }
+  ctx.closePath(); ctx.fill();
+  if(up) ctx.fillRect(cx - sw/2, t + headH - 0.5, sw, b - t - headH + 0.5);
+  else ctx.fillRect(cx - sw/2, t, sw, b - t - headH + 0.5);
 }
 /* push a sorted list of {y} apart so labels/tags don't overlap; keep inside [top,bot] */
 function spreadYs(items, gap, top, bot){
@@ -4747,6 +4779,11 @@ function drawChart(){
   // tight spread they simply overlap (Bid drawn over Ask). Nudging them apart put the
   // lines on the tags' edges instead of through the middle of the price.
 
+  // every right-axis tag — Bid/Ask, positions, pending orders — hides the scale label it
+  // covers, rather than leaving half a label peeking out above or below the tag
+  const tagYs = [tAsk, tBid];
+  for(const p of S.positions) if(p.symbol === S.symbol.name && p.entry >= lo && p.entry <= hi) tagYs.push(y(p.entry));
+  for(const o of S.pendings) if(o.symbol === S.symbol.name && o.price >= lo && o.price <= hi) tagYs.push(y(o.price));
   // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00
   ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
   ctx.textAlign = "left";
@@ -4757,8 +4794,9 @@ function drawChart(){
     const yy = y(p);
     if(yy < padT - 1 || yy > H - padB + 1) continue;
     ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
-    if(Math.abs(yy - tAsk) < 9 || Math.abs(yy - tBid) < 9) continue;   // hidden by a price tag
-    ctx.fillText(pxfmt(p), plotW+4, yy+3);
+    // label glyphs span yy-4..yy+3, a 16 px tag t-8..t+8: skip on any overlap
+    if(tagYs.some(t => Math.abs(yy - 0.5 - t) < 11.5)) continue;
+    ctx.fillText(chartPx(p), plotW+4, yy+3);
   }
   // time scale
   ctx.textAlign = "center";
@@ -4790,7 +4828,7 @@ function drawChart(){
   // Ask > Bid and higher price = higher on screen, so green always ends up above red,
   // at every price level and on every timeframe.
   const CL_ASK = TC.up, CL_BID = TC.down;
-  // SOLID, like cTrader — a dashed line means a pending order and nothing else
+  // SOLID, like cTrader — dash-dot lines belong to positions and pending orders
   // …and it runs dead straight into its tag: the few px past plotW are hidden by the tag's fill
   const priceLine = (yy, col)=>{
     ctx.strokeStyle = col; ctx.setLineDash([]);
@@ -4803,70 +4841,71 @@ function drawChart(){
 
   /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
      Bound directly to S.positions / S.pendings — no separate viz state.
-     open BUY  = solid green line   ·  open SELL = solid red line
-     BUY LIMIT/STOP = dashed green  ·  SELL LIMIT/STOP = dashed red        */
+     cTrader (2026-09-14 screenshots): a position AND a pending order both run a
+     DASH-DOT line from a «0.01 Лоты» pill on the left to an outlined price tag.
+     position = FILLED pill + solid ↑/↓ + a dot on the bar it was opened in
+     pending  = OUTLINED pill + arrow-and-bar icon (limit / stop)
+     green = buy · orange-red = sell                                        */
   const sym = S.symbol.name;
-  const wide = W >= 430;
-  const hline = (yy, col, dashed, wpx)=>{
-    ctx.strokeStyle = col; ctx.lineWidth = wpx || 1;
-    ctx.setLineDash(dashed ? [6,4] : []);
+  const hline = (yy, col)=>{
+    ctx.strokeStyle = col; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
+  };
+  // starts at the pill (nothing left of it, like cTrader); the tail past plotW hides under the tag
+  const dashDot = (x0, yy, col)=>{
+    ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([6, 3.5, 1.6, 3.5]);
+    ctx.beginPath(); ctx.moveTo(x0, yy); ctx.lineTo(plotW + 6, yy); ctx.stroke();
     ctx.setLineDash([]); ctx.lineWidth = 1;
   };
-  const chips = [];   // left-edge markers  {y, text, fill, stroke, textCol, dash}
-  const rtags = [];   // right-axis price tags  {y, price, col}
+  const marks = [];   // {y: pill (de-collided), ly: line, price, col, text, icon, filled, dotX}
   // A level outside the visible range gets NO marker. spreadYs() clamps labels
   // into the canvas, so without this an entry far above the highs was pinned to
   // the top edge and read like a price that is actually on screen.
   const inView = p => p >= lo && p <= hi;
 
-  // SL / TP first (thin, behind the entry lines)
+  // SL / TP first (thin, solid, behind the entry lines)
   for(const p of S.positions){
     if(p.symbol !== sym) continue;
-    if(p.sl) hline(y(p.sl), TC.down, false, 1);      // solid — only pending orders are dashed
-    if(p.tp) hline(y(p.tp), TC.up,   false, 1);
+    if(p.sl) hline(y(p.sl), TC.down);
+    if(p.tp) hline(y(p.tp), TC.up);
   }
-  // open positions — SOLID line at the entry price
   for(const p of S.positions){
-    if(p.symbol !== sym) continue;
-    const col = p.side === "buy" ? TC.up : TC.down;
-    if(!inView(p.entry)) continue;
-    const yy = y(p.entry);
-    hline(yy, col, false, 1.6);
-    const arrow = p.side === "buy" ? "↑" : "↓";
-    chips.push({ y: yy, text: wide ? `${fmt(p.volume,2)} Лоты ${arrow}` : `${fmt(p.volume,2)} ${arrow}`,
-                 fill: TC.bg, stroke: col, textCol: col, dash: false });     // outlined, not filled
-    rtags.push({ y: yy, lw: 1.6, price: p.entry, col });
+    if(p.symbol !== sym || !inView(p.entry)) continue;
+    // the bar holding openTime: the last visible bar that started at or before it and
+    // whose successor (in the full series) starts after it — none if it is off screen
+    let dotX = null;
+    for(let i = vis.length - 1; i >= 0; i--){
+      if(vis[i].t * 1000 > p.openTime) continue;
+      const next = data[startIdx + i + 1];
+      if(!next || next.t * 1000 > p.openTime) dotX = xOf(i) + bw/2;
+      break;
+    }
+    const buy = p.side === "buy";
+    marks.push({ y: y(p.entry), ly: y(p.entry), price: p.entry, col: buy ? TC.up : TC.down,
+                 text: `${fmt(p.volume,2)} Лоты`, icon: buy ? "up" : "down", filled: true, dotX });
   }
-  // pending orders — DASHED line at the order price
   for(const o of S.pendings){
-    if(o.symbol !== sym) continue;
-    const isBuy = o.type.includes("buy");
-    const col = isBuy ? TC.up : TC.down;
-    if(!inView(o.price)) continue;
-    const yy = y(o.price);
-    hline(yy, col, true, 1.4);
-    const kind = o.type.includes("limit") ? "LIMIT" : "STOP";
-    chips.push({ y: yy, text: wide ? `${isBuy?"BUY":"SELL"} ${kind} ${fmt(o.volume,2)}` : `${kind} ${fmt(o.volume,2)} ${isBuy?"↑":"↓"}`,
-                 fill: TC.bg, stroke: col, textCol: col, dash: true });
-    rtags.push({ y: yy, lw: 1.4, price: o.price, col });
+    if(o.symbol !== sym || !inView(o.price)) continue;
+    const buy = o.type.includes("buy");
+    marks.push({ y: y(o.price), ly: y(o.price), price: o.price, col: buy ? TC.up : TC.down,
+                 text: `${fmt(o.volume,2)} Лоты`, icon: (buy ? "buy-" : "sell-") + (o.type.includes("limit") ? "limit" : "stop"),
+                 filled: false, dotX: null });
   }
-  // de-collide the left chips, then draw. Shift a chip right of the on-canvas
-  // zoom buttons (bottom-left ~[8..46] x [H-150..H-20]) so it isn't hidden.
-  spreadYs(chips, 16, 24, H - 9);
-  const zoomZone = (yy)=> yy > H - 150 && yy < H - 18;
-  for(const ch of chips) chartChip(ctx, zoomZone(ch.y) ? 48 : 2, ch.y, ch.text, { fill: ch.fill, stroke: ch.stroke, text: ch.textCol, dash: ch.dash });
-  // right-axis tags for positions / pending orders — centred on their own line like
-  // cTrader (overlapping rather than nudged apart), the line running straight into the
-  // middle of the tag; the live Bid/Ask tags go on last so they stay on top
-  for(const rt of rtags){
-    ctx.strokeStyle = rt.col; ctx.lineWidth = rt.lw;
-    ctx.beginPath(); ctx.moveTo(plotW - 1, rt.y); ctx.lineTo(plotW + 6, rt.y); ctx.stroke();
-    ctx.lineWidth = 1;
-    axisTag(ctx, plotW + 2, rt.y, padR - 4, 15, pxfmt(rt.price), rt.col, TC.bg);
+  // de-collide the pills (lines and tags stay on their exact prices); a pill in the
+  // on-canvas zoom buttons' strip (bottom-left ~[8..46] x [H-150..H-20]) moves right of it
+  const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
+  spreadYs(marks, pillH + 2, 24, H - 9);
+  const pillX = m => (m.y > H - 150 && m.y < H - 18) ? 52 : 8;
+  for(const m of marks) dashDot(pillX(m), m.ly, m.col);
+  for(const m of marks) if(m.dotX != null){
+    ctx.fillStyle = m.col; ctx.beginPath(); ctx.arc(m.dotX, m.ly, 2.4, 0, Math.PI * 2); ctx.fill();
   }
-  priceTag(tAsk, CL_ASK, pxfmt(S.price.ask));
-  priceTag(tBid, CL_BID, pxfmt(S.price.bid));
+  for(const m of marks) chartPill(ctx, pillX(m), m.y, pillH, pillFs, m.text, m.icon, m.col, { filled: m.filled, bg: TC.bg });
+  // right-axis tags, centred on their own line like cTrader (overlapping rather than
+  // nudged apart); the live Bid/Ask tags go on last so they stay on top
+  for(const m of marks) axisTag(ctx, plotW + 2, m.ly, padR - 4, 16, chartPx(m.price), m.col, TC.bg);
+  priceTag(tAsk, CL_ASK, chartPx(S.price.ask));
+  priceTag(tBid, CL_BID, chartPx(S.price.bid));
 
   // crosshair
   const info = infoEl;
@@ -4882,17 +4921,17 @@ function drawChart(){
     const b = vis[idx];
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
     ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
-    ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.fillText(pxfmt(price), plotW+3, cy+3);
+    ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.fillText(chartPx(price), plotW+3, cy+3);
     if(b && info){
       const rb = data[startIdx + idx] || b;         // raw OHLC for the text readout
       const d = new Date(rb.t*1000);
       info.style.display = "block";
-      info.textContent = `${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${pxfmt(rb.o)}  Н ${pxfmt(rb.h)}  Л ${pxfmt(rb.l)}  З ${pxfmt(rb.c)}`;
+      info.textContent = `${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${chartPx(rb.o)}  Н ${chartPx(rb.h)}  Л ${chartPx(rb.l)}  З ${chartPx(rb.c)}`;
     }
   }else if(info){
     const last = data[data.length-1];
     info.style.display = "block";
-    info.textContent = `${tf}   О ${pxfmt(last.o)}  Н ${pxfmt(last.h)}  Л ${pxfmt(last.l)}  З ${pxfmt(last.c)}`;
+    info.textContent = `${tf}   О ${chartPx(last.o)}  Н ${chartPx(last.h)}  Л ${chartPx(last.l)}  З ${chartPx(last.c)}`;
   }
 }
 
@@ -4924,16 +4963,16 @@ function drawMini(){
     if(i === data.length-1 && !up) yc = Math.min(yc, y(S.price.ask));   // live down bar: body stops at Ask
     ctx.fillRect(i*bw+0.5, Math.min(yo,yc), Math.max(1,bw-1.5), Math.max(1,Math.abs(yc-yo)));
   }
-  // open positions (solid) + pending orders (dashed) — same S.positions / S.pendings
+  // open positions + pending orders — cTrader's dash-dot, same as the main chart
   const mSym = S.symbol.name;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.2; ctx.setLineDash([6, 3.5, 1.6, 3.5]);
   for(const p of S.positions){ if(p.symbol!==mSym) continue;
-    ctx.strokeStyle = p.side==="buy"?TC.up:TC.down; ctx.setLineDash([]);
+    ctx.strokeStyle = p.side==="buy"?TC.up:TC.down;
     const yy=y(p.entry); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); }
   for(const o of S.pendings){ if(o.symbol!==mSym) continue;
-    ctx.strokeStyle = o.type.includes("buy")?TC.up:TC.down; ctx.setLineDash([5,3]);
+    ctx.strokeStyle = o.type.includes("buy")?TC.up:TC.down;
     const yy=y(o.price); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); }
-  ctx.setLineDash([]);
+  ctx.setLineDash([]); ctx.lineWidth = 1;
   // GREEN Ask on top, RED Bid below (cTrader style) — holds at any price / timeframe
   const yb=y(S.price.bid), ya=y(S.price.ask);
   // solid, straight into the middle of its tag (the tag's fill hides the tail); tags are
@@ -4942,8 +4981,8 @@ function drawMini(){
   ctx.strokeStyle=TC.down; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW+6,yb); ctx.stroke();
   const la=ya, lb=yb;
   ctx.font="10px system-ui,'Open Sans',sans-serif"; ctx.textAlign="left";
-  axisTag(ctx, plotW+2, la, padR-4, 16, pxfmt(S.price.ask), TC.up, TC.bg);
-  axisTag(ctx, plotW+2, lb, padR-4, 16, pxfmt(S.price.bid), TC.down, TC.bg);
+  axisTag(ctx, plotW+2, la, padR-4, 16, chartPx(S.price.ask), TC.up, TC.bg);
+  axisTag(ctx, plotW+2, lb, padR-4, 16, chartPx(S.price.bid), TC.down, TC.bg);
 }
 
 /* =========================================================================
