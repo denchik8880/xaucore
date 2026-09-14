@@ -205,6 +205,15 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    everywhere outside the canvas. */
 #chartCanvas{touch-action:none}
 #miniCanvas{touch-action:auto}
+/* Markets overview chart, cTrader's: axes + grid on the canvas, ⛶ and the tf button over it, periods under it */
+.card.minichart{padding:0;overflow:hidden}
+.mini-box{position:relative}
+.mini-tools{position:absolute;left:12px;top:12px;display:flex;gap:8px}
+.mini-tools button{min-width:34px;height:34px;padding:0 9px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink2);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.mini-tools button:active{background:var(--press)}
+.mini-ranges{display:flex;padding:4px 8px 10px}
+.mini-ranges button{flex:1;background:none;border:0;padding:8px 0;font-size:15px;color:var(--ink2);white-space:nowrap}
+.mini-ranges button.on{color:var(--blue);font-weight:600}
 .chartbox{position:relative;background:var(--card);max-width:100%;overflow:hidden}
 .chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartzoom{position:absolute;left:8px;bottom:26px;display:flex;flex-direction:column;gap:6px;z-index:5}
@@ -2380,6 +2389,7 @@ function themeColors(){
   const g = (n, fb) => { const v = cs.getPropertyValue(n).trim(); return v || fb; };
   _themeColors = {
     bg:    g("--chart-bg", "#ffffff"),
+    ink:   g("--ink", "#111418"),
     grid:  g("--chart-grid", "#eef0f2"),
     axis:  g("--chart-axis", "#9aa1ab"),
     cross: g("--chart-cross", "#9aa1ab"),
@@ -2629,6 +2639,10 @@ function godPanelMarkup(){
   </div>`;
 }
 
+/* Markets overview chart (cTrader's): the tf button cycles these, a period preset picks a tf + bar count */
+const MINI_TFS = ["M1","M5","M15","M30","H1","H4","D1"];
+const MINI_TF_LABEL = { M1:"м1", M5:"м5", M15:"м15", M30:"м30", H1:"ч1", H4:"ч4", D1:"д1" };
+const MINI_RANGES = { "1Д":["M15",96], "5Д":["H1",120], "1М":["H4",180], "3М":["D1",90], "6М":["D1",180], "1Г":["D1",365], "5Л":["D1",1825] };
 /* cTrader's instrument header numbers: change since the trading day's open in % and in pips
    (0.01 for gold, so -60.68 reads -6068.0), the day's low / high, and the spread in pips */
 function ovHeadData(){
@@ -2694,9 +2708,15 @@ function mktOverview(){
       <div class="row"><span class="k">Floating P/L</span><span class="v mono" id="acFloat">$0.00</span></div>
     </div>
 
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:12px 14px 4px"><h3 style="margin:0">График (M1 · synthetic)</h3></div>
-      <canvas id="miniCanvas" height="150" data-h="150"></canvas>
+    <div class="card minichart">
+      <div class="mini-box">
+        <canvas id="miniCanvas" height="250" data-h="250"></canvas>
+        <div class="mini-tools">
+          <button type="button" data-minifull aria-label="График на весь экран"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" data-minitf aria-label="Таймфрейм">${MINI_TF_LABEL[S.ui.miniTF] || "м1"}</button>
+        </div>
+      </div>
+      <div class="mini-ranges">${Object.keys(MINI_RANGES).map(k=>`<button type="button" data-minirange="${k}" class="${S.ui.miniRange===k?"on":""}">${k}</button>`).join("")}</div>
     </div>
 
     <div class="card">
@@ -3751,6 +3771,18 @@ function bindScreen(){
   act("quicksell", ()=> quickTrade("sell"));
   act("lotpick", openLotSheet);          // «Лоты» on the Charts bar
   act("lotwheel", openLotWheel);         // the ▼ in «Количество» on Markets → cTrader's wheel
+  // Markets overview chart: period presets, the tf button (cycles), ⛶ (opens the Charts tab on that tf)
+  root.querySelectorAll("[data-minirange]").forEach(b=> b.onclick = ()=>{
+    const [tf, bars] = MINI_RANGES[b.dataset.minirange];
+    S.ui.miniTF = tf; S.ui.miniBars = bars; S.ui.miniRange = b.dataset.minirange; save(); render();
+  });
+  root.querySelectorAll("[data-minitf]").forEach(b=> b.onclick = ()=>{
+    const i = MINI_TFS.indexOf(S.ui.miniTF || "M1");
+    S.ui.miniTF = MINI_TFS[(i + 1) % MINI_TFS.length]; S.ui.miniBars = 50; S.ui.miniRange = null; save(); render();
+  });
+  root.querySelectorAll("[data-minifull]").forEach(b=> b.onclick = ()=>{
+    S.ui.chartTF = S.ui.miniTF || "M1"; chart.offset = 0; chart.vCenter = null; chart.vZoom = 1; nav("chart");
+  });
   // …and the number itself is typed straight in with the phone's keyboard
   root.querySelectorAll("input#ovLot").forEach(inp=>{
     const back = ()=>{ inp.value = fmt(S.ui.lot, 2); };
@@ -5429,6 +5461,10 @@ function drawChart(){
 }
 
 /* mini chart on overview */
+/* Markets overview chart — cTrader's overview: a price scale with gridlines, a date / time axis,
+   the last N bars of the chosen timeframe (S.ui.miniTF / miniBars — the tf button or a period
+   preset) with free space right of the newest bar, position / order lines, Bid/Ask lines and
+   tags. Everything sits on the device-pixel grid like the main chart. */
 function drawMini(){
   if(!S) return;
   const c = document.getElementById("miniCanvas");
@@ -5436,46 +5472,89 @@ function drawMini(){
   if(!c._w) fitCanvas(c);
   const ctx = c.getContext("2d");
   const TC = themeColors();
-  const W = c._w, H = c._h, padR = 52;
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=TC.bg; ctx.fillRect(0,0,W,H);
-  const data = bidCandles((S.candles.M1||[]).slice(-90));
+  const W = c._w, H = c._h, padR = 64, padT = 10, padB = 30;
+  const pxr = c.width / W || 1, pyr = c.height / H || 1;
+  const hx = Math.max(1, Math.round(pxr)), hy = Math.max(1, Math.round(pyr));
+  const hairX = hx / pxr, hairY = hy / pyr;
+  const snapX = v => Math.round(v * pxr) / pxr, snapY = v => Math.round(v * pyr) / pyr;
+  const crispX = v => (hx % 2 ? Math.floor(v * pxr) + 0.5 : Math.round(v * pxr)) / pxr;
+  const crispY = v => (hy % 2 ? Math.floor(v * pyr) + 0.5 : Math.round(v * pyr)) / pyr;
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = TC.bg; ctx.fillRect(0, 0, W, H);
+  const tf = S.ui.miniTF || "M1", want = S.ui.miniBars || 50, tfSec = TF[tf] || 60;
+  const data = bidCandles((S.candles[tf] || []).slice(-want));
   if(!data.length) return;
-  let hi=-Infinity, lo=Infinity;
-  for(const b of data){ hi=Math.max(hi,b.h); lo=Math.min(lo,b.l); }
-  hi=Math.max(hi,S.price.ask); lo=Math.min(lo,S.price.bid);
-  const pad=(hi-lo)*0.1||1; hi+=pad; lo-=pad;
-  const plotW = W-padR;
-  const y = p => 6 + (hi-p)/(hi-lo)*(H-12);
-  const bw = plotW/data.length;
-  for(let i=0;i<data.length;i++){
-    const b=data[i], up=b.c>=b.o;
-    ctx.strokeStyle=up?TC.up:TC.down; ctx.fillStyle=up?TC.up:TC.down;
-    const cx=i*bw+bw/2;
-    ctx.beginPath(); ctx.moveTo(cx,y(b.h)); ctx.lineTo(cx,y(b.l)); ctx.stroke();
-    let yo=y(b.o),yc=y(b.c);
-    if(i === data.length-1 && !up) yc = Math.min(yc, y(S.price.ask));   // live down bar: body stops at Ask
-    ctx.fillRect(i*bw+0.5, Math.min(yo,yc), Math.max(1,bw-1.5), Math.max(1,Math.abs(yc-yo)));
+  const plotW = W - padR, plotH = H - padT - padB;
+  const barsW = plotW * 0.86;                                         // free space right of the newest bar
+  const unit = barsW / Math.max(want, data.length);
+  const xOf = i => barsW - (data.length - i) * unit;
+  let hi = S.price.ask, lo = S.price.bid;
+  for(const b of data){ if(b.h > hi) hi = b.h; if(b.l < lo) lo = b.l; }
+  const pad = (hi - lo) * 0.06 || 0.5; hi += pad; lo -= pad;
+  const y = p => padT + (hi - p) / (hi - lo) * plotH;
+  const yAsk = crispY(y(S.price.ask)), yBid = crispY(y(S.price.bid));
+
+  // gridlines (one stroke) + price labels on the right + the date / time axis
+  const step = niceStep(hi - lo, clamp(Math.round(plotH / 42), 3, 8));
+  ctx.beginPath();
+  ctx.font = "12.5px system-ui,'Open Sans',sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = TC.ink;
+  for(let p = Math.ceil(lo / step) * step; p <= hi; p += step){
+    const yy = crispY(y(p));
+    ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
+    if(Math.abs(yy - yBid) > 11 && Math.abs(yy - yAsk) > 11) ctx.fillText(chartPx(p), plotW + 6, yy + 4);
   }
+  const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const intraday = tfSec < 14400, d0 = new Date(data[0].t * 1000);
+  const dateLbl = intraday ? `${DAYS[d0.getDay()]} ${d0.getDate()} ${MON[d0.getMonth()]}` : `${MON[d0.getUTCMonth()]} ${d0.getUTCFullYear()}`;
+  ctx.font = "bold 13px system-ui,'Open Sans',sans-serif";
+  const dateW = ctx.measureText(dateLbl).width;
+  ctx.fillText(dateLbl, 4, H - 9);
+  ctx.font = "12.5px system-ui,'Open Sans',sans-serif"; ctx.textAlign = "center";
+  const every = Math.max(1, Math.ceil(72 / unit));                    // a time label ~every 72 px, pinned to bar time (50 × M1 → 14 min, as in cTrader)
+  for(let i = 0; i < data.length; i++){
+    if(Math.round(data[i].t / tfSec) % every) continue;
+    const xx = crispX(xOf(i) + unit / 2);
+    ctx.moveTo(xx, padT); ctx.lineTo(xx, H - padB);
+    if(xx - 22 < dateW + 12 || xx + 22 > plotW) continue;
+    const d = new Date(data[i].t * 1000);
+    ctx.fillText(intraday ? pad2(d.getHours()) + ":" + pad2(d.getMinutes()) : `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`, xx, H - 9);
+  }
+  ctx.strokeStyle = TC.grid; ctx.lineWidth = hairY; ctx.stroke(); ctx.lineWidth = 1;
+
+  // candles: pixel-aligned wick + body rects, one fill per colour
+  const bodyW = Math.max(1 / pxr, snapX(unit * 0.62)), wickOff = snapX((bodyW - hairX) / 2);
+  const yAskCap = y(S.price.ask), last = data.length - 1;
+  for(const upPass of [true, false]){
+    ctx.beginPath();
+    for(let i = 0; i < data.length; i++){
+      const b = data[i];
+      if((b.c >= b.o) !== upPass) continue;
+      const xb = snapX(xOf(i) + (unit - bodyW) / 2);
+      const yh = snapY(y(b.h)), yl = snapY(y(b.l));
+      ctx.rect(xb + wickOff, yh, hairX, Math.max(1 / pyr, yl - yh));
+      let yo = y(b.o), yc = y(b.c);
+      if(i === last && !upPass) yc = Math.min(yc, yAskCap);           // live down bar: body stops at the Ask
+      const top = snapY(Math.min(yo, yc)), bot = snapY(Math.max(yo, yc));
+      ctx.rect(xb, top, bodyW, Math.max(hairY, bot - top));
+    }
+    ctx.fillStyle = upPass ? TC.up : TC.down; ctx.fill();
+  }
+
   // open positions + pending orders — cTrader's dash-dot, same as the main chart
   const mSym = S.symbol.name;
-  ctx.lineWidth = 1.2; ctx.setLineDash([6, 3.5, 1.6, 3.5]);
-  for(const p of S.positions){ if(p.symbol!==mSym) continue;
-    ctx.strokeStyle = p.side==="buy"?TC.up:TC.down;
-    const yy=y(p.entry); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); }
-  for(const o of S.pendings){ if(o.symbol!==mSym) continue;
-    ctx.strokeStyle = o.type.includes("buy")?TC.up:TC.down;
-    const yy=y(o.price); ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(plotW,yy); ctx.stroke(); }
-  ctx.setLineDash([]); ctx.lineWidth = 1;
-  // GREEN Ask on top, RED Bid below (cTrader style) — holds at any price / timeframe
-  const yb=y(S.price.bid), ya=y(S.price.ask);
-  // solid, straight into the middle of its tag (the tag's fill hides the tail); tags are
-  // centred on their lines and simply overlap at a tight spread — like cTrader
-  ctx.strokeStyle=TC.up; ctx.beginPath(); ctx.moveTo(0,ya); ctx.lineTo(plotW+6,ya); ctx.stroke();
-  ctx.strokeStyle=TC.down; ctx.beginPath(); ctx.moveTo(0,yb); ctx.lineTo(plotW+6,yb); ctx.stroke();
-  const la=ya, lb=yb;
-  ctx.font="10px system-ui,'Open Sans',sans-serif"; ctx.textAlign="left";
-  axisTag(ctx, plotW+2, la, padR-4, 16, chartPx(S.price.ask), TC.up, TC.bg);
-  axisTag(ctx, plotW+2, lb, padR-4, 16, chartPx(S.price.bid), TC.down, TC.bg);
+  ctx.lineWidth = hairY; ctx.setLineDash([6, 3.5, 1.6, 3.5]);
+  for(const p of S.positions){ if(p.symbol !== mSym || p.entry < lo || p.entry > hi) continue;
+    ctx.strokeStyle = p.side === "buy" ? TC.up : TC.down;
+    const yy = crispY(y(p.entry)); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); }
+  for(const o of S.pendings){ if(o.symbol !== mSym || o.price < lo || o.price > hi) continue;
+    ctx.strokeStyle = o.type.includes("buy") ? TC.up : TC.down;
+    const yy = crispY(y(o.price)); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); }
+  ctx.setLineDash([]);
+  // GREEN Ask on top, RED Bid below, solid into the middle of their tags (centred, overlapping)
+  ctx.strokeStyle = TC.up; ctx.beginPath(); ctx.moveTo(0, yAsk); ctx.lineTo(plotW + 6, yAsk); ctx.stroke();
+  ctx.strokeStyle = TC.down; ctx.beginPath(); ctx.moveTo(0, yBid); ctx.lineTo(plotW + 6, yBid); ctx.stroke();
+  ctx.lineWidth = 1;
+  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.bg);
+  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.bg);
 }
 
 /* =========================================================================
