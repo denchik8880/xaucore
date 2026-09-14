@@ -4367,9 +4367,11 @@ function updateLive(){
   // modal live
   if(modalEl && modalEl._live) modalEl._live();
   // charts
-  if(S.ui.tab === "chart") drawChart();
+  // the main chart through rAF: a live update joins the gesture's frame instead of adding a
+  // second full redraw between two display frames
+  if(S.ui.tab === "chart") chartDraw();
   if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
-  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart") drawChart();
+  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart") chartDraw();
   // broker wallet — single balance state reflected everywhere it shows
   const wib = document.getElementById("wiBalance");
   if(wib){
@@ -4437,7 +4439,7 @@ function chartVZoomAt(k, yPx){
   chart.vZoom = clamp(chart.vZoom * k, V_MIN, V_MAX);
   const newSpan = 2 * (chart.vBase || 1) / chart.vZoom;
   chart.vCenter = anchor - (0.5 - frac) * newSpan;
-  drawChart();
+  chartDraw();
 }
 /* Same idea for time: hold the bar under the cursor while the bar width changes. */
 function chartZoomAt(k, xPx){
@@ -4449,7 +4451,7 @@ function chartZoomAt(k, xPx){
   // barAt(x) = (len - offset) - (barsW - x)/unit; holding that fixed gives
   // off_new = off_old + (fromRightOld - fromRightNew)
   chart.offset = clamp(chart.offset + (fromRightOld - fromRightNew), 0, 5000);
-  drawChart();
+  chartDraw();
 }
 /* Look up / down: shift the anchored centre by however many dollars `dyPx`
    of screen represents at the current scale. */
@@ -4459,12 +4461,23 @@ function chartVPan(dyPx, plotH){
   chart.vCenter += dyPx * span / Math.max(plotH || chart._plotH || 200, 1);
 }
 let _chartWinDrag = null;   // shared window mousemove/up handler, added once
+/* Gesture and live redraws go through requestAnimationFrame: at most one drawChart per
+   display frame, at the screen's own refresh rate (120 Hz on a 120 Hz phone), however
+   many touch / mouse events or 120 ms updates land in between. */
+let _chartRaf = 0;
+function chartDraw(){
+  if(_chartRaf) return;
+  _chartRaf = requestAnimationFrame(()=>{ _chartRaf = 0; drawChart(); });
+}
 function setupChartCanvas(){
   const c = document.getElementById("chartCanvas");
   if(!c) return;
   c._w = 0; fitCanvas(c);
   chart.cross = null; chart.drag = null; chart.pinch = null; chart.axis = null;
-  const rc = () => c.getBoundingClientRect();
+  // the canvas rect is read once per gesture (touchstart / mousedown) and reused on every
+  // move: reading it per event forced a layout each frame after updateLive touched the DOM
+  let rect = null;
+  const rc = () => rect || c.getBoundingClientRect();
   const getX = e => (e.touches?e.touches[0].clientX:e.clientX) - rc().left;
   const getY = e => (e.touches?e.touches[0].clientY:e.clientY) - rc().top;
 
@@ -4484,12 +4497,13 @@ function setupChartCanvas(){
   /* MOUSE: drag to pan, hover for crosshair. Window listeners live only during a drag. */
   c.onmousedown = e=>{
     if(e.button !== 0) return;
+    rect = c.getBoundingClientRect();
     if(onAxis(getX(e))){
       chartEnterManual();
       const a = { y:getY(e), vz:chart.vZoom };
       const mvA = ev=>{
-        chart.vZoom = clamp(a.vz * Math.exp((a.y - getY(ev))/160), V_MIN, V_MAX); drawChart(); };
-      const upA = ()=>{ window.removeEventListener("mousemove", mvA); window.removeEventListener("mouseup", upA); };
+        chart.vZoom = clamp(a.vz * Math.exp((a.y - getY(ev))/160), V_MIN, V_MAX); chartDraw(); };
+      const upA = ()=>{ rect = null; window.removeEventListener("mousemove", mvA); window.removeEventListener("mouseup", upA); };
       window.addEventListener("mousemove", mvA); window.addEventListener("mouseup", upA);
       return;
     }
@@ -4499,19 +4513,20 @@ function setupChartCanvas(){
       const ny = getY(ev), stepY = ny - chart.drag.ly;
       if(stepY) chartVPan(stepY, chart._plotH);
       chart.drag.ly = ny;
-      drawChart(); };
-    const up = ()=>{ chart.drag = null; window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
+      chartDraw(); };
+    const up = ()=>{ chart.drag = null; rect = null; window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
     window.addEventListener("mousemove", mv);
     window.addEventListener("mouseup", up);
   };
-  c.onmousemove = e=>{ if(!chart.drag){ chart.cross = { x:getX(e), y:getY(e) }; drawChart(); } };
-  c.onmouseleave = ()=>{ chart.cross = null; drawChart(); };
+  c.onmousemove = e=>{ if(!chart.drag){ chart.cross = { x:getX(e), y:getY(e) }; chartDraw(); } };
+  c.onmouseleave = ()=>{ chart.cross = null; chartDraw(); };
 
   /* TOUCH: touch-action:pan-y already lets a vertical swipe scroll the page.
      We only take over (and preventDefault) for a clearly HORIZONTAL drag or a pinch. */
   // x of the price axis strip, where a vertical drag rescales the price range
   const onAxis = x => x >= (c._w - (c._w < 420 ? 52 : 62));
   c.ontouchstart = e=>{
+    rect = c.getBoundingClientRect();
     if(e.touches.length === 1 && onAxis(getX(e))){
       chartEnterManual();
       chart.axis = { y: getY(e), vz: chart.vZoom };
@@ -4534,7 +4549,7 @@ function setupChartCanvas(){
       if(e.cancelable) e.preventDefault();
       // drag up = squeeze the range (zoom in), down = widen it
       chart.vZoom = clamp(chart.axis.vz * Math.exp((chart.axis.y - getY(e))/160), V_MIN, V_MAX);
-      drawChart();
+      chartDraw();
       return;
     }
     if(e.touches.length >= 2 && chart.pinch){
@@ -4547,7 +4562,7 @@ function setupChartCanvas(){
         chartEnterManual();
         chart.vZoom = clamp(P.vz * tspanY(e)/P.dy, V_MIN, V_MAX);
       }
-      drawChart();
+      chartDraw();
       return;
     }
     if(!chart.drag) return;
@@ -4571,11 +4586,11 @@ function setupChartCanvas(){
       if(e.cancelable) e.preventDefault();
     }
     chart.drag.lx = nx; chart.drag.ly = ny;
-    drawChart();
+    chartDraw();
   };
   c.ontouchend = e=>{
     chart.drag = null; chart.pinch = null; chart.axis = null;
-    if(e.touches.length === 0) setTimeout(()=>{ chart.cross = null; drawChart(); }, 1800);
+    if(e.touches.length === 0){ rect = null; setTimeout(()=>{ chart.cross = null; chartDraw(); }, 1800); }
   };
   drawChart();
 }
@@ -4743,9 +4758,12 @@ function drawChart(){
   chart._barsW = barsW;
                                         // the newest bar never touches the Bid/Ask tags
   const nVisible = Math.floor(barsW/unit);
-  let endIdx = data.length - Math.round(chart.offset);
-  endIdx = clamp(endIdx, 1, data.length);
-  let startIdx = Math.max(0, endIdx - nVisible);
+  // Fractional offset: the candles slide pixel by pixel under the finger / mouse. Rounding
+  // it hopped the whole chart a bar (~12 px) at a time, which read as a low frame rate.
+  const offW = Math.floor(chart.offset);
+  let endIdx = clamp(data.length - offW, 1, data.length);
+  const offF = endIdx === data.length - offW ? chart.offset - offW : 0;   // never slides past the oldest bar
+  let startIdx = Math.max(0, endIdx - nVisible - (offF > 0 ? 1 : 0));    // + the bar peeking in on the left
   const vis = bidCandles(data.slice(startIdx, endIdx));
   if(!vis.length) return;
   const liveIdx = endIdx === data.length ? vis.length - 1 : -1;   // the still-forming bar
@@ -4769,7 +4787,9 @@ function drawChart(){
   chart._padT = padT;
   const hi = sc.hi, lo = sc.lo;
   const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
-  const xOf = i => barsW - (vis.length - i)*unit + gap/2;
+  // snapped to the device-pixel grid, so 1 px wicks stay crisp at any fractional offset
+  const pxr = c.width / W || 1;
+  const xOf = i => Math.round((barsW - (vis.length - i - offF)*unit + gap/2) * pxr) / pxr;
 
   // Bid/Ask tag positions are needed before the grid so a scale label sitting
   // under a tag can be suppressed — cTrader does exactly this (its 4405.89 tag
@@ -4794,23 +4814,36 @@ function drawChart(){
     if(Math.abs(yy - tAsk) < 9 || Math.abs(yy - tBid) < 9) continue;
     ctx.fillText(chartPx(p), plotW+4, yy+3);
   }
-  // time scale
+  // time scale — a label sits on every bar whose time is a multiple of the step, so the
+  // labels glide with their candles while panning instead of jumping from bar to bar
   ctx.textAlign = "center";
-  for(let i=0;i<vis.length;i+=Math.max(1,Math.floor(vis.length/6))){
+  const tfSec = TF[tf] || 60, tStep = Math.max(1, Math.floor(nVisible/6));
+  for(let i=0;i<vis.length;i++){
+    if(Math.round(vis[i].t / tfSec) % tStep || xOf(i) + bw/2 > barsW) continue;
     const d = new Date(vis[i].t*1000);
     const lbl = (tf==="D1")? (pad2(d.getUTCMonth()+1)+"/"+pad2(d.getUTCDate()))   // D1 bars are UTC days
               : pad2(d.getHours())+":"+pad2(d.getMinutes());                      // intraday: device time
     ctx.fillText(lbl, xOf(i)+bw/2, H-6);
   }
 
-  // candles
+  // candles — clipped at barsW, so a bar sliding in or out is cut at the gap before the
+  // axis; the wicks go out as one path per colour (two strokes a frame, not one per bar)
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, barsW, H); ctx.clip();
+  for(const upPass of [true, false]){
+    ctx.beginPath();
+    for(let i=0;i<vis.length;i++){
+      const b = vis[i];
+      if((b.c >= b.o) !== upPass) continue;
+      const cx = xOf(i) + bw/2;
+      ctx.moveTo(cx, y(b.h)); ctx.lineTo(cx, y(b.l));
+    }
+    ctx.strokeStyle = upPass ? TC.up : TC.down; ctx.stroke();
+  }
   for(let i=0;i<vis.length;i++){
     const b = vis[i];
     const up = b.c >= b.o;
-    ctx.strokeStyle = up ? TC.up : TC.down;
     ctx.fillStyle = up ? TC.up : TC.down;
-    const cx = xOf(i) + bw/2;
-    ctx.beginPath(); ctx.moveTo(cx, y(b.h)); ctx.lineTo(cx, y(b.l)); ctx.stroke();
     let yo = y(b.o), yc = y(b.c);
     // live DOWN bar: stop the FILLED body at the Ask line so the Ask isn't buried
     // in the block — the wick above already shows the true open, and the OHLC is
@@ -4819,6 +4852,7 @@ function drawChart(){
     const top = Math.min(yo,yc), hgt = Math.max(1, Math.abs(yc-yo));
     ctx.fillRect(xOf(i), top, Math.max(1,bw), hgt);
   }
+  ctx.restore();
 
   // bid / ask price lines — cTrader style: GREEN Ask on top, RED Bid below.
   // Ask > Bid and higher price = higher on screen, so green always ends up above red,
@@ -4903,7 +4937,7 @@ function drawChart(){
     ctx.strokeStyle = m.col;
     ctx.beginPath(); ctx.moveTo(cx, Math.min(...ys)); ctx.lineTo(cx, Math.max(...ys)); ctx.stroke();
   }
-  for(const m of marks) if(m.dotX != null){
+  for(const m of marks) if(m.dotX != null && m.dotX <= barsW){
     ctx.fillStyle = m.col; ctx.beginPath(); ctx.arc(m.dotX, m.ly, 2.4, 0, Math.PI * 2); ctx.fill();
   }
   for(const m of marks) chartPill(ctx, pillX(m), m.y, pillH, pillFs, m.text, m.icon, m.col, { filled: m.filled, bg: TC.bg });
@@ -4915,6 +4949,12 @@ function drawChart(){
 
   // crosshair
   const info = infoEl;
+  // the OHLC readout is DOM: write it only on a change, so redrawing at 120 Hz doesn't
+  // invalidate the page's layout every frame
+  const showInfo = txt => {
+    if(info.style.display !== "block") info.style.display = "block";
+    if(info.textContent !== txt) info.textContent = txt;
+  };
   if(chart.cross && chart.cross.x < plotW){
     const cx = chart.cross.x, cy = chart.cross.y;
     ctx.strokeStyle = TC.cross; ctx.setLineDash([3,3]);
@@ -4923,7 +4963,7 @@ function drawChart(){
     ctx.setLineDash([]);
     // which bar the cursor is OVER: floor into the unit-wide slot. Math.round()
     // here picked the neighbouring candle across half of every bar's width.
-    const idx = clamp(Math.floor((cx - (barsW - vis.length*unit))/unit), 0, vis.length-1);
+    const idx = clamp(Math.floor((cx - (barsW - (vis.length - offF)*unit))/unit), 0, vis.length-1);
     const b = vis[idx];
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
     ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
@@ -4931,13 +4971,11 @@ function drawChart(){
     if(b && info){
       const rb = data[startIdx + idx] || b;         // raw OHLC for the text readout
       const d = new Date(rb.t*1000);
-      info.style.display = "block";
-      info.textContent = `${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${chartPx(rb.o)}  Н ${chartPx(rb.h)}  Л ${chartPx(rb.l)}  З ${chartPx(rb.c)}`;
+      showInfo(`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${chartPx(rb.o)}  Н ${chartPx(rb.h)}  Л ${chartPx(rb.l)}  З ${chartPx(rb.c)}`);
     }
   }else if(info){
     const last = data[data.length-1];
-    info.style.display = "block";
-    info.textContent = `${tf}   О ${chartPx(last.o)}  Н ${chartPx(last.h)}  Л ${chartPx(last.l)}  З ${chartPx(last.c)}`;
+    showInfo(`${tf}   О ${chartPx(last.o)}  Н ${chartPx(last.h)}  Л ${chartPx(last.l)}  З ${chartPx(last.c)}`);
   }
 }
 
