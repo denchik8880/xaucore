@@ -206,7 +206,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 #chartCanvas{touch-action:none}
 #miniCanvas{touch-action:auto}
 /* Markets overview chart, cTrader's: axes + grid on the canvas, ⛶ and the tf button over it, periods under it */
-.card.minichart{padding:0;overflow:hidden}
+.card.minichart{padding:0;overflow:hidden;border:1px solid var(--line);box-shadow:none}   /* a real border: the canvas covers an inset-shadow edge */
+:root[data-theme="dark"] .card.minichart{box-shadow:none}
 .mini-box{position:relative}
 .mini-tools{position:absolute;left:12px;top:12px;display:flex;gap:8px}
 .mini-tools button{min-width:34px;height:34px;padding:0 9px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink2);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center}
@@ -2390,6 +2391,7 @@ function themeColors(){
   _themeColors = {
     bg:    g("--chart-bg", "#ffffff"),
     ink:   g("--ink", "#111418"),
+    card:  g("--card", "#ffffff"),
     grid:  g("--chart-grid", "#eef0f2"),
     axis:  g("--chart-axis", "#9aa1ab"),
     cross: g("--chart-cross", "#9aa1ab"),
@@ -5479,7 +5481,7 @@ function drawMini(){
   const snapX = v => Math.round(v * pxr) / pxr, snapY = v => Math.round(v * pyr) / pyr;
   const crispX = v => (hx % 2 ? Math.floor(v * pxr) + 0.5 : Math.round(v * pxr)) / pxr;
   const crispY = v => (hy % 2 ? Math.floor(v * pyr) + 0.5 : Math.round(v * pyr)) / pyr;
-  ctx.clearRect(0, 0, W, H); ctx.fillStyle = TC.bg; ctx.fillRect(0, 0, W, H);
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = TC.card; ctx.fillRect(0, 0, W, H);   // the card's own colour, like cTrader's overview (not the black main-chart ground)
   const tf = S.ui.miniTF || "M1", want = S.ui.miniBars || 50, tfSec = TF[tf] || 60;
   const data = bidCandles((S.candles[tf] || []).slice(-want));
   if(!data.length) return;
@@ -5553,8 +5555,8 @@ function drawMini(){
   ctx.strokeStyle = TC.up; ctx.beginPath(); ctx.moveTo(0, yAsk); ctx.lineTo(plotW + 6, yAsk); ctx.stroke();
   ctx.strokeStyle = TC.down; ctx.beginPath(); ctx.moveTo(0, yBid); ctx.lineTo(plotW + 6, yBid); ctx.stroke();
   ctx.lineWidth = 1;
-  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.bg);
-  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.bg);
+  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.card);
+  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.card);
 }
 
 /* =========================================================================
