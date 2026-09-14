@@ -4527,15 +4527,22 @@ function chartDragFrame(now){
   const D = chart.drag;
   if(!D || !D.active) return;
   chart._dragRaf = requestAnimationFrame(chartDragFrame);   // queued BEFORE drawing — see chartGlide
-  let x = D.lx;
-  const tr = D.trail, age = now - (D.ft || now);
-  if(tr.length >= 2 && age > 0 && age < 36){
-    const a = tr[Math.max(0, tr.length - 4)], b = tr[tr.length - 1], dt = b[0] - a[0];
-    if(dt > 0) x += (b[1] - a[1]) / dt * Math.min(age, 20) * (age <= 20 ? 1 : (36 - age) / 16);
+  const age = now - (D.ft || now);
+  // where the finger is now on one axis: its last sample pushed ahead by its recent speed
+  const predict = (trail, last) => {
+    if(trail.length < 2 || !(age > 0 && age < 36)) return last;
+    const a = trail[Math.max(0, trail.length - 4)], b = trail[trail.length - 1], dt = b[0] - a[0];
+    return dt > 0 ? last + (b[1] - a[1]) / dt * Math.min(age, 20) * (age <= 20 ? 1 : (36 - age) / 16) : last;
+  };
+  let changed = false;
+  const off = chartClampOffset(D.off + (predict(D.trail, D.lx) - D.x) / (chart.barW + chart.gap));
+  if(off !== chart.offset){ chart.offset = off; changed = true; }
+  if(D.vpan && D.vc0 != null){                       // up/down pans the price the same way, every frame
+    const span = 2 * (chart.vBase || 1) / chart.vZoom;
+    const vc = D.vc0 + (predict(D.trailY, D.ly) - D.vy0) * span / Math.max(chart._plotH || 200, 1);
+    if(vc !== chart.vCenter){ chart.vCenter = vc; changed = true; }
   }
-  const off = chartClampOffset(D.off + (x - D.x) / (chart.barW + chart.gap));
-  if(off !== chart.offset || D.dirty){
-    chart.offset = off; D.dirty = false;
+  if(changed){
     if(_chartRaf){ cancelAnimationFrame(_chartRaf); _chartRaf = 0; }   // this frame's draw is ours
     drawChart();
   }
@@ -4622,7 +4629,7 @@ function setupChartCanvas(){
       chart.cross = null;
     }else{
       chart.drag = { x:getX(e), y:getY(e), lx:getX(e), ly:getY(e),
-                     off:chart.offset, active:false, dx:0, dy:0, vpan:false, trail:[] };
+                     off:chart.offset, active:false, dx:0, dy:0, vpan:false, trail:[], trailY:[], vc0:null, vy0:0 };
       chart.holdT = Date.now();
       chart.cross = null;
     }
@@ -4659,17 +4666,18 @@ function setupChartCanvas(){
     if(!chart.drag.active && (Math.abs(chart.drag.dx) > 8 || Math.abs(chart.drag.dy) > 8)){
       chart.drag.active = true;
       chart.drag.vpan = chart.vCenter != null || Math.abs(chart.drag.dy) > 2 * Math.abs(chart.drag.dx);
+      // anchor for the up/down price pan chartDragFrame() applies every frame
+      if(chart.drag.vpan){ chartEnterManual(); chart.drag.vc0 = chart.vCenter; chart.drag.vy0 = chart.drag.ly; }
     }
     if(chart.drag.active){
       if(e.cancelable) e.preventDefault();
-      // the offset itself is set by chartDragFrame() on every display frame
-      const stepY = ny - chart.drag.ly;
-      if(chart.drag.vpan && stepY){ chartVPan(stepY, chart._plotH); chart.drag.dirty = true; }
+      // the offset and the up/down price pan are both set by chartDragFrame() every display frame
       chart.cross = null;
       // the last 100 ms of finger positions, for the release speed and the per-frame prediction
-      const tr = chart.drag.trail;
-      tr.push([e.timeStamp, nx]);
+      const tr = chart.drag.trail, ty = chart.drag.trailY;
+      tr.push([e.timeStamp, nx]); ty.push([e.timeStamp, ny]);
       while(tr.length > 2 && e.timeStamp - tr[0][0] > 100) tr.shift();
+      while(ty.length > 2 && e.timeStamp - ty[0][0] > 100) ty.shift();
       chart.drag.ft = e.timeStamp;
     }else if(held > 380 && Math.abs(chart.drag.dx) < 10 && Math.abs(chart.drag.dy) < 10){
       chart.cross = { x:nx, y:ny };          // long press without moving -> crosshair
