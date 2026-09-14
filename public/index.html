@@ -186,6 +186,10 @@ img,canvas,svg,video{max-width:100%}
 .chartzoom button{width:36px;height:36px;border-radius:11px;background:var(--chart-glass);border:1px solid var(--line);font-size:18px;font-weight:600;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
 .chartzoom button:active{background:var(--line)}
 .chartzoom button.rst{font-size:14px}
+/* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart) */
+.chlast{position:absolute;right:60px;bottom:28px;z-index:5;width:34px;height:34px;padding:0;border-radius:9px;background:var(--chart-glass);border:1px solid var(--line);color:var(--ink2);display:flex;align-items:center;justify-content:center}
+.chlast[hidden]{display:none}
+.chlast:active{background:var(--line);transform:scale(.92)}
 
 /* forms / modal */
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
@@ -3312,6 +3316,7 @@ function chartMarkup(h){
       <button data-chz="out" aria-label="отдалить">−</button>
       <button class="rst" data-chz="reset" aria-label="сброс">⤢</button>
     </div>
+    <button class="chlast" id="chLast" data-chz="last" aria-label="К последним свечам" hidden><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M6.5 3.5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 3.5v10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 18v-1.6M7 18v-2.6M10 18v-1.2M13 18v-2.2M16 18v-1.6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg></button>
   </div>
   <div class="wrap"><div class="chtrade">
     <button class="cht sell" data-act="quicksell">
@@ -3536,11 +3541,12 @@ function bindScreen(){
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{
     S.ui.chartTF = b.dataset.tf;
+    chartStopFling(); chart.offset = chartClampOffset(chart.offset);
     chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0;   // manual price scale does not carry over
     render(); save(); });
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
     const a = b.dataset.chz;
-    if(a === "in") chartZoom(1.35); else if(a === "out") chartZoom(0.74); else chartReset();
+    if(a === "in") chartZoom(1.35); else if(a === "out") chartZoom(0.74); else if(a === "last") chartGoLatest(); else chartReset();
   });
 
   const act = (name, fn) => root.querySelectorAll(`[data-act="${name}"]`).forEach(el=> el.onclick = fn);
@@ -4408,8 +4414,8 @@ let chart = { barW: _coarse ? 10 : 7, gap: 2, offset: 0, cross: null, drag:null,
               vZoom: 1, vCenter: null, vBase: 0 };
 const V_MIN = 0.18, V_MAX = 14;
 const CHART_BW_DEF = _coarse ? 10 : 7;
-function chartZoom(k){ chart.barW = clamp(chart.barW*k, 1.6, 64); drawChart(); }
-function chartReset(){ chart.barW = CHART_BW_DEF; chart.offset = 0; chart.cross = null;
+function chartZoom(k){ chart.barW = clamp(chart.barW*k, 1.6, 64); chart.offset = chartClampOffset(chart.offset); drawChart(); }
+function chartReset(){ chartStopFling(); chart.barW = CHART_BW_DEF; chart.offset = 0; chart.cross = null;
   chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0; drawChart(); }
 /* Freeze the price axis at what is on screen right now. Once manual, the range
    is an ABSOLUTE span in dollars — cTrader keeps it put while price moves, it
@@ -4450,7 +4456,7 @@ function chartZoomAt(k, xPx){
   const fromRightNew = (barsW - xPx) / (chart.barW + chart.gap);
   // barAt(x) = (len - offset) - (barsW - x)/unit; holding that fixed gives
   // off_new = off_old + (fromRightOld - fromRightNew)
-  chart.offset = clamp(chart.offset + (fromRightOld - fromRightNew), 0, 5000);
+  chart.offset = chartClampOffset(chart.offset + (fromRightOld - fromRightNew));
   chartDraw();
 }
 /* Look up / down: shift the anchored centre by however many dollars `dyPx`
@@ -4468,6 +4474,44 @@ let _chartRaf = 0;
 function chartDraw(){
   if(_chartRaf) return;
   _chartRaf = requestAnimationFrame(()=>{ _chartRaf = 0; drawChart(); });
+}
+/* How far the chart may scroll. Right: the newest bar can be pulled left, leaving blank
+   space — at most 40 bars and 30% of the plot (where a fling stops in a cTrader recording).
+   Left: the oldest bar stops at the plot's left edge. */
+function chartOffsetLimits(){
+  const data = (S && S.candles[S.ui.chartTF]) || [];
+  const unit = chart.barW + chart.gap, barsW = chart._barsW || 300;
+  return { min: -Math.min(40, 0.3 * barsW / unit), max: Math.max(0, data.length - Math.floor(barsW / unit)) };
+}
+function chartClampOffset(o){ const L = chartOffsetLimits(); return clamp(o, L.min, L.max); }
+/* Kinetic scroll, fitted frame by frame to a cTrader screen recording: after a swipe the
+   chart leaves at the finger's speed and brakes evenly to a stop in about a second
+   (distance = speed × 1.05 s / 2). A touch catches it; either end stops it dead, no bounce. */
+const FLING_S = 1.05;
+function chartStopFling(){ if(chart.fling){ cancelAnimationFrame(chart.fling); chart.fling = 0; } }
+function chartGlide(fromOff, distBars, ms, ease){
+  chartStopFling();
+  const t0 = performance.now();
+  const step = now => {
+    const u = Math.min(1, (now - t0) / ms);
+    const want = fromOff + distBars * ease(u);
+    const off = chartClampOffset(want);
+    chart.offset = off;
+    if(_chartRaf){ cancelAnimationFrame(_chartRaf); _chartRaf = 0; }   // this frame's draw is ours
+    drawChart();
+    chart.fling = (u < 1 && Math.abs(off - want) < 1e-6) ? requestAnimationFrame(step) : 0;
+  };
+  chart.fling = requestAnimationFrame(step);
+}
+function chartFling(vPx){          // release speed in CSS px/s, + = towards older bars
+  if(!(Math.abs(vPx) >= 120)) return;
+  const v = clamp(vPx, -8000, 8000);
+  chartGlide(chart.offset, v * FLING_S / 2 / (chart.barW + chart.gap), FLING_S * 1000, u => 1 - (1 - u) * (1 - u));
+}
+function chartGoLatest(){          // the «›|» button: glide back to the newest bar
+  const from = chart.offset;
+  if(from <= 0) return;
+  chartGlide(from, -from, Math.min(600, 220 + from * 4), u => 1 - Math.pow(1 - u, 3));
 }
 function setupChartCanvas(){
   const c = document.getElementById("chartCanvas");
@@ -4497,6 +4541,7 @@ function setupChartCanvas(){
   /* MOUSE: drag to pan, hover for crosshair. Window listeners live only during a drag. */
   c.onmousedown = e=>{
     if(e.button !== 0) return;
+    chartStopFling();
     rect = c.getBoundingClientRect();
     if(onAxis(getX(e))){
       chartEnterManual();
@@ -4507,12 +4552,17 @@ function setupChartCanvas(){
       window.addEventListener("mousemove", mvA); window.addEventListener("mouseup", upA);
       return;
     }
-    chart.drag = { x:getX(e), off:chart.offset, ly:getY(e) };
+    chart.drag = { x:getX(e), y:getY(e), off:chart.offset, ly:getY(e), vpan:null };
     const mv = ev=>{ if(!chart.drag) return;
-      chart.offset = clamp(chart.drag.off + (getX(ev) - chart.drag.x)/(chart.barW+chart.gap), 0, 5000);
-      const ny = getY(ev), stepY = ny - chart.drag.ly;
-      if(stepY) chartVPan(stepY, chart._plotH);
-      chart.drag.ly = ny;
+      const D = chart.drag, nx = getX(ev), ny = getY(ev);
+      // sideways keeps the price axis auto-fitting, as cTrader does while you scroll; up/down
+      // pans price only on an already manual axis or a clearly vertical drag
+      if(D.vpan === null && Math.abs(nx - D.x) + Math.abs(ny - D.y) > 6)
+        D.vpan = chart.vCenter != null || Math.abs(ny - D.y) > 2 * Math.abs(nx - D.x);
+      chart.offset = chartClampOffset(D.off + (nx - D.x)/(chart.barW+chart.gap));
+      const stepY = ny - D.ly;
+      if(D.vpan && stepY) chartVPan(stepY, chart._plotH);
+      D.ly = ny;
       chartDraw(); };
     const up = ()=>{ chart.drag = null; rect = null; window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
     window.addEventListener("mousemove", mv);
@@ -4526,6 +4576,7 @@ function setupChartCanvas(){
   // x of the price axis strip, where a vertical drag rescales the price range
   const onAxis = x => x >= (c._w - (c._w < 420 ? 52 : 62));
   c.ontouchstart = e=>{
+    chartStopFling();                              // a touch catches a gliding chart
     rect = c.getBoundingClientRect();
     if(e.touches.length === 1 && onAxis(getX(e))){
       chartEnterManual();
@@ -4539,7 +4590,7 @@ function setupChartCanvas(){
       chart.cross = null;
     }else{
       chart.drag = { x:getX(e), y:getY(e), lx:getX(e), ly:getY(e),
-                     off:chart.offset, active:false, dx:0, dy:0 };
+                     off:chart.offset, active:false, dx:0, dy:0, vpan:false, trail:[] };
       chart.holdT = Date.now();
       chart.cross = null;
     }
@@ -4570,17 +4621,23 @@ function setupChartCanvas(){
     chart.drag.dx = nx - chart.drag.x;
     chart.drag.dy = ny - chart.drag.y;
     const held = Date.now() - chart.holdT;
-    // any deliberate move becomes a 2-D pan: sideways scrolls time, up/down
-    // scrolls price — the same drag cTrader gives you
+    // any deliberate move becomes a pan. Sideways keeps the price axis auto-fitting, as
+    // cTrader does while you scroll; up/down pans price only on an already manual axis or
+    // a clearly vertical drag
     if(!chart.drag.active && (Math.abs(chart.drag.dx) > 8 || Math.abs(chart.drag.dy) > 8)){
       chart.drag.active = true;
+      chart.drag.vpan = chart.vCenter != null || Math.abs(chart.drag.dy) > 2 * Math.abs(chart.drag.dx);
     }
     if(chart.drag.active){
       if(e.cancelable) e.preventDefault();
-      chart.offset = clamp(chart.drag.off + chart.drag.dx/(chart.barW+chart.gap), 0, 5000);
+      chart.offset = chartClampOffset(chart.drag.off + chart.drag.dx/(chart.barW+chart.gap));
       const stepY = ny - chart.drag.ly;
-      if(stepY) chartVPan(stepY, chart._plotH);
+      if(chart.drag.vpan && stepY) chartVPan(stepY, chart._plotH);
       chart.cross = null;
+      // the last 100 ms of finger positions, for the release speed
+      const tr = chart.drag.trail;
+      tr.push([e.timeStamp, nx]);
+      while(tr.length > 2 && e.timeStamp - tr[0][0] > 100) tr.shift();
     }else if(held > 380 && Math.abs(chart.drag.dx) < 10 && Math.abs(chart.drag.dy) < 10){
       chart.cross = { x:nx, y:ny };          // long press without moving -> crosshair
       if(e.cancelable) e.preventDefault();
@@ -4589,8 +4646,22 @@ function setupChartCanvas(){
     chartDraw();
   };
   c.ontouchend = e=>{
+    const D = chart.drag;
     chart.drag = null; chart.pinch = null; chart.axis = null;
-    if(e.touches.length === 0){ rect = null; setTimeout(()=>{ chart.cross = null; chartDraw(); }, 1800); }
+    if(e.touches.length === 0){
+      rect = null;
+      // a swipe released while still moving glides on: release speed = least-squares slope
+      // of the last 80 ms of finger positions (none if the finger rested 50 ms before lifting)
+      const tr = D && D.active ? D.trail : [];
+      if(tr.length >= 2 && e.timeStamp - tr[tr.length - 1][0] < 50){
+        const t1 = tr[tr.length - 1][0];
+        let n = 0, st = 0, sx = 0, stt = 0, stx = 0;
+        for(const [t, x] of tr){ if(t1 - t > 80) continue; const u = t - t1; n++; st += u; sx += x; stt += u*u; stx += u*x; }
+        const den = n*stt - st*st;
+        if(n >= 2 && den > 0) chartFling((n*stx - st*sx) / den * 1000);
+      }
+      setTimeout(()=>{ chart.cross = null; chartDraw(); }, 1800);
+    }
   };
   drawChart();
 }
@@ -4760,10 +4831,18 @@ function drawChart(){
   const nVisible = Math.floor(barsW/unit);
   // Fractional offset: the candles slide pixel by pixel under the finger / mouse. Rounding
   // it hopped the whole chart a bar (~12 px) at a time, which read as a low frame rate.
-  const offW = Math.floor(chart.offset);
-  let endIdx = clamp(data.length - offW, 1, data.length);
-  const offF = endIdx === data.length - offW ? chart.offset - offW : 0;   // never slides past the oldest bar
-  let startIdx = Math.max(0, endIdx - nVisible - (offF > 0 ? 1 : 0));    // + the bar peeking in on the left
+  // A negative offset is blank space right of the newest bar (cTrader lets you pull it in).
+  const off = chart.offset, offW = Math.floor(off);
+  let endIdx = off <= 0 ? data.length : clamp(data.length - offW, 1, data.length);
+  const offF = off <= 0 ? off : (endIdx === data.length - offW ? off - offW : 0);   // never slides past the oldest bar
+  let startIdx = Math.max(0, endIdx - nVisible - 1);                        // + the bar peeking in on the left
+  // «›|» back to the newest bar — shown only while scrolled back, like cTrader's
+  const lastBtn = document.getElementById("chLast");
+  if(lastBtn){
+    if(lastBtn.hidden !== (off <= 1)) lastBtn.hidden = off <= 1;
+    const r = (padR + 8) + "px";
+    if(lastBtn.style.right !== r) lastBtn.style.right = r;
+  }
   const vis = bidCandles(data.slice(startIdx, endIdx));
   if(!vis.length) return;
   const liveIdx = endIdx === data.length ? vis.length - 1 : -1;   // the still-forming bar
