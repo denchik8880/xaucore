@@ -4504,9 +4504,11 @@ function chartGlide(fromOff, distBars, ms, ease){
     const want = fromOff + distBars * ease(u);
     const off = chartClampOffset(want);
     chart.offset = off;
+    // queue the next step BEFORE drawing, so next frame it runs ahead of any chartDraw() this
+    // draw requests (the scale easing) and cancels it — queued after, that frame drew twice
+    chart.fling = (u < 1 && Math.abs(off - want) < 1e-6) ? requestAnimationFrame(step) : 0;
     if(_chartRaf){ cancelAnimationFrame(_chartRaf); _chartRaf = 0; }   // this frame's draw is ours
     drawChart();
-    chart.fling = (u < 1 && Math.abs(off - want) < 1e-6) ? requestAnimationFrame(step) : 0;
   };
   chart.fling = requestAnimationFrame(step);
 }
@@ -4514,6 +4516,29 @@ function chartFling(vPx){          // release speed in CSS px/s, + = towards old
   if(!(Math.abs(vPx) >= 120)) return;
   const v = clamp(vPx, -8000, 8000);
   chartGlide(chart.offset, v * FLING_S / 2 / (chart.barW + chart.gap), FLING_S * 1000, u => 1 - (1 - u) * (1 - u));
+}
+/* While a finger drags the chart, draw on EVERY display frame instead of only when a touchmove
+   arrives: touch samples don't land exactly one per 120 Hz frame, so an event-driven redraw
+   repeated a frame now and then (felt like ~100 fps). Each frame puts the chart where the
+   finger is now — the last sample pushed ahead by its speed for the ms since it came (up to
+   20 ms, fading to none by 36 ms once the finger stops sending). */
+function chartDragFrame(now){
+  chart._dragRaf = 0;
+  const D = chart.drag;
+  if(!D || !D.active) return;
+  chart._dragRaf = requestAnimationFrame(chartDragFrame);   // queued BEFORE drawing — see chartGlide
+  let x = D.lx;
+  const tr = D.trail, age = now - (D.ft || now);
+  if(tr.length >= 2 && age > 0 && age < 36){
+    const a = tr[Math.max(0, tr.length - 4)], b = tr[tr.length - 1], dt = b[0] - a[0];
+    if(dt > 0) x += (b[1] - a[1]) / dt * Math.min(age, 20) * (age <= 20 ? 1 : (36 - age) / 16);
+  }
+  const off = chartClampOffset(D.off + (x - D.x) / (chart.barW + chart.gap));
+  if(off !== chart.offset || D.dirty){
+    chart.offset = off; D.dirty = false;
+    if(_chartRaf){ cancelAnimationFrame(_chartRaf); _chartRaf = 0; }   // this frame's draw is ours
+    drawChart();
+  }
 }
 function chartGoLatest(){          // the «›|» button: glide back to the newest bar
   const from = chart.offset;
@@ -4637,24 +4662,27 @@ function setupChartCanvas(){
     }
     if(chart.drag.active){
       if(e.cancelable) e.preventDefault();
-      chart.offset = chartClampOffset(chart.drag.off + chart.drag.dx/(chart.barW+chart.gap));
+      // the offset itself is set by chartDragFrame() on every display frame
       const stepY = ny - chart.drag.ly;
-      if(chart.drag.vpan && stepY) chartVPan(stepY, chart._plotH);
+      if(chart.drag.vpan && stepY){ chartVPan(stepY, chart._plotH); chart.drag.dirty = true; }
       chart.cross = null;
-      // the last 100 ms of finger positions, for the release speed
+      // the last 100 ms of finger positions, for the release speed and the per-frame prediction
       const tr = chart.drag.trail;
       tr.push([e.timeStamp, nx]);
       while(tr.length > 2 && e.timeStamp - tr[0][0] > 100) tr.shift();
+      chart.drag.ft = e.timeStamp;
     }else if(held > 380 && Math.abs(chart.drag.dx) < 10 && Math.abs(chart.drag.dy) < 10){
       chart.cross = { x:nx, y:ny };          // long press without moving -> crosshair
       if(e.cancelable) e.preventDefault();
     }
     chart.drag.lx = nx; chart.drag.ly = ny;
-    chartDraw();
+    if(chart.drag.active){ if(!chart._dragRaf) chart._dragRaf = requestAnimationFrame(chartDragFrame); }
+    else chartDraw();
   };
   c.ontouchend = e=>{
     const D = chart.drag;
     chart.drag = null; chart.pinch = null; chart.axis = null;
+    if(chart._dragRaf){ cancelAnimationFrame(chart._dragRaf); chart._dragRaf = 0; }   // the glide starts from where the frame loop left it
     if(e.touches.length === 0){
       rect = null;
       // a swipe released while still moving glides on: release speed = least-squares slope
