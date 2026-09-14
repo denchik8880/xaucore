@@ -85,6 +85,24 @@ img,canvas,svg,video{max-width:100%}
 /* dark theme: cells are lighter than the black page and carry a hairline edge (inset, so no
    size change) — at #0d0d0d on #000 with no edge the user couldn't tell where one cell ends */
 :root[data-theme="dark"] .card,:root[data-theme="dark"] .lrow,:root[data-theme="dark"] .menu-item,:root[data-theme="dark"] .wl-row{box-shadow:inset 0 0 0 1px var(--line)}
+/* Markets → instrument header, cTrader's: ★ and ✓ boxes, symbol + description, day change, L · S · H */
+.ovhead{margin:-2px 0 12px}
+.ovh-top{display:flex;align-items:flex-start;gap:8px}
+.ovh-ico{flex:none;width:34px;height:34px;border-radius:6px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center}
+.ovh-ico svg{width:20px;height:20px}
+.ovh-ico.star{color:#1f4e9c}
+.ovh-ico.ok{color:var(--green)}
+:root[data-theme="dark"] .ovh-ico.star{color:#5b8def}
+.ovh-name{flex:1;min-width:0;padding-left:4px}
+.ovh-sym{font-size:22px;font-weight:500;line-height:1.1;color:var(--ink);letter-spacing:.2px}
+.ovh-desc{font-size:13px;color:var(--ink2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ovh-chg{flex:none;text-align:right}
+.ovh-chg.neg{color:var(--red)}
+.ovh-chg.pos{color:var(--green)}
+.ovh-pct{font-size:17px;font-weight:600;line-height:1.3}
+.ovh-pips{font-size:14px;margin-top:2px}
+.ovh-lsh{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink2);margin-top:10px}
+.ovh-lsh b{font-weight:400;color:inherit}
 .card h3{margin:0 0 10px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);font-weight:600}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .row+.row{margin-top:8px}
@@ -2591,11 +2609,34 @@ function godPanelMarkup(){
   </div>`;
 }
 
+/* cTrader's instrument header numbers: change since the trading day's open in % and in pips
+   (0.01 for gold, so -60.68 reads -6068.0), the day's low / high, and the spread in pips */
+function ovHeadData(){
+  const D = S.day || {}, pip = Math.pow(10, -S.symbol.digits);
+  const open = D.open || S.price.mid, chg = S.price.mid - open, pct = open ? chg / open * 100 : 0;
+  return {
+    pct: (pct > 0 ? "+" : "") + fmt(pct, 2) + "%",
+    pips: (chg > 0 ? "+" : "") + (chg / pip).toFixed(1),
+    cls: chg < 0 ? "neg" : "pos",
+    low: chartPx(D.low != null ? D.low : S.price.bid),
+    high: chartPx(D.high != null ? D.high : S.price.ask),
+    spr: String(Math.round(S.price.spread / pip))
+  };
+}
 function mktOverview(){
-  const lot = S.ui.lot;
+  const lot = S.ui.lot, h = ovHeadData();
   return `<div class="wrap">
     ${godPanelMarkup()}
     <div class="card">
+      <div class="ovhead">
+        <div class="ovh-top">
+          <span class="ovh-ico star" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7z" fill="currentColor"/></svg></span>
+          <span class="ovh-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div class="ovh-name"><div class="ovh-sym">${S.symbol.name}</div><div class="ovh-desc">Gold Ounce vs US Dollar</div></div>
+          <div class="ovh-chg ${h.cls}" id="ovChg"><div class="ovh-pct" id="ovChgPct">${h.pct}</div><div class="ovh-pips" id="ovChgPips">${h.pips}</div></div>
+        </div>
+        <div class="ovh-lsh"><span>L: <b id="ovLow">${h.low}</b></span><span>S: <b id="ovSprPts">${h.spr}</b></span><span>H: <b id="ovHigh">${h.high}</b></span></div>
+      </div>
       <div class="ctp">
         <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirS"></span></button>
         <button class="ctp-lot" data-act="lotpick" aria-label="Выбрать объём">
@@ -2604,8 +2645,8 @@ function mktOverview(){
           <span class="ctp-caret" aria-hidden="true"></span>
         </button>
         <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirB"></span></button>
-        <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${pxfmt(S.price.bid)}</span></button>
-        <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${pxfmt(S.price.ask)}</span></button>
+        <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${chartPx(S.price.bid)}</span></button>
+        <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${chartPx(S.price.ask)}</span></button>
       </div>
       <div class="miniquick">
         ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
@@ -4289,8 +4330,15 @@ function updateLive(){
   recalcAccount();
   const A = S._acc;
   // overview
-  setTxt("ovBid", pxfmt(S.price.bid));
-  setTxt("ovAsk", pxfmt(S.price.ask));
+  setTxt("ovBid", chartPx(S.price.bid));                     // no thousands separator, like cTrader's panel
+  setTxt("ovAsk", chartPx(S.price.ask));
+  if(document.getElementById("ovChg")){                     // Markets → instrument header
+    const h = ovHeadData();
+    setTxt("ovChgPct", h.pct); setTxt("ovChgPips", h.pips);
+    setTxt("ovLow", h.low); setTxt("ovHigh", h.high); setTxt("ovSprPts", h.spr);
+    const ch = document.getElementById("ovChg"), cc = "ovh-chg " + h.cls;
+    if(ch.className !== cc) ch.className = cc;
+  }
   fitText(document.getElementById("ovBid"), 13);
   fitText(document.getElementById("ovAsk"), 13);
   setTxt("ovLot", fmt(S.ui.lot, 2));
