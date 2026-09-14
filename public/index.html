@@ -35,7 +35,7 @@
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
-  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd;         /* a SELL/BUY block while its order is executing */
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -44,7 +44,7 @@
   --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
-  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a;
+  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#7aa7f7;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
@@ -174,12 +174,15 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .bignew:active{filter:brightness(.9)}
 
 /* bottom nav */
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bar);border-top:1px solid var(--line);
+/* bottom navigation — cTrader's: outline icons and large grey labels, the current tab in blue,
+   on the page ground with a hairline on top */
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
   display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-.bottomnav button{padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:10.5px;font-weight:600}
-.bottomnav button.on{color:var(--blue)}
-.bottomnav .ic{font-size:19px;line-height:1;position:relative}
-.navpill{position:absolute;top:-4px;right:-11px;background:var(--blue);color:#fff;border-radius:999px;font-size:9px;font-weight:600;padding:1px 4px;min-width:14px;text-align:center}
+.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
+.bottomnav button.on{color:var(--nav-on)}
+.bottomnav .ic{line-height:0;position:relative}
+.bottomnav .ic svg{display:block}
+.navpill{position:absolute;top:-4px;right:-10px;background:var(--blue);color:#fff;border-radius:999px;font-size:9px;font-weight:600;line-height:1.3;padding:1px 4px;min-width:14px;text-align:center}
 
 /* list rows */
 .lrow{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
@@ -3629,12 +3632,14 @@ function bottomNav(){
   const t = S.ui.tab;
   const on = x => (t===x || (x==="markets" && t==="chart" && false)) ? "on":"";
   const posCount = S.positions.length;
+  // cTrader's outline icons (stroke = the label colour: grey, blue on the current tab)
+  const I = d => `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   return `<div class="bottomnav">
-    <button data-nav="markets" class="${t==="markets"?"on":""}"><span class="ic">⇅</span>Рынки</button>
-    <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">📈</span>Графики</button>
-    <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">◔${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
-    <button data-nav="orders" class="${t==="orders"?"on":""}"><span class="ic">🧾${S.pendings.length?`<span class="navpill">${S.pendings.length}</span>`:""}</span>Ордеры</button>
-    <button data-nav="more" class="${["more","settings","history","calendar","dom","debug","wallet"].includes(t)?"on":""}"><span class="ic">☰</span>Ещё</button>
+    <button data-nav="markets" class="${t==="markets"?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>Рынки</button>
+    <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>Графики</button>
+    <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
+    <button data-nav="orders" class="${t==="orders"?"on":""}"><span class="ic">${I('<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 13.5h7M8.5 17h4"/>')}${S.pendings.length?`<span class="navpill">${S.pendings.length}</span>`:""}</span>Ордеры</button>
+    <button data-nav="more" class="${["more","settings","history","calendar","dom","debug","wallet"].includes(t)?"on":""}"><span class="ic">${I('<circle cx="7.5" cy="7.5" r="3"/><circle cx="16.5" cy="7.5" r="3"/><circle cx="7.5" cy="16.5" r="3"/><circle cx="16.5" cy="16.5" r="3"/>')}</span>Ещё</button>
   </div>`;
 }
 
