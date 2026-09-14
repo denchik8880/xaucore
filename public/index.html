@@ -844,7 +844,14 @@ function gauss(){
 const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
 const rnd = (a,b)=>a + Math.random()*(b-a);
 function roundTo(x,d){ const p = Math.pow(10,d); return Math.round((x+Number.EPSILON)*p)/p; }
-function fmt(x,d){ return Number(x).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+/* one cached Intl.NumberFormat per digit count — Number.toLocaleString(locale, options) builds a
+   new formatter on every call, and the 120 ms live update and the chart's labels call this
+   dozens of times a frame. Same output. */
+const _numFmt = {};
+function fmt(x,d){
+  const f = _numFmt[d] || (_numFmt[d] = new Intl.NumberFormat("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}));
+  return f.format(Number(x));
+}
 function money(x){ const s = x<0?"-":""; return s + "$" + fmt(Math.abs(x),2); }
 function signMoney(x){ const s = x>0?"+":(x<0?"-":""); return s + "$" + fmt(Math.abs(x),2); }
 function walletFmt(x){                                       // "3,000,000,000 USD" / "1,234.50 USD"
@@ -4696,16 +4703,16 @@ function niceStep(range, lines){
   const mult = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
   return mult * mag;
 }
-/* Auto-scale a plot to the data + the live Bid/Ask, then snap to round levels.
-   Returns { lo, hi, step } ready for the gridline loop. */
+/* Auto-scale a plot to the data + the live Bid/Ask. Only the gridlines sit on round prices;
+   the range itself is NOT snapped to them — cTrader's glides continuously while bars slide
+   in and out, and snapping it made the whole chart, and every position line drawn on it,
+   jump a grid step at a time. Returns { lo, hi, step } ready for the gridline loop. */
 function autoScale(hi, lo, plotH, minPx){
   if(!(hi > lo)){ const c = (hi + lo)/2 || S.price.mid; hi = c + 0.5; lo = c - 0.5; }
-  const padFrac = 0.08;
-  const pad = (hi - lo) * padFrac;
+  const pad = (hi - lo) * 0.08;
   hi += pad; lo -= pad;
   const lines = clamp(Math.round(plotH / (minPx || 52)), 3, 9);
-  const step = niceStep(hi - lo, lines);
-  return { lo: Math.floor(lo/step)*step, hi: Math.ceil(hi/step)*step, step };
+  return { lo, hi, step: niceStep(hi - lo, lines) };
 }
 
 /* cTrader-style price tag on the right axis: a rounded outline in the line's colour
@@ -4716,17 +4723,37 @@ function axisTag(ctx, x, yc, w, h, text, col, bg){
   ctx.beginPath();
   if(ctx.roundRect) ctx.roundRect(x + 0.5, top, w - 1, h - 1, r); else ctx.rect(x + 0.5, top, w - 1, h - 1);
   ctx.fillStyle = bg; ctx.fill();
-  ctx.setLineDash([]); ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1;
+  ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1;   // callers leave the dash solid
   ctx.font = tagFontSize(ctx, text, w, h).toFixed(1) + "px system-ui,'Open Sans',sans-serif";
   ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(text, x + w/2, yc + 0.5);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
-/* the price fills its tag like cTrader's: the largest font that fits the width with
-   ~2 px either side, capped by the tag height (a fixed 10 px left air on both sides) */
+/* The price fills its tag like cTrader's: the largest font that fits the width with ~2 px
+   either side, capped by the tag height. Worked out once per tag size and price length and
+   cached: measuring it — and flipping ctx.font to 10 px and back — for every tag on every
+   frame cost a phone several ms a frame once positions and orders were on the chart. */
+const _tagFs = new Map(), _textW = new Map();
 function tagFontSize(ctx, text, w, h){
-  ctx.font = "10px system-ui,'Open Sans',sans-serif";
-  return Math.max(9, Math.min(h * 0.88, 10 * (w - 5) / (ctx.measureText(text).width || 1)));
+  const key = w + "|" + h + "|" + text.length;
+  let fs = _tagFs.get(key);
+  if(fs === undefined){
+    ctx.font = "10px system-ui,'Open Sans',sans-serif";
+    fs = Math.max(9, Math.min(h * 0.88, 10 * (w - 5) / (ctx.measureText(text).width || 1)));
+    _tagFs.set(key, fs);
+  }
+  return fs;
+}
+/* width of a label in a font, cached — the pill texts («0.01 Лоты», «ТП») barely ever change */
+function textWidth(ctx, font, text){
+  const key = font + "|" + text;
+  let tw = _textW.get(key);
+  if(tw === undefined){
+    ctx.font = font; tw = ctx.measureText(text).width;
+    if(_textW.size > 300) _textW.clear();
+    _textW.set(key, tw);
+  }
+  return tw;
 }
 /* cTrader's left-edge marker for a position / pending order / ТП / СЛ: a full pill —
    «0.01 Лоты» + an icon, or just «ТП» / «СЛ» when icon is "" — as tall as the axis tags
@@ -4735,12 +4762,12 @@ function tagFontSize(ctx, text, w, h){
    outline = pending order (arrow-and-bar icon) or ТП / СЛ: drawn like a tag, coloured text */
 function chartPill(ctx, x, yc, h, fs, text, icon, col, o){
   const padL = fs * (icon ? 0.66 : 0.55), gapI = fs * 0.66, iw = fs * 0.56, padR = fs * (icon ? 0.6 : 0.55);
-  ctx.font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
-  const tw = ctx.measureText(text).width;
+  const font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  const tw = textWidth(ctx, font, text);
+  ctx.font = font;
   const w = Math.ceil(padL + tw + (icon ? gapI + iw : 0) + padR), top = yc - h/2 + 0.5;
   ctx.beginPath();
   if(ctx.roundRect) ctx.roundRect(x + 0.5, top, w - 1, h - 1, (h - 1)/2); else ctx.rect(x + 0.5, top, w - 1, h - 1);
-  ctx.setLineDash([]);
   if(o.filled){ ctx.fillStyle = col; ctx.fill(); }
   else{ ctx.fillStyle = o.bg; ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1; }
   const ink = o.filled ? "#ffffff" : col;
@@ -4835,7 +4862,7 @@ function drawChart(){
   const off = chart.offset, offW = Math.floor(off);
   let endIdx = off <= 0 ? data.length : clamp(data.length - offW, 1, data.length);
   const offF = off <= 0 ? off : (endIdx === data.length - offW ? off - offW : 0);   // never slides past the oldest bar
-  let startIdx = Math.max(0, endIdx - nVisible - 1);                        // + the bar peeking in on the left
+  let startIdx = Math.max(0, endIdx - nVisible - 2);                        // + the bars peeking in on the left
   // «›|» back to the newest bar — shown only while scrolled back, like cTrader's
   const lastBtn = document.getElementById("chLast");
   if(lastBtn){
@@ -4847,19 +4874,44 @@ function drawChart(){
   if(!vis.length) return;
   const liveIdx = endIdx === data.length ? vis.length - 1 : -1;   // the still-forming bar
 
-  let dHi = -Infinity, dLo = Infinity;
-  for(const b of vis){ dHi = Math.max(dHi,b.h); dLo = Math.min(dLo,b.l); }
-  dHi = Math.max(dHi, S.price.ask); dLo = Math.min(dLo, S.price.bid);
+  // A bar only partly on screen (sliding in or out at either edge) widens the range by the
+  // share of it that is visible, so the scale — and every line drawn on it — glides while
+  // panning instead of jumping the moment a tall bar crosses the edge.
+  let dHi = S.price.ask, dLo = S.price.bid;
+  const partial = [];
+  for(let i = 0; i < vis.length; i++){
+    const x0 = barsW - (vis.length - i - offF)*unit + gap/2;
+    const f = clamp((Math.min(x0 + bw, barsW) - Math.max(x0, 0)) / (bw || 1), 0, 1);
+    if(f >= 1){ dHi = Math.max(dHi, vis[i].h); dLo = Math.min(dLo, vis[i].l); }
+    else if(f > 0) partial.push([vis[i], f]);
+  }
+  for(const [b, f] of partial){
+    if(b.h > dHi) dHi += (b.h - dHi) * f;
+    if(b.l < dLo) dLo -= (dLo - b.l) * f;
+  }
   // manual price-axis scale (pinch / axis drag) — untouched data range when vZoom is 1
   let sc;
   if(chart.vCenter != null){
-    // Manual scale: keep the user's span to the cent. Snapping the BOUNDS the way
-    // auto-fit does would make the window jump a step every time it is panned.
+    // Manual scale: keep the user's span to the cent — never snapped to round levels.
     const half = (chart.vBase || 1) / chart.vZoom;
     const mLo = chart.vCenter - half, mHi = chart.vCenter + half;
     sc = { lo: mLo, hi: mHi, step: niceStep(mHi - mLo, clamp(Math.round((H - padT - padB)/52), 3, 9)) };
   }else{
     sc = autoScale(dHi, dLo, H - padT - padB, 52);
+    // Ease the auto range toward its target over a few frames (τ ≈ 70 ms): a tall bar sliding
+    // in, or a tick stretching the live one, then moves the candles and every position line in
+    // a short glide instead of a one-frame jump. First draw, a timeframe switch or a long idle
+    // snaps straight to it.
+    const now = performance.now(), R0 = chart._easeRange, key = tf + "|" + H;
+    if(R0 && R0.key === key && now - R0.t < 250){
+      const k = 1 - Math.exp(-(now - R0.t) / 70), tHi = sc.hi, tLo = sc.lo;
+      sc.hi = R0.hi + (tHi - R0.hi) * k;
+      sc.lo = R0.lo + (tLo - R0.lo) * k;
+      sc.step = niceStep(sc.hi - sc.lo, clamp(Math.round((H - padT - padB)/52), 3, 9));
+      const pxPer = (H - padT - padB) / (sc.hi - sc.lo);
+      if(Math.max(Math.abs(tHi - sc.hi), Math.abs(tLo - sc.lo)) * pxPer > 0.5) chartDraw();   // keep gliding until settled
+    }
+    chart._easeRange = { hi: sc.hi, lo: sc.lo, t: now, key };
   }
   chart._lastRange = { hi: sc.hi, lo: sc.lo };   // anchor for the next manual zoom
   chart._plotH = H - padT - padB;                // px the price range maps onto
@@ -4996,15 +5048,21 @@ function drawChart(){
   // and a position's ТП / lots / СЛ pills move as one column so their link stays straight
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
   spreadYs(marks, pillH + 2, 24, H - 9);
-  const inZone = m => m.y > H - 150 && m.y < H - 18;
-  const pillX = m => (m.grp ? m.grp.some(inZone) : inZone(m)) ? 52 : 8;
+  // Pills ease right of the on-canvas zoom buttons as they near them (a 22 px ramp) instead of
+  // hopping 44 px the moment a line crosses into that strip — while the scale glides, the hop
+  // read as the positions jerking. A position's ТП / lots / СЛ column moves as one.
+  const zoneK = yy => clamp((yy - (H - 172)) / 22, 0, 1) * clamp((H + 4 - yy) / 22, 0, 1);
+  for(const m of marks) m.px = 8 + 44 * (m.grp ? Math.max(...m.grp.map(g => zoneK(g.y))) : zoneK(m.y));
+  const pillX = m => m.px;
   // each line starts at its pill (nothing left of it, like cTrader) and its tail past plotW
   // hides under the tag: position / order = dash-dot, ТП / СЛ = plain dashes
   const DASH = { dashdot: [6, 3.5, 1.6, 3.5], dash: [4, 3] };
   ctx.lineWidth = 1.2;
-  for(const m of marks){
-    ctx.strokeStyle = m.col; ctx.setLineDash(DASH[m.dash]);
-    ctx.beginPath(); ctx.moveTo(pillX(m), m.ly); ctx.lineTo(plotW + 6, m.ly); ctx.stroke();
+  for(const kind of ["dashdot", "dash"]) for(const col of [TC.up, TC.down]){   // one stroke per style
+    let any = false;
+    ctx.beginPath();
+    for(const m of marks) if(m.dash === kind && m.col === col){ ctx.moveTo(pillX(m), m.ly); ctx.lineTo(plotW + 6, m.ly); any = true; }
+    if(any){ ctx.strokeStyle = col; ctx.setLineDash(DASH[kind]); ctx.stroke(); }   // the dash restarts per line
   }
   ctx.setLineDash([]); ctx.lineWidth = 1;
   // a thin solid vertical line joins a position's ТП, lots and СЛ pills through the centre
