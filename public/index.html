@@ -4678,9 +4678,10 @@ function tdist(e){ const a=e.touches[0], b=e.touches[1]; return Math.hypot(a.cli
 function tspanX(e){ return Math.abs(e.touches[0].clientX - e.touches[1].clientX); }
 function tspanY(e){ return Math.abs(e.touches[0].clientY - e.touches[1].clientY); }
 function fitCanvas(c){
-  // Cap the backing store at 2× — on 3×/3.5× phones that is ~45% fewer pixels to
-  // fill every redraw with no visible loss on 1px candle strokes / text.
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // The bitmap matches the screen's own pixels (capped at 3×): a 2× bitmap upscaled to a
+  // 2.75× phone let thin, zoomed-out candles blur differently every frame as they slid,
+  // which read as a low frame rate. Per-frame cost is JS, not pixels — measured the same.
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const w = (c.parentElement && c.parentElement.clientWidth) || c.clientWidth || 320;
   // logical height comes ONLY from data-h — never from the height attribute, which
   // canvas mirrors from the .height property we set below (would double each call).
@@ -4689,7 +4690,7 @@ function fitCanvas(c){
   c.style.width = w + "px";           // keep CSS size independent of the bitmap size (fixes 2x on hi-dpi)
   c.style.height = h + "px";
   const ctx = c.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.setTransform(c.width / w, 0, 0, c.height / h, 0, 0);   // the exact bitmap ratio (1031/375, not 2.75), so pixel snapping lands on real pixels
   c._w = w; c._h = h;
 }
 /* cTrader-style price scale: pick a "nice" grid step (1 / 2 / 2.5 / 5 x 10^n) so
@@ -4918,33 +4919,46 @@ function drawChart(){
   chart._padT = padT;
   const hi = sc.hi, lo = sc.lo;
   const y = p => padT + (hi - p)/(hi - lo) * (H - padT - padB);
-  // snapped to the device-pixel grid, so 1 px wicks stay crisp at any fractional offset
-  const pxr = c.width / W || 1;
-  const xOf = i => Math.round((barsW - (vis.length - i - offF)*unit + gap/2) * pxr) / pxr;
+  // Everything that moves sits on the screen's own pixel grid: candle edges, wicks and every
+  // horizontal line. Off the grid a thin line or candle is smeared over two pixels in a new
+  // mix each frame as the chart slides and the scale glides — zoomed out (thin bars, a scale
+  // that re-fits almost every frame) that shimmer read as a low frame rate.
+  const pxr = c.width / W || 1, pyr = c.height / H || 1;          // device px per CSS px — the exact bitmap ratios
+  const px1 = 1 / pxr, py1 = 1 / pyr;                             // one device pixel, in CSS px
+  const snapPx = v => Math.round(v * pxr) / pxr;                   // x on the pixel grid
+  const snapPy = v => Math.round(v * pyr) / pyr;                   // y on the pixel grid
+  const hairDevX = Math.max(1, Math.round(pxr)), hairDevY = Math.max(1, Math.round(pyr));
+  const hairX = hairDevX / pxr, hair = hairDevY / pyr;             // ≈1 CSS px: a wick's width / a horizontal line's thickness
+  const crispY = yy => (hairDevY % 2 ? Math.floor(yy * pyr) + 0.5 : Math.round(yy * pyr)) / pyr;   // centre of a hair line on whole pixels
+  const crispX = xx => (hairDevX % 2 ? Math.floor(xx * pxr) + 0.5 : Math.round(xx * pxr)) / pxr;
+  const xOf = i => snapPx(barsW - (vis.length - i - offF)*unit + gap/2);
 
   // Bid/Ask tag positions are needed before the grid so a scale label sitting
   // under a tag can be suppressed — cTrader does exactly this (its 4405.89 tag
   // hides what would be the 4406.00 label).
-  const yAsk = y(S.price.ask), yBid = y(S.price.bid);
+  const yAsk = crispY(y(S.price.ask)), yBid = crispY(y(S.price.bid));
   let tAsk = yAsk, tBid = yBid;
   // cTrader never pushes the two tags apart: each is centred on its own line, and at a
   // tight spread they simply overlap (Bid drawn over Ask). Nudging them apart put the
   // lines on the tags' edges instead of through the middle of the price.
 
-  // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00
-  ctx.strokeStyle = TC.grid; ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
+  // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00; the lines
+  // go out as a single stroke
+  ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
   ctx.textAlign = "left";
   const gridFrom = Math.ceil(lo / sc.step) * sc.step;
+  ctx.beginPath();
   for(let i = 0; ; i++){
     const p = gridFrom + sc.step*i;
     if(p > hi + sc.step*1e-6) break;                 // index-stepped: no float drift
-    const yy = y(p);
+    const yy = crispY(y(p));
     if(yy < padT - 1 || yy > H - padB + 1) continue;
-    ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
+    ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
     // hidden by a price tag — only Bid/Ask: cTrader lets 4290.00 peek out under a ТП tag
     if(Math.abs(yy - tAsk) < 9 || Math.abs(yy - tBid) < 9) continue;
     ctx.fillText(chartPx(p), plotW+4, yy+3);
   }
+  ctx.strokeStyle = TC.grid; ctx.lineWidth = hair; ctx.stroke(); ctx.lineWidth = 1;
   // time scale — a label sits on every bar whose time is a multiple of the step, so the
   // labels glide with their candles while panning instead of jumping from bar to bar
   ctx.textAlign = "center";
@@ -4954,11 +4968,15 @@ function drawChart(){
     const d = new Date(vis[i].t*1000);
     const lbl = (tf==="D1")? (pad2(d.getUTCMonth()+1)+"/"+pad2(d.getUTCDate()))   // D1 bars are UTC days
               : pad2(d.getHours())+":"+pad2(d.getMinutes());                      // intraday: device time
-    ctx.fillText(lbl, xOf(i)+bw/2, H-6);
+    ctx.fillText(lbl, snapPx(xOf(i)+bw/2), H-6);
   }
 
-  // candles — clipped at barsW, so a bar sliding in or out is cut at the gap before the
-  // axis; the wicks go out as one path per colour (two strokes a frame, not one per bar)
+  // candles — clipped at barsW, so a bar sliding in or out is cut at the gap before the axis.
+  // Wick and body are pixel-aligned rects filled together: one fill per colour a frame (it was
+  // a stroke plus a fillStyle change per bar — ~130 of them zoomed out).
+  const bodyW = Math.max(px1, snapPx(bw));
+  const wickOff = snapPx((bodyW - hairX) / 2);
+  const yAskCap = y(S.price.ask);
   ctx.save();
   ctx.beginPath(); ctx.rect(0, 0, barsW, H); ctx.clip();
   for(const upPass of [true, false]){
@@ -4966,22 +4984,19 @@ function drawChart(){
     for(let i=0;i<vis.length;i++){
       const b = vis[i];
       if((b.c >= b.o) !== upPass) continue;
-      const cx = xOf(i) + bw/2;
-      ctx.moveTo(cx, y(b.h)); ctx.lineTo(cx, y(b.l));
+      const x0 = xOf(i);
+      if(x0 >= barsW || x0 + bodyW <= 0) continue;            // off the plot
+      const yh = snapPy(y(b.h)), yl = snapPy(y(b.l));
+      ctx.rect(x0 + wickOff, yh, hairX, Math.max(py1, yl - yh));
+      let yo = y(b.o), yc = y(b.c);
+      // live DOWN bar: stop the FILLED body at the Ask line so the Ask isn't buried
+      // in the block — the wick above already shows the true open, and the OHLC is
+      // untouched so the bar still chains to its neighbours (no gap).
+      if(i === liveIdx && !upPass) yc = Math.min(yc, yAskCap);
+      const top = snapPy(Math.min(yo, yc)), bot = snapPy(Math.max(yo, yc));
+      ctx.rect(x0, top, bodyW, Math.max(hair, bot - top));
     }
-    ctx.strokeStyle = upPass ? TC.up : TC.down; ctx.stroke();
-  }
-  for(let i=0;i<vis.length;i++){
-    const b = vis[i];
-    const up = b.c >= b.o;
-    ctx.fillStyle = up ? TC.up : TC.down;
-    let yo = y(b.o), yc = y(b.c);
-    // live DOWN bar: stop the FILLED body at the Ask line so the Ask isn't buried
-    // in the block — the wick above already shows the true open, and the OHLC is
-    // untouched so the bar still chains to its neighbours (no gap).
-    if(i === liveIdx && !up) yc = Math.min(yc, y(S.price.ask));
-    const top = Math.min(yo,yc), hgt = Math.max(1, Math.abs(yc-yo));
-    ctx.fillRect(xOf(i), top, Math.max(1,bw), hgt);
+    ctx.fillStyle = upPass ? TC.up : TC.down; ctx.fill();
   }
   ctx.restore();
 
@@ -4991,9 +5006,10 @@ function drawChart(){
   const CL_ASK = TC.up, CL_BID = TC.down;
   // SOLID, like cTrader — dashed / dash-dot lines belong to positions, orders and ТП / СЛ
   // …and it runs dead straight into its tag: the few px past plotW are hidden by the tag's fill
-  const priceLine = (yy, col)=>{
-    ctx.strokeStyle = col; ctx.setLineDash([]);
+  const priceLine = (yy, col)=>{               // yy is already on the pixel grid (crispY)
+    ctx.strokeStyle = col; ctx.setLineDash([]); ctx.lineWidth = hair;
     ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW + 6, yy); ctx.stroke();
+    ctx.lineWidth = 1;
   };
   priceLine(yAsk, CL_ASK);
   priceLine(yBid, CL_BID);
@@ -5047,7 +5063,9 @@ function drawChart(){
   // on-canvas zoom buttons' strip (bottom-left ~[8..46] x [H-150..H-20]) moves right of it,
   // and a position's ТП / lots / СЛ pills move as one column so their link stays straight
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
+  for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
   spreadYs(marks, pillH + 2, 24, H - 9);
+  for(const m of marks) m.y = snapPy(m.y);                        // …and the pills after de-colliding
   // Pills ease right of the on-canvas zoom buttons as they near them (a 22 px ramp) instead of
   // hopping 44 px the moment a line crosses into that strip — while the scale glides, the hop
   // read as the positions jerking. A position's ТП / lots / СЛ column moves as one.
@@ -5057,7 +5075,7 @@ function drawChart(){
   // each line starts at its pill (nothing left of it, like cTrader) and its tail past plotW
   // hides under the tag: position / order = dash-dot, ТП / СЛ = plain dashes
   const DASH = { dashdot: [6, 3.5, 1.6, 3.5], dash: [4, 3] };
-  ctx.lineWidth = 1.2;
+  ctx.lineWidth = hair;                                           // whole device pixels, like the grid
   for(const kind of ["dashdot", "dash"]) for(const col of [TC.up, TC.down]){   // one stroke per style
     let any = false;
     ctx.beginPath();
@@ -5070,14 +5088,15 @@ function drawChart(){
   for(const m of marks){
     const g = m.grp;
     if(!g || g[0] !== m || g.length < 2) continue;
-    const cx = pillX(m) + pillH/2, ys = g.map(k => k.y);
-    ctx.strokeStyle = m.col;
+    const cx = crispX(pillX(m) + pillH/2), ys = g.map(k => k.y);
+    ctx.strokeStyle = m.col; ctx.lineWidth = hairX;
     ctx.beginPath(); ctx.moveTo(cx, Math.min(...ys)); ctx.lineTo(cx, Math.max(...ys)); ctx.stroke();
   }
+  ctx.lineWidth = 1;
   for(const m of marks) if(m.dotX != null && m.dotX <= barsW){
     ctx.fillStyle = m.col; ctx.beginPath(); ctx.arc(m.dotX, m.ly, 2.4, 0, Math.PI * 2); ctx.fill();
   }
-  for(const m of marks) chartPill(ctx, pillX(m), m.y, pillH, pillFs, m.text, m.icon, m.col, { filled: m.filled, bg: TC.bg });
+  for(const m of marks) chartPill(ctx, snapPx(pillX(m)), m.y, pillH, pillFs, m.text, m.icon, m.col, { filled: m.filled, bg: TC.bg });
   // right-axis tags, centred on their own line like cTrader (overlapping rather than
   // nudged apart); the live Bid/Ask tags go on last so they stay on top
   for(const m of marks) axisTag(ctx, plotW + 2, m.ly, padR - 4, 16, chartPx(m.price), m.col, TC.bg);
