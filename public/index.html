@@ -5768,8 +5768,12 @@ function drawChart(){
     }
     for(const m of g){ m.tx = x; m.ts = fitRow(m, x); placed.push(m); }
   }
+  // Levels also FADE (pill, line, dot, tag together): over 14 px at the plot's top and foot — dragged
+  // past an edge they used to pop in and out — and in over ~0.2 s when first seen (a new position,
+  // or back after a while off screen)
+  const FADE = 14;
   for(const m of marks){
-    let px = m.tx, s = m.ts;
+    let px = m.tx, s = m.ts, al = 0;
     const a = pAnim.get(m.key);
     if(a && pNow - a.t < 400){
       // getting out of the way (right, smaller) is never eased: gliding it let a fast swipe carry a
@@ -5777,24 +5781,34 @@ function drawChart(){
       const k = 1 - Math.exp(-(pNow - a.t) / 110);
       px = Math.max(m.tx, a.px + (m.tx - a.px) * k); s = Math.min(m.ts, a.s + (m.ts - a.s) * k);
       if(Math.abs(m.tx - px) < 0.3 && Math.abs(m.ts - s) < 0.004){ px = m.tx; s = m.ts; } else pSettling = true;
+      const al0 = a.al == null ? 1 : a.al;
+      al = al0 + (1 - al0) * (1 - Math.exp(-(pNow - a.t) / 70));
     }
-    pAnim.set(m.key, { px, s, t: pNow });
+    if(al > 0.99) al = 1; else pSettling = true;
+    pAnim.set(m.key, { px, s, al, t: pNow });
     m.px = px; m.s = s;
+    m.a = al * clamp((m.ly - padT) / FADE, 0, 1) * clamp((H - padB - m.ly) / FADE, 0, 1);
   }
   if(pAnim.size > 120) pAnim.clear();
-  if(pSettling) chartDraw();                                      // keep gliding until they settle
+  if(pSettling) chartDraw();                                      // keep gliding / fading until they settle
   const pillX = m => m.px;
-  // each line starts at its pill (nothing left of it, like cTrader) and its tail past plotW
-  // hides under the tag: position / order = dash-dot, ТП / СЛ = plain dashes
+  // each line starts under the middle of its pill (from its left end it peeked past the round cap;
+  // a ТП / СЛ column pill spread off its line starts it at its right end, so it doesn't run along its
+  // edge) and its tail past plotW hides under the tag: position / order = dash-dot, ТП / СЛ = plain
+  // dashes. Fully shown levels go out as one stroke per style, fading ones one by one.
   const DASH = { dashdot: [6, 3.5, 1.6, 3.5], dash: [4, 3] };
+  const lineFrom = m => pillX(m) + m.w * m.s * (Math.abs(m.y - m.ly) < 3 ? 0.5 : 1);
   ctx.lineWidth = hair;                                           // whole device pixels, like the grid
-  for(const kind of ["dashdot", "dash"]) for(const col of [TC.up, TC.down]){   // one stroke per style
+  for(const kind of ["dashdot", "dash"]) for(const col of [TC.up, TC.down]){
+    ctx.strokeStyle = col; ctx.setLineDash(DASH[kind]);           // the dash restarts per line
     let any = false;
     ctx.beginPath();
-    // from under the pill's middle (from its left end the line peeked past the round cap); a ТП / СЛ
-    // column pill spread off its line starts it at its right end, so it doesn't run along its edge
-    for(const m of marks) if(m.dash === kind && m.col === col){ ctx.moveTo(pillX(m) + m.w * m.s * (Math.abs(m.y - m.ly) < 3 ? 0.5 : 1), m.ly); ctx.lineTo(plotW + 6, m.ly); any = true; }
-    if(any){ ctx.strokeStyle = col; ctx.setLineDash(DASH[kind]); ctx.stroke(); }   // the dash restarts per line
+    for(const m of marks) if(m.dash === kind && m.col === col && m.a >= 0.999){ ctx.moveTo(lineFrom(m), m.ly); ctx.lineTo(plotW + 6, m.ly); any = true; }
+    if(any) ctx.stroke();
+    for(const m of marks) if(m.dash === kind && m.col === col && m.a > 0.001 && m.a < 0.999){
+      ctx.globalAlpha = m.a; ctx.beginPath(); ctx.moveTo(lineFrom(m), m.ly); ctx.lineTo(plotW + 6, m.ly); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
   }
   ctx.setLineDash([]); ctx.lineWidth = 1;
   // a thin solid vertical line joins a position's ТП, lots and СЛ pills through the centre
@@ -5803,24 +5817,30 @@ function drawChart(){
     const g = m.grp;
     if(!g || g[0] !== m || g.length < 2) continue;
     const cx = crispX(pillX(m) + pillH * m.s / 2), ys = g.map(k => k.y);
+    ctx.globalAlpha = Math.min(...g.map(k => k.a));
     ctx.strokeStyle = m.col; ctx.lineWidth = hairX;
     ctx.beginPath(); ctx.moveTo(cx, Math.min(...ys)); ctx.lineTo(cx, Math.max(...ys)); ctx.stroke();
   }
-  ctx.lineWidth = 1;
-  for(const m of marks) if(m.dotX != null && m.dotX <= barsW){
-    ctx.fillStyle = m.col; ctx.beginPath(); ctx.arc(m.dotX, m.ly, 2.4, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  for(const m of marks) if(m.dotX != null && m.dotX <= barsW && m.a > 0.001){
+    ctx.globalAlpha = m.a; ctx.fillStyle = m.col; ctx.beginPath(); ctx.arc(m.dotX, m.ly, 2.4, 0, Math.PI * 2); ctx.fill();
   }
+  ctx.globalAlpha = 1;
   for(const m of marks){
+    if(m.a <= 0.001) continue;
     const x = snapPx(pillX(m)), po = { filled: m.filled, bg: TC.bg };
+    ctx.globalAlpha = m.a;
     if(m.s < 0.999){                                              // squeezed into the bottom row: scaled about its left end
       ctx.save(); ctx.translate(x, m.y); ctx.scale(m.s, m.s);
       chartPill(ctx, 0, 0, pillH, pillFs, m.text, m.icon, m.col, po);
       ctx.restore();
     }else chartPill(ctx, x, m.y, pillH, pillFs, m.text, m.icon, m.col, po);
   }
+  ctx.globalAlpha = 1;
   // right-axis tags, centred on their own line like cTrader (overlapping rather than
   // nudged apart); the live Bid/Ask tags go on last so they stay on top
-  for(const m of marks) axisTag(ctx, plotW + 2, m.ly, padR - 4, 16, chartPx(m.price), m.col, TC.bg);
+  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 16, chartPx(m.price), m.col, TC.bg); }
+  ctx.globalAlpha = 1;
   priceTag(tAsk, CL_ASK, chartPx(S.price.ask));
   priceTag(tBid, CL_BID, chartPx(S.price.bid));
 
