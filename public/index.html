@@ -5715,7 +5715,9 @@ function drawChart(){
   // de-collide the pills (lines and tags stay on their exact prices)
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
   for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
-  spreadYs(marks, pillH + 2, 10, H - padB - 9);
+  // the bounds cover every line in view (padT … H − padB): a tighter one pinned a pill above a
+  // line near the plot's foot and the line read as hanging down from its pill
+  spreadYs(marks, pillH + 2, padT, H - padB);
   for(const m of marks) m.y = snapPy(m.y);                        // …and the pills after de-colliding
   // A pill level with the on-chart buttons (measured in chartZones) gets out of their way: past ⛶ at
   // the top, past the + / − column, and in the bottom row it sits between the timeframe pill and
