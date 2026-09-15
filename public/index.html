@@ -33,7 +33,7 @@
   --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.4);    /* modal backdrop */
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
-  --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
+  --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
@@ -48,7 +48,7 @@
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
-  --chart-bg:#000000; --chart-grid:#161616; --chart-axis:#e6e6e6;
+  --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c;
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
 }
@@ -68,6 +68,11 @@ img,canvas,svg,video{max-width:100%}
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 #app{padding-bottom:92px;overflow-x:clip;max-width:100%}
 #app:has(.bignew),#app:has(.fabnew){padding-bottom:144px}   /* the floating «Новый ордер» must not cover the last card */
+/* the Charts tab fills the screen (chart height is fitted in chartTabHeight); ⛶ hides the tab bar too */
+body.route-chart{background:var(--chart-bg)}
+body.route-chart #app{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+body.chart-full #app{padding-bottom:0}
+body.chart-full .bottomnav{display:none}
 .row>*{min-width:0}
 .row .v{text-align:right;overflow-wrap:anywhere}
 .appbar{position:sticky;top:0;z-index:40;background:var(--bar);border-bottom:1px solid var(--line);
@@ -237,16 +242,22 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .mini-ranges{display:flex;padding:4px 8px 10px}
 .mini-ranges button{flex:1;background:none;border:0;padding:8px 0;font-size:15px;color:var(--ink2);white-space:nowrap}
 .mini-ranges button.on{color:var(--blue);font-weight:600}
-.chartbox{position:relative;background:var(--card);max-width:100%;overflow:hidden}
-.chartinfo{position:absolute;left:8px;top:6px;right:8px;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
-.chartzoom{position:absolute;left:8px;bottom:26px;display:flex;flex-direction:column;gap:6px;z-index:5}
-.chartzoom button{width:36px;height:36px;border-radius:11px;background:var(--chart-glass);border:1px solid var(--line);font-size:18px;font-weight:600;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center}
-.chartzoom button:active{background:var(--line)}
-.chartzoom button.rst{font-size:14px}
+.chartbox{position:relative;background:var(--chart-bg);max-width:100%;overflow:hidden}
+/* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
+   timeframe pill bottom-left — no zoom buttons (pinch / wheel zoom) */
+.chfs{position:absolute;left:16px;top:9px;z-index:5;width:46px;height:46px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.chfs:active{transform:scale(.92)}
+.chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px}
+.chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
+.chpill.sym{padding:0 12px 0 16px}
+.chpill svg{display:block}
+.chpill:active{filter:brightness(.92)}
+.chartinfo{position:absolute;left:16px;top:62px;max-width:calc(100% - 90px);z-index:4;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
+.chartinfo[hidden]{display:none}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart) */
-.chlast{position:absolute;right:60px;bottom:28px;z-index:5;width:34px;height:34px;padding:0;border-radius:9px;background:var(--chart-glass);border:1px solid var(--line);color:var(--ink2);display:flex;align-items:center;justify-content:center}
+.chlast{position:absolute;right:66px;bottom:34px;z-index:5;width:44px;height:31px;padding:0;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chlast[hidden]{display:none}
-.chlast:active{background:var(--line);transform:scale(.92)}
+.chlast:active{transform:scale(.92)}
 
 /* forms / modal */
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
@@ -264,20 +275,32 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
 .btn.dark{background:var(--invert);color:var(--invert-ink)}
-/* Charts tab trade bar, cTrader layout: SELL | Лоты | BUY in one rounded bar, the lot
-   tab notched into its top edge between the two halves (tap it to pick the volume) */
-.chtrade{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:62px;border-radius:14px;overflow:hidden}
-.cht{display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:#fff;padding:8px 14px}
-.cht.sell{background:var(--red);align-items:flex-start;padding-right:52px}
-.cht.buy{background:var(--green);align-items:flex-end;padding-left:52px}
-.cht-lbl{font-size:13px;font-weight:600;opacity:.95;white-space:nowrap;line-height:1.2}
-.cht-px{display:block;max-width:100%;font-size:clamp(15px,5vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;line-height:1.15;letter-spacing:-.01em}
-.cht-lot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:88px;padding:5px 10px 8px;
-  display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--card);color:var(--ink);border-radius:0 0 12px 12px}
-.cht-lot .cht-lbl{color:var(--ink2);display:flex;align-items:center;justify-content:space-between;width:100%}
-.cht-lot .cht-val{font-size:17px;font-weight:600;line-height:1.15}
+/* Charts tab trade bar, cTrader's (2026-09-15 screenshot): SELL | Лоты | BUY in one 48 px bar
+   with 10 px corners, white text at 72 % (14 px caption, 17 px price), grip dots at both ends,
+   and the 72 × 40 lots tab notched into its top edge between the halves (tap it to pick the volume) */
+.chtrade-wrap{padding:8px 8px 7px}
+body.route-chart .chtrade-wrap{background:var(--chart-bg)}
+.chtrade{position:relative;display:grid;grid-template-columns:1fr 1fr;height:48px;border-radius:10px;overflow:hidden}
+.cht{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:rgba(255,255,255,.72);font-weight:400;padding:0 24px}
+.cht.sell{background:var(--red);align-items:flex-start;padding-right:42px}
+.cht.buy{background:var(--green);align-items:flex-end;padding-left:42px}
+.cht-grip{position:absolute;top:50%;margin-top:-6px;fill:currentColor}
+.cht.sell .cht-grip{left:9.5px}
+.cht.buy .cht-grip{right:9.5px}
+.cht-lbl{font-size:14px;line-height:15px;white-space:nowrap}
+.cht-px{display:block;max-width:100%;font-size:17px;line-height:18px;white-space:nowrap;overflow:hidden}
+.cht-lot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:72px;height:40px;padding:3px 9px 0 8.5px;
+  display:flex;flex-direction:column;align-items:flex-start;background:var(--card);color:var(--ink);border-radius:0 0 9px 9px}
+body.route-chart .cht-lot{background:var(--chart-bg)}
+.cht-lot .cht-lbl{color:var(--ink2);font-size:13.5px;display:flex;align-items:center;justify-content:space-between;width:100%}
+.cht-lot .cht-val{margin-top:2.5px;font-size:17px;line-height:18px;font-weight:400}
 .cht:active{filter:brightness(.95)}
 .cht-lot:active{background:var(--press)}
+/* the timeframe sheet behind the «м1» pill */
+.tfsheet{display:flex;flex-direction:column}
+.tfsheet button{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:16px;text-align:left}
+.tfsheet button b{font-weight:600;color:var(--ink2)}
+.tfsheet button.on,.tfsheet button.on b{color:var(--blue)}
 /* lot picker sheet */
 .lotsheet{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-top:4px}
 .ls-step{height:52px;border-radius:12px;background:var(--line);font-size:22px;font-weight:600;color:var(--ink)}
@@ -2479,6 +2502,8 @@ function themeColors(){
     up:    g("--green", "#0aa85f"),
     down:  g("--red", "#e5342b"),
     blue:  g("--blue", "#2f7bf6"),
+    orange:   g("--orange", "#f5820d"),
+    orangeBg: g("--orange-bg", "#fff2e2"),
   };
   return _themeColors;
 }
@@ -2508,6 +2533,8 @@ function render(){
   html += bottomNav();
   app().innerHTML = html;
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
+  document.body.classList.toggle("route-chart", t === "chart");
+  document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
   bindScreen();
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -2671,7 +2698,7 @@ function screenMarkets(){
   if(sub === "overview")   inner = mktOverview();
   else if(sub === "positions") inner = listPositions();
   else if(sub === "orders")    inner = listOrders();
-  else if(sub === "chart")     inner = `<div class="wrap"><div class="card" style="padding:0;overflow:hidden">${chartMarkup(260)}</div></div>`;
+  else if(sub === "chart")     inner = `<div class="wrap"><div class="card" style="padding:0;overflow:hidden">${chartMarkup(260, { sub: true })}</div></div>`;
   const cnt = (id, n) => ` <span class="cnt" id="${id}"${n ? "" : " hidden"}>${n}</span>`;   // cTrader's boxed count «ОРДЕРА [1]», kept live by updateLive
   return appbar("XAUUSD", {back:true, caret:true}) + `
     <div class="subtabs">
@@ -3581,38 +3608,58 @@ function dayLogRow(d){
 }
 
 /* ---------- CHART ---------- */
+/* The Charts tab, cTrader's (2026-09-15 screenshots): no app bar, no timeframe strip and no zoom
+   buttons (pinch / wheel zoom) — the chart starts at the top with a round ⛶ top-left and the
+   «XAUUSD ›» / timeframe «м1» pills bottom-left (the pill opens a timeframe sheet), and under it
+   the SELL | Лоты | BUY bar. ⛶ shows the chart alone (no trade bar, no tab bar; not saved).
+   In the Markets «ГРАФИК» subtab (o.sub) ⛶ opens the Charts tab and the symbol pill is left out. */
+let _chartFull = false;
+const TF_NAME = { M1:"1 минута", M5:"5 минут", M15:"15 минут", M30:"30 минут", H1:"1 час", H4:"4 часа", D1:"1 день" };
+const CH_ICON_FULL = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3.5 9V5.5a2 2 0 0 1 2-2H9M15 3.5h3.5a2 2 0 0 1 2 2V9M20.5 15v3.5a2 2 0 0 1-2 2H15M9 20.5H5.5a2 2 0 0 1-2-2V15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+const CH_ICON_EXIT = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 3.5V7a2 2 0 0 1-2 2H3.5M20.5 9H17a2 2 0 0 1-2-2V3.5M15 20.5V17a2 2 0 0 1 2-2h3.5M3.5 15H7a2 2 0 0 1 2 2v3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+const CH_GRIP = `<svg class="cht-grip" viewBox="0 0 5 12" width="5" height="12" aria-hidden="true"><circle cx="1" cy="1" r="1"/><circle cx="4" cy="1" r="1"/><circle cx="1" cy="6" r="1"/><circle cx="4" cy="6" r="1"/><circle cx="1" cy="11" r="1"/><circle cx="4" cy="11" r="1"/></svg>`;
 function screenChart(){
-  const h = Math.round(Math.max(220, Math.min((window.innerHeight||640) - 300, 520)));
-  return appbar("График") + `<div>${chartMarkup(h)}</div>`;
+  const h = Math.round(Math.max(220, (window.innerHeight || 640) - (_chartFull ? 0 : 130)));   // refitted to the screen in chartTabHeight
+  return chartMarkup(h);
 }
-function chartMarkup(h){
-  return `<div class="tfbar">
-    ${TF_ORDER.map(tf=>`<button data-tf="${tf}" class="${S.ui.chartTF===tf?"on":""}">${tf}</button>`).join("")}
-  </div>
-  <div class="chartbox">
-    <canvas id="chartCanvas" height="${Math.max(220,h)}" data-h="${Math.max(220,h)}"></canvas>
-    <div class="chartinfo" id="chartInfo"></div>
-    <div class="chartzoom">
-      <button data-chz="in" aria-label="приблизить">+</button>
-      <button data-chz="out" aria-label="отдалить">−</button>
-      <button class="rst" data-chz="reset" aria-label="сброс">⤢</button>
+function chartMarkup(h, o){
+  o = o || {};
+  const full = !o.sub && _chartFull;
+  return `<div class="chartbox${o.sub ? " sub" : ""}">
+    <canvas id="chartCanvas" height="${Math.max(220,h)}" data-h="${Math.max(220,h)}"${o.sub ? ` data-demo="0"` : ""}></canvas>
+    <button type="button" class="chfs" data-act="chartfull" aria-label="${full ? "Обычный вид" : "График на весь экран"}">${full ? CH_ICON_EXIT : CH_ICON_FULL}</button>
+    <div class="chartinfo" id="chartInfo" hidden></div>
+    <div class="chpills">
+      ${o.sub ? "" : `<button type="button" class="chpill sym" data-act="chartsym">XAUUSD<svg viewBox="0 0 7 12" width="7" height="12" aria-hidden="true"><path d="M1.5 1.5L5.5 6l-4 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}
+      <button type="button" class="chpill" data-act="charttf" aria-label="Таймфрейм">${MINI_TF_LABEL[S.ui.chartTF] || S.ui.chartTF}</button>
     </div>
     <button class="chlast" id="chLast" data-chz="last" aria-label="К последним свечам" hidden><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M6.5 3.5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 3.5v10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 18v-1.6M7 18v-2.6M10 18v-1.2M13 18v-2.2M16 18v-1.6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg></button>
   </div>
-  <div class="wrap"><div class="chtrade">
-    <button class="cht sell" data-act="quicksell">
+  ${full ? "" : `<div class="chtrade-wrap"><div class="chtrade">
+    <button class="cht sell" data-act="quicksell">${CH_GRIP}
       <span class="cht-lbl"><span class="tcap">Продать</span><span class="tx">✕</span></span>
-      <span class="cht-px mono"><span id="chBid">${pxfmt(S.price.bid)}</span> <span class="cht-dir" id="chDirS">${chartDirArrow()}</span></span>
+      <span class="cht-px mono"><span id="chBid">${chartPx(S.price.bid)}</span> <span class="cht-dir" id="chDirS">${chartDirArrow()}</span></span>
     </button>
-    <button class="cht buy" data-act="quickbuy">
+    <button class="cht buy" data-act="quickbuy">${CH_GRIP}
       <span class="cht-lbl"><span class="tcap">Купить</span><span class="tx">✕</span></span>
-      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${chartDirArrow()}</span> <span id="chAsk">${pxfmt(S.price.ask)}</span></span>
+      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${chartDirArrow()}</span> <span id="chAsk">${chartPx(S.price.ask)}</span></span>
     </button>
     <button class="cht-lot" data-act="lotpick" aria-label="Выбрать объём">
       <span class="cht-lbl">Лоты <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="cht-val mono" id="chLot">${fmt(S.ui.lot,2)}</span>
     </button>
-  </div></div>`;
+  </div></div>`}`;
+}
+function setChartTF(tf){
+  if(!TF_ORDER.includes(tf)) return;
+  S.ui.chartTF = tf;
+  chartStopFling(); chart.offset = chartClampOffset(chart.offset);
+  chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0;   // manual price scale does not carry over
+  render(); save();
+}
+function openChartTFSheet(){
+  openSheet(`<h2>Таймфрейм</h2><div class="tfsheet">${TF_ORDER.map(tf => `<button type="button" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${TF_NAME[tf]}</span><b>${MINI_TF_LABEL[tf]}</b></button>`).join("")}</div>`);
+  modalEl.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ closeModal(); setChartTF(b.dataset.tfpick); });
 }
 
 /* ---------- SETTINGS ---------- */
@@ -3822,11 +3869,7 @@ function bindScreen(){
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
-  root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=>{
-    S.ui.chartTF = b.dataset.tf;
-    chartStopFling(); chart.offset = chartClampOffset(chart.offset);
-    chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0;   // manual price scale does not carry over
-    render(); save(); });
+  root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=> setChartTF(b.dataset.tf));
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
     const a = b.dataset.chz;
     if(a === "in") chartZoom(1.35); else if(a === "out") chartZoom(0.74); else if(a === "last") chartGoLatest(); else chartReset();
@@ -3857,6 +3900,12 @@ function bindScreen(){
   act("gotosettings", ()=> nav("settings"));
   act("gotohistory", ()=> nav("history"));
   act("gotodom", ()=> nav("dom"));
+  act("charttf", openChartTFSheet);
+  act("chartsym", ()=>{ S.ui.marketOpen = true; nav("markets", "overview"); });
+  act("chartfull", ()=>{
+    if(S.ui.tab !== "chart"){ nav("chart"); return; }                 // from the Markets «ГРАФИК» subtab: open the Charts tab
+    _chartFull = !_chartFull; chartStopFling(); render();
+  });
   act("closeall", ()=>{
     if(guardMirror()) return;
     if(guardLock()) return;
@@ -4829,8 +4878,8 @@ function updateLive(){
   setTxt("acFree", money(A.freeMargin));
   setTxt("acML", isFinite(A.marginLevel)? fmt(A.marginLevel,1)+"%" : "—");
   setTxt("acFloat", signMoney(A.floating + A.swaps), (A.floating+A.swaps)>=0?"pos":"neg");
-  setTxt("chBid", pxfmt(S.price.bid));
-  setTxt("chAsk", pxfmt(S.price.ask));
+  setTxt("chBid", chartPx(S.price.bid));
+  setTxt("chAsk", chartPx(S.price.ask));
   // ▲/▼ of the last quote change: the Charts bar arrows and the Markets panel triangles
   const qd = quoteDir();
   if(document.getElementById("chLot")){                    // Charts tab trade bar
@@ -4937,10 +4986,10 @@ const _coarse = window.matchMedia && window.matchMedia("(pointer:coarse)").match
 /* vZoom/vCenter are the MANUAL price-axis scale, cTrader style. vZoom 1 with a
    null vCenter means "auto-fit to the visible candles" (the default); a pinch or
    a drag on the price axis anchors the view and squeezes/stretches the range. */
-let chart = { barW: _coarse ? 10 : 7, gap: 2, offset: 0, cross: null, drag:null, pinch:null, holdT:0,
+let chart = { barW: _coarse ? 5 : 6, gap: 2, offset: 0, cross: null, drag:null, pinch:null, holdT:0,
               vZoom: 1, vCenter: null, vBase: 0 };
 const V_MIN = 0.18, V_MAX = 14;
-const CHART_BW_DEF = _coarse ? 10 : 7;
+const CHART_BW_DEF = _coarse ? 5 : 6;                                 // ~45 bars across a phone, like cTrader's default
 function chartZoom(k){ chart.barW = clamp(chart.barW*k, 1.6, 64); chart.offset = chartClampOffset(chart.offset); drawChart(); }
 function chartReset(){ chartStopFling(); chart.barW = CHART_BW_DEF; chart.offset = 0; chart.cross = null;
   chart.vZoom = 1; chart.vCenter = null; chart.vBase = 0; drawChart(); }
@@ -5072,9 +5121,19 @@ function chartGoLatest(){          // the «›|» button: glide back to the new
   if(from <= 0) return;
   chartGlide(from, -from, Math.min(600, 220 + from * 4), u => 1 - Math.pow(1 - u, 3));
 }
+/* the Charts tab: the chart fills the screen between its top and the trade bar + tab bar */
+function chartTabHeight(c){
+  if(!c || S.ui.tab !== "chart" || c.closest(".sub")) return;
+  const nav = document.querySelector(".bottomnav"), bar = document.querySelector(".chtrade-wrap");
+  const navH = _chartFull || !nav ? 0 : nav.offsetHeight, barH = bar ? bar.offsetHeight : 0;
+  const top = c.parentElement.getBoundingClientRect().top + window.scrollY;
+  const h = Math.max(220, Math.round((window.innerHeight || 640) - top - navH - barH));
+  if(String(h) !== c.dataset.h) c.dataset.h = h;
+}
 function setupChartCanvas(){
   const c = document.getElementById("chartCanvas");
   if(!c) return;
+  chartTabHeight(c);
   c._w = 0; fitCanvas(c);
   chart.cross = null; chart.drag = null; chart.pinch = null; chart.axis = null;
   // the canvas rect is read once per gesture (touchstart / mousedown) and reused on every
@@ -5133,7 +5192,7 @@ function setupChartCanvas(){
   /* TOUCH: touch-action:pan-y already lets a vertical swipe scroll the page.
      We only take over (and preventDefault) for a clearly HORIZONTAL drag or a pinch. */
   // x of the price axis strip, where a vertical drag rescales the price range
-  const onAxis = x => x >= (c._w - (c._w < 420 ? 52 : 62));
+  const onAxis = x => x >= (c._w - (c._w < 420 ? 58 : 66));
   c.ontouchstart = e=>{
     chartStopFling();                              // a touch catches a gliding chart
     rect = c.getBoundingClientRect();
@@ -5268,7 +5327,7 @@ function autoScale(hi, lo, plotH, minPx){
   if(!(hi > lo)){ const c = (hi + lo)/2 || S.price.mid; hi = c + 0.5; lo = c - 0.5; }
   const pad = (hi - lo) * 0.08;
   hi += pad; lo -= pad;
-  const lines = clamp(Math.round(plotH / (minPx || 52)), 3, 9);
+  const lines = clamp(Math.round(plotH / (minPx || 52)), 3, 24);
   return { lo, hi, step: niceStep(hi - lo, lines) };
 }
 
@@ -5389,18 +5448,11 @@ function drawChart(){
   const ctx = c.getContext("2d");
   const TC = themeColors();
   const W = c._w, H = c._h;
-  const padR = W < 420 ? 52 : 62, padB = 20;
-  // Top padding = whatever the floating OHLC readout actually occupies, so the
-  // top gridline label is never tucked under it. Measured (it wraps to two lines
-  // on a narrow screen) and cached per width + text length, so the 120ms redraw
-  // does not force a layout every frame.
+  // cTrader's chart (2026-09-15 screenshot of a 360 px phone): a 58 px price scale with the prices
+  // right-aligned 12 px from the edge, the plot running up to the top (the OHLC readout shows only
+  // with the crosshair), a 21 px date / time axis at the foot, gridlines every ~33 px
+  const padR = W < 420 ? 58 : 66, padB = 21, padT = 8, GRID_PX = 33;
   const infoEl = document.getElementById("chartInfo");
-  let padT = 30;
-  if(infoEl){
-    const k = W + "/" + infoEl.textContent.length;
-    if(infoEl._padKey !== k){ infoEl._padKey = k; infoEl._padH = Math.ceil(infoEl.getBoundingClientRect().height) || 18; }
-    padT = 6 + infoEl._padH + 9;
-  }
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
 
@@ -5452,9 +5504,9 @@ function drawChart(){
     // Manual scale: keep the user's span to the cent — never snapped to round levels.
     const half = (chart.vBase || 1) / chart.vZoom;
     const mLo = chart.vCenter - half, mHi = chart.vCenter + half;
-    sc = { lo: mLo, hi: mHi, step: niceStep(mHi - mLo, clamp(Math.round((H - padT - padB)/52), 3, 9)) };
+    sc = { lo: mLo, hi: mHi, step: niceStep(mHi - mLo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24)) };
   }else{
-    sc = autoScale(dHi, dLo, H - padT - padB, 52);
+    sc = autoScale(dHi, dLo, H - padT - padB, GRID_PX);
     // Ease the auto range toward its target over a few frames (τ ≈ 70 ms): a tall bar sliding
     // in, or a tick stretching the live one, then moves the candles and every position line in
     // a short glide instead of a one-frame jump. First draw, a timeframe switch or a long idle
@@ -5464,7 +5516,7 @@ function drawChart(){
       const k = 1 - Math.exp(-(now - R0.t) / 70), tHi = sc.hi, tLo = sc.lo;
       sc.hi = R0.hi + (tHi - R0.hi) * k;
       sc.lo = R0.lo + (tLo - R0.lo) * k;
-      sc.step = niceStep(sc.hi - sc.lo, clamp(Math.round((H - padT - padB)/52), 3, 9));
+      sc.step = niceStep(sc.hi - sc.lo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24));
       const pxPer = (H - padT - padB) / (sc.hi - sc.lo);
       if(Math.max(Math.abs(tHi - sc.hi), Math.abs(tLo - sc.lo)) * pxPer > 0.5) chartDraw();   // keep gliding until settled
     }
@@ -5498,10 +5550,12 @@ function drawChart(){
   // tight spread they simply overlap (Bid drawn over Ask). Nudging them apart put the
   // lines on the tags' edges instead of through the middle of the price.
 
-  // grid + price scale — one line per ROUND step, so labels read 4406.00 / 4408.00; the lines
-  // go out as a single stroke
-  ctx.fillStyle = TC.axis; ctx.font = "10px system-ui,'Open Sans',sans-serif";
-  ctx.textAlign = "left";
+  // grid + price scale — cTrader's: a line every ~33 px on a ROUND step (4295.00 / 4295.50), the
+  // labels in the ink colour right-aligned 12 px from the edge. The horizontal lines and the time
+  // axis' vertical ones go out as a single stroke.
+  const AXF = "13px system-ui,'Open Sans',sans-serif";
+  const yCount = H - padB - 7.5;                                  // the bar countdown, at the foot of the scale
+  ctx.fillStyle = TC.axis; ctx.font = AXF; ctx.textAlign = "right"; ctx.textBaseline = "middle";
   const gridFrom = Math.ceil(lo / sc.step) * sc.step;
   ctx.beginPath();
   for(let i = 0; ; i++){
@@ -5510,22 +5564,42 @@ function drawChart(){
     const yy = crispY(y(p));
     if(yy < padT - 1 || yy > H - padB + 1) continue;
     ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
-    // hidden by a price tag — only Bid/Ask: cTrader lets 4290.00 peek out under a ТП tag
-    if(Math.abs(yy - tAsk) < 9 || Math.abs(yy - tBid) < 9) continue;
-    ctx.fillText(chartPx(p), plotW+4, yy+3);
+    // hidden by the Bid/Ask tags (cTrader lets 4290.00 peek out under a ТП tag) or by the countdown
+    if(Math.abs(yy - tAsk) < 12 || Math.abs(yy - tBid) < 12 || Math.abs(yy - yCount) < 12 || yy < 6) continue;
+    ctx.fillText(chartPx(p), W - 12, yy + 0.5);
+  }
+  // time scale — cTrader's: a bold date at the left, then a time on every bar whose time is a round
+  // multiple (1 / 2 / 5 / 10 / 15 / 30 min, 1 / 2 / 4 / 6 / 12 h, days…) at least 60 px apart (~70 px
+  // on a phone, cTrader's spacing), each with a vertical gridline; the labels glide with their candles
+  const tfSec = TF[tf] || 60, daily = tfSec >= 86400;
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const stepSec = [60,120,300,600,900,1800,3600,7200,14400,21600,43200,86400,172800,604800,1209600,2592000,7776000].find(s => s >= 60 / unit * tfSec) || 31536000;
+  const every = Math.max(1, Math.round(stepSec / tfSec));
+  const d0 = new Date(vis[clamp(Math.ceil(vis.length - offF - barsW / unit), 0, vis.length - 1)].t * 1000);   // the leftmost bar on screen
+  const dateLbl = daily ? `${MON[d0.getUTCMonth()]} ${d0.getUTCFullYear()}` : `${DAYS[d0.getDay()]} ${d0.getDate()} ${MON[d0.getMonth()]}`;
+  const yTime = H - padB / 2;
+  ctx.font = "600 " + AXF; ctx.textAlign = "left";
+  ctx.fillText(dateLbl, 2, yTime);
+  const dateEnd = 2 + ctx.measureText(dateLbl).width + 24;
+  ctx.font = AXF; ctx.textAlign = "center";
+  for(let i = 0; i < vis.length; i++){
+    if(Math.round(vis[i].t / tfSec) % every) continue;
+    const xx = crispX(xOf(i) + bw/2);
+    if(xx < 0 || xx > barsW) continue;
+    ctx.moveTo(xx, padT); ctx.lineTo(xx, H - padB);
+    if(xx - 22 < dateEnd || xx + 22 > plotW) continue;
+    const d = new Date(vis[i].t * 1000);
+    ctx.fillText(daily ? `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`                 // D1 bars are UTC days
+               : stepSec >= 86400 ? `${d.getDate()} ${MON[d.getMonth()]}`
+               : pad2(d.getHours()) + ":" + pad2(d.getMinutes()), xx, yTime);        // intraday: device time
   }
   ctx.strokeStyle = TC.grid; ctx.lineWidth = hair; ctx.stroke(); ctx.lineWidth = 1;
-  // time scale — a label sits on every bar whose time is a multiple of the step, so the
-  // labels glide with their candles while panning instead of jumping from bar to bar
-  ctx.textAlign = "center";
-  const tfSec = TF[tf] || 60, tStep = Math.max(1, Math.floor(nVisible/6));
-  for(let i=0;i<vis.length;i++){
-    if(Math.round(vis[i].t / tfSec) % tStep || xOf(i) + bw/2 > barsW) continue;
-    const d = new Date(vis[i].t*1000);
-    const lbl = (tf==="D1")? (pad2(d.getUTCMonth()+1)+"/"+pad2(d.getUTCDate()))   // D1 bars are UTC days
-              : pad2(d.getHours())+":"+pad2(d.getMinutes());                      // intraday: device time
-    ctx.fillText(lbl, snapPx(xOf(i)+bw/2), H-6);
-  }
+  // the countdown to the live bar's close on the game clock, bold at the foot of the scale (cTrader's «00:41»)
+  const leftS = Math.max(0, Math.round(((data[data.length - 1].t + tfSec) * 1000 - S.simClock) / 1000));
+  const cH = Math.floor(leftS / 3600), cM = Math.floor(leftS % 3600 / 60), cS = leftS % 60;
+  ctx.font = "700 " + AXF; ctx.textAlign = "right";
+  ctx.fillText(leftS >= 86400 ? `${Math.floor(leftS / 86400)}д ${pad2(cH % 24)}:${pad2(cM)}` : cH ? `${pad2(cH)}:${pad2(cM)}:${pad2(cS)}` : `${pad2(cM)}:${pad2(cS)}`, W - 12, yCount + 0.5);
+  ctx.textBaseline = "alphabetic";
 
   // candles — clipped at barsW, so a bar sliding in or out is cut at the gap before the axis.
   // Wick and body are pixel-aligned rects filled together: one fill per colour a frame (it was
@@ -5571,6 +5645,19 @@ function drawChart(){
   priceLine(yBid, CL_BID);
   // right-scale Bid/Ask tags: centred on their lines, drawn at the very end (on top)
   const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 16, label, col, TC.bg);
+  // the simulator's DEMO mark beside ⛶ (the app bars carry it on every other screen) — drawn before
+  // the position pills, so a level up there still reads over it
+  if(c.dataset.demo !== "0"){
+    const txt = "DEMO • SYNTHETIC DATA", bx = 72, byc = 32, bh = 20;
+    ctx.font = "600 9.5px system-ui,'Open Sans',sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    const bwid = ctx.measureText(txt).width + 16;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(bx + 0.5, byc - bh/2 + 0.5, bwid, bh - 1, bh/2); else ctx.rect(bx + 0.5, byc - bh/2 + 0.5, bwid, bh - 1);
+    ctx.fillStyle = TC.orangeBg; ctx.fill();
+    ctx.globalAlpha = 0.45; ctx.strokeStyle = TC.orange; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = TC.orange; ctx.fillText(txt, bx + 8, byc + 0.5);
+    ctx.textBaseline = "alphabetic";
+  }
 
   /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
      Bound directly to S.positions / S.pendings — no separate viz state.
@@ -5615,18 +5702,20 @@ function drawChart(){
                  text: `${fmt(o.volume,2)} Лоты`, icon: (buy ? "buy-" : "sell-") + (o.type.includes("limit") ? "limit" : "stop"),
                  filled: false, dash: "dashdot", dotX: null, grp: null });
   }
-  // de-collide the pills (lines and tags stay on their exact prices); a pill in the
-  // on-canvas zoom buttons' strip (bottom-left ~[8..46] x [H-150..H-20]) moves right of it,
-  // and a position's ТП / lots / СЛ pills move as one column so their link stays straight
+  // de-collide the pills (lines and tags stay on their exact prices); a pill level with the
+  // on-chart buttons (⛶ top-left, «XAUUSD ›» «м1» bottom-left) moves right of them, and a
+  // position's ТП / lots / СЛ pills move as one column so their link stays straight
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
   for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
-  spreadYs(marks, pillH + 2, 24, H - 9);
+  spreadYs(marks, pillH + 2, 10, H - padB - 9);
   for(const m of marks) m.y = snapPy(m.y);                        // …and the pills after de-colliding
-  // Pills ease right of the on-canvas zoom buttons as they near them (a 22 px ramp) instead of
-  // hopping 44 px the moment a line crosses into that strip — while the scale glides, the hop
-  // read as the positions jerking. A position's ТП / lots / СЛ column moves as one.
-  const zoneK = yy => clamp((yy - (H - 172)) / 22, 0, 1) * clamp((H + 4 - yy) / 22, 0, 1);
-  for(const m of marks) m.px = 8 + 44 * (m.grp ? Math.max(...m.grp.map(g => zoneK(g.y))) : zoneK(m.y));
+  // Pills ease past the buttons as they near them (a 16 px ramp) instead of hopping the moment a
+  // line crosses into their strip — while the scale glides, the hop read as the positions jerking.
+  // A position's ТП / lots / СЛ column moves as one.
+  const btmK = yy => clamp((yy - (H - padB - 76)) / 16, 0, 1) * clamp((H - padB + 4 - yy) / 16, 0, 1);
+  const topK = yy => clamp((72 - yy) / 16, 0, 1);
+  const shiftX = yy => Math.max(160 * btmK(yy), 58 * topK(yy));
+  for(const m of marks) m.px = 8 + (m.grp ? Math.max(...m.grp.map(g => shiftX(g.y))) : shiftX(m.y));
   const pillX = m => m.px;
   // each line starts at its pill (nothing left of it, like cTrader) and its tail past plotW
   // hides under the tag: position / order = dash-dot, ТП / СЛ = plain dashes
@@ -5659,12 +5748,14 @@ function drawChart(){
   priceTag(tAsk, CL_ASK, chartPx(S.price.ask));
   priceTag(tBid, CL_BID, chartPx(S.price.bid));
 
-  // crosshair
+  // crosshair: dashed lines, the price in a tag on the scale and the bar's time on the time axis;
+  // the OHLC readout (DOM, written only on a change) shows only while it is up — cTrader's chart
+  // has none otherwise
   const info = infoEl;
-  // the OHLC readout is DOM: write it only on a change, so redrawing at 120 Hz doesn't
-  // invalidate the page's layout every frame
-  const showInfo = txt => {
-    if(info.style.display !== "block") info.style.display = "block";
+  const setInfo = txt => {
+    if(!info) return;
+    if(txt == null){ if(!info.hidden) info.hidden = true; return; }
+    if(info.hidden) info.hidden = false;
     if(info.textContent !== txt) info.textContent = txt;
   };
   if(chart.cross && chart.cross.x < plotW){
@@ -5678,17 +5769,19 @@ function drawChart(){
     const idx = clamp(Math.floor((cx - (barsW - (vis.length - offF)*unit))/unit), 0, vis.length-1);
     const b = vis[idx];
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
+    ctx.font = AXF; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
-    ctx.fillStyle = "#fff"; ctx.textAlign="left"; ctx.fillText(chartPx(price), plotW+3, cy+3);
-    if(b && info){
+    ctx.fillStyle = "#fff"; ctx.fillText(chartPx(price), plotW + padR/2, cy + 0.5);
+    if(b){
       const rb = data[startIdx + idx] || b;         // raw OHLC for the text readout
       const d = new Date(rb.t*1000);
-      showInfo(`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${chartPx(rb.o)}  Н ${chartPx(rb.h)}  Л ${chartPx(rb.l)}  З ${chartPx(rb.c)}`);
+      const tl = daily ? `${d.getUTCDate()} ${MON[d.getUTCMonth()]}` : pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      ctx.fillStyle = TC.tag; ctx.fillRect(cx - 26, H - padB, 52, padB);
+      ctx.fillStyle = "#fff"; ctx.fillText(tl, cx, yTime);
+      setInfo(`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  О ${chartPx(rb.o)}  Н ${chartPx(rb.h)}  Л ${chartPx(rb.l)}  З ${chartPx(rb.c)}`);
     }
-  }else if(info){
-    const last = data[data.length-1];
-    showInfo(`${tf}   О ${chartPx(last.o)}  Н ${chartPx(last.h)}  Л ${chartPx(last.l)}  З ${chartPx(last.c)}`);
-  }
+    ctx.textBaseline = "alphabetic";
+  }else setInfo(null);
 }
 
 /* mini chart on overview */
@@ -5853,7 +5946,7 @@ function resumeLoop(){
 window.addEventListener("resize", ()=>{
   if(!S) return;                               // resize can fire before the state is loaded
   const ids = ["chartCanvas","miniCanvas"];
-  ids.forEach(id=>{ const c = document.getElementById(id); if(c){ c._w = 0; fitCanvas(c); } });
+  ids.forEach(id=>{ const c = document.getElementById(id); if(c){ if(id === "chartCanvas") chartTabHeight(c); c._w = 0; fitCanvas(c); } });
   if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
   drawMini();
 });
