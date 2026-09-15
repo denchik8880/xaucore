@@ -244,9 +244,12 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .mini-ranges button.on{color:var(--blue);font-weight:600}
 .chartbox{position:relative;background:var(--chart-bg);max-width:100%;overflow:hidden}
 /* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
-   timeframe pill bottom-left — no zoom buttons (pinch / wheel zoom) */
+   timeframe pill bottom-left, and our round + / − zoom column above those pills */
 .chfs{position:absolute;left:16px;top:9px;z-index:5;width:46px;height:46px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chfs:active{transform:scale(.92)}
+.chzoom{position:absolute;left:16px;bottom:77px;z-index:5;display:flex;flex-direction:column;gap:8px}
+.chzoom button{width:40px;height:40px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.chzoom button:active{transform:scale(.92)}
 .chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px}
 .chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
@@ -3608,10 +3611,10 @@ function dayLogRow(d){
 }
 
 /* ---------- CHART ---------- */
-/* The Charts tab, cTrader's (2026-09-15 screenshots): no app bar, no timeframe strip and no zoom
-   buttons (pinch / wheel zoom) — the chart starts at the top with a round ⛶ top-left and the
-   «XAUUSD ›» / timeframe «м1» pills bottom-left (the pill opens a timeframe sheet), and under it
-   the SELL | Лоты | BUY bar. ⛶ shows the chart alone (no trade bar, no tab bar; not saved).
+/* The Charts tab, cTrader's (2026-09-15 screenshots): no app bar and no timeframe strip — the
+   chart starts at the top with a round ⛶ top-left, the «XAUUSD ›» / timeframe «м1» pills
+   bottom-left (the pill opens a timeframe sheet) with our round + / − zoom buttons above them
+   (the user wanted them back; pinch / wheel zoom work too), and under it the SELL | Лоты | BUY bar. ⛶ shows the chart alone (no trade bar, no tab bar; not saved).
    In the Markets «ГРАФИК» subtab (o.sub) ⛶ opens the Charts tab and the symbol pill is left out. */
 let _chartFull = false;
 const TF_NAME = { M1:"1 минута", M5:"5 минут", M15:"15 минут", M30:"30 минут", H1:"1 час", H4:"4 часа", D1:"1 день" };
@@ -3626,9 +3629,13 @@ function chartMarkup(h, o){
   o = o || {};
   const full = !o.sub && _chartFull;
   return `<div class="chartbox${o.sub ? " sub" : ""}">
-    <canvas id="chartCanvas" height="${Math.max(220,h)}" data-h="${Math.max(220,h)}"${o.sub ? ` data-demo="0"` : ""}></canvas>
+    <canvas id="chartCanvas" height="${Math.max(220,h)}" data-h="${Math.max(220,h)}"></canvas>
     <button type="button" class="chfs" data-act="chartfull" aria-label="${full ? "Обычный вид" : "График на весь экран"}">${full ? CH_ICON_EXIT : CH_ICON_FULL}</button>
     <div class="chartinfo" id="chartInfo" hidden></div>
+    <div class="chzoom">
+      <button type="button" data-chz="in" aria-label="Приблизить"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button type="button" data-chz="out" aria-label="Отдалить"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 10h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
     <div class="chpills">
       ${o.sub ? "" : `<button type="button" class="chpill sym" data-act="chartsym">XAUUSD<svg viewBox="0 0 7 12" width="7" height="12" aria-hidden="true"><path d="M1.5 1.5L5.5 6l-4 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}
       <button type="button" class="chpill" data-act="charttf" aria-label="Таймфрейм">${MINI_TF_LABEL[S.ui.chartTF] || S.ui.chartTF}</button>
@@ -5130,11 +5137,22 @@ function chartTabHeight(c){
   const h = Math.max(220, Math.round((window.innerHeight || 640) - top - navH - barH));
   if(String(h) !== c.dataset.h) c.dataset.h = h;
 }
+/* where the on-chart buttons sit, in canvas px — drawChart moves the position / order pills out of
+   their way (measured on setup and resize, never per frame) */
+function chartZones(c){
+  const box = c.getBoundingClientRect(), root = c.parentElement, z = {};
+  const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };
+  at(".chfs", r => { z.fsR = r.right - box.left + 8; z.fsB = r.bottom - box.top; });
+  at(".chzoom", r => { z.zoomR = r.right - box.left + 8; z.zoomT = r.top - box.top; z.zoomB = r.bottom - box.top; });
+  at('[data-act="charttf"]', r => { z.rowL = r.right - box.left + 8; z.rowT = r.top - box.top; z.rowB = r.bottom - box.top; });
+  chart._zones = z;
+}
 function setupChartCanvas(){
   const c = document.getElementById("chartCanvas");
   if(!c) return;
   chartTabHeight(c);
   c._w = 0; fitCanvas(c);
+  chartZones(c);
   chart.cross = null; chart.drag = null; chart.pinch = null; chart.axis = null;
   // the canvas rect is read once per gesture (touchstart / mousedown) and reused on every
   // move: reading it per event forced a layout each frame after updateLive touched the DOM
@@ -5376,6 +5394,11 @@ function textWidth(ctx, font, text){
    and with the same digit size.
    filled  = open position: the side's colour, white text, a solid ↑/↓
    outline = pending order (arrow-and-bar icon) or ТП / СЛ: drawn like a tag, coloured text */
+/* the width chartPill() gives a pill — to fit one into a gap before it is drawn */
+function chartPillWidth(ctx, fs, text, icon){
+  const font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  return Math.ceil(fs * (icon ? 0.66 : 0.55) + textWidth(ctx, font, text) + (icon ? fs * (0.66 + 0.56) : 0) + fs * (icon ? 0.6 : 0.55));
+}
 function chartPill(ctx, x, yc, h, fs, text, icon, col, o){
   const padL = fs * (icon ? 0.66 : 0.55), gapI = fs * 0.66, iw = fs * 0.56, padR = fs * (icon ? 0.6 : 0.55);
   const font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
@@ -5645,19 +5668,6 @@ function drawChart(){
   priceLine(yBid, CL_BID);
   // right-scale Bid/Ask tags: centred on their lines, drawn at the very end (on top)
   const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 16, label, col, TC.bg);
-  // the simulator's DEMO mark beside ⛶ (the app bars carry it on every other screen) — drawn before
-  // the position pills, so a level up there still reads over it
-  if(c.dataset.demo !== "0"){
-    const txt = "DEMO • SYNTHETIC DATA", bx = 72, byc = 32, bh = 20;
-    ctx.font = "600 9.5px system-ui,'Open Sans',sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    const bwid = ctx.measureText(txt).width + 16;
-    ctx.beginPath();
-    if(ctx.roundRect) ctx.roundRect(bx + 0.5, byc - bh/2 + 0.5, bwid, bh - 1, bh/2); else ctx.rect(bx + 0.5, byc - bh/2 + 0.5, bwid, bh - 1);
-    ctx.fillStyle = TC.orangeBg; ctx.fill();
-    ctx.globalAlpha = 0.45; ctx.strokeStyle = TC.orange; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
-    ctx.fillStyle = TC.orange; ctx.fillText(txt, bx + 8, byc + 0.5);
-    ctx.textBaseline = "alphabetic";
-  }
 
   /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
      Bound directly to S.positions / S.pendings — no separate viz state.
@@ -5688,34 +5698,52 @@ function drawChart(){
         if(!next || next.t * 1000 > p.openTime) dotX = xOf(i) + bw/2;
         break;
       }
-      grp.push({ y: y(p.entry), ly: y(p.entry), price: p.entry, col, text: `${fmt(p.volume,2)} Лоты`,
+      grp.push({ y: y(p.entry), ly: y(p.entry), price: p.entry, key: "p" + p.id, col, text: `${fmt(p.volume,2)} Лоты`,
                  icon: p.side === "buy" ? "up" : "down", filled: true, dash: "dashdot", dotX });
     }
-    if(p.tp && inView(p.tp)) grp.push({ y: y(p.tp), ly: y(p.tp), price: p.tp, col, text: "ТП", icon: "", filled: false, dash: "dash", dotX: null });
-    if(p.sl && inView(p.sl)) grp.push({ y: y(p.sl), ly: y(p.sl), price: p.sl, col, text: "СЛ", icon: "", filled: false, dash: "dash", dotX: null });
+    if(p.tp && inView(p.tp)) grp.push({ y: y(p.tp), ly: y(p.tp), price: p.tp, key: "t" + p.id, col, text: "ТП", icon: "", filled: false, dash: "dash", dotX: null });
+    if(p.sl && inView(p.sl)) grp.push({ y: y(p.sl), ly: y(p.sl), price: p.sl, key: "s" + p.id, col, text: "СЛ", icon: "", filled: false, dash: "dash", dotX: null });
     for(const m of grp){ m.grp = grp; marks.push(m); }
   }
   for(const o of S.pendings){
     if(o.symbol !== sym || !inView(o.price)) continue;
     const buy = o.type.includes("buy");
-    marks.push({ y: y(o.price), ly: y(o.price), price: o.price, col: buy ? TC.up : TC.down,
+    marks.push({ y: y(o.price), ly: y(o.price), price: o.price, key: "o" + o.id, col: buy ? TC.up : TC.down,
                  text: `${fmt(o.volume,2)} Лоты`, icon: (buy ? "buy-" : "sell-") + (o.type.includes("limit") ? "limit" : "stop"),
                  filled: false, dash: "dashdot", dotX: null, grp: null });
   }
-  // de-collide the pills (lines and tags stay on their exact prices); a pill level with the
-  // on-chart buttons (⛶ top-left, «XAUUSD ›» «м1» bottom-left) moves right of them, and a
-  // position's ТП / lots / СЛ pills move as one column so their link stays straight
+  // de-collide the pills (lines and tags stay on their exact prices)
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
   for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
   spreadYs(marks, pillH + 2, 10, H - padB - 9);
   for(const m of marks) m.y = snapPy(m.y);                        // …and the pills after de-colliding
-  // Pills ease past the buttons as they near them (a 16 px ramp) instead of hopping the moment a
-  // line crosses into their strip — while the scale glides, the hop read as the positions jerking.
-  // A position's ТП / lots / СЛ column moves as one.
-  const btmK = yy => clamp((yy - (H - padB - 76)) / 16, 0, 1) * clamp((H - padB + 4 - yy) / 16, 0, 1);
-  const topK = yy => clamp((72 - yy) / 16, 0, 1);
-  const shiftX = yy => Math.max(160 * btmK(yy), 58 * topK(yy));
-  for(const m of marks) m.px = 8 + (m.grp ? Math.max(...m.grp.map(g => shiftX(g.y))) : shiftX(m.y));
+  // A pill level with the on-chart buttons (measured in chartZones) gets out of their way: past ⛶ at
+  // the top, past the + / − column, and in the bottom row it sits between the timeframe pill and
+  // «›|» (or the price scale), SHRINKING to fit that gap. Its place and size glide (τ 110 ms) — a
+  // line crossing into a strip, or «›|» appearing, eases the pill over instead of hopping it (while
+  // the scale glides a hop read as the positions jerking). A position's ТП / lots / СЛ column moves
+  // sideways as one; each pill shrinks on its own.
+  const Z = chart._zones || {};
+  const zk = (yy, t, b) => t == null ? 0 : clamp(1 - Math.max(0, t - pillH/2 - yy, yy - b - pillH/2) / 12, 0, 1);
+  const rowL = Z.rowL || 168, rowR = (off > 1 ? W - padR - 52 : plotW) - 8;   // «›|»'s left edge while it shows, else the scale
+  const pNow = performance.now(), pAnim = chart._pillAnim || (chart._pillAnim = new Map());
+  let pSettling = false;
+  for(const m of marks){
+    const g = m.grp || [m], kOf = (t, b) => Math.max(...g.map(k => zk(k.y, t, b)));
+    const tx = Math.max(8, 8 + ((Z.fsR || 70) - 8) * kOf(0, Z.fsB), 8 + ((Z.zoomR || 64) - 8) * kOf(Z.zoomT, Z.zoomB), 8 + (rowL - 8) * kOf(Z.rowT, Z.rowB));
+    const ts = 1 - (1 - clamp((rowR - rowL) / chartPillWidth(ctx, pillFs, m.text, m.icon), 0.45, 1)) * zk(m.y, Z.rowT, Z.rowB);
+    let px = tx, s = ts;
+    const a = pAnim.get(m.key);
+    if(a && pNow - a.t < 400){
+      const k = 1 - Math.exp(-(pNow - a.t) / 110);
+      px = a.px + (tx - a.px) * k; s = a.s + (ts - a.s) * k;
+      if(Math.abs(tx - px) < 0.3 && Math.abs(ts - s) < 0.004){ px = tx; s = ts; } else pSettling = true;
+    }
+    pAnim.set(m.key, { px, s, t: pNow });
+    m.px = px; m.s = s;
+  }
+  if(pAnim.size > 120) pAnim.clear();
+  if(pSettling) chartDraw();                                      // keep gliding until they settle
   const pillX = m => m.px;
   // each line starts at its pill (nothing left of it, like cTrader) and its tail past plotW
   // hides under the tag: position / order = dash-dot, ТП / СЛ = plain dashes
@@ -5741,7 +5769,14 @@ function drawChart(){
   for(const m of marks) if(m.dotX != null && m.dotX <= barsW){
     ctx.fillStyle = m.col; ctx.beginPath(); ctx.arc(m.dotX, m.ly, 2.4, 0, Math.PI * 2); ctx.fill();
   }
-  for(const m of marks) chartPill(ctx, snapPx(pillX(m)), m.y, pillH, pillFs, m.text, m.icon, m.col, { filled: m.filled, bg: TC.bg });
+  for(const m of marks){
+    const x = snapPx(pillX(m)), po = { filled: m.filled, bg: TC.bg };
+    if(m.s < 0.999){                                              // squeezed into the bottom row: scaled about its left end
+      ctx.save(); ctx.translate(x, m.y); ctx.scale(m.s, m.s);
+      chartPill(ctx, 0, 0, pillH, pillFs, m.text, m.icon, m.col, po);
+      ctx.restore();
+    }else chartPill(ctx, x, m.y, pillH, pillFs, m.text, m.icon, m.col, po);
+  }
   // right-axis tags, centred on their own line like cTrader (overlapping rather than
   // nudged apart); the live Bid/Ask tags go on last so they stay on top
   for(const m of marks) axisTag(ctx, plotW + 2, m.ly, padR - 4, 16, chartPx(m.price), m.col, TC.bg);
@@ -5946,7 +5981,7 @@ function resumeLoop(){
 window.addEventListener("resize", ()=>{
   if(!S) return;                               // resize can fire before the state is loaded
   const ids = ["chartCanvas","miniCanvas"];
-  ids.forEach(id=>{ const c = document.getElementById(id); if(c){ if(id === "chartCanvas") chartTabHeight(c); c._w = 0; fitCanvas(c); } });
+  ids.forEach(id=>{ const c = document.getElementById(id); if(c){ if(id === "chartCanvas") chartTabHeight(c); c._w = 0; fitCanvas(c); if(id === "chartCanvas") chartZones(c); } });
   if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
   drawMini();
 });
