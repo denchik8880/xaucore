@@ -5719,12 +5719,12 @@ function drawChart(){
   for(const m of marks) m.y = snapPy(m.y);                        // …and the pills after de-colliding
   // A pill level with the on-chart buttons (measured in chartZones) gets out of their way: past ⛶ at
   // the top, past the + / − column, and in the bottom row it sits between the timeframe pill and
-  // «›|» (or the price scale), SHRINKING to fit that gap. Its place and size glide (τ 110 ms) — a
-  // line crossing into a strip, or «›|» appearing, eases the pill over instead of hopping it (while
-  // the scale glides a hop read as the positions jerking). A position's ТП / lots / СЛ column moves
-  // sideways as one; each pill shrinks on its own.
+  // «›|» (or the price scale), SHRINKING to fit that gap. Nearing a strip it slides over and shrinks
+  // along a 16 px ramp, so it follows its line exactly and never rides over a button, however fast
+  // the swipe; only the way back (sliding left, growing) glides with τ 110 ms. A position's ТП /
+  // lots / СЛ column moves sideways as one; each pill shrinks on its own.
   const Z = chart._zones || {};
-  const zk = (yy, t, b) => t == null ? 0 : clamp(1 - Math.max(0, t - pillH/2 - yy, yy - b - pillH/2) / 12, 0, 1);
+  const zk = (yy, t, b) => t == null ? 0 : clamp(1 - Math.max(0, t - pillH/2 - yy, yy - b - pillH/2) / 16, 0, 1);
   const rowL = Z.rowL || 168, rowR = (off > 1 ? W - padR - 52 : plotW) - 8;   // «›|»'s left edge while it shows, else the scale
   const pNow = performance.now(), pAnim = chart._pillAnim || (chart._pillAnim = new Map());
   let pSettling = false;
@@ -5735,8 +5735,10 @@ function drawChart(){
     let px = tx, s = ts;
     const a = pAnim.get(m.key);
     if(a && pNow - a.t < 400){
+      // getting out of the way (right, smaller) is never eased: gliding it let a fast swipe carry a
+      // line into the bottom row faster than the pill moved, and it rode over «м1» for a moment
       const k = 1 - Math.exp(-(pNow - a.t) / 110);
-      px = a.px + (tx - a.px) * k; s = a.s + (ts - a.s) * k;
+      px = Math.max(tx, a.px + (tx - a.px) * k); s = Math.min(ts, a.s + (ts - a.s) * k);
       if(Math.abs(tx - px) < 0.3 && Math.abs(ts - s) < 0.004){ px = tx; s = ts; } else pSettling = true;
     }
     pAnim.set(m.key, { px, s, t: pNow });
