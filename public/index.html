@@ -67,6 +67,7 @@ input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
 img,canvas,svg,video{max-width:100%}
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 #app{padding-bottom:92px;overflow-x:clip;max-width:100%}
+#app:has(.bignew),#app:has(.fabnew){padding-bottom:144px}   /* the floating «Новый ордер» must not cover the last card */
 .row>*{min-width:0}
 .row .v{text-align:right;overflow-wrap:anywhere}
 .appbar{position:sticky;top:0;z-index:40;background:var(--bar);border-bottom:1px solid var(--line);
@@ -185,8 +186,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .miniquick button:active{background:var(--press)}
 .loterr{color:var(--red);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
 
-.bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 24px));
-  background:var(--invert);color:var(--invert-ink);font-weight:600;letter-spacing:.02em;padding:15px;border-radius:14px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+/* «Новый ордер» over the Markets screens — cTrader's big pill: dark on the light theme, light on the dark one */
+.bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 32px));
+  background:var(--invert);color:var(--invert-ink);font-size:18px;line-height:21px;font-weight:700;padding:17px;border-radius:18px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+:root[data-theme="dark"] .bignew{background:#efefef;color:#2b2b2b;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .bignew:active{filter:brightness(.9)}
 
 /* bottom nav */
@@ -316,6 +319,38 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .dom-imb{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:0 2px 8px;background:var(--line)}
 .dom-imb .b{background:var(--green)}.dom-imb .a{background:var(--red)}
 .evt{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+/* Overview cards under the chart, cTrader's (sizes measured off its screenshots):
+   «Настроение рынка», «Глубина рынка», «Экономический календарь» */
+.card.ovc{padding:12px 16px 9px}
+.ovc-title{font-size:20px;line-height:26px;font-weight:700;color:var(--ink)}
+.ovc-more{display:block;margin:4px 0 0 auto;padding:8px 0;border:0;background:none;color:var(--blue);font-size:16.5px;line-height:20px;font-weight:700}
+.sent-bar{display:flex;gap:2px;height:8px;margin-top:13px}
+.sent-bar span{flex:50 1 0;border-radius:2px;transition:flex-grow .6s ease}
+.sent-bar .s{background:var(--red)}
+.sent-bar .b{background:var(--green)}
+.sent-l{display:flex;justify-content:space-between;margin-top:2px;padding-bottom:1px;font-size:14.5px;line-height:17px;font-variant-numeric:tabular-nums}
+.sent-l .s{color:var(--red)}
+.sent-l .b{color:var(--green)}
+.dp{margin-top:29px}
+.dp-row{display:grid;grid-template-columns:1fr 1fr;column-gap:9px;height:48px;font-size:16px;line-height:22px;font-variant-numeric:tabular-nums}
+.dp-h{display:flex;justify-content:space-between;align-items:flex-start;min-width:0}
+.dp-p{position:relative}
+.dp-p i{position:absolute;top:24px;height:7px}
+.dp-h.b .dp-p i{right:0;background:var(--red)}
+.dp-h.a .dp-p i{left:0;background:var(--green)}
+.cal-when{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px;font-size:14px;line-height:18px}
+.cal-cur{display:flex;align-items:center;gap:8px;color:var(--ink2)}
+.cal-cur svg{display:block}
+.cal-name{margin-top:8px;font-size:17px;line-height:22px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:8px}
+.cal-c{min-width:0;padding:0 3px;text-align:center}
+.cal-c+.cal-c{border-left:1px solid var(--wl-div)}
+.cal-v{display:flex;align-items:center;justify-content:center;height:16px;font-size:14px;white-space:nowrap}
+.cal-k{margin-top:2px;font-size:13px;line-height:16px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-imp{display:block;width:48px;max-width:100%;height:6px;border-radius:3px;background:var(--red)}
+.cal-imp.md{background:var(--orange)}
+.cal-imp.lo{background:#d4b106}
+.cal-desc{margin-top:16px;font-size:13px;line-height:14.3px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
 .evt:last-child{border-bottom:none}
 .evt .nm{font-weight:600}
 .evt .impact{font-size:10px;font-weight:600;padding:1px 5px;border-radius:5px;background:var(--orange-bg);color:var(--orange)}
@@ -2738,6 +2773,34 @@ function mktOverview(){
       </div>
     </div>
 
+    <div class="card minichart">
+      <div class="mini-box">
+        <canvas id="miniCanvas" height="250" data-h="250"></canvas>
+        <div class="mini-tools">
+          <button type="button" data-minifull aria-label="График на весь экран"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" data-minitf aria-label="Таймфрейм">${MINI_TF_LABEL[S.ui.miniTF] || "м1"}</button>
+        </div>
+      </div>
+      <div class="mini-ranges">${Object.keys(MINI_RANGES).map(k=>`<button type="button" data-minirange="${k}" class="${S.ui.miniRange===k?"on":""}">${k}</button>`).join("")}</div>
+    </div>
+
+    <div class="card ovc">
+      <div class="ovc-title">Настроение рынка</div>
+      ${ovSentBody()}
+    </div>
+
+    <div class="card ovc">
+      <div class="ovc-title">Глубина рынка</div>
+      <div class="dp" id="ovDepth">${ovDepthRows()}</div>
+      <button type="button" class="ovc-more" data-act="gotodom">Показать еще</button>
+    </div>
+
+    <div class="card ovc">
+      <div class="ovc-title">Экономический календарь</div>
+      <div id="ovCal">${ovCalBody()}</div>
+      <button type="button" class="ovc-more" data-act="gotocal">Больше событий</button>
+    </div>
+
     <div class="card">
       <div class="row" style="margin-bottom:2px"><h3 style="margin:0">Торговый день · СИНТЕТИКА</h3>
         <button class="k" data-act="gotodebug" style="color:var(--blue);font-weight:600">Debug</button></div>
@@ -2754,17 +2817,6 @@ function mktOverview(){
       <div class="row"><span class="k">Floating P/L</span><span class="v mono" id="acFloat">$0.00</span></div>
     </div>
 
-    <div class="card minichart">
-      <div class="mini-box">
-        <canvas id="miniCanvas" height="250" data-h="250"></canvas>
-        <div class="mini-tools">
-          <button type="button" data-minifull aria-label="График на весь экран"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button type="button" data-minitf aria-label="Таймфрейм">${MINI_TF_LABEL[S.ui.miniTF] || "м1"}</button>
-        </div>
-      </div>
-      <div class="mini-ranges">${Object.keys(MINI_RANGES).map(k=>`<button type="button" data-minirange="${k}" class="${S.ui.miniRange===k?"on":""}">${k}</button>`).join("")}</div>
-    </div>
-
     <div class="card">
       <div class="row" style="margin-bottom:2px">
         <h3 style="margin:0">Macro News Engine · SYNTHETIC</h3>
@@ -2775,6 +2827,88 @@ function mktOverview(){
       ${lastNewsMarkup()}
     </div>
   </div>`;
+}
+
+/* ---------- Overview cards under the chart, cTrader's ---------- */
+/* «Настроение рынка» — cTrader's split of traders short (orange-red, left) / long (green, right).
+   Synthetic: the resting size on each side of the depth book, smoothed over ~40 s so it drifts
+   like the real figure instead of flickering with every refresh of the book. */
+let _sent = null;
+function ovSentiment(){
+  if(!_book) domStep();
+  let b = 0, a = 0;
+  for(const l of _book.b) b += l.sz;
+  for(const l of _book.a) a += l.sz;
+  const target = clamp(b / ((a + b) || 1) * 100, 15, 85), now = Date.now();
+  if(!_sent) _sent = { v: target, t: now };
+  else{ _sent.v += (target - _sent.v) * (1 - Math.exp(-Math.min(5000, now - _sent.t) / 40000)); _sent.t = now; }
+  return Math.round(_sent.v);                                          // long, %
+}
+function ovSentBody(){
+  const pb = ovSentiment(), ps = 100 - pb;
+  return `<div class="sent-bar"><span class="s" id="sentS" style="flex-grow:${ps}"></span><span class="b" id="sentB" style="flex-grow:${pb}"></span></div>
+      <div class="sent-l"><span class="s" id="sentSp">${ps}%</span><span class="b" id="sentBp">${pb}%</span></div>`;
+}
+function ovSentUpdate(){
+  const s = document.getElementById("sentS");
+  if(!s) return;
+  const pb = ovSentiment(), ps = 100 - pb;
+  if(s.style.flexGrow !== String(ps)){ s.style.flexGrow = ps; document.getElementById("sentB").style.flexGrow = pb; }
+  setTxt("sentSp", ps + "%"); setTxt("sentBp", pb + "%");
+}
+/* «Глубина рынка» — the 5 best levels of the same synthetic book as the DOM screen:
+   bid size · bid | ask · ask size, with a tick under each price as wide as its size
+   (1 px a lot — the short ticks of cTrader's card); «Показать еще» opens the DOM */
+function ovDepthRows(){
+  domStep();
+  const B = _book, tick = sz => Math.max(1, Math.min(60, sz)).toFixed(1);
+  let bp = B.bid, ap = B.ask, html = "";
+  for(let i = 0; i < 5; i++){
+    if(i){ bp = roundTo(bp - B.b[i].g, 2); ap = roundTo(ap + B.a[i].g, 2); }
+    html += `<div class="dp-row"><div class="dp-h b"><span>${fmt(B.b[i].sz, 2)}</span><span class="dp-p">${chartPx(bp)}<i style="width:${tick(B.b[i].sz)}px"></i></span></div><div class="dp-h a"><span class="dp-p">${chartPx(ap)}<i style="width:${tick(B.a[i].sz)}px"></i></span><span>${fmt(B.a[i].sz, 2)}</span></div></div>`;
+  }
+  return html;
+}
+/* «Экономический календарь» — the next event of the synthetic calendar (the latest one once
+   all are out): «Завтра в 15:30 (UTC+3:00)» in the device's zone, the flag and currency, the
+   name, volatility · actual · forecast · previous, and what the release is; «Больше событий»
+   opens the calendar */
+const FLAG_US = `<svg viewBox="0 0 22 14" width="22" height="14" aria-hidden="true"><rect width="22" height="14" fill="#fff"/><path d="M0 0h22v1.08H0zM0 2.15h22v1.08H0zM0 4.31h22v1.08H0zM0 6.46h22v1.08H0zM0 8.62h22v1.08H0zM0 10.77h22v1.08H0zM0 12.92h22V14H0z" fill="#d52b1e"/><rect width="9.5" height="7.54" fill="#223a8f"/></svg>`;
+const EV_DESC = [
+  [/NFP|Payroll/i, "Nonfarm Payrolls measures the change in the number of people employed in the US during the previous month, excluding the farming industry. Job creation drives consumer spending, so a stronger than expected figure is taken as positive for the US dollar and negative for gold."],
+  [/CPI/i, "The Consumer Price Index measures the change in the price of goods and services bought by consumers. It is the main gauge of inflation and of pressure on the Federal Reserve to keep rates high; a higher than expected reading supports the US dollar and weighs on gold."],
+  [/PPI/i, "The Producer Price Index measures the change in the price of goods and services sold by producers. Rising producer prices tend to pass through to consumer inflation, so a higher than expected reading supports the US dollar."],
+  [/FOMC|Rate Decision/i, "The Federal Open Market Committee sets the federal funds rate. Traders watch the decision and the tone of the statement for the future path of rates; a hawkish outcome supports the US dollar and weighs on gold."],
+  [/Press Conference|Speech|Statement/i, "The Federal Reserve comments on monetary policy and the economic outlook. The tone is read for hints about future rate moves and often brings sharp swings in the US dollar and gold."],
+  [/GDP/i, "Gross Domestic Product measures the annualized change in the value of all goods and services produced by the US economy. It is the broadest measure of economic activity; a stronger than expected reading supports the US dollar."],
+  [/Unemployment/i, "The Unemployment Rate measures the share of the labor force that is out of work and actively looking for a job. A lower than expected rate supports the US dollar."]
+];
+function ovCalEvent(){                                                 // the next one still to come, else the latest in the past
+  const next = S.events.filter(e => !e.released && e.time >= S.simClock - 60000).sort((a, b)=> a.time - b.time)[0];
+  return next || [...S.events].filter(e => e.time <= S.simClock).sort((a, b)=> b.time - a.time)[0] || null;
+}
+function evWhen(t){
+  const d = new Date(t), now = new Date(S.simClock);
+  const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const n = Math.round((day(d) - day(now)) / 86400000);
+  const w = n === 0 ? "Сегодня" : n === 1 ? "Завтра" : n === -1 ? "Вчера" : pad2(d.getDate()) + "." + pad2(d.getMonth() + 1);
+  const off = -d.getTimezoneOffset();
+  return `${w} в ${fmtHM(t)} (UTC${off < 0 ? "-" : "+"}${Math.floor(Math.abs(off) / 60)}:${pad2(Math.abs(off) % 60)})`;
+}
+function evVal(e, v){
+  if(v == null || (e.unit === "" && !v)) return "-";
+  return (e.unit === "K" ? fmt(v, 0) : String(roundTo(v, 2))) + e.unit;
+}
+function ovCalBody(){
+  const e = ovCalEvent();
+  if(!e) return `<div class="cal-when"><span>Нет событий</span></div>`;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+  const desc = (EV_DESC.find(([re]) => re.test(e.name)) || [0, "A synthetic event created in the simulator (DEMO)."])[1];
+  const cell = (v, k) => `<div class="cal-c"><div class="cal-v">${v}</div><div class="cal-k">${k}</div></div>`;
+  return `<div class="cal-when"><span>${evWhen(e.time)}</span><span class="cal-cur">${FLAG_US}USD</span></div>
+      <div class="cal-name">${esc(e.name)}</div>
+      <div class="cal-grid">${cell(`<span class="cal-imp ${e.impact >= 3 ? "hi" : e.impact === 2 ? "md" : "lo"}"></span>`, "Волатильность")}${cell(evVal(e, e.actual), "Фактическое")}${cell(evVal(e, e.forecast), "Прогноз")}${cell(evVal(e, e.previous), "Предыдущее")}</div>
+      <div class="cal-desc">${desc}</div>`;
 }
 
 function fmtClock(ms){
@@ -4746,6 +4880,19 @@ function updateLive(){
   if(dg && Date.now() - (dg._t||0) > 260){
     dg.innerHTML = domRows(); dg._t = Date.now();
     const di = document.getElementById("domImb"); if(di) di.innerHTML = domImbMarkup();
+  }
+  // overview: the depth card refreshes like the DOM screen; sentiment and the calendar event once a second
+  const od = document.getElementById("ovDepth");
+  if(od){
+    const now = Date.now();
+    if(now - (od._t||0) > 260){ od.innerHTML = ovDepthRows(); od._t = now; }
+    const oc = document.getElementById("ovCal");
+    if(oc && now - (oc._t||0) > 1000){
+      oc._t = now;
+      ovSentUpdate();
+      const h = ovCalBody();
+      if(h !== oc._h){ oc._h = h; oc.innerHTML = h; }
+    }
   }
   // news lock: the trade buttons show a cross (body.trade-locked), controls are disabled
   const locked = tradingLocked();
