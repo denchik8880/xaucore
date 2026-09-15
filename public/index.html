@@ -35,7 +35,7 @@
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#9aa1ab;
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
-  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c;         /* a SELL/BUY block while its order is executing */
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -44,7 +44,7 @@
   --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
-  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#7aa7f7;
+  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#7aa7f7; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
@@ -324,18 +324,19 @@ body.trade-locked .tx{display:inline}
 body.trade-locked [data-act="quicksell"],body.trade-locked [data-act="quickbuy"],
 body.trade-locked [data-act="domsell"],body.trade-locked [data-act="dombuy"],
 body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],body.trade-locked [data-act="lotwheel"]{opacity:.5;pointer-events:none}
-/* Markets «Количество» wheel — cTrader's picker; the drum itself is a canvas (openLotWheel) */
-.lotwheel{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;z-index:150;background:var(--card);border-radius:14px 14px 0 0;box-shadow:0 -8px 28px rgba(0,0,0,.22);padding-bottom:env(safe-area-inset-bottom);animation:lwIn .24s cubic-bezier(.2,.8,.2,1)}
+/* Markets «Количество» wheel — cTrader's (iOS) picker: a flat sheet under a hairline, the
+   «Edit · Done» bar a shade off the drum; the drum itself is a canvas (openLotWheel) */
+.lotwheel{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;z-index:150;background:var(--lw-bg);border-top:1px solid var(--lw-edge);padding-bottom:env(safe-area-inset-bottom);animation:lwIn .24s cubic-bezier(.2,.8,.2,1)}
 .lotwheel.out{transition:transform .18s ease-in;transform:translateY(100%)}
 @keyframes lwIn{from{transform:translateY(100%)}to{transform:none}}
-.lw-bar{display:flex;justify-content:space-between;align-items:center;height:46px;padding:0 6px;border-bottom:1px solid var(--line)}
-.lw-bar button{background:none;border:0;padding:10px 12px;font-size:16px;color:var(--ink)}
-.lw-bar .lw-done{font-weight:700}
+.lw-bar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 8px;background:var(--lw-bar)}
+.lw-bar button{background:none;border:0;padding:10px 12px;font-size:17px;color:var(--ink)}
+.lw-bar .lw-done{font-weight:600}
 .lw-edit{padding:10px 16px 0;display:flex;align-items:center;gap:10px}
 .lw-edit[hidden]{display:none}
 .lw-edit input{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--field-bg);color:var(--ink);font-size:18px;text-align:center}
 .lw-err{font-size:12px;color:var(--red)}
-.lw-body{position:relative;height:220px}
+.lw-body{position:relative;height:216px}
 .lw-body canvas{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
 /* the panel's lots field while the wheel is open: «0.01 Лоты», following the wheel (no caret —
    the value comes from the wheel, or from typing after «Edit») */
@@ -3936,20 +3937,34 @@ function openLotSheet(){
   show();
 }
 /* ---------- lot wheel (Markets → «Количество») ----------
-   cTrader's picker: the lots field turns into «0.01 Лоты» and a wheel of every lot size
-   (min … max in lot steps) slides up with Edit · Done. The drum is a canvas drawn on every
-   display frame like the chart (a native snap scroller ran at 60 fps on the phone and flung
-   too short): it follows the finger 1:1 and a swipe spins on the way cTrader's iPhone picker
-   does, landing exactly on a row. The value is mirrored into the field as the rows pass and
-   committed when the drum comes to rest. */
+   cTrader's picker, opened from the field's ▼: an iOS drum under an «Edit · Done» bar. Its rows
+   are cTrader's volume ladder, not every lot step — 0.01…0.09, 0.1…0.9, 1…5, 10, 50, 100…500 —
+   cut at our maximum, which is always the last row; a volume off the ladder (typed, or already
+   in the field) gets a row of its own. The drum is a canvas drawn every display frame like the
+   chart (a native snap scroller ran at 60 fps on the phone and flung too short): it follows the
+   finger 1:1, a swipe spins on the way cTrader's iPhone picker does and lands exactly on a row;
+   the value is mirrored into the field as rows pass and committed when the drum comes to rest.
+   The look is measured off cTrader's recording: 33 px rows on an 88 px cylinder in a 216 px
+   drum, 21 px digits without trailing zeros; rows foreshorten and fade toward the edges, and
+   only the part of a row inside the grey band is full ink — outside it the digits are grey. */
+const LOT_WHEEL = [0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9, 1,2,3,4,5, 10, 50, 100,200,300,400,500];
 function openLotWheel(){
   if(guardLock()) return;
   if(document.getElementById("lotWheel")) return;
-  const step = S.symbol.lotStep || 0.01, min = S.symbol.minLot, max = S.symbol.maxLot;
-  const ROW = 40, VH = 220, MID = VH / 2, RAD = 118;                  // row pitch, drum height, centre, drum radius (px)
-  const n = Math.round((max - min) / step) + 1, maxPos = (n - 1) * ROW;
-  const valAt = i => roundTo(min + clamp(i, 0, n - 1) * step, 2);
-  const idxOf = v => clamp(Math.round((v - min) / step), 0, n - 1);
+  const min = S.symbol.minLot, max = S.symbol.maxLot, opened = S.ui.lot;
+  const ROW = 33, VH = 216, MID = VH / 2, RAD = 88, BH = 34, FS = 21;   // row arc, drum height, centre, cylinder radius, band height, digits (px)
+  let vals = [], labels = [], n = 0, maxPos = 0, shown = -1;
+  const ladder = (...extra)=>{
+    const set = new Set([min, max]);
+    for(const v of LOT_WHEEL) if(v > min && v < max) set.add(v);
+    for(const v of extra) if(Number.isFinite(v) && !validateLot(v)) set.add(roundTo(v, 2));
+    vals = [...set].sort((a, b)=> a - b);
+    labels = vals.map(v => String(roundTo(v, 2)));                     // 0.1, 1, 10 — like cTrader
+    n = vals.length; maxPos = (n - 1) * ROW; shown = -1;
+  };
+  ladder(opened);
+  const valAt = i => vals[clamp(Math.round(i), 0, n - 1)];
+  const idxOf = v =>{ let b = 0; for(let i = 1; i < n; i++) if(Math.abs(vals[i] - v) < Math.abs(vals[b] - v)) b = i; return b; };
   const el = document.createElement("div");
   el.className = "lotwheel"; el.id = "lotWheel";
   el.innerHTML = `<div class="lw-bar"><button type="button" data-lw="edit">Edit</button><button type="button" class="lw-done" data-lw="done">Done</button></div>
@@ -3975,29 +3990,39 @@ function openLotWheel(){
   cv.style.width = W + "px"; cv.style.height = VH + "px";
   const ctx = cv.getContext("2d"), sx = cv.width / W, sy = cv.height / VH;
   const css = getComputedStyle(document.documentElement);
-  const INK = css.getPropertyValue("--ink").trim() || "#111", BAND = css.getPropertyValue("--press").trim() || "#eee";
-  let pos = idxOf(S.ui.lot) * ROW, shown = -1;                         // pos = i*ROW puts row i in the band
-  const settled = () => valAt(Math.round(pos / ROW));
+  const INK = css.getPropertyValue("--ink").trim() || "#111", BANDC = css.getPropertyValue("--lw-band").trim() || "#f1f1f3";
+  const FONT = FS + "px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";   // one font a frame — rows scale by transform
+  const BX = 10, BY = MID - BH / 2, BW = W - 20;                       // the selection band
+  ctx.font = FONT;
+  const BASE = (ctx.measureText("0123456789").actualBoundingBoxAscent || FS * 0.71) / 2;   // baseline below a row's centre that centres its digits
+  let pos = idxOf(opened) * ROW;                                       // pos = i*ROW puts row i in the band
+  const settled = () => valAt(pos / ROW);
+  const band = ()=>{ if(ctx.roundRect) ctx.roundRect(BX, BY, BW, BH, 8); else ctx.rect(BX, BY, BW, BH); };
+  const rows = (lo, hi, ink)=>{                                        // the rows centred between lo and hi (px), grey or in full ink
+    const c = Math.round(pos / ROW), reach = Math.ceil(RAD * 1.52 / ROW) + 1;
+    for(let i = Math.max(0, c - reach); i <= Math.min(n - 1, c + reach); i++){
+      const th = (i * ROW - pos) / RAD;                                // the row's angle on the cylinder
+      if(Math.abs(th) >= 1.52) continue;
+      const k = Math.cos(th), y = MID + RAD * Math.sin(th);
+      if(y < lo || y > hi) continue;
+      ctx.globalAlpha = ink ? 1 : 0.55 * Math.sqrt(k);
+      ctx.setTransform(sx * (0.9 + 0.1 * k), 0, 0, sy * k, sx * W / 2, sy * y);   // foreshortened, a touch narrower off the front
+      ctx.fillText(labels[i], 0, BASE);
+    }
+  };
   const draw = ()=>{
     ctx.setTransform(sx, 0, 0, sy, 0, 0);
     ctx.clearRect(0, 0, W, VH);
-    ctx.globalAlpha = 1; ctx.fillStyle = BAND; ctx.beginPath();
-    if(ctx.roundRect) ctx.roundRect(12, MID - ROW/2, W - 24, ROW, 10); else ctx.rect(12, MID - ROW/2, W - 24, ROW);
-    ctx.fill();
-    ctx.fillStyle = INK; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.font = "20px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";   // one font a frame — rows scale by transform
-    const c = Math.round(pos / ROW), reach = Math.ceil(RAD * 1.52 / ROW) + 1;
-    for(let i = Math.max(0, c - reach); i <= Math.min(n - 1, c + reach); i++){
-      const th = (i * ROW - pos) / RAD;                                 // the row's angle on the drum
-      if(Math.abs(th) >= 1.52) continue;
-      const k = Math.cos(th), s = 0.74 + 0.26 * k;                      // rows shrink, flatten and fade toward the edges
-      ctx.globalAlpha = k * k;
-      ctx.setTransform(sx * s, 0, 0, sy * s * k, sx * W / 2, sy * (MID + RAD * Math.sin(th)));
-      ctx.fillText(valAt(i).toFixed(2), 0, 0);
-    }
-    ctx.setTransform(sx, 0, 0, sy, 0, 0); ctx.globalAlpha = 1;
-    const ci = clamp(c, 0, n - 1);
-    if(ci !== shown){ shown = ci; field(valAt(ci)); }                   // the field follows the band
+    ctx.globalAlpha = 1; ctx.fillStyle = BANDC; ctx.beginPath(); band(); ctx.fill();
+    ctx.fillStyle = INK; ctx.font = FONT; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, VH); band(); ctx.clip("evenodd");   // grey around the band…
+    rows(-1e9, 1e9, false);
+    ctx.restore();
+    ctx.save(); ctx.beginPath(); band(); ctx.clip();                    // …full ink inside it
+    rows(BY - FS, BY + BH + FS, true);
+    ctx.restore();
+    const ci = clamp(Math.round(pos / ROW), 0, n - 1);
+    if(ci !== shown){ shown = ci; field(vals[ci]); }                    // the field follows the band
   };
   /* Motion: the drum follows the finger 1:1, drawn every display frame at the finger position
      predicted from its last samples (like the chart drag). A released swipe keeps going at its
@@ -4092,7 +4117,7 @@ function openLotWheel(){
     if(!box.hidden){
       const v = typed(), e = validateLot(v);
       if(e){ err.textContent = e; return; }
-      jumpTo(idxOf(v)); commit(v);
+      ladder(opened, v); jumpTo(idxOf(v)); commit(v);
     }
     close();
   };
@@ -4103,7 +4128,7 @@ function openLotWheel(){
   inp.addEventListener("input", ()=>{
     err.textContent = "";
     const v = typed();
-    if(!validateLot(v)) jumpTo(idxOf(v));
+    if(!validateLot(v)){ ladder(opened, v); jumpTo(idxOf(v)); }        // an off-ladder volume gets its own row
   });
   inp.addEventListener("keydown", e=>{ if(e.key === "Enter") doneBtn.click(); });
 }
