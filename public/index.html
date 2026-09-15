@@ -80,6 +80,22 @@ img,canvas,svg,video{max-width:100%}
 .subtabs{display:flex;gap:2px;background:var(--bar);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
 .subtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.subtabs .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:20px;padding:0 4px;margin-left:6px;border:1.5px solid currentColor;border-radius:4px;font-size:12.5px;font-weight:600;line-height:1;vertical-align:1px;font-variant-numeric:tabular-nums}
+.subtabs .cnt[hidden]{display:none}
+/* cTrader's orders table: a caption row, then order rows edge to edge with dividers (no cards).
+   Column starts at 13 / 31 / 41 % and the distance ending at 84 % are cTrader's own. */
+.otbl-row{display:grid;grid-template-columns:13% 18% 10% minmax(0,1fr) 19% 16%;align-items:center;height:54px;border-bottom:1px solid var(--wl-div);font-size:16px;color:var(--ink);cursor:pointer}
+.otbl-row>*{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.otbl-row .r{text-align:right;font-variant-numeric:tabular-nums}
+.otbl-row:active{background:var(--press)}
+.otbl-head{height:64px;font-size:14px;color:var(--ink2);cursor:default}
+.otbl-head:active{background:none}
+.otbl .ok{display:flex;justify-content:center;color:var(--green)}
+.otbl .og{display:block;margin-left:5px}
+.og.sell{fill:var(--red)}
+.og.buy{fill:var(--green)}
+.otbl .x{display:flex;align-items:center;justify-content:center;height:100%;padding:0;border:0;background:none;color:var(--ink2)}
+.otbl .x:active{background:var(--press)}
 .wrap{padding:12px}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
 /* dark theme: cells are lighter than the black page and carry a hairline edge (inset, so no
@@ -2531,6 +2547,10 @@ function wlChgText(w){
 /* open positions on XAUUSD — pending orders do NOT count until they fill */
 function xauOpenCount(){ return S.positions.filter(p => p.symbol === S.symbol.name).length; }
 function wlCountBadge(){ const n = xauOpenCount(); return n > 0 ? ` <span class="wl-count" id="wlCount">${n}</span>` : ""; }
+function xauOrderCount(){ return S.pendings.filter(o => o.symbol === S.symbol.name).length; }
+function fabNewMarkup(){
+  return `<button class="fabnew" data-act="newticket"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 3h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2V4a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M8 11h8M8 14.5h8M8 18h5" stroke="var(--fab-bg)" stroke-width="1.8" stroke-linecap="round"/></svg>Новый ордер</button>`;
+}
 /* watchlist header money pill = live EQUITY (balance + floating P/L + swaps), so it
    moves with open positions. tint pos/neg while a trade is running. */
 function abBalCls(){ const a = S._acc; if(!a) return ""; const v = (a.floating || 0) + (a.swaps || 0); return Math.abs(v) < 0.005 ? "" : (v > 0 ? "pos" : "neg"); }
@@ -2592,7 +2612,7 @@ function screenMarketsList(){
     </div>
     <button class="wl-addbtn" data-act="addinstr"><span aria-hidden="true">＋</span>Добавить инструменты</button>
     <div class="hint" style="text-align:center;margin-top:16px">Доступно только XAUUSD</div>
-    <button class="fabnew" data-act="newticket"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 3h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2V4a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M8 11h8M8 14.5h8M8 18h5" stroke="var(--fab-bg)" stroke-width="1.8" stroke-linecap="round"/></svg>Новый ордер</button>
+    ${fabNewMarkup()}
   </div>`;
 }
 function screenMarkets(){
@@ -2602,11 +2622,12 @@ function screenMarkets(){
   else if(sub === "positions") inner = listPositions();
   else if(sub === "orders")    inner = listOrders();
   else if(sub === "chart")     inner = `<div class="wrap"><div class="card" style="padding:0;overflow:hidden">${chartMarkup(260)}</div></div>`;
+  const cnt = (id, n) => ` <span class="cnt" id="${id}"${n ? "" : " hidden"}>${n}</span>`;   // cTrader's boxed count «ОРДЕРА [1]», kept live by updateLive
   return appbar("XAUUSD", {back:true, caret:true}) + `
     <div class="subtabs">
       <button data-sub="overview" class="${sub==="overview"?"on":""}">ОБЗОР</button>
-      <button data-sub="positions" class="${sub==="positions"?"on":""}">ПОЗИЦИИ</button>
-      <button data-sub="orders" class="${sub==="orders"?"on":""}">ОРДЕРА</button>
+      <button data-sub="positions" class="${sub==="positions"?"on":""}">ПОЗИЦИИ${cnt("stPos", xauOpenCount())}</button>
+      <button data-sub="orders" class="${sub==="orders"?"on":""}">ОРДЕРА${cnt("stOrd", xauOrderCount())}</button>
       <button data-sub="chart" class="${sub==="chart"?"on":""}">ГРАФИК</button>
     </div>` + inner +
     `<button class="bignew" data-act="newticket">Новый ордер</button>`;
@@ -2884,24 +2905,41 @@ function posRow(p){
 }
 
 /* ---------- ORDERS ---------- */
-function screenOrders(){ return appbar("Ордера") + listOrders(); }
+function screenOrders(){ return appbar("Ордера") + listOrders() + (S.pendings.length ? fabNewMarkup() : ""); }
+/* cTrader's orders table (Markets → XAUUSD → ОРДЕРА and the Ордеры tab): captions
+   «Инструмент · Направление · Размер · Расстояние» (cut with … in their narrow columns, as in
+   cTrader), then a row per order — ✓, symbol, the order-type glyph in the side's colour,
+   «0.01 Лоты», the distance to the trigger in pips (1 $ = 100 pips → «32 446.0»), ✕ cancels.
+   A tap on the row opens Modify (SL/TP and the price live there now). */
+function lotsTxt(v){ return String(roundTo(v, 2)) + " Лоты"; }        // 0.01 Лоты, 1 Лоты
+function orderDist(o){ return (o.type.includes("buy") ? S.price.ask : S.price.bid) - o.price; }
+function pipsTxt(d){                                                    // a price distance in pips: 324.46 → «32 446.0»
+  const [i, f] = (Math.abs(d) / Math.pow(10, -S.symbol.digits)).toFixed(1).split(".");
+  return i.replace(/\B(?=(\d{3})+$)/g, " ") + "." + f;
+}
+/* the order-type glyph: a bar and an arrow, as on the chart pills — limit = the arrow leaves
+   the bar (sell limit: bar on top, arrow down), stop = the arrow runs into it (buy stop: up to
+   a top bar); drawn for a top bar and flipped for a bottom one */
+function orderGlyph(type){
+  const buy = type.startsWith("buy"), limit = type.endsWith("limit");
+  const body = limit ? `<path d="M5 4.6h2v9.6H5z"/><path d="M1.4 13.6h9.2L6 20.6z"/>`
+                     : `<path d="M6 4.6l4.6 7H1.4z"/><path d="M5 11h2v9.6H5z"/>`;
+  const flip = (buy ? !limit : limit) ? "" : ` transform="matrix(1 0 0 -1 0 21)"`;
+  return `<svg class="og ${buy ? "buy" : "sell"}" viewBox="0 0 12 21" width="12" height="21" aria-hidden="true"><g${flip}><rect x="0.3" width="11.4" height="2.3"/>${body}</g></svg>`;
+}
 function listOrders(){
   if(!S.pendings.length) return `<div class="wrap"><div class="muted">Нет отложенных ордеров<br><br>
     <button class="btn ghost" data-act="newticket" style="max-width:220px;margin:0 auto">Создать ордер</button></div></div>`;
-  return `<div class="wrap">
-    ${S.pendings.map(o=>`<div class="lrow">
-      <div class="top">
-        <span class="sym">${o.symbol} <span class="tag ${o.type.includes("buy")?"buy":"sell"}">${o.type.replace("_"," ").toUpperCase()} ${fmt(o.volume,2)}</span></span>
-        <span class="mono">@ ${pxfmt(o.price)}</span>
-      </div>
-      <div class="mid"><span>SL ${o.sl?pxfmt(o.sl):"—"} · TP ${o.tp?pxfmt(o.tp):"—"}</span>
-      <span>dist <span class="mono" id="od-${o.id}">—</span></span></div>
-      <div class="grid2" style="margin-top:4px">
-        <button class="btn ghost" data-modord="${o.id}">Modify</button>
-        <button class="btn red" data-cancelord="${o.id}">Отменить</button>
-      </div>
+  return `<div class="otbl">
+    <div class="otbl-row otbl-head"><span></span><span>Инструмент</span><span>Направление</span><span>Размер</span><span class="r">Расстояние</span><span></span></div>
+    ${S.pendings.map(o=>`<div class="otbl-row" data-modord="${o.id}">
+      <span class="ok"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 12.5l5.8 5.8L21 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span>${o.symbol}</span>
+      <span title="${o.type.replace("_"," ")}">${orderGlyph(o.type)}</span>
+      <span>${lotsTxt(o.volume)}</span>
+      <span class="r" id="od-${o.id}">${pipsTxt(orderDist(o))}</span>
+      <button type="button" class="x" data-cancelord="${o.id}" aria-label="Отменить ордер #${o.id}"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>`).join("")}
-    <button class="btn dark" data-act="newticket">Новый ордер</button>
   </div>`;
 }
 
@@ -3827,7 +3865,7 @@ function bindScreen(){
 
   // positions detail
   root.querySelectorAll("[data-posdetail]").forEach(el=> el.onclick = ()=> openPosDetail(+el.dataset.posdetail));
-  root.querySelectorAll("[data-cancelord]").forEach(el=> el.onclick = ()=> cancelPending(+el.dataset.cancelord));
+  root.querySelectorAll("[data-cancelord]").forEach(el=> el.onclick = e=>{ e.stopPropagation(); cancelPending(+el.dataset.cancelord); });   // ✕ sits inside the row that opens Modify
   root.querySelectorAll("[data-modord]").forEach(el=> el.onclick = ()=> openOrderModify(+el.dataset.modord));
   root.querySelectorAll("[data-firenow]").forEach(el=> el.onclick = ()=>{ const e = S.events.find(x=>x.id===+el.dataset.firenow); if(e){ e.time = S.simClock; releaseEvent(e); render(); }});
 
@@ -4698,9 +4736,10 @@ function updateLive(){
     setTxt(`pr-${p.id}-cur`, pxfmt(closePriceFor(p)));
   }
   // pending distances
-  for(const o of S.pendings){
-    const ref = o.type.includes("buy") ? S.price.ask : S.price.bid;
-    setTxt(`od-${o.id}`, pxfmt(Math.abs(ref - o.price)));
+  for(const o of S.pendings) setTxt(`od-${o.id}`, pipsTxt(orderDist(o)));
+  for(const [id, n] of [["stPos", xauOpenCount()], ["stOrd", xauOrderCount()]]){   // the subtab counts (the overview isn't re-rendered when they change)
+    const e = document.getElementById(id);
+    if(e){ if(e.hidden !== !n) e.hidden = !n; if(n) setTxt(id, String(n)); }
   }
   // dom
   const dg = document.getElementById("domGrid");
