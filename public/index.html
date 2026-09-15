@@ -2372,8 +2372,23 @@ function checkStopOut(){
 
 /* ---------------- events schedule check ---------------- */
 /* Economic calendar is informational only — macro news is user-triggered
-   via the Macro News Engine buttons (NFP / CPI / PPI / FOMC / FED SPEECH). */
+   via the Macro News Engine buttons (NFP / CPI / PPI / FOMC / FED SPEECH).
+   It runs on the GAME clock (S.simClock): an event whose game time has come is marked out
+   (with a synthetic actual next to its forecast — no market move), and once at most one is
+   still ahead the next batch is scheduled from the current game time. Events used to stay
+   «pending» forever once their time passed, so no new ones came and the calendar showed
+   stale dates with negative countdowns. */
+function synthActual(e){                                                // a print near the forecast: K ±8 %, % ±0.2, a rate decision as expected
+  const f = Number(e.forecast) || 0;
+  if(/Rate/i.test(e.name)) return f;
+  return e.unit === "K" ? Math.round(f * (1 + (Math.random() - 0.5) * 0.16)) : roundTo(f + Math.round((Math.random() - 0.5) * 4) / 10, 2);
+}
 function checkEvents(){
+  for(const e of S.events){
+    if(e.released || e.time > S.simClock) continue;
+    e.released = true;
+    if(e.actual == null && e.unit) e.actual = synthActual(e);
+  }
   const pending = S.events.filter(e=>!e.released);
   if(pending.length <= 1){
     const defs = [
@@ -2817,15 +2832,6 @@ function mktOverview(){
       <div class="row"><span class="k">Floating P/L</span><span class="v mono" id="acFloat">$0.00</span></div>
     </div>
 
-    <div class="card">
-      <div class="row" style="margin-bottom:2px">
-        <h3 style="margin:0">Macro News Engine · SYNTHETIC</h3>
-        <button class="k" data-act="gotocal" style="color:var(--blue);font-weight:600">Календарь</button>
-      </div>
-      <div class="hint" style="font-size:11px">Каждый запуск уникален. Ровно 20 реальных секунд. Торговля блокируется, цена и позиции продолжают работать.</div>
-      ${newsButtonsMarkup()}
-      ${lastNewsMarkup()}
-    </div>
   </div>`;
 }
 
@@ -2870,9 +2876,10 @@ function ovDepthRows(){
   return html;
 }
 /* «Экономический календарь» — the next event of the synthetic calendar (the latest one once
-   all are out): «Завтра в 15:30 (UTC+3:00)» in the device's zone, the flag and currency, the
-   name, volatility · actual · forecast · previous, and what the release is; «Больше событий»
-   opens the calendar */
+   all are out): «Завтра в 15:30 (игровое время)» on the simulator's game clock — the one the
+   chart axis and «Время рынка» show, which runs ~32× the wall clock, so a real UTC offset
+   read as the wrong time — the flag and currency, the name, volatility · actual · forecast ·
+   previous, and what the release is; «Больше событий» opens the calendar */
 const FLAG_US = `<svg viewBox="0 0 22 14" width="22" height="14" aria-hidden="true"><rect width="22" height="14" fill="#fff"/><path d="M0 0h22v1.08H0zM0 2.15h22v1.08H0zM0 4.31h22v1.08H0zM0 6.46h22v1.08H0zM0 8.62h22v1.08H0zM0 10.77h22v1.08H0zM0 12.92h22V14H0z" fill="#d52b1e"/><rect width="9.5" height="7.54" fill="#223a8f"/></svg>`;
 const EV_DESC = [
   [/NFP|Payroll/i, "Nonfarm Payrolls measures the change in the number of people employed in the US during the previous month, excluding the farming industry. Job creation drives consumer spending, so a stronger than expected figure is taken as positive for the US dollar and negative for gold."],
@@ -2892,8 +2899,7 @@ function evWhen(t){
   const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
   const n = Math.round((day(d) - day(now)) / 86400000);
   const w = n === 0 ? "Сегодня" : n === 1 ? "Завтра" : n === -1 ? "Вчера" : pad2(d.getDate()) + "." + pad2(d.getMonth() + 1);
-  const off = -d.getTimezoneOffset();
-  return `${w} в ${fmtHM(t)} (UTC${off < 0 ? "-" : "+"}${Math.floor(Math.abs(off) / 60)}:${pad2(Math.abs(off) % 60)})`;
+  return `${w} в ${fmtHM(t)} (игровое время)`;
 }
 function evVal(e, v){
   if(v == null || (e.unit === "" && !v)) return "-";
@@ -2948,17 +2954,6 @@ function newsButtonsMarkup(){
     <button data-news="FOMC" ${dis}>FOMC</button>
     <button data-news="FED_SPEECH" ${dis}>FED SPEECH</button>
     <button class="wide" data-news="RANDOM" ${dis}>🎲 Случайное событие</button>
-  </div>`;
-}
-function lastNewsMarkup(){
-  const r = S.newsLog[0];
-  if(!r) return `<div class="hint" style="text-align:center">Событий ещё не было</div>`;
-  return `<div class="lastnews">
-    Последнее: <b>${r.label}</b> · Range <b>$${fmt(r.totalRange,2)}</b>
-    · Up <span class="pos">+$${fmt(Math.max(0,r.upExc),2)}</span>
-    · Down <span class="neg">-$${fmt(Math.abs(Math.min(0,r.downExc)),2)}</span>
-    · Итог <span class="${r.finalMove>=0?'pos':'neg'}">${signMoney(r.finalMove).replace('$','$')}</span><br>
-    <small style="color:var(--ink3)">${r.pattern}</small>
   </div>`;
 }
 
@@ -3102,8 +3097,6 @@ function screenMore(){
       : `<div class="menu-item" data-act="gotowallet"><span>💳 Брокерский кошелёк</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
     <div class="menu-item" data-act="gotosettings"><span>⚙️ Настройки симулятора</span><span>›</span></div>
     <div class="menu-item" data-act="gotohistory"><span>📜 История сделок</span><span>›</span></div>
-    <div class="menu-item" data-act="gotocal"><span>📅 Экономический календарь</span><span>›</span></div>
-    <div class="menu-item" data-act="gotodom"><span>📊 Стакан заявок (DOM)</span><span>›</span></div>
     <div class="menu-item" data-act="gotodebug"><span>🐞 Debug-консоль (день / статистика)</span><span>›</span></div>
     <div class="menu-item" data-act="mknews"><span>📰 Создать Synthetic News (календарь)</span><span>+</span></div>
     <div class="menu-item" data-act="newsresult"><span>📊 Последний News Result</span><span>›</span></div>
@@ -3385,7 +3378,7 @@ function screenCalendar(){
         return `<div class="evt">
           <div>
             <div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span> ${e.manual?'<span class="impact" style="background:var(--press);color:var(--ink2)">manual</span>':''}</div>
-            <small>${e.released?`Released · ${fmtYMD(e.time)} ${fmtHM(e.time)}`:`через ~${mins} мин`}</small><br>
+            <small>${e.released ? `Вышло · ${evWhen(e.time)}` : `${evWhen(e.time)} · через ${mins} мин`}</small><br>
             <small>Previous ${fmt(e.previous,e.unit==="K"?0:2)}${e.unit} · Forecast ${fmt(e.forecast,e.unit==="K"?0:2)}${e.unit}
             ${e.actual!=null?` · <b>Actual ${fmt(e.actual,e.unit==="K"?0:2)}${e.unit}</b>`:""}</small>
           </div>
@@ -3808,11 +3801,11 @@ function bottomNav(){
   // cTrader's outline icons (stroke = the label colour: grey, blue on the current tab)
   const I = d => `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   return `<div class="bottomnav">
-    <button data-nav="markets" class="${t==="markets"?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>Рынки</button>
+    <button data-nav="markets" class="${["markets","calendar","dom"].includes(t)?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>Рынки</button>
     <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>Графики</button>
     <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
     <button data-nav="orders" class="${t==="orders"?"on":""}"><span class="ic">${I('<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 13.5h7M8.5 17h4"/>')}${S.pendings.length?`<span class="navpill">${S.pendings.length}</span>`:""}</span>Ордеры</button>
-    <button data-nav="more" class="${["more","settings","history","calendar","dom","debug","wallet"].includes(t)?"on":""}"><span class="ic">${I('<circle cx="7.5" cy="7.5" r="3"/><circle cx="16.5" cy="7.5" r="3"/><circle cx="7.5" cy="16.5" r="3"/><circle cx="16.5" cy="16.5" r="3"/>')}</span>Ещё</button>
+    <button data-nav="more" class="${["more","settings","history","debug","wallet"].includes(t)?"on":""}"><span class="ic">${I('<circle cx="7.5" cy="7.5" r="3"/><circle cx="16.5" cy="7.5" r="3"/><circle cx="7.5" cy="16.5" r="3"/><circle cx="16.5" cy="16.5" r="3"/>')}</span>Ещё</button>
   </div>`;
 }
 
@@ -3843,7 +3836,8 @@ function bindScreen(){
 
   act("back", ()=>{
     if(S.ui.tab === "markets"){ S.ui.marketOpen = false; render(); save(); return; }   // XAUUSD ‹ -> "Рынки"
-    nav(["settings","history","calendar","dom","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
+    if(["calendar","dom"].includes(S.ui.tab)){ S.ui.marketOpen = true; nav("markets", "overview"); return; }   // opened only from the overview cards
+    nav(["settings","history","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
   });
   act("gotowallet", ()=> nav("wallet"));
   act("wdeposit", ()=> walletAmountModal("deposit"));
