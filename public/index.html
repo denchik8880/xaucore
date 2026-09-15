@@ -5716,8 +5716,9 @@ function drawChart(){
   }
   // Pills sit ON their lines — the line runs through the middle of the pill. Only a position's own
   // ТП / lots / СЛ pills are spread apart vertically (their connector keeps them tied); pills of
-  // different positions / orders whose lines are closer than a pill go side by side instead —
-  // pushing those apart vertically left the lower ones' lines running above their middle.
+  // different positions / orders stack in an even column even when their lines are closer than a
+  // pill (pushing them apart vertically left the lower ones' lines above their middle), and go side
+  // by side only when one would all but cover the other.
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
   for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
   const units = [];                                              // a position's pill column, or a lone pill
@@ -5732,9 +5733,9 @@ function drawChart(){
   // however fast the swipe — along a smoothstep ramp as the line nears a strip: 110 px for the bottom
   // row's ~170 px slide (≤ 2.4 px sideways per px of drag; a 40 px ramp threw a pill 35–45 px in one
   // frame of a slow drag in the user's video), 60 px for the short slides by ⛶ and + / −. Its size
-  // is always what fits where it is. Pills of different positions / orders that meet go side by side,
-  // eased aside as their lines close in, and that sideways offset glides (τ 90 ms) — a neighbour
-  // arriving or leaving is not a finger move. «›|» fading in or out narrows / widens the row's gap
+  // is always what fits where it is. A pill of another position / order that would all but cover one
+  // (near the same price) goes beside it, and that sideways offset glides (τ 90 ms) — a neighbour
+  // arriving or leaving is not a finger move; merely close lines stay in an even column. «›|» fading in or out narrows / widens the row's gap
   // with τ 90 ms. A position's ТП / lots / СЛ column moves sideways as one.
   const Z = chart._zones || {};
   const ease3 = k => k * k * (3 - 2 * k);
@@ -5762,9 +5763,11 @@ function drawChart(){
       for(const m of g){
         const sm = fitRow(m, x);
         for(const p of placed){
-          const ov = pillH * (sm + p.ts) / 2 - 2 - Math.abs(m.y - p.y);           // how far the two overlap up / down
-          if(ov <= 0 || p.tx >= x + m.w * sm + 4) continue;                       // not level with it / wholly to its right
-          const want = base + (p.tx + p.w * p.ts + 4 - base) * clamp(ov / 6, 0, 1);   // eased aside as the lines close in
+          // only a pill that would all but cover another (lines within ~40 % of a pill) goes beside it;
+          // closer-than-a-pill lines just stack in the column, overlapping a little — easing those aside
+          // by how much they overlapped left one pill half-way out of an otherwise even column
+          if(Math.abs(m.y - p.y) >= pillH * (sm + p.ts) / 2 * 0.4 || p.tx >= x + m.w * sm + 4) continue;
+          const want = p.tx + p.w * p.ts + 4;
           if(want > x + 0.5){ x = want; moved = true; }
         }
       }
