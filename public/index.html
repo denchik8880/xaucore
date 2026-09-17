@@ -259,7 +259,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chzoom{position:absolute;left:16px;bottom:77px;z-index:5;display:flex;flex-direction:column;gap:8px}
 .chzoom button{width:40px;height:40px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chzoom button:active{transform:scale(.92)}
-.chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;transform-origin:left center;will-change:transform}
+.chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;will-change:transform}
 .chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 .chpill svg{display:block}
@@ -269,7 +269,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
    The wrapper holds its place and the step-aside drawChart gives it when a level pill needs that spot; the
    button itself keeps its fade / scale, so the two never fight over one transform. */
-.chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
+.chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;transform-origin:right center;will-change:transform}
 .chlast{width:44px;height:31px;padding:0;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
 .chlast.on{opacity:1;transform:none;pointer-events:auto}
@@ -5373,13 +5373,19 @@ function chartZones(c){
   const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };
   at(".chfs", r => { z.fsR = r.right - box.left + 8; z.fsB = r.bottom - box.top; });
   at(".chzoom", r => { z.zoomR = r.right - box.left + 8; z.zoomT = r.top - box.top; z.zoomB = r.bottom - box.top; });
-  at(".chpills", r => { z.rowL = r.right - box.left + 8; z.rowT = r.top - box.top; z.rowB = r.bottom - box.top; });
+  const rowEl = root.querySelector(".chpills");
+  if(rowEl){
+    rowEl.style.transform = "";                                    // its own place, not one it has slid to
+    chart._rowSlide = null;
+    const r = rowEl.getBoundingClientRect();
+    z.rowL = r.right - box.left + 8; z.rowT = r.top - box.top; z.rowB = r.bottom - box.top;
+  }
   const lastWrap = root.querySelector(".chlast-wrap");
   if(lastWrap){
-    lastWrap.style.transform = "";                                 // its own place, not one it has stepped aside to
-    chart._lastDodge = null;
+    lastWrap.style.transform = "";                                 // its own size, not one it has narrowed to
+    chart._lastSc = null;
     const r = lastWrap.getBoundingClientRect();
-    z.lastX0 = r.left - box.left; z.lastT = r.top - box.top; z.lastB = r.bottom - box.top;
+    z.lastX0 = r.left - box.left; z.lastW = r.width; z.lastT = r.top - box.top; z.lastB = r.bottom - box.top;
   }
   chart._zones = z;
 }
@@ -5983,42 +5989,58 @@ function drawChart(){
   const pNow = performance.now(), pAnim = chart._pillAnim || (chart._pillAnim = new Map());
   const pGen = chart._pillGen = (chart._pillGen || 0) + 1;         // this draw's number: «seen» = in the previous draw
   let pSettling = false;
-  const rowR = plotW - 8;                                        // a pill runs up to the price scale, never into it
   for(const m of marks) m.w = chartPillWidth(ctx, pillFs, m.text, m.icon);
-  const rowL = Z.rowL || 181;
+  /* THE BOTTOM ROW SLIDES OUT OF THE WAY, the pill never makes itself small (user: «м1 и xauusd должны
+     влево плавно и пружинчасто съезжать, именно так, как работает островок в айфоне»; «эта кнопка должна
+     быть на месте, но чуть-чуть в самом размере меньше стать»). «XAUUSD ›» and «м1» travel left together
+     by exactly what the pill beside them needs, and «›|» keeps its spot but narrows a little toward its
+     right edge to give up a few more px. Both ride a spring (ω ≈ 17 rad/s, damping .7 — settles in ~⅓ s
+     and overshoots a hair, the Dynamic Island's motion) and both, with the pill's own x, are read from the
+     same frame, so a fast swipe never catches the pill on a button. */
+  const LAST_MIN = 0.88, rowL0 = Z.rowL || 181;
+  const lastOn = !!(lastBtn && lastBtn.classList.contains("on") && Z.lastX0 != null);
+  const lastW0 = Z.lastW || 44;
+  let slideT = 0, lastScT = 1;
+  for(const g of units){
+    const kRow = Math.max(...g.map(k => zk(k.y, Z.rowT, Z.rowB, 110)));
+    if(kRow <= 0) continue;
+    const wNeed = Math.max(...g.map(m => m.w));
+    const tight = lastOn && rowL0 + wNeed + 8 > Z.lastX0;                 // this pill would run into «›|»
+    const sc = tight ? 1 - (1 - LAST_MIN) * kRow : 1;
+    const limit = lastOn ? Z.lastX0 + lastW0 * (1 - sc) - 8 : plotW - 8;  // where the pill must stop
+    slideT = Math.max(slideT, clamp((rowL0 + wNeed - limit) * kRow, 0, 72));
+    lastScT = Math.min(lastScT, sc);
+  }
+  const spring = (st, target, lo, hi, eps) => {
+    const dt = Math.min(Math.max((pNow - st.t) / 1000, 0), EASE_DT / 1000);
+    st.t = pNow;
+    st.vel += (-300 * (st.v - target) - 2 * Math.sqrt(300) * 0.7 * st.vel) * dt;
+    st.v = clamp(st.v + st.vel * dt, lo, hi);
+    if(Math.abs(st.v - target) < eps && Math.abs(st.vel) < eps * 8){ st.v = target; st.vel = 0; } else pSettling = true;
+    return st.v;
+  };
+  const SL = chart._rowSlide || (chart._rowSlide = { v: 0, vel: 0, t: pNow });
+  const LS = chart._lastSc || (chart._lastSc = { v: 1, vel: 0, t: pNow });
+  const slide = spring(SL, slideT, -3, 80, 0.15);
+  const lastSc = spring(LS, lastScT, LAST_MIN * 0.97, 1.01, 0.0015);
+  const rowEl = c.parentElement && c.parentElement.querySelector(".chpills");
+  if(rowEl){
+    const tr = slide < 0.2 ? "" : "translateX(" + (-slide).toFixed(1) + "px)";
+    if(rowEl._slide !== tr){ rowEl._slide = tr; rowEl.style.transform = tr; }
+  }
+  const lastWrap = lastBtn && lastBtn.parentElement;
+  if(lastWrap){
+    const tr = lastSc > 0.999 ? "" : "scale(" + lastSc.toFixed(4) + ")";
+    if(lastWrap._sc !== tr){ lastWrap._sc = tr; lastWrap.style.transform = tr; }
+  }
+  const rowL = rowL0 - slide;                                             // the row's right edge as it is right now
+  const rowR = (lastOn ? Z.lastX0 + lastW0 * (1 - lastSc) : plotW) - 8;   // where a pill has to stop
   // a pill that still would not fit (a narrow phone) gives way only then, and only as much as it must
   const fitRow = (m, x) => 1 - (1 - clamp((rowR - x) / m.w, 0.55, 1)) * zk(m.y, Z.rowT, Z.rowB, 110);
   for(const g of units){
     const kOf = (t, b, ramp) => Math.max(...g.map(k => zk(k.y, t, b, ramp)));
     const base = Math.max(8, 8 + ((Z.fsR || 70) - 8) * kOf(0, Z.fsB, 60), 8 + ((Z.zoomR || 64) - 8) * kOf(Z.zoomT, Z.zoomB, 60), 8 + (rowL - 8) * kOf(Z.rowT, Z.rowB, 110));
     for(const m of g){ m.px = base; m.s = fitRow(m, base); }
-  }
-  /* «›|» STEPS ASIDE for a level pill instead of the pill making itself small, and «XAUUSD ›» / «м1» keep
-     their size (user: «а что бы они не уменьшались (м1 и xauusd) можно так? и минимальное движение на
-     кнопку, где стрелка»). It lifts by exactly what it takes to clear the pill that reaches it — nothing
-     when none does — and settles back on a spring (ω ≈ 17 rad/s, damping .7: a hair of overshoot, the
-     Dynamic Island's motion). Its lift and the pill's place are read from the same frame, so a fast swipe
-     never catches the pill on the button. */
-  const LZ = (lastBtn && lastBtn.classList.contains("on") && Z.lastX0 != null) ? Z : null;
-  let dodgeT = 0;
-  if(LZ) for(const m of marks){
-    if(m.px + m.w * m.s < LZ.lastX0 - 8) continue;                    // this pill never reaches it
-    const top = m.y - pillH/2 - 6, bot = m.y + pillH/2 + 6;           // the pill's band, with a gap
-    if(top > LZ.lastB || bot < LZ.lastT) continue;                    // clear of it already
-    dodgeT = Math.max(dodgeT, LZ.lastB - top);                        // lift it just over the pill
-  }
-  dodgeT = Math.min(dodgeT, 56);
-  const DG = chart._lastDodge || (chart._lastDodge = { v: 0, vel: 0, t: pNow });
-  const dgDt = Math.min(Math.max((pNow - DG.t) / 1000, 0), EASE_DT / 1000);
-  DG.t = pNow;
-  const DG_K = 300, DG_C = 2 * Math.sqrt(DG_K) * 0.7;
-  DG.vel += (-DG_K * (DG.v - dodgeT) - DG_C * DG.vel) * dgDt;
-  DG.v = clamp(DG.v + DG.vel * dgDt, -2, 62);                         // a touch of overshoot either way
-  if(Math.abs(DG.v - dodgeT) < 0.15 && Math.abs(DG.vel) < 1){ DG.v = dodgeT; DG.vel = 0; } else pSettling = true;
-  const lastWrap = lastBtn && lastBtn.parentElement;
-  if(lastWrap){
-    const tr = Math.abs(DG.v) < 0.2 ? "" : "translateY(" + (-DG.v).toFixed(1) + "px)";
-    if(lastWrap._dodge !== tr){ lastWrap._dodge = tr; lastWrap.style.transform = tr; }
   }
   // Levels also FADE (pill, line, dot, tag together): over 14 px at the plot's top and foot — dragged
   // past an edge they used to pop in and out — and in over ~0.2 s when first seen (a new position,
