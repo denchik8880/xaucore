@@ -260,7 +260,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chzoom button{width:40px;height:40px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chzoom button:active{transform:scale(.92)}
 .chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;will-change:transform}
-.chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
+.chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;will-change:padding;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 .chpill svg{display:block}
 .chpill:active{filter:brightness(.92)}
@@ -269,7 +269,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
    The wrapper holds its place and the step-aside drawChart gives it when a level pill needs that spot; the
    button itself keeps its fade / scale, so the two never fight over one transform. */
-.chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;transform-origin:right center;will-change:transform}
+.chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
 .chlast{width:44px;height:31px;padding:0;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
 .chlast.on{opacity:1;transform:none;pointer-events:auto}
@@ -5377,13 +5377,17 @@ function chartZones(c){
   if(rowEl){
     rowEl.style.transform = "";                                    // its own place, not one it has slid to
     chart._rowSlide = null;
+    const sym = rowEl.querySelector(".chpill.sym");
+    if(sym){ sym.style.paddingLeft = sym.style.paddingRight = sym.style.gap = ""; sym._nr = null; }
+    chart._symNarrow = null;
     const r = rowEl.getBoundingClientRect();
+    z.rowX0 = r.left - box.left;
     z.rowL = r.right - box.left + 8; z.rowT = r.top - box.top; z.rowB = r.bottom - box.top;
   }
   const lastWrap = root.querySelector(".chlast-wrap");
   if(lastWrap){
-    lastWrap.style.transform = "";                                 // its own size, not one it has narrowed to
-    chart._lastSc = null;
+    lastWrap.style.transform = "";                                 // its own place, not one it has stepped to
+    chart._lastShift = null;
     const r = lastWrap.getBoundingClientRect();
     z.lastX0 = r.left - box.left; z.lastW = r.width; z.lastT = r.top - box.top; z.lastB = r.bottom - box.top;
   }
@@ -5997,19 +6001,27 @@ function drawChart(){
      right edge to give up a few more px. Both ride a spring (ω ≈ 17 rad/s, damping .7 — settles in ~⅓ s
      and overshoots a hair, the Dynamic Island's motion) and both, with the pill's own x, are read from the
      same frame, so a fast swipe never catches the pill on a button. */
-  const LAST_MIN = 0.88, rowL0 = Z.rowL || 181;
+  /* Room for the pill is taken in this order, so the smallest, quietest move happens first: the row
+     TRAVELS LEFT (up to SLIDE_MAX, which stops «XAUUSD ›» exactly at the screen edge — nothing is cut),
+     «›|» STEPS a few px RIGHT at its own size (SHIFT_MAX, into the empty left margin of the price scale),
+     and «XAUUSD ›» NARROWS a little — its padding closes, the text is never squeezed (user: «сама кнопка
+     должна быть своего размера, она не должна уменьшаться, только чуть-чуть вправо, а xauusd должен
+     чуть-чуть сужаться»). */
+  const SLIDE_MAX = Math.max(0, (Z.rowX0 == null ? 16 : Z.rowX0)), SHIFT_MAX = 6, NARROW_MAX = 20;
+  const rowL0 = Z.rowL || 181;
   const lastOn = !!(lastBtn && lastBtn.classList.contains("on") && Z.lastX0 != null);
-  const lastW0 = Z.lastW || 44;
-  let slideT = 0, lastScT = 1;
+  let slideT = 0, shiftT = 0, narrowT = 0;
   for(const g of units){
     const kRow = Math.max(...g.map(k => zk(k.y, Z.rowT, Z.rowB, 110)));
     if(kRow <= 0) continue;
     const wNeed = Math.max(...g.map(m => m.w));
-    const tight = lastOn && rowL0 + wNeed + 8 > Z.lastX0;                 // this pill would run into «›|»
-    const sc = tight ? 1 - (1 - LAST_MIN) * kRow : 1;
-    const limit = lastOn ? Z.lastX0 + lastW0 * (1 - sc) - 8 : plotW - 8;  // where the pill must stop
-    slideT = Math.max(slideT, clamp((rowL0 + wNeed - limit) * kRow, 0, 72));
-    lastScT = Math.min(lastScT, sc);
+    let need = Math.max(0, rowL0 + wNeed + 8 - (lastOn ? Z.lastX0 : plotW));
+    const sl = Math.min(need, SLIDE_MAX);              need -= sl;
+    const sh = lastOn ? Math.min(need, SHIFT_MAX) : 0; need -= sh;
+    const nr = Math.min(need, NARROW_MAX);
+    slideT = Math.max(slideT, sl * kRow);
+    shiftT = Math.max(shiftT, sh * kRow);
+    narrowT = Math.max(narrowT, nr * kRow);
   }
   const spring = (st, target, lo, hi, eps) => {
     const dt = Math.min(Math.max((pNow - st.t) / 1000, 0), EASE_DT / 1000);
@@ -6020,9 +6032,11 @@ function drawChart(){
     return st.v;
   };
   const SL = chart._rowSlide || (chart._rowSlide = { v: 0, vel: 0, t: pNow });
-  const LS = chart._lastSc || (chart._lastSc = { v: 1, vel: 0, t: pNow });
-  const slide = spring(SL, slideT, -3, 80, 0.15);
-  const lastSc = spring(LS, lastScT, LAST_MIN * 0.97, 1.01, 0.0015);
+  const SH = chart._lastShift || (chart._lastShift = { v: 0, vel: 0, t: pNow });
+  const NR = chart._symNarrow || (chart._symNarrow = { v: 0, vel: 0, t: pNow });
+  const slide = spring(SL, slideT, -3, SLIDE_MAX + 4, 0.15);
+  const shift = spring(SH, shiftT, -1, SHIFT_MAX + 2, 0.15);
+  const narrow = spring(NR, narrowT, -1, NARROW_MAX + 2, 0.15);
   const rowEl = c.parentElement && c.parentElement.querySelector(".chpills");
   if(rowEl){
     const tr = slide < 0.2 ? "" : "translateX(" + (-slide).toFixed(1) + "px)";
@@ -6030,11 +6044,25 @@ function drawChart(){
   }
   const lastWrap = lastBtn && lastBtn.parentElement;
   if(lastWrap){
-    const tr = lastSc > 0.999 ? "" : "scale(" + lastSc.toFixed(4) + ")";
-    if(lastWrap._sc !== tr){ lastWrap._sc = tr; lastWrap.style.transform = tr; }
+    const tr = shift < 0.2 ? "" : "translateX(" + shift.toFixed(1) + "px)";
+    if(lastWrap._shift !== tr){ lastWrap._shift = tr; lastWrap.style.transform = tr; }
   }
-  const rowL = rowL0 - slide;                                             // the row's right edge as it is right now
-  const rowR = (lastOn ? Z.lastX0 + lastW0 * (1 - lastSc) : plotW) - 8;   // where a pill has to stop
+  // «XAUUSD ›» gives up padding (16 left / 12 right / 10 between text and chevron = 38 px of air)
+  const symEl = rowEl && rowEl.querySelector(".chpill.sym");
+  let narrowPx = 0;
+  if(symEl){
+    const q = clamp(1 - narrow / 38, 0.42, 1);
+    narrowPx = 38 * (1 - q);
+    const key = q.toFixed(3);
+    if(symEl._nr !== key){
+      symEl._nr = key;
+      symEl.style.paddingLeft = (16 * q).toFixed(1) + "px";
+      symEl.style.paddingRight = (12 * q).toFixed(1) + "px";
+      symEl.style.gap = (10 * q).toFixed(1) + "px";
+    }
+  }
+  const rowL = rowL0 - slide - narrowPx;                                  // the row's right edge as it is right now
+  const rowR = (lastOn ? Z.lastX0 + shift : plotW) - 8;                   // where a pill has to stop
   // a pill that still would not fit (a narrow phone) gives way only then, and only as much as it must
   const fitRow = (m, x) => 1 - (1 - clamp((rowR - x) / m.w, 0.55, 1)) * zk(m.y, Z.rowT, Z.rowB, 110);
   for(const g of units){
