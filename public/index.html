@@ -2487,28 +2487,57 @@ const app = () => document.getElementById("app");
    layer OUTSIDE #app, laid over the element, so it plays on when the tap re-renders the screen (a
    tab switch) — and nothing inside the page moves. (Animated screen transitions were tried instead
    and rejected: a sliding wrap dragged the fixed «Новый ордер» up the screen for a moment.) */
+/* A swipe that merely starts on a row is a scroll, not a press (user: «работает, даже если просто
+   листаю, а нужно, когда заходить прям буду»), so — like Android — the ripple waits: it lights up
+   after a 110 ms hold on the spot, or on the tap itself (click) for a quicker touch; a finger that
+   moves 8 px, or a pointercancel (the page took the gesture to scroll), puts it out / never starts it. */
 const RIPPLE_SEL = ".bottomnav button, .subtabs button, .menu-item, .ne-card > summary, .tfsheet button";
-document.addEventListener("pointerdown", e => {
-  if(e.button > 0) return;
-  const el = e.target.closest && e.target.closest(RIPPLE_SEL);
-  if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
+let _rip = null;                                                 // the press being watched
+function rippleShow(el, cx, cy){
   const r = el.getBoundingClientRect(), rad = getComputedStyle(el).borderRadius;
   const box = document.createElement("div");
   box.className = "ripple";
   box.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:${rad && rad !== "0px" ? rad : "6px"}`;
-  const x = e.clientX - r.left, y = e.clientY - r.top, d = 2 * Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
+  const x = cx - r.left, y = cy - r.top, d = 2 * Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
   const wave = document.createElement("span");
   wave.style.cssText = `left:${x - d/2}px;top:${y - d/2}px;width:${d}px;height:${d}px`;
   box.appendChild(wave);
   document.body.appendChild(box);
   requestAnimationFrame(() => box.classList.add("on"));
-  const t0 = performance.now();
-  const end = () => {
-    window.removeEventListener("pointerup", end, true); window.removeEventListener("pointercancel", end, true);
-    setTimeout(() => { box.classList.add("out"); setTimeout(() => box.remove(), 300); }, Math.max(0, 200 - (performance.now() - t0)));   // a quick tap still shows it
-  };
-  window.addEventListener("pointerup", end, true); window.addEventListener("pointercancel", end, true);
+  return { box, t0: performance.now() };
+}
+function rippleFade(R, now){
+  if(!R) return;
+  setTimeout(() => { R.box.classList.add("out"); setTimeout(() => R.box.remove(), 300); }, now ? 0 : Math.max(0, 200 - (performance.now() - R.t0)));   // a quick tap still shows it
+}
+function rippleDrop(P){ clearTimeout(P.timer); clearTimeout(P.upT); if(P.shown) rippleFade(P.shown, true); if(_rip === P) _rip = null; }
+document.addEventListener("pointerdown", e => {
+  if(e.button > 0) return;
+  const el = e.target.closest && e.target.closest(RIPPLE_SEL);
+  if(_rip) rippleDrop(_rip);
+  if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
+  const P = _rip = { el, id: e.pointerId, x: e.clientX, y: e.clientY, shown: null };
+  P.timer = setTimeout(() => { if(_rip === P && !P.shown) P.shown = rippleShow(el, P.x, P.y); }, 110);
 }, { capture: true, passive: true });
+document.addEventListener("pointermove", e => {
+  const P = _rip;
+  if(P && e.pointerId === P.id && Math.hypot(e.clientX - P.x, e.clientY - P.y) > 8) rippleDrop(P);
+}, { capture: true, passive: true });
+document.addEventListener("pointercancel", e => { if(_rip && e.pointerId === _rip.id) rippleDrop(_rip); }, { capture: true, passive: true });
+document.addEventListener("pointerup", e => {
+  const P = _rip;
+  if(!P || e.pointerId !== P.id) return;
+  clearTimeout(P.timer);
+  P.upT = setTimeout(() => rippleDrop(P), 350);                   // no tap followed (the element went away…)
+}, { capture: true, passive: true });
+document.addEventListener("click", e => {                         // capture: before the tap re-renders the screen
+  const P = _rip;
+  if(!P || !P.el.contains(e.target)) return;
+  clearTimeout(P.timer); clearTimeout(P.upT);
+  if(!P.shown) P.shown = rippleShow(P.el, P.x, P.y);
+  rippleFade(P.shown);
+  _rip = null;
+}, true);
 let modalEl = null;
 
 function toast(kind, msg){
