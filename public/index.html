@@ -259,7 +259,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chzoom{position:absolute;left:16px;bottom:77px;z-index:5;display:flex;flex-direction:column;gap:8px}
 .chzoom button{width:40px;height:40px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chzoom button:active{transform:scale(.92)}
-.chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px}
+.chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;transform-origin:left center;will-change:transform}
 .chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 .chpill svg{display:block}
@@ -5370,7 +5370,14 @@ function chartZones(c){
   const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };
   at(".chfs", r => { z.fsR = r.right - box.left + 8; z.fsB = r.bottom - box.top; });
   at(".chzoom", r => { z.zoomR = r.right - box.left + 8; z.zoomT = r.top - box.top; z.zoomB = r.bottom - box.top; });
-  at('[data-act="charttf"]', r => { z.rowL = r.right - box.left + 8; z.rowT = r.top - box.top; z.rowB = r.bottom - box.top; });
+  const rowEl = root.querySelector(".chpills");
+  if(rowEl){
+    rowEl.style.transform = "";                                    // measure it at its own size, not mid-squeeze
+    chart._rowSq = null;
+    const r = rowEl.getBoundingClientRect();
+    z.rowX0 = r.left - box.left; z.rowW = r.width;
+    z.rowL = r.right - box.left + 8; z.rowT = r.top - box.top; z.rowB = r.bottom - box.top;
+  }
   chart._zones = z;
 }
 function setupChartCanvas(){
@@ -5960,7 +5967,7 @@ function drawChart(){
   for(const m of marks) m.y = snapPy(m.y);
   // A pill level with the on-chart buttons (measured in chartZones) gets out of their way: past ⛶ at
   // the top, past the + / − column, and in the bottom row it sits between the timeframe pill and
-  // «›|» (or the price scale), SHRINKING to fit that gap. Where it sits follows its line exactly — on
+  // «›|» (or the price scale), which NARROWS to let it by at full size. Where it sits follows its line exactly — on
   // the same frame and both ways, so it keeps pace with the finger and never rides over a button
   // however fast the swipe — along a smoothstep ramp as the line nears a strip: 110 px for the bottom
   // row's ~170 px slide (≤ 2.4 px sideways per px of drag; a 40 px ramp threw a pill 35–45 px in one
@@ -5980,12 +5987,41 @@ function drawChart(){
     if(Math.abs(rowRT - rowR) < 0.3) rowR = rowRT; else pSettling = true;
   }
   chart._rowR = { v: rowR, t: pNow };
-  const rowL = Z.rowL || 168;
-  const fitRow = (m, x) => 1 - (1 - clamp((rowR - x) / m.w, 0.45, 1)) * zk(m.y, Z.rowT, Z.rowB, 110);
+  for(const m of marks) m.w = chartPillWidth(ctx, pillFs, m.text, m.icon);
+  /* The BOTTOM ROW makes room instead of the pill shrinking into its gap (user: «что бы открытая сделка
+     была полным размером … что бы двигались плавно именно кнопки м1 и xauusd, плавность как у dynamic
+     island»): «XAUUSD ›» and «м1» narrow together — only by as much as the pill beside them needs, never
+     past ROW_MIN — and spring back when the level leaves. The squeeze runs on a spring (ω ≈ 17 rad/s,
+     damping .7: it settles in ~⅓ s and overshoots a hair, the island's motion) and both the row's scale
+     and the pill's x come from the same value on the same frame, so they never drift apart in a fast swipe. */
+  const ROW_MIN = 0.7, rowX0 = Z.rowX0 == null ? 16 : Z.rowX0, rowW0 = Z.rowW || 157;
+  let rowSqT = 1;
+  for(const g of units){
+    const kRow = Math.max(...g.map(k => zk(k.y, Z.rowT, Z.rowB, 110)));
+    if(kRow <= 0) continue;
+    const wNeed = Math.max(...g.map(m => m.w));
+    const fit = clamp((rowR - wNeed - 8 - rowX0) / rowW0, ROW_MIN, 1);   // 8 px between the row and the pill
+    rowSqT = Math.min(rowSqT, 1 + (fit - 1) * kRow);
+  }
+  const SQ = chart._rowSq || (chart._rowSq = { v: 1, vel: 0, t: pNow });
+  const sqDt = Math.min(Math.max((pNow - SQ.t) / 1000, 0), EASE_DT / 1000);
+  SQ.t = pNow;
+  const SQ_K = 300, SQ_C = 2 * Math.sqrt(SQ_K) * 0.7;
+  SQ.vel += (-SQ_K * (SQ.v - rowSqT) - SQ_C * SQ.vel) * sqDt;
+  SQ.v = clamp(SQ.v + SQ.vel * sqDt, ROW_MIN * 0.97, 1.02);            // a touch of overshoot either way
+  if(Math.abs(SQ.v - rowSqT) < 0.0015 && Math.abs(SQ.vel) < 0.01){ SQ.v = rowSqT; SQ.vel = 0; } else pSettling = true;
+  const rowEl = c.parentElement && c.parentElement.querySelector(".chpills");
+  if(rowEl){
+    const tr = SQ.v > 0.999 ? "" : "scale(" + SQ.v.toFixed(4) + ")";
+    if(rowEl._sq !== tr){ rowEl._sq = tr; rowEl.style.transform = tr; }
+  }
+  const rowL = rowX0 + rowW0 * SQ.v + 8;                               // the row's right edge as it is right now
+  // a pill wider than even the squeezed row leaves still gives way at the very end
+  const fitRow = (m, x) => 1 - (1 - clamp((rowR - x) / m.w, 0.55, 1)) * zk(m.y, Z.rowT, Z.rowB, 110);
   for(const g of units){
     const kOf = (t, b, ramp) => Math.max(...g.map(k => zk(k.y, t, b, ramp)));
     const base = Math.max(8, 8 + ((Z.fsR || 70) - 8) * kOf(0, Z.fsB, 60), 8 + ((Z.zoomR || 64) - 8) * kOf(Z.zoomT, Z.zoomB, 60), 8 + (rowL - 8) * kOf(Z.rowT, Z.rowB, 110));
-    for(const m of g){ m.w = chartPillWidth(ctx, pillFs, m.text, m.icon); m.px = base; m.s = fitRow(m, base); }
+    for(const m of g){ m.px = base; m.s = fitRow(m, base); }
   }
   // Levels also FADE (pill, line, dot, tag together): over 14 px at the plot's top and foot — dragged
   // past an edge they used to pop in and out — and in over ~0.2 s when first seen (a new position,
