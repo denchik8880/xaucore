@@ -104,6 +104,15 @@ body.chart-full .bottomnav{display:none}
 .otbl .x:active{background:var(--press)}
 .wrap{padding:12px}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+/* A long screen (Settings, the calendar, Overview, a list of positions) is styled and laid out only as far
+   as the screen shows: a card further down is skipped until scrolling brings it near (`auto` then keeps its
+   real height). Opening such a tab cost 5–7 ms of style + layout on a desktop (several times that on a phone), now ~1.5,
+   and Overview's depth card refreshing below the fold costs nothing. Not the cards holding a chart: they are
+   always on screen, and readouts over the chart are placed against a box outside the card.
+   A screen re-rendered while scrolled down (a position closing in the list) is laid out in full for a frame
+   (#app.cv-off, from render()): new cards skipped at an estimated height would move what is on screen. */
+#app .card:not(.minichart,.chartcard),#app .lrow,#app .ne-card{content-visibility:auto;contain-intrinsic-size:auto 160px}
+#app.cv-off .card,#app.cv-off .lrow,#app.cv-off .ne-card{content-visibility:visible}
 /* dark theme: cells are lighter than the black page and carry a hairline edge (inset, so no
    size change) — at #0d0d0d on #000 with no edge the user couldn't tell where one cell ends */
 :root[data-theme="dark"] .card,:root[data-theme="dark"] .lrow,:root[data-theme="dark"] .menu-item{box-shadow:inset 0 0 0 1px var(--line)}
@@ -266,6 +275,16 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* forms / modal */
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
+/* a sheet slides up over a scrim that fades in, and slides back down as it closes — like cTrader's
+   Android sheets and our lot wheel (it used to pop in and vanish in one frame). One that replaces an open
+   sheet (the ticket redrawn, a confirmation) appears in place. transform / opacity only: the compositor
+   moves it, nothing is laid out again. */
+.modal{animation:mdIn .22s ease}
+.modal .sheet{animation:lwIn .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes mdIn{from{background-color:transparent}}
+.modal.swap,.modal.swap .sheet,.modal.closing,.modal.closing .sheet{animation:none}
+.modal.closing{pointer-events:none;background-color:transparent;transition:background-color .18s ease}
+.modal.closing .sheet{transform:translateY(100%);transition:transform .18s ease-in}
 .sheet h2{margin:2px 0 14px;font-size:17px}
 .sheet .close{position:absolute;right:16px;top:14px}
 .field{margin-bottom:12px}
@@ -973,14 +992,47 @@ function save(){
   saveTimer = setTimeout(()=>{
     saveTimer = null;
     _idle(()=>{
-      try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+      try{ localStorage.setItem(LS_KEY, stateJSON()); }
       catch(e){ console.warn("save failed", e); }
     });
     if(typeof xcPushState === "function") xcPushState();     // mirror to the server (debounced)
   }, 1000);
 }
 function saveNow(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+  try{ localStorage.setItem(LS_KEY, stateJSON()); }catch(e){}
+}
+/* S as JSON for localStorage and the server. The candle history is ~95 % of it (~220 KB, ~3000 bars)
+   and only the newest bar of each timeframe changes, yet JSON.stringify(S) redid every bar on every
+   save, once a second (and for every server push) — a periodic stall under a dragged chart or a spinning
+   wheel on a slow phone. Each bar's JSON is kept (per object) with the values it was made from and
+   reused while they still match, so a save re-serialises a handful of bars: ~2.5× faster, measured. */
+const _barJSON = new WeakMap();
+function barJSON(b){
+  if(!b || typeof b !== "object") return b === undefined ? "null" : JSON.stringify(b);
+  const k = _barJSON.get(b);
+  if(k && k.t === b.t && k.o === b.o && k.h === b.h && k.l === b.l && k.c === b.c && k.v === b.v) return k.s;
+  const s = JSON.stringify(b);
+  _barJSON.set(b, { t:b.t, o:b.o, h:b.h, l:b.l, c:b.c, v:b.v, s });
+  return s;
+}
+function stateJSON(){
+  const C = S.candles;
+  if(!C || typeof C !== "object" || Array.isArray(C)) return JSON.stringify(S);
+  const rest = {}, parts = [];
+  for(const k of Object.keys(S)) if(k !== "candles") rest[k] = S[k];
+  for(const tf of Object.keys(C)){
+    const a = C[tf];
+    if(!Array.isArray(a)){ const s = JSON.stringify(a); if(s !== undefined) parts.push(JSON.stringify(tf) + ":" + s); continue; }
+    const bars = new Array(a.length);
+    for(let i = 0; i < a.length; i++) bars[i] = barJSON(a[i]);
+    parts.push(JSON.stringify(tf) + ":[" + bars.join(",") + "]");
+  }
+  const head = JSON.stringify(rest);
+  return (head === "{}" ? "{" : head.slice(0, -1) + ",") + '"candles":{' + parts.join(",") + "}}";
+}
+/* the body of PUT /api/state — the same JSON as { state: S, sid: XC.sid } */
+function statePutBody(){
+  return '{"state":' + stateJSON() + (XC.sid === undefined ? "" : ',"sid":' + JSON.stringify(XC.sid)) + "}";
 }
 function resetAll(){
   localStorage.removeItem(LS_KEY);
@@ -1773,6 +1825,12 @@ function applyPriceDerived(){
    them (±0.04), so the two sides always went the same way. Two or three times a second, between ticks, only
    the spread is redrawn around the unchanged mid: candles, the chart's lines and P&L all read the same
    S.price the trade buttons show; pending orders and SL / TP see the new quote. */
+let _uiRaf = 0, _uiReq = 0, _uiLast = 0, _uiOn = false;
+function uiKick(){
+  if(_uiRaf || !_uiOn) return;
+  _uiReq = performance.now();
+  _uiRaf = requestAnimationFrame(uiFrame);
+}
 const QUOTE_FLICKER_HZ = 2.6;                                     // sides differ ~⅕ of the time, like the cTrader video
 function quoteFlicker(){
   const P = S.price, d = S.symbol.digits, s = roundTo(autoSpread(), d);
@@ -1781,8 +1839,10 @@ function quoteFlicker(){
   P.bid = roundTo(P.mid - s/2, d);
   P.ask = roundTo(P.bid + s, d);                                // Ask − Bid is exactly the quoted spread
   processPendings(); processPositionSLTP();
+  uiKick();
 }
 function pushTick(){
+  uiKick();                                                     // the screen shows the tick on the display's next frame
   _tickBuf.push({ t:S.simClock, bid:S.price.bid, ask:S.price.ask, mid:S.price.mid,
                   spread:S.price.spread, volume:S.price.lastVol||0, vol:+currentVolFactor().toFixed(2) });
   if(_tickBuf.length > 400) _tickBuf.splice(0, _tickBuf.length - 400);
@@ -2555,7 +2615,7 @@ document.addEventListener("click", e => {                         // capture: be
   // …and a tap that opens a sheet over the screen («Создать Synthetic News», «Последний News Result»,
   // confirmations) counts as a new screen too: the ripple was left fading on top of the sheet
   const m0 = modalEl;
-  const leftScreen = () => !el.isConnected || (!!modalEl && modalEl !== m0);
+  const leftScreen = () => !el.isConnected || (!!modalEl && modalEl !== m0) || !!el.closest(".modal.closing");
   if(!P.shown){
     P.shown = rippleShow(el, P.x, P.y);
     if(!stays){
@@ -2564,7 +2624,7 @@ document.addEventListener("click", e => {                         // capture: be
       setTimeout(() => {
         const m1 = modalEl;
         _ripReplay = el; el.click(); _ripReplay = null;
-        if(!el.isConnected || (!!modalEl && modalEl !== m1)) R.box.remove(); else rippleFade(R);
+        if(!el.isConnected || (!!modalEl && modalEl !== m1) || el.closest(".modal.closing")) R.box.remove(); else rippleFade(R);
       }, 140);
       return;
     }
@@ -2642,6 +2702,7 @@ function themeColors(){
    nowhere. The wallet screen itself (screenWallet and everything behind it) is
    deliberately left untouched — set this to false to open it again. */
 const WALLET_SOON = true;
+let _renderKey = "", _cvOffRaf = 0;
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
   if(WALLET_SOON && S.ui.tab === "wallet") S.ui.tab = "more";   // a saved state may still point at it
@@ -2660,6 +2721,17 @@ function render(){
   else if(t === "dom")       html += screenDOM();
   else if(t === "debug")     html += screenDebug();
   html += bottomNav();
+  // Another screen opens at its top (it used to keep the last screen's scroll offset, landing mid-page).
+  // The same screen re-rendered while scrolled is laid out in full (see #app.cv-off in the CSS) until its
+  // cards have recorded their real heights — two frames on.
+  const screenKey = t === "markets" ? t + "|" + (S.ui.marketOpen ? S.ui.subtab : "list") : t;
+  if(screenKey !== _renderKey && window.scrollY) window.scrollTo(0, 0);
+  _renderKey = screenKey;
+  if(window.scrollY > 0){
+    app().classList.add("cv-off");
+    cancelAnimationFrame(_cvOffRaf);
+    _cvOffRaf = requestAnimationFrame(() => { _cvOffRaf = requestAnimationFrame(() => { _cvOffRaf = 0; app().classList.remove("cv-off"); }); });
+  }
   app().innerHTML = html;
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
   document.body.classList.toggle("route-chart", t === "chart");
@@ -2820,7 +2892,7 @@ function screenMarkets(){
   if(sub === "overview")   inner = mktOverview();
   else if(sub === "positions") inner = listPositions();
   else if(sub === "orders")    inner = listOrders();
-  else if(sub === "chart")     inner = `<div class="wrap"><div class="card" style="padding:0;overflow:hidden">${chartMarkup(260, { sub: true })}</div></div>`;
+  else if(sub === "chart")     inner = `<div class="wrap"><div class="card chartcard" style="padding:0;overflow:hidden">${chartMarkup(260, { sub: true })}</div></div>`;
   const cnt = (id, n) => ` <span class="cnt" id="${id}"${n ? "" : " hidden"}>${n}</span>`;   // cTrader's boxed count «ОРДЕРА [1]», kept live by updateLive
   return appbar("XAUUSD", {back:true, caret:true}) + `
     <div class="subtabs">
@@ -4800,15 +4872,26 @@ function showNewsResult(r){
 
 /* ---------- generic sheet ---------- */
 function openSheet(html, sheetCls){
-  closeModal();
+  const swap = !!modalEl || !!document.querySelector(".modal.closing");
+  closeModal(true);
+  document.querySelectorAll(".modal.closing").forEach(m => m.remove());
   modalEl = document.createElement("div");
-  modalEl.className = "modal";
+  modalEl.className = "modal" + (swap ? " swap" : "");
   modalEl.innerHTML = `<div class="sheet ${sheetCls||""}"><button class="iconbtn close" data-close>✕</button>${html}</div>`;
   document.body.appendChild(modalEl);
   modalEl.addEventListener("click", e=>{ if(e.target === modalEl) closeModal(); });
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
 }
-function closeModal(){ if(modalEl){ modalEl.remove(); modalEl = null; } }
+/* modalEl lets go at once (the app sees no sheet); the element slides down and is removed after */
+function closeModal(now){
+  if(!modalEl) return;
+  const m = modalEl;
+  modalEl = null;
+  if(now === true){ m.remove(); return; }
+  if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
+  m.classList.add("closing");
+  setTimeout(() => m.remove(), 200);
+}
 
 /* In-app confirmation sheet. NEVER use window.confirm() for this — in Telegram's
    in-app WebView (and other embedded browsers) it is suppressed and silently
@@ -4939,13 +5022,18 @@ function setTxt(id, txt, cls){
   }
 }
 /* guarantee a value ALWAYS shows in full — shrink font (to a readable floor) only if it would clip.
-   Skips the work when neither the text length nor the box width changed. */
+   Skips the work when neither the text length nor the box width changed. The box width is read once
+   per element (again after a resize / the web font arriving): reading clientWidth on every 120 ms
+   update, right after the prices were written, forced a layout of the whole page each time. */
+let _fitGen = 0;
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { _fitGen++; });
 function fitText(el, minPx){
   if(!el) return;
-  const key = el.textContent.length + "@" + el.clientWidth;
+  if(el._fitGen !== _fitGen){ el._fitGen = _fitGen; el._fitW = el.clientWidth; }
+  const key = el.textContent.length + "@" + el._fitW;
   if(el._fitKey === key) return;
   el._fitKey = key;
-  el.style.fontSize = "";                          // let CSS drive the natural size first
+  if(el.style.fontSize) el.style.fontSize = "";    // let CSS drive the natural size first (a no-op write would lay the page out again)
   const floor = minPx || 12;
   let guard = 0;
   while(el.scrollWidth > el.clientWidth + 1 && guard++ < 22){
@@ -4954,6 +5042,15 @@ function fitText(el, minPx){
     el.style.fontSize = next + "px";
     if(next === floor) break;
   }
+}
+/* everything a live redraw of a chart depends on, as one string */
+function liveDrawKey(tf){
+  const a = S.candles[tf] || [], b = a[a.length - 1] || {};
+  let k = S.price.bid + "|" + S.price.ask + "|" + a.length + "|" + b.t + "|" + b.o + "|" + b.h + "|" + b.l + "|" + b.c
+        + "|" + Math.floor(S.simClock / 1000) + "|" + (document.documentElement.dataset.theme || "");
+  for(const p of S.positions) k += "|" + p.id + ":" + p.side + ":" + p.entry + ":" + p.sl + ":" + p.tp + ":" + p.volume;
+  for(const o of S.pendings) k += "|" + o.id + ":" + o.type + ":" + o.price + ":" + o.sl + ":" + o.tp + ":" + o.volume;
+  return k;
 }
 function updateLive(){
   if(!S) return;
@@ -5070,16 +5167,26 @@ function updateLive(){
     bl.toggle("trade-locked", locked);
     if(!locked){ const le = document.getElementById("lotErr"); setTradeEnabled(!(le && le.textContent)); }
   }
-  document.querySelectorAll("[data-news]").forEach(b=>{ b.disabled = locked || S.news.active; });
+  const newsOff = locked || S.news.active;
+  document.querySelectorAll("[data-news]").forEach(b=>{ if(b.disabled !== newsOff) b.disabled = newsOff; });
   if(locked){ setTradeEnabled(false); }
   // modal live
   if(modalEl && modalEl._live) modalEl._live();
   // charts
   // the main chart through rAF: a live update joins the gesture's frame instead of adding a
-  // second full redraw between two display frames
-  if(S.ui.tab === "chart") chartDraw();
-  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
-  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart") chartDraw();
+  // second full redraw between two display frames. Both charts redraw only when what they show has
+  // changed (a tick, the spread, a trade, the bar countdown) — most beats change nothing on them, and a
+  // gesture or a re-render draws by itself; once a second they redraw anyway, whatever the key misses.
+  const nowD = performance.now();
+  if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")){
+    const k = liveDrawKey(S.ui.chartTF);
+    if(k !== chart._liveKey || nowD - (chart._liveAt || 0) > 1000){ chart._liveKey = k; chart._liveAt = nowD; chartDraw(); }
+  }
+  if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview"){
+    const mc = document.getElementById("miniCanvas");
+    const k = mc && liveDrawKey(S.ui.miniTF || "M1") + "|" + (S.ui.miniBars || 50);
+    if(mc && (k !== mc._liveKey || nowD - (mc._liveAt || 0) > 1000)){ mc._liveKey = k; mc._liveAt = nowD; drawMini(); }
+  }
   // broker wallet — single balance state reflected everywhere it shows
   const wib = document.getElementById("wiBalance");
   if(wib){
@@ -5437,7 +5544,9 @@ function fitCanvas(c){
   // logical height comes ONLY from data-h — never from the height attribute, which
   // canvas mirrors from the .height property we set below (would double each call).
   const h = parseInt(c.dataset.h) || 200;
-  c.width = Math.round(w*dpr); c.height = Math.round(h*dpr);
+  const bw = Math.round(w*dpr), bh = Math.round(h*dpr);
+  if(c.width !== bw) c.width = bw;                                // re-setting even the same size reallocates the bitmap
+  if(c.height !== bh) c.height = bh;
   c.style.width = w + "px";           // keep CSS size independent of the bitmap size (fixes 2x on hi-dpi)
   c.style.height = h + "px";
   const ctx = c.getContext("2d");
@@ -6082,6 +6191,27 @@ function drawMini(){
    Loop
    ========================================================================= */
 let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false, _bootPaused = false;
+/* The screen is brought up to date inside requestAnimationFrame — its DOM writes and the chart's redraw
+   land right before the display paints — and at once for a price tick (uiKick from pushTick /
+   quoteFlicker) instead of on the next 120 ms beat: a tick used to wait 0–120 ms for it, so ticks
+   2 a second apart reached the screen 380–620 ms apart. The 120 ms beat still runs for everything
+   else (clocks, P&L of a mirror); it skips a beat a tick has just drawn. */
+function uiFrame(){
+  _uiRaf = 0; _uiLast = performance.now();
+  try{
+    if(S._needRender && !modalEl){ S._needRender = false; render(); return; }
+    const key = S.positions.length+"/"+S.pendings.length+"/"+S.history.length+"/"+(tradingLocked()?1:0);
+    if(key !== _lastCounts && !modalEl){
+      _lastCounts = key;
+      if(["positions","orders","history"].includes(S.ui.tab) ||
+         (S.ui.tab==="markets" && S.ui.marketOpen && ["positions","orders"].includes(S.ui.subtab))){
+        render(); return;
+      }
+    }
+    _lastCounts = key;
+    updateLive();
+  }catch(e){ console.error(e); }
+}
 function restartLoop(){
   if(rtTimer){ clearInterval(rtTimer); rtTimer = null; }
   if(normalTickTimer && XC.follower){ clearInterval(normalTickTimer); normalTickTimer = null; }
@@ -6103,20 +6233,15 @@ function startLoop(){
   _lastShockMin = Math.floor((S.simClock||Date.now())/60000);
   restartLoop();
   if(uiTimer) clearInterval(uiTimer);
+  _uiOn = true;
   uiTimer = setInterval(()=>{
-    try{
-      if(S._needRender && !modalEl){ S._needRender = false; render(); return; }
-      const key = S.positions.length+"/"+S.pendings.length+"/"+S.history.length+"/"+(tradingLocked()?1:0);
-      if(key !== _lastCounts && !modalEl){
-        _lastCounts = key;
-        if(["positions","orders","history"].includes(S.ui.tab) ||
-           (S.ui.tab==="markets" && S.ui.marketOpen && ["positions","orders"].includes(S.ui.subtab))){
-          render(); return;
-        }
-      }
-      _lastCounts = key;
-      updateLive();
-    }catch(e){ console.error(e); }
+    const now = performance.now();
+    if(_uiRaf){                                                   // no frame came (a hidden / throttled page): run it here
+      if(now - _uiReq < 100) return;
+      cancelAnimationFrame(_uiRaf); uiFrame(); return;
+    }
+    if(now - _uiLast < 70) return;                                // a tick has just brought the screen up to date
+    uiKick();
   }, 120);
 }
 
@@ -6140,12 +6265,18 @@ function resumeLoop(){
   }
 }
 
+/* a phone fires resize over and over while its toolbar slides in or out: once per frame is enough */
+let _resizeRaf = 0;
 window.addEventListener("resize", ()=>{
-  if(!S) return;                               // resize can fire before the state is loaded
-  const ids = ["chartCanvas","miniCanvas"];
-  ids.forEach(id=>{ const c = document.getElementById(id); if(c){ if(id === "chartCanvas") chartTabHeight(c); c._w = 0; fitCanvas(c); if(id === "chartCanvas") chartZones(c); } });
-  if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
-  drawMini();
+  _fitGen++;
+  if(!S || _resizeRaf) return;                 // resize can fire before the state is loaded
+  _resizeRaf = requestAnimationFrame(()=>{
+    _resizeRaf = 0;
+    const ids = ["chartCanvas","miniCanvas"];
+    ids.forEach(id=>{ const c = document.getElementById(id); if(c){ if(id === "chartCanvas") chartTabHeight(c); c._w = 0; fitCanvas(c); if(id === "chartCanvas") chartZones(c); } });
+    if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();
+    drawMini();
+  });
 });
 
 /* ---------------- news self-test (20×4 offline simulations) ---------------- */
@@ -6215,7 +6346,7 @@ const XC = {
 async function xcApi(method, path, body){
   const h = { "Content-Type": "application/json" };
   if(XC.token) h["Authorization"] = "Bearer " + XC.token;
-  const r = await fetch(path, { method, headers: h, body: body ? JSON.stringify(body) : undefined });
+  const r = await fetch(path, { method, headers: h, body: body == null ? undefined : typeof body === "string" ? body : JSON.stringify(body) });   // a string is already JSON (statePutBody)
   let data = null; try{ data = await r.json(); }catch(e){}
   if(!r.ok){ const err = new Error((data && data.error) || ("HTTP " + r.status)); err.status = r.status; err.data = data; throw err; }
   return data;
@@ -6368,7 +6499,7 @@ function xcPushState(force){
     clearTimeout(XC._pushT); clearTimeout(XC._pushMax); XC._pushT = null; XC._pushMax = 0;
     if(!XC._dirty || XC._inflight) return;
     XC._inflight = true; XC._dirty = false;
-    xcApi("PUT", "/api/state", { state: S, sid: XC.sid })
+    xcApi("PUT", "/api/state", statePutBody())
       .then(res=>{ XC._inflight = false; XC.online = true; XC.remoteAt = res.updatedAt;
                    XC.rev = res.rev; XC.lease = res.lease; syncBadge(); })
       .catch(e=>{
@@ -6395,7 +6526,7 @@ function xcPushBeacon(){
   const t = Date.now();
   if(t - (XC._beaconAt || 0) < 1500) return;   // pagehide + beforeunload both fire -> send once
   XC._beaconAt = t;
-  const body = JSON.stringify({ state: S, sid: XC.sid });
+  const body = statePutBody();
   try{
     if(body.length < 60000 && navigator.sendBeacon){
       const blob = new Blob([body], { type: "application/json" });
