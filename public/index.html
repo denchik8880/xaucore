@@ -33,7 +33,7 @@
   --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.4);    /* modal backdrop */
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
-  --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db;
+  --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
@@ -48,7 +48,7 @@
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
-  --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c;
+  --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
 }
@@ -415,15 +415,12 @@ body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],
 .lotwheel{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;z-index:150;background:var(--lw-bg);border-top:1px solid var(--lw-edge);padding-bottom:env(safe-area-inset-bottom);animation:lwIn .24s cubic-bezier(.2,.8,.2,1)}
 .lotwheel.out{transition:transform .18s ease-in;transform:translateY(100%)}
 @keyframes lwIn{from{transform:translateY(100%)}to{transform:none}}
-/* a screen coming in (animateScreenIn) — quick enough to never feel like waiting */
-@keyframes scrUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes scrFwd{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
-@keyframes scrBack{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
-@keyframes scrFade{from{opacity:0}to{opacity:1}}
-.scr-up{animation:scrUp .16s cubic-bezier(.2,.8,.2,1)}
-.scr-fwd{animation:scrFwd .18s cubic-bezier(.2,.8,.2,1)}
-.scr-back{animation:scrBack .18s cubic-bezier(.2,.8,.2,1)}
-.scr-fade{animation:scrFade .14s ease-out}
+/* touch ripple (RIPPLE_SEL): a grey cell with a circle spreading from the finger, fading on release */
+.ripple{position:fixed;z-index:200;overflow:hidden;pointer-events:none;background:transparent;transition:background-color .12s ease,opacity .28s ease}
+.ripple span{position:absolute;border-radius:50%;background:var(--ripple);transform:scale(0);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.ripple.on{background:var(--ripple-bg)}
+.ripple.on span{transform:scale(1)}
+.ripple.out{opacity:0}
 .lw-bar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 8px;background:var(--lw-bar)}
 .lw-bar button{background:none;border:0;padding:10px 12px;font-size:17px;color:var(--ink)}
 .lw-bar .lw-done{font-weight:600}
@@ -696,7 +693,7 @@ html:has(body.route-wallet){background:#0c0a08}
 .chartzoom button,.bignew{
   transition:transform .13s cubic-bezier(.2,.7,.3,1),filter .13s ease,background-color .13s ease,color .13s ease;
 }
-.btn:active,.menu-item:active,.wl-row:active,.tbtn:active,.seg button:active,
+.btn:active,.wl-row:active,.tbtn:active,.seg button:active,
 .tfbar button:active,.miniquick button:active,.pill-toggle button:active,
 .tps-presets button:active,.news-btns button:active,.lotctl button:active{transform:scale(.97)}
 .iconbtn:active,.chartzoom button:active{transform:scale(.9)}
@@ -2485,28 +2482,33 @@ function addManualEvent(o){
    UI
    ========================================================================= */
 const app = () => document.getElementById("app");
-/* Screen transitions — a fraction of a second, like a native app (a tab switch used to be a bare
-   swap). render() compares where we are with the last render, so only real navigation moves:
-   the 120 ms live re-renders, a theme switch or ⛶ on the same screen don't. Another bottom tab
-   rises in, going deeper (XAUUSD from the list, calendar / DOM, settings…) slides in from the
-   right, going back from the left, and a XAUUSD subtab only fades its content (app bar and tabs
-   stay put). The tab bar never moves; floating buttons only fade (they carry their own transform).
-   Transforms never reach position:fixed children — each child of #app animates on its own. */
-let _routeKey = null;
-const DEEP = { calendar: ["markets", 2], dom: ["markets", 2], settings: ["more", 1], history: ["more", 1], debug: ["more", 1], wallet: ["more", 1] };
-function routeKey(){
-  const t = S.ui.tab, open = t === "markets" && S.ui.marketOpen, d = DEEP[t];
-  return { key: t + (open ? ":" + S.ui.subtab : ""), screen: t + (open ? ":xau" : ""), group: d ? d[0] : t, depth: d ? d[1] : open ? 1 : 0 };
-}
-function animateScreenIn(cur, prev){
-  const sub = cur.screen === prev.screen;                         // a XAUUSD subtab
-  const kind = sub ? "fade" : cur.group !== prev.group ? "up" : cur.depth >= prev.depth ? "fwd" : "back";
-  for(const el of app().children){
-    const cl = el.classList;
-    if(cl.contains("bottomnav") || (sub && (cl.contains("appbar") || cl.contains("subtabs") || cl.contains("bignew")))) continue;
-    cl.add(cl.contains("bignew") || cl.contains("fabnew") ? "scr-fade" : "scr-" + kind);
-  }
-}
+/* Touch ripple, cTrader's (its Android tab bar, a screen recording): touching a tab or a row lights
+   its cell grey and a circle spreads from the finger; it fades once the finger lifts. Drawn in a
+   layer OUTSIDE #app, laid over the element, so it plays on when the tap re-renders the screen (a
+   tab switch) — and nothing inside the page moves. (Animated screen transitions were tried instead
+   and rejected: a sliding wrap dragged the fixed «Новый ордер» up the screen for a moment.) */
+const RIPPLE_SEL = ".bottomnav button, .subtabs button, .menu-item, .ne-card > summary, .tfsheet button";
+document.addEventListener("pointerdown", e => {
+  if(e.button > 0) return;
+  const el = e.target.closest && e.target.closest(RIPPLE_SEL);
+  if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
+  const r = el.getBoundingClientRect(), rad = getComputedStyle(el).borderRadius;
+  const box = document.createElement("div");
+  box.className = "ripple";
+  box.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:${rad && rad !== "0px" ? rad : "6px"}`;
+  const x = e.clientX - r.left, y = e.clientY - r.top, d = 2 * Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
+  const wave = document.createElement("span");
+  wave.style.cssText = `left:${x - d/2}px;top:${y - d/2}px;width:${d}px;height:${d}px`;
+  box.appendChild(wave);
+  document.body.appendChild(box);
+  requestAnimationFrame(() => box.classList.add("on"));
+  const t0 = performance.now();
+  const end = () => {
+    window.removeEventListener("pointerup", end, true); window.removeEventListener("pointercancel", end, true);
+    setTimeout(() => { box.classList.add("out"); setTimeout(() => box.remove(), 300); }, Math.max(0, 200 - (performance.now() - t0)));   // a quick tap still shows it
+  };
+  window.addEventListener("pointerup", end, true); window.addEventListener("pointercancel", end, true);
+}, { capture: true, passive: true });
 let modalEl = null;
 
 function toast(kind, msg){
@@ -2595,9 +2597,6 @@ function render(){
   else if(t === "debug")     html += screenDebug();
   html += bottomNav();
   app().innerHTML = html;
-  const rk = routeKey();                                          // a new screen comes in with a fraction-of-a-second motion
-  if(_routeKey && rk.key !== _routeKey.key) animateScreenIn(rk, _routeKey);
-  _routeKey = rk;
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
   document.body.classList.toggle("route-chart", t === "chart");
   document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
