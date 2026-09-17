@@ -2542,12 +2542,13 @@ document.addEventListener("click", e => {                         // capture: be
   if(!P || !P.el.contains(e.target)) return;
   clearTimeout(P.timer); clearTimeout(P.upT);
   _rip = null;
-  const el = P.el, stays = !!el.closest(".bottomnav, .subtabs, .ne-card");
-  // A tap that opens another screen takes its row away, and the ripple must not hang over the new
-  // screen (user: «видно, когда уже перешли во вкладку»): it goes before that screen paints. A quick
-  // tap had then shown nothing at all («когда быстро нажать, оно не успевает отобразиться») — so a
-  // quick tap on such a row is held back 140 ms while its ripple lights, then let through. The tab
-  // bar, the XAUUSD subtabs and sections that open in place stay where they are: theirs play on.
+  const el = P.el, stays = !!el.closest(".ne-card");
+  // A tap that opens another screen — a row, a bottom tab, a XAUUSD subtab (every render replaces
+  // them) — must leave no ripple on the screen it opens (user: «видно, когда уже перешли во вкладку»,
+  // then «не везде удалили … нужно везде»): it goes before that screen paints. A quick tap had then
+  // shown nothing at all («когда быстро нажать, оно не успевает отобразиться») — so a quick tap is
+  // held back 140 ms while its ripple lights, then let through. Only sections that open in place
+  // (settings) keep their element, and their ripple fades where it is.
   if(!P.shown){
     P.shown = rippleShow(el, P.x, P.y);
     if(!stays){
