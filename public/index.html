@@ -5833,9 +5833,11 @@ function drawChart(){
   }
   // Pills sit ON their lines — the line runs through the middle of the pill. Only a position's own
   // ТП / lots / СЛ pills are spread apart vertically (their connector keeps them tied); pills of
-  // different positions / orders stack in an even column even when their lines are closer than a
-  // pill (pushing them apart vertically left the lower ones' lines above their middle), and go side
-  // by side only when one would all but cover the other.
+  // different positions / orders stay in ONE even column however close their lines are — pushing
+  // them apart vertically left the lower ones' lines above their middle, and setting same-price ones
+  // side by side made them shuffle and ride over each other while the chart was dragged (user: «они
+  // не должны так крутиться, один на одного должны быть»): positions at the same price lie one on
+  // top of the other.
   const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
   for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
   const units = [];                                              // a position's pill column, or a lone pill
@@ -5850,10 +5852,8 @@ function drawChart(){
   // however fast the swipe — along a smoothstep ramp as the line nears a strip: 110 px for the bottom
   // row's ~170 px slide (≤ 2.4 px sideways per px of drag; a 40 px ramp threw a pill 35–45 px in one
   // frame of a slow drag in the user's video), 60 px for the short slides by ⛶ and + / −. Its size
-  // is always what fits where it is. A pill of another position / order that would all but cover one
-  // (near the same price) goes beside it, and that sideways offset glides (τ 90 ms) — a neighbour
-  // arriving or leaving is not a finger move; merely close lines stay in an even column. «›|» fading in or out narrows / widens the row's gap
-  // with τ 90 ms. A position's ТП / lots / СЛ column moves sideways as one.
+  // is always what fits where it is. «›|» fading in or out narrows / widens the row's gap with τ 90 ms.
+  // A position's ТП / lots / СЛ column moves sideways as one.
   const Z = chart._zones || {};
   const ease3 = k => k * k * (3 - 2 * k);
   const zk = (yy, t, b, ramp) => t == null ? 0 : ease3(clamp(1 - Math.max(0, t - pillH/2 - yy, yy - b - pillH/2) / ramp, 0, 1));
@@ -5868,50 +5868,24 @@ function drawChart(){
   chart._rowR = { v: rowR, t: pNow };
   const rowL = Z.rowL || 168;
   const fitRow = (m, x) => 1 - (1 - clamp((rowR - x) / m.w, 0.45, 1)) * zk(m.y, Z.rowT, Z.rowB, 110);
-  units.sort((a, b) => Math.min(...a.map(k => k.y)) - Math.min(...b.map(k => k.y)));
-  const placed = [];
   for(const g of units){
     const kOf = (t, b, ramp) => Math.max(...g.map(k => zk(k.y, t, b, ramp)));
     const base = Math.max(8, 8 + ((Z.fsR || 70) - 8) * kOf(0, Z.fsB, 60), 8 + ((Z.zoomR || 64) - 8) * kOf(Z.zoomT, Z.zoomB, 60), 8 + (rowL - 8) * kOf(Z.rowT, Z.rowB, 110));
-    let x = base;
-    for(const m of g) m.w = chartPillWidth(ctx, pillFs, m.text, m.icon);
-    for(let pass = 0; pass < 4; pass++){                          // side by side with the pills already placed
-      let moved = false;
-      for(const m of g){
-        const sm = fitRow(m, x);
-        for(const p of placed){
-          // only a pill that would all but cover another (lines within ~40 % of a pill) goes beside it;
-          // closer-than-a-pill lines just stack in the column, overlapping a little — easing those aside
-          // by how much they overlapped left one pill half-way out of an otherwise even column
-          if(Math.abs(m.y - p.y) >= pillH * (sm + p.ts) / 2 * 0.4 || p.tx >= x + m.w * sm + 4) continue;
-          const want = p.tx + p.w * p.ts + 4;
-          if(want > x + 0.5){ x = want; moved = true; }
-        }
-      }
-      if(!moved) break;
-    }
-    for(const m of g){ m.base = base; m.tx = x; m.ts = fitRow(m, x); placed.push(m); }
+    for(const m of g){ m.w = chartPillWidth(ctx, pillFs, m.text, m.icon); m.px = base; m.s = fitRow(m, base); }
   }
   // Levels also FADE (pill, line, dot, tag together): over 14 px at the plot's top and foot — dragged
   // past an edge they used to pop in and out — and in over ~0.2 s when first seen (a new position,
   // or back after a while off screen)
   const FADE = 14;
   for(const m of marks){
-    // the pill sits at its strip-ramp place (followed exactly) plus the side-by-side offset (gliding);
-    // the offset is never negative, so the pill is never left of its ramp place — never over a button
-    let push = m.tx - m.base, al = 0;
+    let al = 0;
     const a = pAnim.get(m.key);
     if(a && pNow - a.t < 400){
-      if(a.push != null){
-        const next = a.push + (push - a.push) * (1 - Math.exp(-(pNow - a.t) / 90));
-        if(Math.abs(next - push) >= 0.3){ push = next; pSettling = true; }
-      }
       const al0 = a.al == null ? 1 : a.al;
       al = al0 + (1 - al0) * (1 - Math.exp(-(pNow - a.t) / 70));
     }
     if(al > 0.99) al = 1; else pSettling = true;
-    pAnim.set(m.key, { push, al, t: pNow });
-    m.px = m.base + push; m.s = fitRow(m, m.px);                  // the size that fits where it is
+    pAnim.set(m.key, { al, t: pNow });
     m.a = al * clamp((m.ly - padT) / FADE, 0, 1) * clamp((H - padB - m.ly) / FADE, 0, 1);
   }
   if(pAnim.size > 120) pAnim.clear();
