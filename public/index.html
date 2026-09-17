@@ -686,6 +686,9 @@ html:has(body.route-wallet){background:#0c0a08}
 .appbar .ttl.run .ttl-run{animation:ttlRun var(--run-dur,6s) ease-in-out infinite}
 @keyframes ttlRun{0%,20%{transform:translateX(0)}50%,70%{transform:translateX(var(--run-x,0))}100%{transform:translateX(0)}}
 .badge-demo{flex:0 0 auto}
+/* «Ещё» footer: the author's credit */
+.creator{text-align:center;margin:16px 0 6px;font-size:13px;color:var(--ink2)}
+.creator b{color:var(--ink);font-weight:600}
 
 /* --- iOS-style tactile feedback: a quick, subtle squish + dim on press --- */
 .btn,.tbtn,.menu-item,.wl-row,.seg button,.tfbar button,.miniquick button,
@@ -2707,7 +2710,7 @@ function appbar(title, opts){
     ${opts.back?`<button class="iconbtn" data-act="back">‹</button>`:``}
     <div class="ttl"><span class="ttl-run">${title}${opts.caret?`<span style="color:var(--ink3)">▾</span>`:``}</span></div>
     <div class="sp"></div>
-    <span class="badge-demo">DEMO • SYNTHETIC DATA</span>
+    ${opts.demo ? `<span class="badge-demo">DEMO • SYNTHETIC DATA</span>` : ``}
   </div>`;
 }
 
@@ -3221,7 +3224,7 @@ function listOrders(){
 /* ---------- MORE ---------- */
 function screenMore(){
   const acct = XC.token ? `<b>${XC.email||"аккаунт"}</b>` : `Не выполнен вход`;
-  return appbar("Ещё") + `<div class="wrap">
+  return appbar("Ещё", { demo: true }) + `<div class="wrap">
     <div class="card">
       <div class="row"><span class="k">Аккаунт</span><span class="v">${acct}</span></div>
       <div class="row"><span class="k">Синхронизация</span><span class="v mono" id="xcSync">…</span></div>
@@ -3253,8 +3256,9 @@ function screenMore(){
     <hr class="d">
     <div class="menu-item" data-act="reset" style="color:var(--red)"><span>♻️ Сбросить симулятор</span><span>›</span></div>
     <div class="hint" style="text-align:center;color:var(--ink3);margin-top:14px">
-      XAUCORE · DEMO • SYNTHETIC DATA<br>Автономный симулятор. Реальные котировки / брокер / счета не используются.
+      XAUCORE · Автономный симулятор. Реальные котировки / брокер / счета не используются.
     </div>
+    <div class="creator">Создатель — <b>Denis Goldman</b></div>
   </div>`;
 }
 
@@ -3306,7 +3310,7 @@ function screenWallet(){
     ["🛡", "Безопасность", "DEMO-среда — реальные средства не задействованы"],
     ["🔒", "Надёжность", "Синтетический симулятор, состояние кошелька сохраняется"],
     ["⚡", "Быстрота", "Мгновенное пополнение и вывод внутри симулятора"],
-    ["🎧", "Поддержка", "Учебный проект · DEMO • SYNTHETIC DATA"]
+    ["🎧", "Поддержка", "Учебный проект"]
   ];
   return `<div class="wallet-page">
     <div class="wallet-bg${_walletBg === "jpg" ? " has-photo" : ""}" aria-hidden="true"></div>
@@ -3362,7 +3366,7 @@ function screenWallet(){
       <div class="wfeat">
         ${feat.map(f => `<div><div class="wfeat-ic" aria-hidden="true">${f[0]}</div><div class="wfeat-t">${f[1]}</div><div class="wfeat-d">${f[2]}</div></div>`).join("")}
       </div>
-      <div class="wfoot-cr">© ${new Date().getUTCFullYear()} Zenin Markets · DEMO • SYNTHETIC DATA<br>
+      <div class="wfoot-cr">© ${new Date().getUTCFullYear()} Zenin Markets<br>
         <a data-act="wlegal">Условия использования</a> · <a data-act="wlegal">Политика конфиденциальности</a></div>
     </div></div>
   </div>`;
@@ -3681,8 +3685,7 @@ function screenDebug(){
   const bandRu = {LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"};
   return appbar("Debug-консоль",{back:true}) + `<div class="wrap">
     <div class="card">
-      <div class="hint" style="color:var(--orange);font-weight:600">DEMO • SYNTHETIC DATA</div>
-      <h3 style="margin-top:8px">Режим рынка</h3>
+      <h3 style="margin-top:0">Режим рынка</h3>
       ${RG ? `<div class="row"><span class="k">Текущий</span><span class="v mono">${RG.label}</span></div>
       <div class="row"><span class="k">Длительность</span><span class="v mono">${fmt(S.regime.durDays,1)} игр. дней (осталось ${fmt(regLeftMin,0)} мин)</span></div>
       <div class="row"><span class="k">Дрейф / волат.</span><span class="v mono">${RG.drift>0?'+':''}${RG.drift} / ×${RG.vol}</span></div>
@@ -4790,7 +4793,7 @@ function showNewsResult(r){
       ${row("Two-way", r.twoWay?"yes":"no")}
       ${row("Planned range", "$"+fmt(r.plannedR,2))}
     </div>
-    <div class="hint" style="text-align:center">DEMO • SYNTHETIC DATA — данные сгенерированы симулятором</div>
+    <div class="hint" style="text-align:center">Данные сгенерированы симулятором</div>
     <button class="btn dark" data-close>OK</button>
   `);
 }
@@ -6450,7 +6453,7 @@ function screenAuth(msg, kind){
   const t = _authMode, reg = t === "register";
   const bad = kind === "err" || (kind === undefined && /ошиб|занят|невер|мин|недоступ|истек/i.test(msg||""));
   app().innerHTML = `
-    <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div><span class="badge-demo">DEMO • SYNTHETIC DATA</span></div>
+    <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div></div>
     <div class="wrap" style="max-width:420px;margin:0 auto">
       <div class="card" style="text-align:center;padding:22px 16px">
         <div style="font-size:26px;font-weight:700;letter-spacing:.04em">XAUCORE</div>
