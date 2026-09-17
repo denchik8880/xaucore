@@ -2495,9 +2495,14 @@ const RIPPLE_SEL = ".bottomnav button, .subtabs button, .menu-item, .ne-card > s
 let _rip = null;                                                 // the press being watched
 function rippleShow(el, cx, cy){
   const r = el.getBoundingClientRect(), rad = getComputedStyle(el).borderRadius;
+  // pinned to the page, so it scrolls with its row (fixed to the screen it stayed put while the list
+  // moved away under it); on the fixed / sticky bars it stays on the screen with them
+  const onScreen = !!el.closest(".bottomnav, .subtabs, .modal, .appbar, .wl-topbar");
+  const b = onScreen ? null : document.body.getBoundingClientRect();   // body is position:relative (and centred on a wide screen)
+  const ox = onScreen ? 0 : -b.left, oy = onScreen ? 0 : -b.top;
   const box = document.createElement("div");
   box.className = "ripple";
-  box.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:${rad && rad !== "0px" ? rad : "6px"}`;
+  box.style.cssText = `position:${onScreen ? "fixed" : "absolute"};left:${r.left + ox}px;top:${r.top + oy}px;width:${r.width}px;height:${r.height}px;border-radius:${rad && rad !== "0px" ? rad : "6px"}`;
   const x = cx - r.left, y = cy - r.top, d = 2 * Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
   const wave = document.createElement("span");
   wave.style.cssText = `left:${x - d/2}px;top:${y - d/2}px;width:${d}px;height:${d}px`;
@@ -2530,18 +2535,34 @@ document.addEventListener("pointerup", e => {
   clearTimeout(P.timer);
   P.upT = setTimeout(() => rippleDrop(P), 350);                   // no tap followed (the element went away…)
 }, { capture: true, passive: true });
+let _ripReplay = null;                                           // a tap held back for its ripple, being let through
 document.addEventListener("click", e => {                         // capture: before the tap re-renders the screen
   const P = _rip;
+  if(_ripReplay && _ripReplay.contains(e.target)){ _ripReplay = null; return; }
   if(!P || !P.el.contains(e.target)) return;
   clearTimeout(P.timer); clearTimeout(P.upT);
-  if(!P.shown) P.shown = rippleShow(P.el, P.x, P.y);
-  rippleFade(P.shown);
   _rip = null;
-  // a tap that opened another screen took its row away: the ripple would hang over the new screen's
-  // content (user: «видно, когда уже перешли во вкладку») — gone before it paints. The tab bar and
-  // the XAUUSD subtabs stay where they were, so theirs play on.
-  const R = P.shown, el = P.el;
-  setTimeout(() => { if(!el.isConnected && !el.closest(".bottomnav, .subtabs")) R.box.remove(); }, 0);
+  const el = P.el, stays = !!el.closest(".bottomnav, .subtabs, .ne-card");
+  // A tap that opens another screen takes its row away, and the ripple must not hang over the new
+  // screen (user: «видно, когда уже перешли во вкладку»): it goes before that screen paints. A quick
+  // tap had then shown nothing at all («когда быстро нажать, оно не успевает отобразиться») — so a
+  // quick tap on such a row is held back 140 ms while its ripple lights, then let through. The tab
+  // bar, the XAUUSD subtabs and sections that open in place stay where they are: theirs play on.
+  if(!P.shown){
+    P.shown = rippleShow(el, P.x, P.y);
+    if(!stays){
+      e.preventDefault(); e.stopImmediatePropagation();
+      const R = P.shown;
+      setTimeout(() => {
+        _ripReplay = el; el.click(); _ripReplay = null;
+        if(!el.isConnected) R.box.remove(); else rippleFade(R);
+      }, 140);
+      return;
+    }
+  }
+  rippleFade(P.shown);
+  const R = P.shown;
+  setTimeout(() => { if(!el.isConnected && !stays) R.box.remove(); }, 0);
 }, true);
 let modalEl = null;
 
