@@ -2549,21 +2549,26 @@ document.addEventListener("click", e => {                         // capture: be
   // shown nothing at all («когда быстро нажать, оно не успевает отобразиться») — so a quick tap is
   // held back 140 ms while its ripple lights, then let through. Only sections that open in place
   // (settings) keep their element, and their ripple fades where it is.
+  // …and a tap that opens a sheet over the screen («Создать Synthetic News», «Последний News Result»,
+  // confirmations) counts as a new screen too: the ripple was left fading on top of the sheet
+  const m0 = modalEl;
+  const leftScreen = () => !el.isConnected || (!!modalEl && modalEl !== m0);
   if(!P.shown){
     P.shown = rippleShow(el, P.x, P.y);
     if(!stays){
       e.preventDefault(); e.stopImmediatePropagation();
       const R = P.shown;
       setTimeout(() => {
+        const m1 = modalEl;
         _ripReplay = el; el.click(); _ripReplay = null;
-        if(!el.isConnected) R.box.remove(); else rippleFade(R);
+        if(!el.isConnected || (!!modalEl && modalEl !== m1)) R.box.remove(); else rippleFade(R);
       }, 140);
       return;
     }
   }
   rippleFade(P.shown);
   const R = P.shown;
-  setTimeout(() => { if(!el.isConnected && !stays) R.box.remove(); }, 0);
+  setTimeout(() => { if(!stays && leftScreen()) R.box.remove(); }, 0);
 }, true);
 let modalEl = null;
 
