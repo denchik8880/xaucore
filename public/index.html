@@ -2537,6 +2537,11 @@ document.addEventListener("click", e => {                         // capture: be
   if(!P.shown) P.shown = rippleShow(P.el, P.x, P.y);
   rippleFade(P.shown);
   _rip = null;
+  // a tap that opened another screen took its row away: the ripple would hang over the new screen's
+  // content (user: «видно, когда уже перешли во вкладку») — gone before it paints. The tab bar and
+  // the XAUUSD subtabs stay where they were, so theirs play on.
+  const R = P.shown, el = P.el;
+  setTimeout(() => { if(!el.isConnected && !el.closest(".bottomnav, .subtabs")) R.box.remove(); }, 0);
 }, true);
 let modalEl = null;
 
