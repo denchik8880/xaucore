@@ -5707,7 +5707,7 @@ function drawChart(){
     if(yy < padT - 1 || yy > H - padB + 1) continue;
     ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
     // hidden by the Bid/Ask tags (cTrader lets 4290.00 peek out under a ТП tag) or by the countdown
-    if(Math.abs(yy - tAsk) < 12 || Math.abs(yy - tBid) < 12 || Math.abs(yy - yCount) < 12 || yy < 6) continue;
+    if(Math.abs(yy - tAsk) < 13 || Math.abs(yy - tBid) < 13 || Math.abs(yy - yCount) < 12 || yy < 6) continue;
     ctx.fillText(chartPx(p), W - 12, yy + 0.5);
   }
   // time scale — cTrader's: a bold date at the left, then a time on every bar whose time is a round
@@ -5786,7 +5786,7 @@ function drawChart(){
   priceLine(yAsk, CL_ASK);
   priceLine(yBid, CL_BID);
   // right-scale Bid/Ask tags: centred on their lines, drawn at the very end (on top)
-  const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 16, label, col, TC.bg);
+  const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 18, label, col, TC.bg);
 
   /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
      Bound directly to S.positions / S.pendings — no separate viz state.
@@ -5838,7 +5838,9 @@ function drawChart(){
   // side by side made them shuffle and ride over each other while the chart was dragged (user: «они
   // не должны так крутиться, один на одного должны быть»): positions at the same price lie one on
   // top of the other.
-  const pillH = 16, pillFs = tagFontSize(ctx, chartPx(S.price.bid), padR - 4, pillH);
+  // cTrader's size (a 1440 px screenshot of 8 positions): pills and price tags 18 px tall, pill text 13 px —
+  // the same as the price scale (they were 16 px with ~12 px text)
+  const pillH = 18, pillFs = 13;
   for(const m of marks){ m.ly = crispY(m.ly); m.y = m.ly; }      // lines and tags on the pixel grid
   const units = [];                                              // a position's pill column, or a lone pill
   for(const m of marks){ const g = m.grp || [m]; if(!units.includes(g)) units.push(g); }
@@ -5938,7 +5940,7 @@ function drawChart(){
   ctx.globalAlpha = 1;
   // right-axis tags, centred on their own line like cTrader (overlapping rather than
   // nudged apart); the live Bid/Ask tags go on last so they stay on top
-  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 16, chartPx(m.price), m.col, TC.bg); }
+  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 18, chartPx(m.price), m.col, TC.bg); }
   ctx.globalAlpha = 1;
   priceTag(tAsk, CL_ASK, chartPx(S.price.ask));
   priceTag(tBid, CL_BID, chartPx(S.price.bid));
@@ -5965,7 +5967,7 @@ function drawChart(){
     const b = vis[idx];
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
     ctx.font = AXF; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-8, padR, 16);
+    ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-9, padR, 18);
     ctx.fillStyle = "#fff"; ctx.fillText(chartPx(price), plotW + padR/2, cy + 0.5);
     if(b){
       const rb = data[startIdx + idx] || b;         // raw OHLC for the text readout
