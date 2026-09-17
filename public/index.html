@@ -500,12 +500,13 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 :root[data-theme="dark"] .fabnew{--fab-bg:#0d47a1;color:#dbe7fb}
 .fabnew:active{filter:brightness(.92)}
 body.trade-locked .fabnew{opacity:.5;pointer-events:none}
-/* cTrader tints BOTH boxes — caption, price and border — by the last tick:
-   green after an uptick, red after a downtick (.dn on the .wl-quote row) */
+/* cTrader tints each box — caption, price and border — by ITS OWN price's last tick: ПРОДАТЬ by
+   the Bid, КУПИТЬ by the Ask, green after an uptick, red after a downtick (.dn on the box). A
+   spread change moves the two apart, so they can differ (a cTrader video: green ПРОДАТЬ, red КУПИТЬ) */
 .wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;border:1px solid currentColor;border-radius:4px;padding:2px 2px 3px;color:var(--green)}
 .wl-q b{font-size:12.5px;font-weight:500;letter-spacing:.02em;line-height:1.25;color:inherit}
 .wl-q span{font-size:17px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums}
-.wl-quote.dn .wl-q{color:var(--red)}
+.wl-q.dn{color:var(--red)}
 /* same pill as the search field beside it — cTrader gives them equal weight;
    ours used to sit noticeably smaller */
 .ab-bal{flex:0 0 auto;background:var(--line);color:var(--ink);font-weight:600;font-size:15px;
@@ -1424,6 +1425,10 @@ function engineFrame(){
 function finishFrame(nowR, newsOn){
   if(S.news.active && nowR >= S.news.endReal) endNews();
   if(S.lock.active && nowR >= S.lock.until){ S.lock.active = false; S._needRender = true; }
+  // the quote breathes between price ticks (quoteFlicker) — not while news / an impulse / manual
+  // control / a closed market own the price and the spread
+  if(!newsOn && !S.news.active && !S.manual.enabled && !S.manual.impulse && !(S.news.decayUntil && nowR < S.news.decayUntil)
+     && !marketClosed() && Math.random() < RT_MS / 1000 * QUOTE_FLICKER_HZ) quoteFlicker();
   if(Math.random() < 0.02) checkEvents();
   recalcAccount();
   checkStopOut();
@@ -1745,6 +1750,21 @@ function applyPriceDerived(){
   P.volume += P.lastVol || 1;
 }
 
+/* Between price ticks cTrader's quote still breathes: the spread changes on its own, so the Bid and
+   the Ask step AGAINST each other — which is why its ПРОДАТЬ and КУПИТЬ are not always one colour
+   (a cTrader video). Our ticks move the price ~0.77 $ at 2 a second and the spread only moved with
+   them (±0.04), so the two sides always went the same way. Two or three times a second, between ticks, only
+   the spread is redrawn around the unchanged mid: candles, the chart's lines and P&L all read the same
+   S.price the trade buttons show; pending orders and SL / TP see the new quote. */
+const QUOTE_FLICKER_HZ = 2.6;                                     // sides differ ~⅕ of the time, like the cTrader video
+function quoteFlicker(){
+  const P = S.price, d = S.symbol.digits, s = roundTo(autoSpread(), d);
+  if(s === P.spread) return;
+  P.spread = s;
+  P.bid = roundTo(P.mid - s/2, d);
+  P.ask = roundTo(P.bid + s, d);                                // Ask − Bid is exactly the quoted spread
+  processPendings(); processPositionSLTP();
+}
 function pushTick(){
   _tickBuf.push({ t:S.simClock, bid:S.price.bid, ask:S.price.ask, mid:S.price.mid,
                   spread:S.price.spread, volume:S.price.lastVol||0, vol:+currentVolFactor().toFixed(2) });
@@ -2635,29 +2655,22 @@ function fabNewMarkup(){
 /* watchlist header money pill = live EQUITY (balance + floating P/L + swaps), so it
    moves with open positions. tint pos/neg while a trade is running. */
 function abBalCls(){ const a = S._acc; if(!a) return ""; const v = (a.floating || 0) + (a.swaps || 0); return Math.abs(v) < 0.005 ? "" : (v > 0 ? "pos" : "neg"); }
-/* direction of the last price change for the quote boxes. Compared on the
-   DISPLAYED bid (rounded to the symbol's digits) so a sub-pip wiggle that leaves
-   the digits unchanged can't flip the colour; an unchanged price keeps the last
-   direction, like cTrader. Read from S.price, so a mirroring device follows too. */
-const wlTick = { px: null, dir: "up" };
-function wlTickDir(){
-  const px = Math.round(S.price.bid * Math.pow(10, S.symbol.digits));
-  if(wlTick.px !== null && px !== wlTick.px) wlTick.dir = px > wlTick.px ? "up" : "dn";
-  wlTick.px = px;
-  return wlTick.dir;
+/* Direction of each price's last change, cTrader's: ПРОДАТЬ follows the Bid and КУПИТЬ the Ask,
+   EACH ON ITS OWN — the watchlist box colours, the ▲/▼ under ПРОДАТЬ / КУПИТЬ on the Markets panel
+   and the ↑/↓ on the Charts bar. A spread change moves the two apart, so a green ПРОДАТЬ can sit
+   next to a red КУПИТЬ (a cTrader video; one shared direction — the Bid's or the mid's — painted
+   both sides alike). Compared on the DISPLAYED prices (rounded to the symbol's digits), so a
+   sub-pip wiggle can't flip a colour; an unchanged price keeps its last direction. Read from
+   S.price, so a mirroring device follows too. Advanced from updateLive() (and the markup). */
+const _tick = { b: null, a: null, bd: "up", ad: "up" };
+function tickDirs(){
+  const k = Math.pow(10, S.symbol.digits), b = Math.round(S.price.bid * k), a = Math.round(S.price.ask * k);
+  if(_tick.b !== null && b !== _tick.b) _tick.bd = b > _tick.b ? "up" : "dn";
+  if(_tick.a !== null && a !== _tick.a) _tick.ad = a > _tick.a ? "up" : "dn";
+  _tick.b = b; _tick.a = a;
+  return _tick;
 }
-/* the ↑/↓ next to the prices on the Charts tab trade bar (cTrader shows the last tick) */
-/* Direction of the last quote change, taken on the mid (Bid + Ask) so the two sides
-   always agree — cTrader's ▲/▼ under ПРОДАТЬ / КУПИТЬ and the ↑/↓ on the Charts bar.
-   Advanced from updateLive(); markup reads _qTick.dir without advancing it. */
-const _qTick = { s: null, dir: "up" };
-function quoteDir(){
-  const s = Math.round((S.price.bid + S.price.ask) * 100);
-  if(_qTick.s !== null && s !== _qTick.s) _qTick.dir = s > _qTick.s ? "up" : "dn";
-  _qTick.s = s;
-  return _qTick.dir;
-}
-function chartDirArrow(){ return _qTick.dir === "dn" ? "↓" : "↑"; }
+const dirArrow = d => d === "dn" ? "↓" : "↑";
 function screenMarketsList(){
   recalcAccount();
   const w = watchStats();
@@ -2685,9 +2698,9 @@ function screenMarketsList(){
       </div>
       <div class="wl-right">
         <div class="wl-stats"><span>H: <span id="wlHi">${chartPx(w.hi)}</span></span><span>S: <span id="wlSp">${w.spr}</span></span><span>L: <span id="wlLo">${chartPx(w.lo)}</span></span></div>
-        <div class="wl-quote ${wlTickDir()}" id="wlQuote">
-          <span class="wl-q sell"><b>ПРОДАТЬ</b><span id="wlBid">${chartPx(S.price.bid)}</span></span>
-          <span class="wl-q buy"><b>КУПИТЬ</b><span id="wlAsk">${chartPx(S.price.ask)}</span></span>
+        <div class="wl-quote">
+          <span class="wl-q sell ${tickDirs().bd}" id="wlQS"><b>ПРОДАТЬ</b><span id="wlBid">${chartPx(S.price.bid)}</span></span>
+          <span class="wl-q buy ${_tick.ad}" id="wlQB"><b>КУПИТЬ</b><span id="wlAsk">${chartPx(S.price.ask)}</span></span>
         </div>
       </div>
     </div>
@@ -2799,13 +2812,13 @@ function mktOverview(){
         <div class="ovh-lsh"><span>L: <b id="ovLow">${h.low}</b></span><span>S: <b id="ovSprPts">${h.spr}</b></span><span>H: <b id="ovHigh">${h.high}</b></span></div>
       </div>
       <div class="ctp">
-        <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirS"></span></button>
+        <button class="ctp-cap sell" data-act="quicksell"><span class="tcap">ПРОДАТЬ</span><span class="tx">✕</span><span class="ctp-dir ${tickDirs().bd}" id="ovDirS"></span></button>
         <div class="ctp-lot">
           <span class="ctp-lot-cap">Количество (Лоты)</span>
           <input class="ctp-lot-val mono" id="ovLot" value="${fmt(lot,2)}" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="Объём в лотах">
           <button type="button" class="ctp-caret-btn" data-act="lotwheel" aria-label="Выбрать объём колесом"><span class="ctp-caret" aria-hidden="true"></span></button>
         </div>
-        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_qTick.dir}" id="ovDirB"></span></button>
+        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">КУПИТЬ</span><span class="tx">✕</span><span class="ctp-dir ${_tick.ad}" id="ovDirB"></span></button>
         <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${chartPx(S.price.bid)}</span></button>
         <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${chartPx(S.price.ask)}</span></button>
       </div>
@@ -3646,11 +3659,11 @@ function chartMarkup(h, o){
   ${full ? "" : `<div class="chtrade-wrap"><div class="chtrade">
     <button class="cht sell" data-act="quicksell">${CH_GRIP}
       <span class="cht-lbl"><span class="tcap">Продать</span><span class="tx">✕</span></span>
-      <span class="cht-px mono"><span id="chBid">${chartPx(S.price.bid)}</span> <span class="cht-dir" id="chDirS">${chartDirArrow()}</span></span>
+      <span class="cht-px mono"><span id="chBid">${chartPx(S.price.bid)}</span> <span class="cht-dir" id="chDirS">${dirArrow(tickDirs().bd)}</span></span>
     </button>
     <button class="cht buy" data-act="quickbuy">${CH_GRIP}
       <span class="cht-lbl"><span class="tcap">Купить</span><span class="tx">✕</span></span>
-      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${chartDirArrow()}</span> <span id="chAsk">${chartPx(S.price.ask)}</span></span>
+      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${dirArrow(_tick.ad)}</span> <span id="chAsk">${chartPx(S.price.ask)}</span></span>
     </button>
     <button class="cht-lot" data-act="lotpick" aria-label="Выбрать объём">
       <span class="cht-lbl">Лоты <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -4888,16 +4901,16 @@ function updateLive(){
   setTxt("acFloat", signMoney(A.floating + A.swaps), (A.floating+A.swaps)>=0?"pos":"neg");
   setTxt("chBid", chartPx(S.price.bid));
   setTxt("chAsk", chartPx(S.price.ask));
-  // ▲/▼ of the last quote change: the Charts bar arrows and the Markets panel triangles
-  const qd = quoteDir();
+  // ▲/▼ of each price's last change — ПРОДАТЬ by the Bid, КУПИТЬ by the Ask: the Charts bar arrows,
+  // the Markets panel triangles and the watchlist boxes
+  const td = tickDirs();
   if(document.getElementById("chLot")){                    // Charts tab trade bar
     setTxt("chLot", fmt(S.ui.lot, 2));
-    const arrow = qd === "dn" ? "↓" : "↑";
-    setTxt("chDirS", arrow); setTxt("chDirB", arrow);
+    setTxt("chDirS", dirArrow(td.bd)); setTxt("chDirB", dirArrow(td.ad));
   }
-  for(const id of ["ovDirS", "ovDirB"]){
+  for(const [id, cls] of [["ovDirS", "ctp-dir " + td.bd], ["ovDirB", "ctp-dir " + td.ad], ["wlQS", "wl-q sell " + td.bd], ["wlQB", "wl-q buy " + td.ad]]){
     const el = document.getElementById(id);
-    if(el){ const c = "ctp-dir " + qd; if(el.className !== c) el.className = c; }
+    if(el && el.className !== cls) el.className = cls;
   }
   // positions summary
   setTxt("pBal", money(A.balance));
@@ -4976,8 +4989,6 @@ function updateLive(){
   if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
     const w = watchStats();
     setTxt("wlBid", chartPx(S.price.bid)); setTxt("wlAsk", chartPx(S.price.ask));
-    const wq = document.getElementById("wlQuote");
-    if(wq){ const c = "wl-quote " + wlTickDir(); if(wq.className !== c) wq.className = c; }
     setTxt("wlHi", chartPx(w.hi)); setTxt("wlLo", chartPx(w.lo)); setTxt("wlSp", String(w.spr));
     setTxt("wlChg", wlChgText(w), w.chg>=0?"pos":"neg");
     const sym = document.getElementById("wlSym");
