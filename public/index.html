@@ -5278,6 +5278,7 @@ let _chartWinDrag = null;   // shared window mousemove/up handler, added once
    display frame, at the screen's own refresh rate (120 Hz on a 120 Hz phone), however
    many touch / mouse events or 120 ms updates land in between. */
 let _chartRaf = 0;
+const EASE_DT = 34;              // ms: the most one redraw advances a chart glide or fade (two 60 Hz frames)
 function chartDraw(){
   if(_chartRaf) return;
   _chartRaf = requestAnimationFrame(()=>{ _chartRaf = 0; drawChart(); });
@@ -5761,10 +5762,11 @@ function drawChart(){
     // Ease the auto range toward its target over a few frames (τ ≈ 70 ms): a tall bar sliding
     // in, or a tick stretching the live one, then moves the candles and every position line in
     // a short glide instead of a one-frame jump. First draw, a timeframe switch or a long idle
-    // snaps straight to it.
+    // snaps straight to it. The step counts at most a frame (EASE_DT): live redraws now come only on a
+    // change, ~½ s apart, and the time since the last one would have made every tick a jump.
     const now = performance.now(), R0 = chart._easeRange, key = tf + "|" + H;
-    if(R0 && R0.key === key && now - R0.t < 250){
-      const k = 1 - Math.exp(-(now - R0.t) / 70), tHi = sc.hi, tLo = sc.lo;
+    if(R0 && R0.key === key && now - R0.t < 1500){
+      const k = 1 - Math.exp(-Math.min(now - R0.t, EASE_DT) / 70), tHi = sc.hi, tLo = sc.lo;
       sc.hi = R0.hi + (tHi - R0.hi) * k;
       sc.lo = R0.lo + (tLo - R0.lo) * k;
       sc.step = niceStep(sc.hi - sc.lo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24));
@@ -5969,11 +5971,12 @@ function drawChart(){
   const ease3 = k => k * k * (3 - 2 * k);
   const zk = (yy, t, b, ramp) => t == null ? 0 : ease3(clamp(1 - Math.max(0, t - pillH/2 - yy, yy - b - pillH/2) / ramp, 0, 1));
   const pNow = performance.now(), pAnim = chart._pillAnim || (chart._pillAnim = new Map());
+  const pGen = chart._pillGen = (chart._pillGen || 0) + 1;         // this draw's number: «seen» = in the previous draw
   let pSettling = false;
   const rowRT = (off > 1 ? W - padR - 52 : plotW) - 8;           // «›|»'s left edge while it shows, else the scale
   let rowR = rowRT;
-  if(chart._rowR && pNow - chart._rowR.t < 400){
-    rowR = chart._rowR.v + (rowRT - chart._rowR.v) * (1 - Math.exp(-(pNow - chart._rowR.t) / 90));
+  if(chart._rowR && pNow - chart._rowR.t < 1500){
+    rowR = chart._rowR.v + (rowRT - chart._rowR.v) * (1 - Math.exp(-Math.min(pNow - chart._rowR.t, EASE_DT) / 90));
     if(Math.abs(rowRT - rowR) < 0.3) rowR = rowRT; else pSettling = true;
   }
   chart._rowR = { v: rowR, t: pNow };
@@ -5986,17 +5989,19 @@ function drawChart(){
   }
   // Levels also FADE (pill, line, dot, tag together): over 14 px at the plot's top and foot — dragged
   // past an edge they used to pop in and out — and in over ~0.2 s when first seen (a new position,
-  // or back after a while off screen)
+  // or back after a while off screen). «First seen» = not in the previous draw: it was «not drawn for 400 ms»,
+  // and once live redraws came only on a change (~½ s apart) every level faded out and in again on each
+  // tick — the pills, their lines and tags blinked (user video 2026-09-17).
   const FADE = 14;
   for(const m of marks){
     let al = 0;
     const a = pAnim.get(m.key);
-    if(a && pNow - a.t < 400){
+    if(a && (a.g === pGen - 1 || pNow - a.t < 400)){                 // (or off screen only a moment, mid-drag)
       const al0 = a.al == null ? 1 : a.al;
-      al = al0 + (1 - al0) * (1 - Math.exp(-(pNow - a.t) / 70));
+      al = al0 + (1 - al0) * (1 - Math.exp(-Math.min(pNow - a.t, EASE_DT) / 70));
     }
     if(al > 0.99) al = 1; else pSettling = true;
-    pAnim.set(m.key, { al, t: pNow });
+    pAnim.set(m.key, { al, t: pNow, g: pGen });
     m.a = al * clamp((m.ly - padT) / FADE, 0, 1) * clamp((H - padB - m.ly) / FADE, 0, 1);
   }
   if(pAnim.size > 120) pAnim.clear();
