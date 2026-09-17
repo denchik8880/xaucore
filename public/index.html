@@ -415,6 +415,15 @@ body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],
 .lotwheel{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;z-index:150;background:var(--lw-bg);border-top:1px solid var(--lw-edge);padding-bottom:env(safe-area-inset-bottom);animation:lwIn .24s cubic-bezier(.2,.8,.2,1)}
 .lotwheel.out{transition:transform .18s ease-in;transform:translateY(100%)}
 @keyframes lwIn{from{transform:translateY(100%)}to{transform:none}}
+/* a screen coming in (animateScreenIn) — quick enough to never feel like waiting */
+@keyframes scrUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes scrFwd{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes scrBack{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+@keyframes scrFade{from{opacity:0}to{opacity:1}}
+.scr-up{animation:scrUp .16s cubic-bezier(.2,.8,.2,1)}
+.scr-fwd{animation:scrFwd .18s cubic-bezier(.2,.8,.2,1)}
+.scr-back{animation:scrBack .18s cubic-bezier(.2,.8,.2,1)}
+.scr-fade{animation:scrFade .14s ease-out}
 .lw-bar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 8px;background:var(--lw-bar)}
 .lw-bar button{background:none;border:0;padding:10px 12px;font-size:17px;color:var(--ink)}
 .lw-bar .lw-done{font-weight:600}
@@ -2476,6 +2485,28 @@ function addManualEvent(o){
    UI
    ========================================================================= */
 const app = () => document.getElementById("app");
+/* Screen transitions — a fraction of a second, like a native app (a tab switch used to be a bare
+   swap). render() compares where we are with the last render, so only real navigation moves:
+   the 120 ms live re-renders, a theme switch or ⛶ on the same screen don't. Another bottom tab
+   rises in, going deeper (XAUUSD from the list, calendar / DOM, settings…) slides in from the
+   right, going back from the left, and a XAUUSD subtab only fades its content (app bar and tabs
+   stay put). The tab bar never moves; floating buttons only fade (they carry their own transform).
+   Transforms never reach position:fixed children — each child of #app animates on its own. */
+let _routeKey = null;
+const DEEP = { calendar: ["markets", 2], dom: ["markets", 2], settings: ["more", 1], history: ["more", 1], debug: ["more", 1], wallet: ["more", 1] };
+function routeKey(){
+  const t = S.ui.tab, open = t === "markets" && S.ui.marketOpen, d = DEEP[t];
+  return { key: t + (open ? ":" + S.ui.subtab : ""), screen: t + (open ? ":xau" : ""), group: d ? d[0] : t, depth: d ? d[1] : open ? 1 : 0 };
+}
+function animateScreenIn(cur, prev){
+  const sub = cur.screen === prev.screen;                         // a XAUUSD subtab
+  const kind = sub ? "fade" : cur.group !== prev.group ? "up" : cur.depth >= prev.depth ? "fwd" : "back";
+  for(const el of app().children){
+    const cl = el.classList;
+    if(cl.contains("bottomnav") || (sub && (cl.contains("appbar") || cl.contains("subtabs") || cl.contains("bignew")))) continue;
+    cl.add(cl.contains("bignew") || cl.contains("fabnew") ? "scr-fade" : "scr-" + kind);
+  }
+}
 let modalEl = null;
 
 function toast(kind, msg){
@@ -2564,6 +2595,9 @@ function render(){
   else if(t === "debug")     html += screenDebug();
   html += bottomNav();
   app().innerHTML = html;
+  const rk = routeKey();                                          // a new screen comes in with a fraction-of-a-second motion
+  if(_routeKey && rk.key !== _routeKey.key) animateScreenIn(rk, _routeKey);
+  _routeKey = rk;
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
   document.body.classList.toggle("route-chart", t === "chart");
   document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
@@ -5153,7 +5187,8 @@ function chartTabHeight(c){
   if(!c || S.ui.tab !== "chart" || c.closest(".sub")) return;
   const nav = document.querySelector(".bottomnav"), bar = document.querySelector(".chtrade-wrap");
   const navH = _chartFull || !nav ? 0 : nav.offsetHeight, barH = bar ? bar.offsetHeight : 0;
-  const top = c.parentElement.getBoundingClientRect().top + window.scrollY;
+  let top = 0;                                                    // offsetTop, not the rect: a screen sliding in is transformed
+  for(let el = c.parentElement; el; el = el.offsetParent) top += el.offsetTop;
   const h = Math.max(220, Math.round((window.innerHeight || 640) - top - navH - barH));
   if(String(h) !== c.dataset.h) c.dataset.h = h;
 }
