@@ -6007,7 +6007,7 @@ function drawChart(){
      and «XAUUSD ›» NARROWS a little — its padding closes, the text is never squeezed (user: «сама кнопка
      должна быть своего размера, она не должна уменьшаться, только чуть-чуть вправо, а xauusd должен
      чуть-чуть сужаться»). */
-  const SLIDE_MAX = Math.max(0, (Z.rowX0 == null ? 16 : Z.rowX0)), SHIFT_MAX = 6, NARROW_MAX = 20;
+  const SLIDE_MAX = Math.max(0, (Z.rowX0 == null ? 16 : Z.rowX0)), SHIFT_MAX = 6, NARROW_MAX = 18, NARROW_SHARE = 0.6;
   const rowL0 = Z.rowL || 181;
   const lastOn = !!(lastBtn && lastBtn.classList.contains("on") && Z.lastX0 != null);
   let slideT = 0, shiftT = 0, narrowT = 0;
@@ -6015,10 +6015,14 @@ function drawChart(){
     const kRow = Math.max(...g.map(k => zk(k.y, Z.rowT, Z.rowB, 110)));
     if(kRow <= 0) continue;
     const wNeed = Math.max(...g.map(m => m.w));
-    let need = Math.max(0, rowL0 + wNeed + 8 - (lastOn ? Z.lastX0 : plotW));
-    const sl = Math.min(need, SLIDE_MAX);              need -= sl;
-    const sh = lastOn ? Math.min(need, SHIFT_MAX) : 0; need -= sh;
-    const nr = Math.min(need, NARROW_MAX);
+    const need = Math.max(0, rowL0 + wNeed + 8 - (lastOn ? Z.lastX0 : plotW));
+    // «›|» takes its small step first; the rest the row gives up mostly by NARROWING, so «XAUUSD ›»
+    // travels noticeably less than «м1» (which moves by slide + narrow together — its travel is unchanged)
+    const sh = lastOn ? Math.min(need, SHIFT_MAX) : 0;
+    const rem = need - sh;
+    let nr = Math.min(rem * NARROW_SHARE, NARROW_MAX);
+    const sl = Math.min(rem - nr, SLIDE_MAX);
+    nr = Math.min(rem - sl, NARROW_MAX);                          // whatever the slide cannot take
     slideT = Math.max(slideT, sl * kRow);
     shiftT = Math.max(shiftT, sh * kRow);
     narrowT = Math.max(narrowT, nr * kRow);
