@@ -302,8 +302,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
 .chlast{position:relative;width:44px;height:31px;padding:0;border-radius:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
-.chlast.on{opacity:1;transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1));pointer-events:auto}
-.chlast.pressing{transition:opacity .2s ease}                       /* the press spring drives its transform */
+.chlast.on{opacity:1;transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));pointer-events:auto}
+.chlast.pressing,.chlast.jelly{transition:opacity .2s ease}          /* the press / jelly springs drive its transform */
 /* LIQUID GLASS, iOS-style (user 2026-09-18: in cTrader the chart shows through these buttons — «можно ли
    сделать больше жидкое стекло, что бы выглядело как в айфоне»): a thin tint over a lightly blurred,
    saturated view of the candles, a specular rim brightest at the top-left and bottom-right (::after, a 1 px
@@ -312,7 +312,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    displacement map in backdrop-filter); Safari keeps the blur. */
 /* a press (glassFrame) swells the drop, leans it toward the finger (--pdx/--pdy, --psx/--psy) and lights the
    glass where it is touched (--lx/--ly, --la) */
-.chfs,.chzoom button,.chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+.chfs,.chzoom button,.chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
 .chfs,.chzoom button,.chpill,.chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
@@ -5561,6 +5561,41 @@ function lgGlass(el, w, h, scale){
    pressed, a button swells like a drop (quick in; released it wobbles back — a bouncy spring), leans a
    few px toward the finger and stretches that way, lights up where it is touched, and its lens deepens
    (Chromium). One rAF loop for every button still moving; clicks are untouched. */
+/* JELLY: the drops that make room for a level pill (the row, «›|») don't just slide — each deforms with its
+   own speed, stretched along its way and leaning back against it, and when it stops it squashes on by
+   inertia and wobbles a couple of times before it rests (user: «что бы эти капельки ещё чуть-чуть двигались
+   после этого, а не только пружинчасто влево и вправо уходили»). drawChart feeds each drop's velocity;
+   an underdamped spring (K 240, ζ .26) follows k·|v| here, in its own loop, so the wobble outlives the slide. */
+const _jelly = new Map();
+let _jellyRaf = 0;
+function jellyFeed(el, v){
+  if(!el || (Math.abs(v) < 1 && !_jelly.has(el))) return;
+  let st = _jelly.get(el);
+  if(!st){ st = { j: 0, jv: 0, v: 0, vt: 0, dir: 1, t: 0 }; _jelly.set(el, st); el.classList.add("jelly"); }
+  st.v = v; st.vt = performance.now(); if(Math.abs(v) > 1) st.dir = v < 0 ? -1 : 1;
+  if(!_jellyRaf) _jellyRaf = requestAnimationFrame(jellyFrame);
+}
+function jellyFrame(now){
+  _jellyRaf = 0;
+  for(const [el, st] of _jelly){
+    if(!el.isConnected){ _jelly.delete(el); continue; }
+    const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
+    st.t = now;
+    const v = now - st.vt < 70 ? st.v : 0;                         // no feed → the drop has stopped
+    const target = Math.min(Math.abs(v) * .0009, .14);
+    st.jv += (-240 * (st.j - target) - 2 * Math.sqrt(240) * .26 * st.jv) * dt;
+    st.j += st.jv * dt;
+    el.style.setProperty("--jsx", (1 + st.j).toFixed(4));
+    el.style.setProperty("--jsy", (1 - st.j * .6).toFixed(4));
+    el.style.setProperty("--jk", (st.dir * st.j * 25).toFixed(2) + "deg");
+    if(v === 0 && Math.abs(st.j) < .0015 && Math.abs(st.jv) < .015){
+      el.style.removeProperty("--jsx"); el.style.removeProperty("--jsy"); el.style.removeProperty("--jk");
+      el.classList.remove("jelly");
+      _jelly.delete(el);
+    }
+  }
+  if(_jelly.size) _jellyRaf = requestAnimationFrame(jellyFrame);
+}
 const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast";
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
@@ -6322,6 +6357,12 @@ function drawChart(){
       if(Z.symW) lgGlass(symEl, Z.symW - 38 * (1 - q), Z.symH || 31);
     }
   }
+  // each drop's own speed: «XAUUSD» rides the slide, «м1» the slide plus «XAUUSD» narrowing, «›|» its step
+  if(rowEl){
+    jellyFeed(symEl, -SL.vel);
+    jellyFeed(rowEl.querySelector('[data-act="charttf"]'), -(SL.vel + NR.vel));
+  }
+  if(lastOn) jellyFeed(lastBtn, SH.vel);
   const rowL = rowL0 - slide - narrowPx;                                  // the row's right edge as it is right now
   const rowR = (lastOn ? Z.lastX0 + shift : plotW) - 8;                   // where a pill has to stop
   // a pill that still would not fit (a narrow phone) gives way only then, and only as much as it must
