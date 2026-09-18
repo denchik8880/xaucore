@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>XAUCORE — DEMO XAUUSD Simulator</title>
 <meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
-<meta name="theme-color" content="#f4f5f7">
+<meta name="theme-color" content="#eff1f4">
 <script>/* apply the saved theme before first paint — no light flash */try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -20,10 +20,13 @@
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
 :root{
-  --bg:#f4f5f7; --card:#ffffff; --ink:#1a1d21; --ink2:#6b7280; --ink3:#9aa1ab;
+  --bg:#eff1f4; --card:#ffffff; --ink:#1a1d21; --ink2:#5f6673; --ink3:#737b87;
   --line:#e8eaed; --green:#0aa85f; --green-bg:#e7f7ef; --red:#e5342b;
   --red-bg:#fdecea; --orange:#f5820d; --orange-bg:#fff2e2; --blue:#2f7bf6;
-  --radius:16px; --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+  --radius:16px; --shadow:0 0 0 1px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  /* TEXT in green / red / orange: the fills (--green …) read at 2.4–3.1:1 as text on white, so text
+     takes a deeper shade of the same hue (≥4.5:1); --edge is a field / input border that shows */
+  --green-ink:#07874b; --red-ink:#d42b22; --orange-ink:#b35a00; --blue-ink:#1d63d8; --edge:#d3d7dd;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue","Open Sans",Arial,sans-serif;
   /* --- theming tokens (see [data-theme="dark"] below) --- */
   --field-bg:#fbfbfc;        /* inputs / sunken surfaces */
@@ -40,7 +43,8 @@
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
 :root[data-theme="dark"]{
-  --bg:#000000; --card:#171717; --ink:#ffffff; --ink2:#a3a3a3; --ink3:#6b6b6b;
+  --bg:#000000; --card:#171717; --ink:#ffffff; --ink2:#a3a3a3; --ink3:#8c8c8c;
+  --green-ink:#16b565; --red-ink:#ff6b36; --orange-ink:#f7a23e; --blue-ink:#5b93f7; --edge:#3a3a3a;
   --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
@@ -81,11 +85,11 @@ body.chart-full .bottomnav{display:none}
 .appbar .sp{flex:1}
 .iconbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--ink2);font-size:18px}
 .iconbtn:active{background:var(--line)}
-.badge-demo{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--orange);
+.badge-demo{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--orange-ink);
   background:var(--orange-bg);border:1px solid #f6cfa0;padding:3px 7px;border-radius:999px;white-space:nowrap}
 .subtabs{display:flex;gap:2px;background:var(--bar);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
-.subtabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.subtabs button.on{color:var(--blue-ink);border-bottom-color:var(--blue-ink)}
 .subtabs .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:20px;padding:0 4px;margin-left:6px;border:1.5px solid currentColor;border-radius:4px;font-size:12.5px;font-weight:600;line-height:1;vertical-align:1px;font-variant-numeric:tabular-nums}
 .subtabs .cnt[hidden]{display:none}
 /* cTrader's orders table: a caption row, then order rows edge to edge with dividers (no cards).
@@ -96,7 +100,7 @@ body.chart-full .bottomnav{display:none}
 .otbl-row:active{background:var(--press)}
 .otbl-head{height:64px;font-size:14px;color:var(--ink2);cursor:default}
 .otbl-head:active{background:none}
-.otbl .ok{display:flex;justify-content:center;color:var(--green)}
+.otbl .ok{display:flex;justify-content:center;color:var(--green-ink)}
 .otbl .og{display:block;margin-left:5px}
 .og.sell{fill:var(--red)}
 .og.buy{fill:var(--green)}
@@ -122,14 +126,14 @@ body.chart-full .bottomnav{display:none}
 .ovh-ico{flex:none;width:34px;height:34px;border-radius:6px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center}
 .ovh-ico svg{width:20px;height:20px}
 .ovh-ico.star{color:#1f4e9c}
-.ovh-ico.ok{color:var(--green)}
+.ovh-ico.ok{color:var(--green-ink)}
 :root[data-theme="dark"] .ovh-ico.star{color:#5b8def}
 .ovh-name{flex:1;min-width:0;padding-left:4px}
 .ovh-sym{font-size:22px;font-weight:500;line-height:1.1;color:var(--ink);letter-spacing:.2px}
 .ovh-desc{font-size:13px;color:var(--ink2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ovh-chg{flex:none;text-align:right}
-.ovh-chg.neg{color:var(--red)}
-.ovh-chg.pos{color:var(--green)}
+.ovh-chg.neg{color:var(--red-ink)}
+.ovh-chg.pos{color:var(--green-ink)}
 .ovh-pct{font-size:17px;font-weight:600;line-height:1.3}
 .ovh-pips{font-size:14px;margin-top:2px}
 .ovh-lsh{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink2);margin-top:10px}
@@ -139,8 +143,8 @@ body.chart-full .bottomnav{display:none}
 .row+.row{margin-top:8px}
 .k{color:var(--ink2)}
 .v{font-weight:600}
-.pos{color:var(--green)!important}
-.neg{color:var(--red)!important}
+.pos{color:var(--green-ink)!important}
+.neg{color:var(--red-ink)!important}
 .warn-banner{background:var(--orange);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 .err-banner{background:var(--red);color:#fff;padding:10px 14px;font-size:13px;font-weight:600;text-align:center}
 
@@ -198,7 +202,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:12px;color:var(--ink2)}
 .miniquick button:active{background:var(--press)}
-.loterr{color:var(--red);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
+.loterr{color:var(--red-ink);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
 
 /* «Новый ордер» over the Markets screens — cTrader's big pill: dark on the light theme, light on the dark one */
 .bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 32px));
@@ -222,8 +226,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .lrow .top{display:flex;justify-content:space-between;align-items:baseline}
 .lrow .sym{font-weight:600}
 .tag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
-.tag.buy{background:var(--green-bg);color:var(--green)}
-.tag.sell{background:var(--red-bg);color:var(--red)}
+.tag.buy{background:var(--green-bg);color:var(--green-ink)}
+.tag.sell{background:var(--red-bg);color:var(--red-ink)}
 .lrow .mid{display:flex;justify-content:space-between;color:var(--ink2);font-size:12.5px}
 .lrow .pnl{font-weight:600;font-size:16px}
 .muted{color:var(--ink3);text-align:center;padding:32px 10px;font-size:13.5px}
@@ -246,11 +250,11 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-theme="dark"] .card.minichart{box-shadow:none}
 .mini-box{position:relative}
 .mini-tools{position:absolute;left:12px;top:12px;display:flex;gap:8px}
-.mini-tools button{min-width:34px;height:34px;padding:0 9px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink2);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.mini-tools button{min-width:34px;height:34px;padding:0 9px;border-radius:7px;border:1px solid var(--edge);background:var(--card);color:var(--ink2);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center}
 .mini-tools button:active{background:var(--press)}
 .mini-ranges{display:flex;padding:4px 8px 10px}
 .mini-ranges button{flex:1;background:none;border:0;padding:8px 0;font-size:15px;color:var(--ink2);white-space:nowrap}
-.mini-ranges button.on{color:var(--blue);font-weight:600}
+.mini-ranges button.on{color:var(--blue-ink);font-weight:600}
 .chartbox{position:relative;background:var(--chart-bg);max-width:100%;overflow:hidden}
 /* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
    timeframe pill bottom-left, and our round + / − zoom column above those pills */
@@ -277,7 +281,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 
 /* forms / modal */
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
+.sheet{position:relative;background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
 /* a sheet slides up over a scrim that fades in, and slides back down as it closes — like cTrader's
    Android sheets and our lot wheel (it used to pop in and vanish in one frame). One that replaces an open
    sheet (the ticket redrawn, a confirmation) appears in place. transform / opacity only: the compositor
@@ -288,15 +292,17 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .modal.swap,.modal.swap .sheet,.modal.closing,.modal.closing .sheet{animation:none}
 .modal.closing{pointer-events:none;background-color:transparent;transition:background-color .18s ease}
 .modal.closing .sheet{transform:translateY(100%);transition:transform .18s ease-in}
-.sheet h2{margin:2px 0 14px;font-size:17px}
-.sheet .close{position:absolute;right:16px;top:14px}
+.sheet h2{margin:2px 0 14px;font-size:17px;padding-right:40px}
+/* ✕ belongs to the sheet (it sat at the screen's top-right — .sheet was not positioned — and hung there
+   while the sheet slid away, user video 2026-09-18) */
+.sheet .close{position:absolute;right:12px;top:12px}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;color:var(--ink2);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
-.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--field-bg);color:var(--ink)}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--edge);border-radius:11px;background:var(--field-bg);color:var(--ink)}
 .field .hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
 .seg{display:flex;gap:4px;background:var(--line);border-radius:11px;padding:3px}
 .seg button{flex:1;padding:9px;border-radius:9px;font-weight:600;font-size:13px;color:var(--ink2)}
-.seg button.on{background:var(--raise);color:var(--ink);box-shadow:var(--shadow)}
+.seg button.on{background:var(--raise);color:var(--ink);box-shadow:0 1px 3px rgba(16,24,40,.16),0 0 0 .5px rgba(16,24,40,.08)}
 /* dark: the selected segment was #2c2c2c on a #2e2e2e track — no telling which one is on */
 :root[data-theme="dark"] .seg{background:#141414;box-shadow:inset 0 0 0 1px var(--line)}
 :root[data-theme="dark"] .seg button.on{background:#3a3a3c;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.6)}
@@ -305,17 +311,21 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .seg.theme button.on,:root[data-theme="dark"] .seg.theme button.on{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(47,123,246,.35)}
 .seg.theme .ck{display:none;font-weight:700}
 .seg.theme button.on .ck{display:inline}
-.btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:600;text-align:center;margin-top:6px}
+.btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:600;text-align:center;margin-top:6px;overflow-wrap:normal}   /* a button never splits a word (the cards' overflow-wrap:anywhere broke «Синхронизирова / ть») */
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
 .btn.dark{background:var(--invert);color:var(--invert-ink)}
+/* dark: the primary button is light, like «Новый ордер» — the near-black --invert vanished on the black
+   ground and read weaker than «Отмена» beside it */
+:root[data-theme="dark"] .btn.dark{background:#efefef;color:#1a1a1a}
+:root[data-theme="dark"] .news-btns button.wide{box-shadow:inset 0 0 0 1px var(--edge)}
 /* Charts tab trade bar, cTrader's (2026-09-15 screenshot): SELL | Лоты | BUY in one 48 px bar
    with 10 px corners, white text at 72 % (14 px caption, 17 px price), grip dots at both ends,
    and the 72 × 40 lots tab notched into its top edge between the halves (tap it to pick the volume) */
 .chtrade-wrap{padding:8px 8px 7px}
 body.route-chart .chtrade-wrap{background:var(--chart-bg)}
 .chtrade{position:relative;display:grid;grid-template-columns:1fr 1fr;height:48px;border-radius:10px;overflow:hidden}
-.cht{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:rgba(255,255,255,.72);font-weight:400;padding:0 24px}
+.cht{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:rgba(255,255,255,.95);font-weight:400;padding:0 24px}
 .cht.sell{background:var(--red);align-items:flex-start;padding-right:42px}
 .cht.buy{background:var(--green);align-items:flex-end;padding-left:42px}
 .cht-grip{position:absolute;top:50%;margin-top:-6px;fill:currentColor}
@@ -334,12 +344,12 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .tfsheet{display:flex;flex-direction:column}
 .tfsheet button{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:16px;text-align:left}
 .tfsheet button b{font-weight:600;color:var(--ink2)}
-.tfsheet button.on,.tfsheet button.on b{color:var(--blue)}
+.tfsheet button.on,.tfsheet button.on b{color:var(--blue-ink)}
 /* lot picker sheet */
 .lotsheet{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-top:4px}
 .ls-step{height:52px;border-radius:12px;background:var(--line);font-size:22px;font-weight:600;color:var(--ink)}
 .ls-step:active{background:var(--press)}
-.ls-val{width:100%;min-width:0;height:52px;text-align:center;font-size:22px;font-weight:600;border:1px solid var(--line);border-radius:12px;background:var(--field-bg);color:var(--ink)}
+.ls-val{width:100%;min-width:0;height:52px;text-align:center;font-size:22px;font-weight:600;border:1px solid var(--edge);border-radius:12px;background:var(--field-bg);color:var(--ink)}
 .btn.ghost{background:var(--line);color:var(--ink)}
 .btn:active{filter:brightness(.95)}
 .btn:disabled{opacity:.5}
@@ -351,7 +361,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 /* a menu entry that isn't open yet (the broker wallet): shows «Скоро», goes nowhere */
 .menu-item.soon{cursor:default}
 .menu-item.soon:active{background:var(--card);transform:none}
-.soon-pill{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--orange);background:var(--orange-bg);
+.soon-pill{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--orange-ink);background:var(--orange-bg);
   border-radius:999px;padding:3px 10px;white-space:nowrap}
 .toast-wrap{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:100;width:min(492px,calc(100% - 20px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .toast{background:var(--invert);color:var(--invert-ink);border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin .25s ease}
@@ -359,8 +369,8 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .dom-grid{display:grid;grid-template-columns:1fr 88px 1fr;font-size:12px;font-variant-numeric:tabular-nums}
 .dom-grid>div{padding:5px 8px;border-bottom:1px solid var(--line)}
-.dom-bid{text-align:right;color:var(--green);position:relative}
-.dom-ask{text-align:left;color:var(--red);position:relative}
+.dom-bid{text-align:right;color:var(--green-ink);position:relative}
+.dom-ask{text-align:left;color:var(--red-ink);position:relative}
 .dom-px{text-align:center;font-weight:600}
 .dom-bar{position:absolute;top:0;bottom:0;opacity:.14}
 .dom-bar.b{right:0;background:var(--green)}
@@ -380,14 +390,14 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
    «Настроение рынка», «Глубина рынка», «Экономический календарь» */
 .card.ovc{padding:12px 16px 9px}
 .ovc-title{font-size:20px;line-height:26px;font-weight:700;color:var(--ink)}
-.ovc-more{display:block;margin:4px 0 0 auto;padding:8px 0;border:0;background:none;color:var(--blue);font-size:16.5px;line-height:20px;font-weight:700}
+.ovc-more{display:block;margin:4px 0 0 auto;padding:8px 0;border:0;background:none;color:var(--blue-ink);font-size:16.5px;line-height:20px;font-weight:700}
 .sent-bar{display:flex;gap:2px;height:8px;margin-top:13px}
 .sent-bar span{flex:50 1 0;border-radius:2px;transition:flex-grow .6s ease}
 .sent-bar .s{background:var(--red)}
 .sent-bar .b{background:var(--green)}
 .sent-l{display:flex;justify-content:space-between;margin-top:2px;padding-bottom:1px;font-size:14.5px;line-height:17px;font-variant-numeric:tabular-nums}
-.sent-l .s{color:var(--red)}
-.sent-l .b{color:var(--green)}
+.sent-l .s{color:var(--red-ink)}
+.sent-l .b{color:var(--green-ink)}
 .dp{margin-top:29px}
 .dp-row{display:grid;grid-template-columns:1fr 1fr;column-gap:9px;height:48px;font-size:16px;line-height:22px;font-variant-numeric:tabular-nums}
 .dp-h{display:flex;justify-content:space-between;align-items:flex-start;min-width:0}
@@ -410,7 +420,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .cal-desc{margin-top:16px;font-size:13px;line-height:14.3px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
 .evt:last-child{border-bottom:none}
 .evt .nm{font-weight:600}
-.evt .impact{font-size:10px;font-weight:600;padding:1px 5px;border-radius:5px;background:var(--orange-bg);color:var(--orange)}
+.evt .impact{font-size:10px;font-weight:600;padding:1px 5px;border-radius:5px;background:var(--orange-bg);color:var(--orange-ink)}
 .evt small{color:var(--ink3)}
 hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 .pill-toggle{display:flex;gap:6px}
@@ -419,7 +429,7 @@ hr.d{border:none;border-top:1px solid var(--line);margin:12px 0}
 
 /* macro news engine */
 .news-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 8px}
-.news-btns button{background:var(--orange-bg);color:var(--orange);border:1px solid #f3c98f;border-radius:11px;padding:12px 4px;font-weight:600;font-size:12.5px;letter-spacing:.02em}
+.news-btns button{background:var(--orange-bg);color:var(--orange-ink);border:1px solid #f3c98f;border-radius:11px;padding:12px 4px;font-weight:600;font-size:12.5px;letter-spacing:.02em}
 .news-btns button:active{filter:brightness(.94)}
 .news-btns button:disabled{opacity:.35}
 .news-btns button.wide{grid-column:span 3;background:var(--invert);color:var(--invert-ink);border-color:var(--invert)}
@@ -438,18 +448,18 @@ body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],
 .lotwheel.out{transition:transform .18s ease-in;transform:translateY(100%)}
 @keyframes lwIn{from{transform:translateY(100%)}to{transform:none}}
 /* touch ripple (RIPPLE_SEL): a grey cell with a circle spreading from the finger, fading on release */
-.ripple{position:fixed;z-index:200;overflow:hidden;pointer-events:none;background:transparent;transition:background-color .12s ease,opacity .28s ease}
-.ripple span{position:absolute;border-radius:50%;background:var(--ripple);transform:scale(0);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
-.ripple.on{background:var(--ripple-bg)}
-.ripple.on span{transform:scale(1)}
+/* only the pressed cell lights up — no circle spreading from the finger (user 2026-09-18: «касания убери
+   именно в том месте где касаемся пальцем, они не нужны»); the cell takes the strength the circle added */
+.ripple{position:fixed;z-index:200;overflow:hidden;pointer-events:none;background:transparent;transition:background-color .1s ease,opacity .28s ease}
+.ripple.on{background:var(--ripple)}
 .ripple.out{opacity:0}
 .lw-bar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 8px;background:var(--lw-bar)}
 .lw-bar button{background:none;border:0;padding:10px 12px;font-size:17px;color:var(--ink)}
 .lw-bar .lw-done{font-weight:600}
 .lw-edit{padding:10px 16px 0;display:flex;align-items:center;gap:10px}
 .lw-edit[hidden]{display:none}
-.lw-edit input{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--field-bg);color:var(--ink);font-size:18px;text-align:center}
-.lw-err{font-size:12px;color:var(--red)}
+.lw-edit input{flex:1;min-width:0;height:40px;border:1px solid var(--edge);border-radius:10px;background:var(--field-bg);color:var(--ink);font-size:18px;text-align:center}
+.lw-err{font-size:12px;color:var(--red-ink)}
 .lw-body{position:relative;height:216px}
 .lw-body canvas{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
 /* the panel's lots field while the wheel is open: «0.01 Лоты», following the wheel (no caret —
@@ -457,7 +467,7 @@ body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],
 .ctp-lot.editing{border-color:var(--ink2)}
 .news-res .row{padding:6px 0;border-bottom:1px dashed var(--line)}
 .news-res .row:last-child{border-bottom:none}
-.ne-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.ne-card{border:1px solid var(--edge);border-radius:12px;padding:10px;margin-bottom:8px}
 .ne-card summary{font-weight:600;font-size:13px;cursor:pointer;list-style:none}
 .ne-card summary::-webkit-details-marker{display:none}
 .ne-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
@@ -468,7 +478,7 @@ body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],
 .lastnews b{font-weight:600}
 
 /* ticks-per-second control */
-.tps-val{font-weight:600;font-size:20px;font-variant-numeric:tabular-nums;color:var(--blue)}
+.tps-val{font-weight:600;font-size:20px;font-variant-numeric:tabular-nums;color:var(--blue-ink)}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:2px 0;cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:999px;background:var(--line)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;margin-top:-8.5px;border-radius:50%;background:var(--blue);border:3px solid var(--card);box-shadow:0 1px 5px rgba(0,0,0,.25)}
@@ -505,7 +515,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-logo{flex:0 0 auto;width:38px;height:38px;display:block}
 .wl-logo svg{width:100%;height:100%;display:block}
 .wl-search{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:9px;background:var(--line);
-  color:var(--ink3);border-radius:999px;padding:11px 16px;font-size:15px;font-weight:400;text-align:left}
+  color:var(--ink2);border-radius:999px;padding:11px 16px;font-size:15px;font-weight:400;text-align:left}
 .wl-search-ic{flex:none;opacity:.75}
 .wl-search:active{filter:brightness(.97)}
 /* the watchlist, cTrader's: a name row, then instrument rows edge to edge with a divider (no card) */
@@ -519,7 +529,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-left{flex:0 0 41%;min-width:0;display:flex;flex-direction:column;gap:1px}
 .wl-right{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
 .wl-sym{font-weight:500;font-size:22px;line-height:1.15;display:flex;align-items:center;white-space:nowrap}
-.wl-sym .ck{color:var(--green);margin-right:12px;font-size:19px}
+.wl-sym .ck{color:var(--green-ink);margin-right:12px;font-size:19px}
 .wl-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;
   margin-left:8px;border:1.5px solid var(--ink3);border-radius:6px;font-size:12px;font-weight:600;
   font-variant-numeric:tabular-nums;color:var(--ink2);vertical-align:2px;line-height:1}
@@ -539,10 +549,10 @@ body.trade-locked .fabnew{opacity:.5;pointer-events:none}
 /* cTrader tints each box — caption, price and border — by ITS OWN price's last tick: ПРОДАТЬ by
    the Bid, КУПИТЬ by the Ask, green after an uptick, red after a downtick (.dn on the box). A
    spread change moves the two apart, so they can differ (a cTrader video: green ПРОДАТЬ, red КУПИТЬ) */
-.wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;border:1px solid currentColor;border-radius:4px;padding:2px 2px 3px;color:var(--green)}
+.wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;border:1px solid currentColor;border-radius:4px;padding:2px 2px 3px;color:var(--green-ink)}
 .wl-q b{font-size:12.5px;font-weight:500;letter-spacing:.02em;line-height:1.25;color:inherit}
 .wl-q span{font-size:17px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums}
-.wl-q.dn{color:var(--red)}
+.wl-q.dn{color:var(--red-ink)}
 /* same pill as the search field beside it — cTrader gives them equal weight;
    ours used to sit noticeably smaller */
 .ab-bal{flex:0 0 auto;background:var(--line);color:var(--ink);font-weight:600;font-size:15px;
@@ -2569,10 +2579,6 @@ function rippleShow(el, cx, cy){
   const box = document.createElement("div");
   box.className = "ripple";
   box.style.cssText = `position:${onScreen ? "fixed" : "absolute"};left:${r.left + ox}px;top:${r.top + oy}px;width:${r.width}px;height:${r.height}px;border-radius:${rad && rad !== "0px" ? rad : "6px"}`;
-  const x = cx - r.left, y = cy - r.top, d = 2 * Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
-  const wave = document.createElement("span");
-  wave.style.cssText = `left:${x - d/2}px;top:${y - d/2}px;width:${d}px;height:${d}px`;
-  box.appendChild(wave);
   document.body.appendChild(box);
   requestAnimationFrame(() => box.classList.add("on"));
   return { box, t0: performance.now() };
@@ -2667,7 +2673,7 @@ function applyTheme(t){
   document.documentElement.dataset.theme = t;
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
-  if(mc) mc.setAttribute("content", t === "dark" ? "#000000" : "#f4f5f7");
+  if(mc) mc.setAttribute("content", t === "dark" ? "#000000" : "#eff1f4");
   try{ localStorage.setItem("xc_theme", t); }catch(e){}
 }
 function setTheme(t){
@@ -2740,6 +2746,7 @@ function render(){
   document.body.classList.toggle("route-chart", t === "chart");
   document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
   bindScreen();
+  document.querySelectorAll("#app .btn.fit").forEach(b => fitText(b, 11));   // a long word shrinks to its button instead of spilling
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
@@ -3042,7 +3049,7 @@ function mktOverview(){
 
     <div class="card">
       <div class="row" style="margin-bottom:2px"><h3 style="margin:0">Торговый день · СИНТЕТИКА</h3>
-        <button class="k" data-act="gotodebug" style="color:var(--blue);font-weight:600">Debug</button></div>
+        <button class="k" data-act="gotodebug" style="color:var(--blue-ink);font-weight:600">Debug</button></div>
       ${dayCardMarkup()}
     </div>
 
@@ -3304,7 +3311,7 @@ function screenMore(){
       <div class="row"><span class="k">Аккаунт</span><span class="v">${acct}</span></div>
       <div class="row"><span class="k">Синхронизация</span><span class="v mono" id="xcSync">…</span></div>
       <div class="grid2" style="margin-top:8px">
-        <button class="btn ghost" data-act="syncnow">Синхронизировать сейчас</button>
+        <button class="btn ghost fit" data-act="syncnow">Синхронизировать сейчас</button>
         <button class="btn ghost" data-act="logout">${XC.token?"Выйти":"Войти"}</button>
       </div>
       <div class="hint" style="margin-top:6px">Симуляция (цена, баланс, позиции, день, график) принадлежит аккаунту: она замирает, когда вы уходите, и продолжается с того же места при входе с любого устройства. Одновременно терминал активен только на одном устройстве.</div>
@@ -3329,7 +3336,7 @@ function screenMore(){
     ${newsButtonsMarkup()}
     <div class="menu-item" data-act="triggerroll"><span>▶️ Форсировать смену дня / своп (тест)</span><span>⚡</span></div>
     <hr class="d">
-    <div class="menu-item" data-act="reset" style="color:var(--red)"><span>♻️ Сбросить симулятор</span><span>›</span></div>
+    <div class="menu-item" data-act="reset" style="color:var(--red-ink)"><span>♻️ Сбросить симулятор</span><span>›</span></div>
     <div class="hint" style="text-align:center;color:var(--ink3);margin-top:14px">
       XAUCORE · Автономный симулятор. Реальные котировки / брокер / счета не используются.
     </div>
@@ -3537,7 +3544,7 @@ function walletTransferModal(){
     const a = parseFloat((document.getElementById("wt-amt").value || "").replace(/[\s,]/g, ""));
     const r = walletTransfer(to, a);
     err.textContent = "⚠ " + (r.msg || "Недоступно");
-    err.style.color = r.pending ? "var(--orange)" : "var(--red)";
+    err.style.color = r.pending ? "var(--orange-ink)" : "var(--red-ink)";
     if(r.pending) toast("o", r.msg);
   };
 }
@@ -3595,7 +3602,7 @@ function screenCalendar(){
   const evs = [...S.events].sort((a,b)=>a.time-b.time);
   return appbar("Экономический календарь",{back:true}) + `<div class="wrap">
     <div class="card">
-      <div class="hint" style="color:var(--orange);font-weight:600">SYNTHETIC / DEMO — все события генерируются симулятором</div>
+      <div class="hint" style="color:var(--orange-ink);font-weight:600">SYNTHETIC / DEMO — все события генерируются симулятором</div>
     </div>
     <div class="card">
       ${evs.map(e=>{
@@ -3691,7 +3698,7 @@ function domRows(){
     const l = B.a[i];
     html += `<div></div><div class="dom-px mono">${pxfmt(aPx[i])}</div><div class="dom-ask mono${fl(l.f)}"><span class="dom-bar a" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div>`;
   }
-  html += `<div class="dom-bid mono" style="color:var(--ink2)">спред</div><div class="dom-px mono" style="color:var(--orange)">${pxfmt(S.price.spread)}</div><div class="dom-ask mono" style="color:var(--ink2)"></div>`;
+  html += `<div class="dom-bid mono" style="color:var(--ink2)">спред</div><div class="dom-px mono" style="color:var(--orange-ink)">${pxfmt(S.price.spread)}</div><div class="dom-ask mono" style="color:var(--ink2)"></div>`;
   for(let i=0;i<DOM_LEVELS;i++){
     const l = B.b[i];
     html += `<div class="dom-bid mono${fl(l.f)}"><span class="dom-bar b" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div><div class="dom-px mono">${pxfmt(bPx[i])}</div><div></div>`;
@@ -3989,7 +3996,7 @@ async function refreshLockCard(){
 
   const stateRow = (locked)=>`<div class="row" style="margin-bottom:8px">
       <span class="k">Для обычных посетителей</span>
-      <span class="v" style="color:${locked?'var(--red)':'var(--green)'}">${locked?'ЗАКРЫТ':'ОТКРЫТ'}</span></div>`;
+      <span class="v" style="color:${locked?'var(--red-ink)':'var(--green-ink)'}">${locked?'ЗАКРЫТ':'ОТКРЫТ'}</span></div>`;
 
   if(info.isOwner){
     card.innerHTML = `<h3>🔒 САЙТ ЗАКРЫТ</h3>
@@ -4035,7 +4042,7 @@ async function refreshLockCard(){
       await xcApi("POST", "/api/owner", { key: inp.value });
       toast("", "Вы вошли как владелец");
       refreshLockCard();
-    }catch(e){ msg.style.color = "var(--red)"; msg.textContent = "Неверный ключ"; btn.disabled = false; }
+    }catch(e){ msg.style.color = "var(--red-ink)"; msg.textContent = "Неверный ключ"; btn.disabled = false; }
   };
   card.querySelector("#ownerLogin").onclick = doLogin;
   card.querySelector("#ownerKey").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
@@ -4667,8 +4674,8 @@ function drawTicket(){
       <input id="tk-vol" inputmode="decimal" value="${fmt(v,2)}"></div>
     ${t.mode==="market" ? `
       <div class="seg" style="margin-bottom:12px">
-        <button data-tside="sell" class="${t.side==="sell"?"on":""}" style="color:var(--red)">SELL @ <span id="tk-bid" class="mono">${pxfmt(S.price.bid)}</span></button>
-        <button data-tside="buy" class="${t.side==="buy"?"on":""}" style="color:var(--green)">BUY @ <span id="tk-ask" class="mono">${pxfmt(S.price.ask)}</span></button>
+        <button data-tside="sell" class="${t.side==="sell"?"on":""}" style="color:var(--red-ink)">SELL @ <span id="tk-bid" class="mono">${pxfmt(S.price.bid)}</span></button>
+        <button data-tside="buy" class="${t.side==="buy"?"on":""}" style="color:var(--green-ink)">BUY @ <span id="tk-ask" class="mono">${pxfmt(S.price.ask)}</span></button>
       </div>
     ` : `
       <div class="field"><label>Тип</label>
@@ -4845,7 +4852,7 @@ function openNewsModal(){
 function showNewsResult(r){
   const row = (k,v,cls)=>`<div class="row"><span class="k">${k}</span><span class="v mono ${cls||""}">${v}</span></div>`;
   openSheet(`
-    <h2>${r.label} COMPLETE · <span style="color:var(--orange)">SYNTHETIC</span></h2>
+    <h2>${r.label} COMPLETE · <span style="color:var(--orange-ink)">SYNTHETIC</span></h2>
     <div class="card news-res">
       ${row("Start", pxfmt(r.start))}
       ${row("Final", pxfmt(r.final))}
@@ -5160,7 +5167,7 @@ function updateLive(){
       oc._t = now;
       ovSentUpdate();
       const h = ovCalBody();
-      if(h !== oc._h){ oc._h = h; oc.innerHTML = h; }
+      if(h !== oc._h){ oc._h = h; oc.innerHTML = h; oc.querySelectorAll(".cal-k").forEach(k => fitText(k, 9)); }   // «Волатильность» … whole, not «Волатиль…»
     }
   }
   // news lock: the trade buttons show a cross (body.trade-locked), controls are disabled
@@ -6641,7 +6648,7 @@ function syncBadge(){
   const el = document.getElementById("xcSync");
   if(!el) return;
   el.textContent = XC.follower ? "◐ другое устройство" : (XC.online ? "● облако" : "○ нет связи");
-  el.style.color = XC.follower ? "var(--orange)" : (XC.online ? "var(--green)" : "var(--ink3)");
+  el.style.color = XC.follower ? "var(--orange-ink)" : (XC.online ? "var(--green-ink)" : "var(--ink3)");
 }
 
 /* ---------- auth screen ----------
@@ -6663,7 +6670,7 @@ function screenAuth(msg, kind){
           <button data-am="register" class="${reg?'on':''}">Регистрация</button>
           <button data-am="login" class="${!reg?'on':''}">Вход</button>
         </div>
-        ${msg?`<div class="hint" style="color:${bad?'var(--red)':'var(--green)'};font-weight:600;margin-bottom:8px">${msg}</div>`:""}
+        ${msg?`<div class="hint" style="color:${bad?'var(--red-ink)':'var(--green-ink)'};font-weight:600;margin-bottom:8px">${msg}</div>`:""}
         <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" autocomplete="email" value="${XC.email||''}"></div>
         <div class="field"><label>Пароль${reg?' (минимум 6 символов)':''}</label><input id="au-pass" type="password" autocomplete="${reg?'new-password':'current-password'}"></div>
         ${reg?`<div class="field"><label>Повторите пароль</label><input id="au-pass2" type="password" autocomplete="new-password"></div>`:""}
