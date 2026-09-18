@@ -4,7 +4,7 @@
 <title>XAUCORE — DEMO XAUUSD Simulator</title>
 <meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
 <meta name="theme-color" content="#eff1f4">
-<script>/* apply the saved theme before first paint — no light flash */try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -42,7 +42,7 @@
   --lg-tint:rgba(255,255,255,.36); --lg-line:rgba(16,24,40,.12); --lg-shadow:rgba(16,24,40,.12); --lg-spec:rgba(255,255,255,.95);
   --lg-sheen:rgba(255,255,255,.55); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.6); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
-  --nav-top:calc(70px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge */
+  --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
   --nav-glass:rgba(255,255,255,.72); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.075); --nav-lens:rgba(255,255,255,.16);
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
@@ -79,8 +79,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
 img,canvas,svg,video{max-width:100%}
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-#app{padding-bottom:calc(var(--nav-top) + 22px);overflow-x:clip;max-width:100%}
-#app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 74px)}   /* the floating «Новый ордер» must not cover the last card */
+#app{padding-bottom:calc(var(--nav-top) + 26px);overflow-x:clip;max-width:100%}
+#app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 78px)}   /* the floating «Новый ордер» must not cover the last card */
 /* the Charts tab fills the screen (chart height is fitted in chartTabHeight); ⛶ hides the tab bar too */
 body.route-chart{background:var(--chart-bg)}
 body.route-chart #app{padding-bottom:var(--nav-top)}
@@ -219,32 +219,41 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-theme="dark"] .bignew{background:#efefef;color:#2b2b2b;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .bignew:active{filter:brightness(.9)}
 
-/* bottom nav — iOS 26's floating Liquid Glass tab bar (user 2026-09-18, an Apple Music recording: «можем ли
-   мы сделать такое в наши нижние ячейки»): a frosted capsule the page scrolls under; the current tab sits
-   on a soft drop (.nav-bub). Pressed, the drop lifts into a clear lens over the icons — swelling them and
-   tinting the one beneath it (Chromium also bends them at its rim) — follows the finger along the bar,
-   stretching with its speed like liquid, and on release springs onto the nearest tab, which opens.
-   Motion lives in navBubFrame(). */
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;
-  display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding:0;border-radius:31px;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
+/* bottom nav — liquid glass OFF: cTrader's — outline icons and large grey labels, the current tab in blue, on the
+   page ground with a hairline on top (and the touch ripple) */
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
+.bottomnav button.on{color:var(--nav-on)}
+.bottomnav .ic svg{width:26px;height:26px}
+.nav-bub{display:none}
+/* liquid glass ON (the default; «Ещё» → «Жидкое стекло») — iOS 26's floating tab bar (user 2026-09-18, an Apple
+   Music recording): a frosted capsule the page scrolls under; the current tab sits on a soft drop (.nav-bub).
+   Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
+   (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
+   liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
+:root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
+:root[data-glass="on"] .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
+  isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec)}
-.bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;
+:root[data-glass="on"] .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-.bottomnav button{position:relative;z-index:1;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink2);font-size:11.5px;font-weight:500;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
-.bottomnav button.on,.bottomnav button.near{color:var(--nav-on)}
-.bottomnav.dragging button.on:not(.near){color:var(--ink2)}
-.nav-bub{position:absolute;z-index:0;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;background:var(--nav-bub);
+:root[data-glass="on"] .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%}
+:root[data-glass="on"] .bottomnav button.near{color:var(--nav-on)}
+:root[data-glass="on"] .bottomnav.dragging button.on:not(.near){color:var(--ink2)}
+:root[data-glass="on"] .bottomnav .ic svg{width:24px;height:24px}
+:root[data-glass="on"] .nav-bub{display:block;position:absolute;z-index:0;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;background:var(--nav-bub);
   transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform}
-.nav-bub.lift{z-index:2;background:var(--nav-lens);-webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
+:root[data-glass="on"] .nav-bub.lift{z-index:2;background:var(--nav-lens);-webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
   box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec)}
-.nav-bub.lift::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+:root[data-glass="on"] .nav-bub.lift::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
-  .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
-  .nav-bub.lift{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"] .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"] .nav-bub.lift{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 .bottomnav .ic{line-height:0;position:relative}
 .bottomnav .ic svg{display:block}
@@ -302,8 +311,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
 .chlast{position:relative;width:44px;height:31px;padding:0;border-radius:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
-.chlast.on{opacity:1;transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));pointer-events:auto}
-.chlast.pressing,.chlast.jelly{transition:opacity .2s ease}          /* the press / jelly springs drive its transform */
+.chlast.on{opacity:1;transform:none;pointer-events:auto}
+/* liquid glass off: cTrader's opaque buttons, pressed in a little */
+.chfs,.chzoom button,.chpill,.chlast{background:var(--chart-btn);border:1px solid var(--chart-btn-edge)}
+.chfs:active,.chzoom button:active,.chlast.on:active{transform:scale(.92)}
+.chpill:active{filter:brightness(.92)}
+:root[data-glass="on"] .chlast.on{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
+:root[data-glass="on"] .chlast.pressing,:root[data-glass="on"] .chlast.jelly{transition:opacity .2s ease}          /* the press / jelly springs drive its transform */
 /* LIQUID GLASS, iOS-style (user 2026-09-18: in cTrader the chart shows through these buttons — «можно ли
    сделать больше жидкое стекло, что бы выглядело как в айфоне»): a thin tint over a lightly blurred,
    saturated view of the candles, a specular rim brightest at the top-left and bottom-right (::after, a 1 px
@@ -312,18 +326,18 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    displacement map in backdrop-filter); Safari keeps the blur. */
 /* a press (glassFrame) swells the drop, leans it toward the finger (--pdx/--pdy, --psx/--psy) and lights the
    glass where it is touched (--lx/--ly, --la) */
-.chfs,.chzoom button,.chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
-.chfs,.chzoom button,.chpill,.chlast{isolation:isolate;border:0;
+:root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));filter:none}
+:root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill,:root[data-glass="on"] .chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec);text-shadow:var(--lg-text-shadow)}
-.chfs::before,.chzoom button::before,.chpill::before,.chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+:root[data-glass="on"] .chfs::before,:root[data-glass="on"] .chzoom button::before,:root[data-glass="on"] .chpill::before,:root[data-glass="on"] .chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
-.chfs::after,.chzoom button::after,.chpill::after,.chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+:root[data-glass="on"] .chfs::after,:root[data-glass="on"] .chzoom button::after,:root[data-glass="on"] .chpill::after,:root[data-glass="on"] .chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
-  .chfs,.chzoom button,.chpill,.chlast{background:var(--chart-btn);-webkit-backdrop-filter:none;backdrop-filter:none;text-shadow:none}
+  :root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill,:root[data-glass="on"] .chlast{background:var(--chart-btn);-webkit-backdrop-filter:none;backdrop-filter:none;text-shadow:none}
 }
 
 /* forms / modal */
@@ -589,7 +603,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-addbtn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 0;width:64%;min-width:230px;height:36px;border:0;border-radius:4px;background:#1f4e9c;color:#fff;font-size:15px;font-weight:500}
 .wl-addbtn span{font-size:20px;line-height:1}
 :root[data-theme="dark"] .wl-addbtn{background:#2a6bd0}
-.fabnew{--fab-bg:#d3e3fd;position:fixed;right:max(14px, calc(50% - 246px));bottom:calc(var(--nav-top) + 18px);z-index:35;display:flex;align-items:center;gap:14px;padding:13px 22px 13px 18px;border:0;border-radius:16px;background:var(--fab-bg);color:#0b1d38;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.fabnew{--fab-bg:#d3e3fd;position:fixed;right:max(14px, calc(50% - 246px));bottom:calc(var(--nav-top) + 22px);z-index:35;display:flex;align-items:center;gap:14px;padding:13px 22px 13px 18px;border:0;border-radius:16px;background:var(--fab-bg);color:#0b1d38;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 :root[data-theme="dark"] .fabnew{--fab-bg:#0d47a1;color:#dbe7fb}
 .fabnew:active{filter:brightness(.92)}
 body.trade-locked .fabnew{opacity:.5;pointer-events:none}
@@ -780,6 +794,82 @@ html:has(body.route-wallet){background:#0c0a08}
 .tps-presets button:active,.news-btns button:active,.lotctl button:active{transform:scale(.97)}
 .iconbtn:active,.chartzoom button:active{transform:scale(.9)}
 .bignew:active{transform:translateX(-50%) scale(.985)}
+/* ---- LIQUID GLASS everywhere else it fits (user 2026-09-18: «первые 8 пунктов отличны») — all gated on
+   html[data-glass=on]; off, every one of these keeps its flat cTrader look ---- */
+:root[data-glass="on"]{
+  --bar-glass:rgba(255,255,255,.72); --bg-glass:rgba(239,241,244,.72); --sheet-glass:rgba(255,255,255,.86);
+  --seg-track:rgba(120,120,128,.13); --seg-bub:rgba(255,255,255,.95); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,.6);
+  --toast-glass:rgba(22,24,28,.74); --bn-glass:rgba(17,20,24,.78); --fab-glass:rgba(211,227,253,.8);
+  --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.16);
+}
+:root[data-theme="dark"][data-glass="on"]{
+  --bar-glass:rgba(12,12,12,.7); --bg-glass:rgba(0,0,0,.62); --sheet-glass:rgba(26,26,28,.86);
+  --seg-track:rgba(255,255,255,.08); --seg-bub:rgba(84,84,90,.82); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,.58);
+  --toast-glass:rgba(52,52,56,.74); --bn-glass:rgba(245,245,245,.84); --fab-glass:rgba(13,71,161,.74);
+  --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.1);
+}
+/* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
+:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+/* 1. «Новый ордер»: tinted glass (still the primary look), a drop under the finger like the chart buttons */
+:root[data-glass="on"] .bignew{isolation:isolate;filter:none;transition:none;
+  background:radial-gradient(110px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--bn-glass),var(--bn-glass));
+  -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 10px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec);
+  transform:translateX(-50%) translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+:root[data-glass="on"] .fabnew{isolation:isolate;filter:none;
+  background:radial-gradient(80px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--fab-glass),var(--fab-glass));
+  -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px var(--lg-spec);
+  transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+/* 2. the Markets subtabs: a frosted bar the page scrolls under; the current tab sits on a drop that
+   flows to the next one (its leading edge runs ahead, the trailing one catches up — dropFrame) */
+.sub-bub,.seg-bub{display:none}
+:root[data-glass="on"] .subtabs{background:var(--bar-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
+:root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
+:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;background:var(--sub-bub);
+  box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
+/* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
+:root[data-glass="on"] .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
+:root[data-glass="on"] .seg button{position:relative;z-index:1}
+:root[data-glass="on"] .seg button.on,:root[data-glass="on"] .seg.theme button.on{background:transparent;box-shadow:none}
+:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;background:var(--seg-bub);
+  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
+:root[data-glass="on"] .seg.theme .seg-bub{background:var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
+/* 4. toasts: glass capsules */
+:root[data-glass="on"] .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);
+  -webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px rgba(255,255,255,.18)}
+:root[data-glass="on"] .toast.g{background:rgba(11,122,69,.8)}:root[data-glass="on"] .toast.r{background:rgba(192,42,34,.8)}:root[data-glass="on"] .toast.o{background:rgba(201,106,8,.8)}
+/* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
+:root[data-glass="on"] .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
+  background:var(--sheet-glass);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec)}
+:root[data-glass="on"] .modal .sheet{animation-name:shInG}
+:root[data-glass="on"] .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
+@keyframes shInG{from{transform:translateY(calc(100% + 40px))}}
+/* 6. the top bars: frosted, the page scrolls under them */
+:root[data-glass="on"] .appbar{background:var(--bar-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
+:root[data-glass="on"] .wl-topbar{background:var(--bg-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8)}
+/* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
+:root[data-glass="on"] .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);border-top:0;
+  border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec)}
+/* 8. the crosshair's OHLC readout on the chart: a small glass card over the candles */
+:root[data-glass="on"] .chartinfo{background:var(--info-glass);-webkit-backdrop-filter:blur(10px) saturate(1.7);backdrop-filter:blur(10px) saturate(1.7);border-radius:10px;
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec)}
+@media (prefers-reduced-transparency:reduce){
+  :root[data-glass="on"] .subtabs,:root[data-glass="on"] .appbar,:root[data-glass="on"] .wl-topbar,:root[data-glass="on"] .sheet,:root[data-glass="on"] .lotwheel,:root[data-glass="on"] .toast,:root[data-glass="on"] .bignew,:root[data-glass="on"] .fabnew,:root[data-glass="on"] .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+/* the «Жидкое стекло» switch in «Ещё» */
+.sw-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.sw-row .k{font-weight:600}
+.switch{position:relative;flex:none;width:51px;height:31px;border-radius:999px;background:var(--line);transition:background-color .2s ease;padding:0}
+.switch .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.06);transition:transform .28s cubic-bezier(.3,1.35,.5,1)}
+.switch.on{background:var(--green)}
+.switch.on .knob{transform:translateX(20px)}
+:root[data-theme="dark"] .switch{background:#39393d}
+:root[data-theme="dark"] .switch.on{background:var(--green)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
@@ -2614,7 +2704,8 @@ const app = () => document.getElementById("app");
    листаю, а нужно, когда заходить прям буду»), so — like Android — the ripple waits: it lights up
    after a 110 ms hold on the spot, or on the tap itself (click) for a quicker touch; a finger that
    moves 8 px, or a pointercancel (the page took the gesture to scroll), puts it out / never starts it. */
-const RIPPLE_SEL = ".subtabs button, .menu-item, .ne-card > summary, .tfsheet button";   // the tab bar has its drop instead
+const RIPPLE_SEL = ".menu-item, .ne-card > summary, .tfsheet button";   // + the tab bar and subtabs with liquid glass off (on, their drops are the feedback)
+const RIPPLE_SEL_FLAT = RIPPLE_SEL + ", .bottomnav button, .subtabs button";
 let _rip = null;                                                 // the press being watched
 function rippleShow(el, cx, cy){
   const r = el.getBoundingClientRect(), rad = getComputedStyle(el).borderRadius;
@@ -2637,7 +2728,7 @@ function rippleFade(R, now){
 function rippleDrop(P){ clearTimeout(P.timer); clearTimeout(P.upT); if(P.shown) rippleFade(P.shown, true); if(_rip === P) _rip = null; }
 document.addEventListener("pointerdown", e => {
   if(e.button > 0) return;
-  const el = e.target.closest && e.target.closest(RIPPLE_SEL);
+  const el = e.target.closest && e.target.closest(glassOn() ? RIPPLE_SEL : RIPPLE_SEL_FLAT);
   if(_rip) rippleDrop(_rip);
   if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
   const P = _rip = { el, id: e.pointerId, x: e.clientX, y: e.clientY, shown: null };
@@ -2723,6 +2814,21 @@ function applyTheme(t){
   if(mc) mc.setAttribute("content", t === "dark" ? "#000000" : "#eff1f4");
   try{ localStorage.setItem("xc_theme", t); }catch(e){}
 }
+/* LIQUID GLASS mode («Ещё» → «Жидкое стекло», on by default): html[data-glass] gates every glass style; off,
+   the app is its flat cTrader self — opaque chart buttons, the flat tab bar with its ripple, no drops or jelly. */
+function glassOn(){ return document.documentElement.dataset.glass !== "off"; }
+function applyGlass(on){
+  document.documentElement.dataset.glass = on ? "on" : "off";
+  try{ localStorage.setItem("xc_glass", on ? "on" : "off"); }catch(e){}
+}
+function setGlass(on){
+  if(!S.ui) S.ui = {};
+  S.ui.glass = !!on;
+  applyGlass(S.ui.glass);
+  save();
+  render();
+  toast("", S.ui.glass ? "💧 Жидкое стекло включено" : "Жидкое стекло выключено");
+}
 function setTheme(t){
   if(!S.ui) S.ui = {};
   S.ui.theme = (t === "dark") ? "dark" : "light";
@@ -2794,6 +2900,10 @@ function render(){
   document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
   bindScreen();
   document.querySelectorAll("#app .btn.fit").forEach(b => fitText(b, 11));   // a long word shrinks to its button instead of spilling
+  if(glassOn()){
+    glassDrops(app());
+    document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 16, 12));   // «Новый ордер»: a frosted lens
+  }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
@@ -3369,6 +3479,8 @@ function screenMore(){
         <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}" aria-pressed="${currentTheme()==="light"}"><span>☀️ Светлая</span><span class="ck" aria-hidden="true">✓</span></button>
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>🌙 Тёмная</span><span class="ck" aria-hidden="true">✓</span></button>
       </div>
+      <div class="sw-row"><span class="k">💧 Жидкое стекло</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="Жидкое стекло"><span class="knob"></span></button></div>
+      <div class="hint" style="margin-top:6px">Стекло, капли и живая анимация в стиле iOS 26. Выключено — плоский вид, как в cTrader.</div>
     </div>
     ${WALLET_SOON
       ? `<div class="menu-item soon" aria-disabled="true"><span>💳 Брокерский кошелёк</span><span class="soon-pill">Скоро</span></div>`
@@ -4126,7 +4238,7 @@ function navBubFrame(now){
   const lifted = NB.lift > .3;
   if(bub._lifted !== lifted){
     bub._lifted = lifted; bub.classList.toggle("lift", lifted);
-    if(LG_LENS) bub.style.backdropFilter = lifted ? "url(#" + lgFilterId(bub.offsetWidth, bub.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)" : "";
+    if(LG_LENS && glassOn()) bub.style.backdropFilter = lifted ? "url(#" + lgFilterId(bub.offsetWidth, bub.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)" : "";
   }
   // the icons under the lens swell and take the accent colour
   bar.querySelectorAll("button[data-nav]").forEach((b, i) => {
@@ -4145,6 +4257,7 @@ function navBubFrame(now){
 }
 function navBind(bar){
   if(!bar) return;
+  if(!glassOn()){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   const uAt = x => { const r = bar.getBoundingClientRect(); return clamp((x - r.left) / (r.width / 5) - .5, 0, 4); };
   const end = (e, go) => {
     const d = NB.drag;
@@ -4175,6 +4288,57 @@ window.addEventListener("pointerup", e => {
   if(!NB.drag || e.pointerId !== NB.drag.id || (e.target && e.target.closest && e.target.closest(".bottomnav"))) return;
   const d = NB.drag; NB.drag = null; NB.target = clamp(Math.round(d.u), 0, 4); navBubKick();
 });
+/* the drop under the current subtab and under each segmented control's choice (liquid glass on). It lives
+   on across re-renders (_dropMem), so a tap makes it FLOW to the new choice: its two edges ride their own
+   springs — the leading edge quick, the trailing one slower — so it stretches on the way and gathers up
+   on arrival, like a drop of liquid. */
+const _dropMem = {}, _drops = new Map();
+let _dropRaf = 0;
+function dropKey(bar){
+  if(bar.classList.contains("subtabs")) return "sub";
+  const b = bar.querySelector("button"), ds = b ? Object.keys(b.dataset) : [];
+  return "seg:" + (bar.id || ds[0] || bar.className);
+}
+function glassDrops(root){
+  if(!glassOn() || !root) return;
+  root.querySelectorAll(".subtabs, .seg").forEach(bar => {
+    const on = bar.querySelector(":scope > button.on");
+    if(!on) return;
+    const sub = bar.classList.contains("subtabs");
+    let bub = bar.querySelector(sub ? ":scope > .sub-bub" : ":scope > .seg-bub");
+    if(!bub){ bub = document.createElement("span"); bub.className = sub ? "sub-bub" : "seg-bub"; bar.insertBefore(bub, bar.firstChild); }
+    const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
+    const key = dropKey(bar), mem = _dropMem[key];
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0 };
+    _drops.set(bub, st);
+    dropApply(bub, st);
+  });
+  if(_drops.size && !_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+}
+function dropApply(bub, st){
+  bub.style.setProperty("--bx", st.l.toFixed(2) + "px");
+  bub.style.setProperty("--bw", Math.max(0, st.r - st.l).toFixed(2) + "px");
+}
+function dropFrame(now){
+  _dropRaf = 0;
+  for(const [bub, st] of _drops){
+    if(!bub.isConnected){ _drops.delete(bub); continue; }
+    const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
+    st.t = now;
+    const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
+    const Kf = 520, Ks = 230, Cf = 2 * Math.sqrt(Kf) * .78, Cs = 2 * Math.sqrt(Ks) * .8;
+    const Kl = right ? Ks : Kf, Cl = right ? Cs : Cf, Kr = right ? Kf : Ks, Cr = right ? Cf : Cs;
+    st.vl += (-Kl * (st.l - st.tl) - Cl * st.vl) * dt; st.l += st.vl * dt;
+    st.vr += (-Kr * (st.r - st.tr) - Cr * st.vr) * dt; st.r += st.vr * dt;
+    if(st.r - st.l < 8) st.r = st.l + 8;
+    const done = Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3;
+    if(done){ st.l = st.tl; st.r = st.tr; }
+    _dropMem[st.key] = { l: st.l, r: st.r };
+    dropApply(bub, st);
+    if(done) _drops.delete(bub);
+  }
+  if(_drops.size) _dropRaf = requestAnimationFrame(dropFrame);
+}
 function bottomNav(){
   const t = S.ui.tab;
   const on = x => (t===x || (x==="markets" && t==="chart" && false)) ? "on":"";
@@ -4203,6 +4367,7 @@ function bindScreen(){
   navBind(root.querySelector(".bottomnav"));
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
+  root.querySelectorAll("[data-glass-toggle]").forEach(b=> b.onclick = ()=> setGlass(!glassOn()));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=> setChartTF(b.dataset.tf));
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
@@ -5018,6 +5183,7 @@ function openSheet(html, sheetCls){
   document.body.appendChild(modalEl);
   modalEl.addEventListener("click", e=>{ if(e.target === modalEl) closeModal(); });
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
+  glassDrops(modalEl);                                            // Market / Pending, SELL / BUY flow on
 }
 /* modalEl lets go at once (the app sees no sheet); the element slides down and is removed after */
 function closeModal(now){
@@ -5552,9 +5718,10 @@ function lgFilterId(w, h, scale){
   _lgIds.add(id);
   return id;
 }
-function lgGlass(el, w, h, scale){
-  if(!LG_LENS || !el) return;
-  const f = "url(#" + lgFilterId(w, h, scale) + ") blur(1px) saturate(1.35) brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+function lgGlass(el, w, h, scale, blur){
+  if(!LG_LENS || !el || !glassOn()) return;
+  blur = blur || 1;
+  const f = "url(#" + lgFilterId(w, h, scale) + ") blur(" + blur + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
 }
 /* iOS 26's glass buttons on the chart (user: «на кнопках можно ещё более лучше эффект капли сделать»):
@@ -5569,7 +5736,7 @@ function lgGlass(el, w, h, scale){
 const _jelly = new Map();
 let _jellyRaf = 0;
 function jellyFeed(el, v){
-  if(!el || (Math.abs(v) < 1 && !_jelly.has(el))) return;
+  if(!el || !glassOn() || (Math.abs(v) < 1 && !_jelly.has(el))) return;
   let st = _jelly.get(el);
   if(!st){ st = { j: 0, jv: 0, v: 0, vt: 0, dir: 1, t: 0 }; _jelly.set(el, st); el.classList.add("jelly"); }
   st.v = v; st.vt = performance.now(); if(Math.abs(v) > 1) st.dir = v < 0 ? -1 : 1;
@@ -5596,7 +5763,7 @@ function jellyFrame(now){
   }
   if(_jelly.size) _jellyRaf = requestAnimationFrame(jellyFrame);
 }
-const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast";
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew";
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
 function glassAim(g, x, y){
@@ -5617,7 +5784,7 @@ function glassFrame(now){
     g.pv += (-K * (g.p - (g.down ? 1 : 0)) - C * g.pv) * dt; g.p += g.pv * dt;
     const lk = 1 - Math.exp(-dt / (g.down ? .05 : .09));
     g.ox += ((g.down ? g.tx : 0) - g.ox) * lk; g.oy += ((g.down ? g.ty : 0) - g.oy) * lk;
-    const sc = 1 + (g.round ? .14 : .09) * g.p;
+    const sc = 1 + (g.round ? .14 : Math.min(.09, 9 / Math.max(g.w, 1))) * g.p;   // a wide button swells less
     b.style.setProperty("--psx", (sc * (1 + Math.abs(g.ox) / 70)).toFixed(4));
     b.style.setProperty("--psy", (sc * (1 + Math.abs(g.oy) / 70)).toFixed(4));
     b.style.setProperty("--pdx", g.ox.toFixed(2) + "px"); b.style.setProperty("--pdy", g.oy.toFixed(2) + "px");
@@ -5627,22 +5794,22 @@ function glassFrame(now){
       for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--la", "--lx", "--ly"]) b.style.removeProperty(p);
       g.p = g.pv = g.ox = g.oy = 0; g.t = 0;
       b.classList.remove("pressing");
-      lgGlass(b, g.w, g.h);                                                // back to the resting lens
+      lgGlass(b, g.w, g.h, 16, g.blur);                                    // back to the resting lens
       _glass.delete(b);
     }
   }
   if(_glass.size) _glassRaf = requestAnimationFrame(glassFrame);
 }
 document.addEventListener("pointerdown", e => {
-  const b = e.button > 0 ? null : e.target.closest && e.target.closest(GLASS_SEL);
+  const b = e.button > 0 || !glassOn() ? null : e.target.closest && e.target.closest(GLASS_SEL);
   if(!b) return;
   const r = b.getBoundingClientRect();
   const g = b._gs || (b._gs = { p: 0, pv: 0, ox: 0, oy: 0, tx: 0, ty: 0, fx: .5, fy: .3, t: 0 });
   g.down = true; g.id = e.pointerId; g.r = r;
-  g.w = b.offsetWidth; g.h = b.offsetHeight; g.round = Math.abs(g.w - g.h) < 4;
+  g.w = b.offsetWidth; g.h = b.offsetHeight; g.round = Math.abs(g.w - g.h) < 4; g.blur = b.matches(".bignew, .fabnew") ? 12 : 1;
   glassAim(g, e.clientX, e.clientY);
   b.classList.add("pressing");
-  lgGlass(b, g.w, g.h, 26);                                              // the lens deepens under the finger
+  lgGlass(b, g.w, g.h, 26, g.blur);                                      // the lens deepens under the finger
   _glassBtn = b; _glass.add(b); glassKick();
 }, { capture: true, passive: true });
 document.addEventListener("pointermove", e => {
@@ -7026,6 +7193,10 @@ function normalizeState(){
   { let lt = null; try{ lt = localStorage.getItem("xc_theme"); }catch(e){}
     S.ui.theme = (lt === "dark" || lt === "light") ? lt : (S.ui.theme === "dark" ? "dark" : "light");
     applyTheme(S.ui.theme); }
+  // liquid glass: the same — this device's last choice, else the saved state, else on
+  { let lg = null; try{ lg = localStorage.getItem("xc_glass"); }catch(e){}
+    S.ui.glass = lg === "off" ? false : lg === "on" ? true : S.ui.glass !== false;
+    applyGlass(S.ui.glass); }
   if(!S.wallet) S.wallet = { ...d.wallet, ledger: [] };
   if(S.wallet.balance == null) S.wallet.balance = d.wallet.balance;
   if(!Array.isArray(S.wallet.ledger)) S.wallet.ledger = [];
