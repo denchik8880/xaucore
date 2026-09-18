@@ -96,7 +96,8 @@ body.chart-full .bottomnav{display:none}
 .iconbtn:active{background:var(--line)}
 .badge-demo{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--orange-ink);
   background:var(--orange-bg);border:1px solid #f6cfa0;padding:3px 7px;border-radius:999px;white-space:nowrap}
-.subtabs{display:flex;gap:2px;background:var(--bar);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30}
+.subtabs{display:flex;gap:2px;background:var(--bar);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30;scrollbar-width:none}
+.subtabs::-webkit-scrollbar{display:none}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
 .subtabs button.on{color:var(--blue-ink);border-bottom-color:var(--blue-ink)}
 .subtabs .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:20px;padding:0 4px;margin-left:6px;border:1.5px solid currentColor;border-radius:4px;font-size:12.5px;font-weight:600;line-height:1;vertical-align:1px;font-variant-numeric:tabular-nums}
@@ -808,15 +809,17 @@ html:has(body.route-wallet){background:#0c0a08}
   --seg-track:rgba(120,120,128,.13); --seg-bub:rgba(255,255,255,.95); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,.42);
   --toast-glass:rgba(22,24,28,.6); --bn-glass:rgba(17,20,24,.58); --fab-glass:rgba(211,227,253,.62); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55);
+  --cap-glass:rgba(255,255,255,.62); --edge-fade:rgba(239,241,244,.92);
 }
 :root[data-theme="dark"][data-glass="on"]{
   --bar-glass:rgba(12,12,12,.58); --bg-glass:rgba(0,0,0,.52); --sheet-glass:rgba(26,26,28,.82);
   --seg-track:rgba(255,255,255,.08); --seg-bub:rgba(84,84,90,.82); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,.4);
   --toast-glass:rgba(52,52,56,.58); --bn-glass:rgba(245,245,245,.66); --fab-glass:rgba(13,71,161,.6); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.09);
+  --cap-glass:rgba(34,34,38,.6); --edge-fade:rgba(0,0,0,.86);
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after,:root[data-glass="on"] .chartinfo::after,:root[data-glass="on"] .appbar .iconbtn::after,:root[data-glass="on"] .sub-lens::after,:root[data-glass="on"] .seg-lens::after,:root[data-glass="on"] .lw-lens::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after,:root[data-glass="on"] .chartinfo::after,:root[data-glass="on"] .appbar .iconbtn::after,:root[data-glass="on"] .sub-lens::after,:root[data-glass="on"] .seg-lens::after,:root[data-glass="on"] .lw-lens::after,:root[data-glass="on"] .appbar .ttl::after,:root[data-glass="on"] .mini-tools button::after,:root[data-glass="on"] .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
@@ -835,7 +838,6 @@ html:has(body.route-wallet){background:#0c0a08}
 /* 2. the Markets subtabs: a frosted bar the page scrolls under; the current tab sits on a drop that
    flows to the next one (its leading edge runs ahead, the trailing one catches up — dropFrame) */
 .sub-bub,.seg-bub,.sub-lens,.seg-lens,.lw-lens{display:none}
-:root[data-glass="on"] .subtabs{background:var(--bar-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
 :root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
 :root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0) * .7);background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
@@ -870,14 +872,34 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"] .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
 @keyframes shInG{0%{transform:translateY(calc(100% + 40px))}66%{transform:translateY(-7px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
 /* 6. the top bars: frosted, the page scrolls under them */
-:root[data-glass="on"] .appbar{background:var(--bar-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
-:root[data-glass="on"] .appbar .iconbtn{position:relative;isolation:isolate;width:38px;height:38px;border-radius:50%;color:var(--ink);font-size:22px;
+/* 6. the top bars are gone: «‹», the title and the subtabs FLOAT as glass capsules and the page scrolls
+   under them (user 2026-09-18, Telegram with / without liquid glass); a soft fade keeps the very top calm */
+:root[data-glass="on"] .appbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:transparent;box-shadow:none;isolation:isolate;padding:8px 10px;min-height:56px}
+:root[data-glass="on"] .appbar::before,:root[data-glass="on"] .wl-topbar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:-12px;pointer-events:none;z-index:-1;
+  background:linear-gradient(180deg,var(--edge-fade) 0%,var(--edge-fade) 30%,transparent 100%)}
+:root[data-glass="on"] .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
+:root[data-glass="on"] .subtabs{top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
+:root[data-glass="on"] .wl-search,:root[data-glass="on"] .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+/* iOS 26 toolbars: the sheet's ✕ and the drum's Edit / Done are glass capsules too */
+:root[data-glass="on"] .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+:root[data-glass="on"] .lw-bar{background:transparent;height:auto;padding:10px 12px 4px}
+:root[data-glass="on"] .lw-bar button{border-radius:999px;padding:8px 18px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+/* the overview mini chart's ⛶ / м1: glass drops over the candles, like the Charts tab's */
+:root[data-glass="on"] .mini-tools button{position:relative;isolation:isolate;border:0;border-radius:999px;color:var(--ink);text-shadow:var(--lg-text-shadow);
+  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+:root[data-glass="on"] .mini-tools button:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+:root[data-glass="on"] .appbar .iconbtn{position:relative;isolation:isolate;width:40px;height:40px;flex:none;border-radius:50%;color:var(--ink);font-size:22px;
   background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"] .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
-:root[data-glass="on"] .wl-topbar{background:var(--bg-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8)}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
 :root[data-glass="on"] .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
   border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
@@ -2936,7 +2958,7 @@ function render(){
   if(glassOn()){
     glassDrops(app());
     document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 0, 5));     // «Новый ордер»: a clear lens
-    document.querySelectorAll("#app .appbar .iconbtn").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));             // «‹»: a glass drop
+    document.querySelectorAll("#app .appbar .iconbtn, #app .mini-tools button").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // «‹», the mini chart's ⛶ / м1: glass drops
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -2953,7 +2975,8 @@ function runTitles(){
     const run = el.querySelector(".ttl-run");
     if(!run) return;
     el.classList.remove("run");
-    const over = run.scrollWidth - el.clientWidth;
+    const cs = getComputedStyle(el);
+    const over = run.scrollWidth - (el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
     if(over > 1){
       el.style.setProperty("--run-x", -(over + 12) + "px");          // +12: the fade padding .run adds
       el.style.setProperty("--run-dur", (4 + over / 20).toFixed(1) + "s");
@@ -5794,7 +5817,7 @@ function jellyFrame(now){
   }
   if(_jelly.size) _jellyRaf = requestAnimationFrame(jellyFrame);
 }
-const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn";
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close";
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
 function glassAim(g, x, y){
