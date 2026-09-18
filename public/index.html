@@ -819,7 +819,7 @@ html:has(body.route-wallet){background:#0c0a08}
   --cap-glass:rgba(34,34,38,.6); --edge-fade:rgba(0,0,0,.86);
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after,:root[data-glass="on"] .chartinfo::after,:root[data-glass="on"] .appbar .iconbtn::after,:root[data-glass="on"] .sub-lens::after,:root[data-glass="on"] .seg-lens::after,:root[data-glass="on"] .lw-lens::after,:root[data-glass="on"] .appbar .ttl::after,:root[data-glass="on"] .mini-tools button::after,:root[data-glass="on"] .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after,:root[data-glass="on"] .chartinfo::after,:root[data-glass="on"] .appbar .iconbtn::after,:root[data-glass="on"] .sub-lens::after,:root[data-glass="on"] .seg-lens::after,:root[data-glass="on"] .lw-lens::after,:root[data-glass="on"] .mq-lens::after,:root[data-glass="on"] .appbar .ttl::after,:root[data-glass="on"] .mini-tools button::after,:root[data-glass="on"] .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
@@ -837,7 +837,14 @@ html:has(body.route-wallet){background:#0c0a08}
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 /* 2. the Markets subtabs: a frosted bar the page scrolls under; the current tab sits on a drop that
    flows to the next one (its leading edge runs ahead, the trailing one catches up — dropFrame) */
-.sub-bub,.seg-bub,.sub-lens,.seg-lens,.lw-lens{display:none}
+.sub-bub,.seg-bub,.sub-lens,.seg-lens,.lw-lens,.mq-lens{display:none}
+:root[data-glass="on"] .miniquick{position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+:root[data-glass="on"] .mq-lens{display:block;position:absolute;left:0;top:0;pointer-events:none;z-index:2;isolation:isolate;border-radius:11px;
+  transform:translate(var(--qx,0px),var(--qy,0px));width:var(--qw,0px);height:var(--qh,0px);opacity:var(--qf,0);will-change:transform,width,height,opacity;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.06);
+  -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
+  box-shadow:0 0 0 .5px var(--lg-line),0 5px 16px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .mq-lens.idle{visibility:hidden}
 :root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
 :root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0) * .7);background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
@@ -879,7 +886,13 @@ html:has(body.route-wallet){background:#0c0a08}
   background:linear-gradient(180deg,var(--edge-fade) 0%,var(--edge-fade) 30%,transparent 100%)}
 :root[data-glass="on"] .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"] .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
-:root[data-glass="on"] .subtabs{top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+/* the subtabs are dragged like the tab bar: they fit the capsule (no scrolling), a sideways drag is ours,
+   a vertical one still scrolls the page */
+:root[data-glass="on"] .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color .2s ease}
+:root[data-glass="on"] .subtabs .cnt{margin-left:4px}
+:root[data-glass="on"] .subtabs button.near{color:var(--blue-ink)}
+:root[data-glass="on"] .subtabs.dragging button.on:not(.near){color:var(--ink3)}
+:root[data-glass="on"] .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"] .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
 :root[data-glass="on"] .wl-search,:root[data-glass="on"] .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* iOS 26 toolbars: the sheet's ✕ and the drum's Edit / Done are glass capsules too */
@@ -906,8 +919,7 @@ html:has(body.route-wallet){background:#0c0a08}
 @keyframes lwInG{0%{transform:translateY(100%)}66%{transform:translateY(-6px)}100%{transform:none}}
 /* the chosen row sits under a glass drop that swells its digits, like an iOS picker's lens */
 :root[data-glass="on"] .lw-lens{display:block;position:absolute;left:8px;right:8px;top:89px;height:38px;border-radius:12px;pointer-events:none;isolation:isolate;
-  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.04);
-  -webkit-backdrop-filter:blur(.3px) saturate(1.3);backdrop-filter:blur(.3px) saturate(1.3);
+  background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,transparent 32%),rgba(255,255,255,.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* 8. the crosshair's OHLC readout on the chart: a small clear drop over the candles */
 :root[data-glass="on"] .chartinfo{isolation:isolate;background:var(--info-glass);-webkit-backdrop-filter:blur(5px) saturate(1.7);backdrop-filter:blur(5px) saturate(1.7);border-radius:12px;text-shadow:var(--lg-text-shadow);
@@ -2957,6 +2969,7 @@ function render(){
   document.querySelectorAll("#app .btn.fit").forEach(b => fitText(b, 11));   // a long word shrinks to its button instead of spilling
   if(glassOn()){
     glassDrops(app());
+    quickLens(app());
     document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 0, 5));     // «Новый ордер»: a clear lens
     document.querySelectorAll("#app .appbar .iconbtn, #app .mini-tools button").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // «‹», the mini chart's ⛶ / м1: glass drops
   }
@@ -4353,11 +4366,146 @@ function glassDrops(root){
     if(!lens){ lens = document.createElement("span"); lens.className = (sub ? "sub-lens" : "seg-lens") + " idle"; bar.appendChild(lens); }
     const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
     const key = dropKey(bar), mem = _dropMem[key];
-    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: 0, bar, lens };
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, bar, lens, inset };
+    bar._st = st; bar._bub = bub;
     _drops.set(bub, st);
     dropApply(bub, st);
+    if(sub) subDragBind(bar);
   });
   if(_drops.size && !_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+}
+/* SUBTABS under a finger, like the tab bar (user: «водить пальцем можно было как это в рынки, графики…»): the
+   drop lifts into a lens and follows the finger, the tab under it tints; let go, the tab beneath opens and the
+   drop flows there. A plain tap still goes through the button's click. */
+let _subByDrag = 0;
+function subDragBind(bar){
+  if(bar._dragBound) return;
+  bar._dragBound = true;
+  const btns = () => [...bar.querySelectorAll(":scope > button")];
+  const hit = x => {
+    const r = bar.getBoundingClientRect(), lx = x - r.left + bar.scrollLeft;
+    let best = null, bd = 1e9;
+    for(const b of btns()){ const d = Math.abs(lx - (b.offsetLeft + b.offsetWidth / 2)); if(d < bd){ bd = d; best = b; } }
+    return { b: best, lx };
+  };
+  const aim = (st, x) => {
+    const h = hit(x); if(!h.b) return null;
+    const w = h.b.offsetWidth - 2 * (st.inset || 0);
+    st.tl = h.lx - w / 2; st.tr = h.lx + w / 2;
+    btns().forEach(b => b.classList.toggle("near", b === h.b));
+    return h;
+  };
+  const end = (e, go) => {
+    const st = bar._st, d = st && st.drag;
+    if(!d || e.pointerId !== d.id) return;
+    st.drag = null; bar.classList.remove("dragging");
+    btns().forEach(b => b.classList.remove("near"));
+    const h = hit(e.clientX), on = bar.querySelector(":scope > button.on");
+    if(go && h.b && h.b !== on){                                 // a drag or a tap: the bar holds the finger, so it picks
+      _subByDrag = performance.now();
+      _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf };
+      S.ui.subtab = h.b.dataset.sub; render(); save();
+      return;
+    }
+    _subByDrag = performance.now();                               // the click that follows is ours already
+    if(on){ st.tl = on.offsetLeft + st.inset; st.tr = on.offsetLeft + on.offsetWidth - st.inset; }
+    _drops.set(bar._bub, st); if(!_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+  };
+  bar.addEventListener("pointerdown", e => {
+    const st = bar._st;
+    if(!glassOn() || e.button > 0 || !st) return;
+    st.drag = { id: e.pointerId, x0: e.clientX, moved: false };
+    try{ bar.setPointerCapture(e.pointerId); }catch(_){}
+    bar.classList.add("dragging");
+    aim(st, e.clientX);
+    _drops.set(bar._bub, st); if(!_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+  });
+  bar.addEventListener("pointermove", e => {
+    const st = bar._st, d = st && st.drag;
+    if(!d || e.pointerId !== d.id) return;
+    if(Math.abs(e.clientX - d.x0) > 6) d.moved = true;
+    aim(st, e.clientX);
+    _drops.set(bar._bub, st); if(!_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+  });
+  bar.addEventListener("pointerup", e => end(e, true));
+  bar.addEventListener("pointercancel", e => end(e, false));
+}
+/* QUICK LOTS (0.01 … MAX): pressed, a glass lens appears on the chip under the finger and flows from chip to
+   chip after it; let go, that lot is set and the lens melts away (user: «…только что бы пропадало когда
+   выбрали лот»). Its place and fade survive the re-render the new lot causes (_mqMem). */
+let _mqMem = null, _mqRaf = 0;
+const _mq = new Map();
+function quickLens(root){
+  if(!glassOn() || !root) return;
+  root.querySelectorAll(".miniquick").forEach(box => {
+    let lens = box.querySelector(":scope > .mq-lens");
+    if(!lens){ lens = document.createElement("span"); lens.className = "mq-lens idle"; box.appendChild(lens); }
+    const st = { x: 0, y: 0, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0, tx: 0, ty: 0, tw: 0, th: 0, f: 0, box, lens, t: 0, drag: null };
+    if(_mqMem && _mqMem.f > .01){ Object.assign(st, _mqMem, { box, lens, t: 0, drag: null }); st.tx = st.x; st.ty = st.y; st.tw = st.w; st.th = st.h; st.tf = 0; _mq.set(box, st); mqKick(); }
+    mqApply(st);
+    if(box._mqBound) return;
+    box._mqBound = true;
+    const chips = () => [...box.querySelectorAll(":scope > button")];
+    const aim = (s, x, y) => {
+      const r = box.getBoundingClientRect(), lx = x - r.left, ly = y - r.top;
+      let best = null, bd = 1e9;
+      for(const c of chips()){ const dx = lx - (c.offsetLeft + c.offsetWidth / 2), dy = (ly - (c.offsetTop + c.offsetHeight / 2)) * 1.6, d = dx * dx + dy * dy; if(d < bd){ bd = d; best = c; } }
+      if(!best) return null;
+      s.tx = best.offsetLeft - 3; s.ty = best.offsetTop - 3; s.tw = best.offsetWidth + 6; s.th = best.offsetHeight + 6;
+      return best;
+    };
+    box.addEventListener("pointerdown", e => {
+      if(!glassOn() || e.button > 0) return;
+      const s = _mq.get(box) || box._mqSt || st; box._mqSt = s;
+      const c = aim(s, e.clientX, e.clientY); if(!c) return;
+      if(s.f < .05){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; }   // it appears where the finger is
+      s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false }; s.tf = 1;
+      try{ box.setPointerCapture(e.pointerId); }catch(_){}
+      if(!s.lens._lg){ s.lens._lg = 1; lgGlass(s.lens, s.tw, s.th, 10, .5); }
+      _mq.set(box, s); mqKick();
+    });
+    box.addEventListener("pointermove", e => {
+      const s = box._mqSt, d = s && s.drag;
+      if(!d || e.pointerId !== d.id) return;
+      if(Math.hypot(e.clientX - d.x0, e.clientY - d.y0) > 6) d.moved = true;
+      aim(s, e.clientX, e.clientY); mqKick();
+    });
+    const end = (e, go) => {
+      const s = box._mqSt, d = s && s.drag;
+      if(!d || e.pointerId !== d.id) return;
+      s.drag = null; s.tf = 0; mqKick();
+      const c = aim(s, e.clientX, e.clientY);
+      if(go) _mqMem = { x: s.x, y: s.y, w: s.w, h: s.h, f: s.f };    // the re-render the new lot causes keeps the fade going
+      if(go && c){ box._mqPick = performance.now(); box._mqSelf = true; c.click(); box._mqSelf = false; }   // drag or tap: the chip under the lens
+    };
+    box.addEventListener("pointerup", e => end(e, true));
+    box.addEventListener("pointercancel", e => end(e, false));
+    // the browser's own click after that release would set the lot twice
+    box.addEventListener("click", e => { if(!box._mqSelf && performance.now() - (box._mqPick || 0) < 450){ e.stopPropagation(); e.preventDefault(); } }, true);
+  });
+}
+function mqKick(){ if(!_mqRaf) _mqRaf = requestAnimationFrame(mqFrame); }
+function mqApply(s){
+  const l = s.lens;
+  l.style.setProperty("--qx", s.x.toFixed(1) + "px"); l.style.setProperty("--qy", s.y.toFixed(1) + "px");
+  l.style.setProperty("--qw", Math.max(0, s.w).toFixed(1) + "px"); l.style.setProperty("--qh", Math.max(0, s.h).toFixed(1) + "px");
+  l.style.setProperty("--qf", s.f.toFixed(3));
+  const idle = s.f < .01; if(l._idle !== idle){ l._idle = idle; l.classList.toggle("idle", idle); }
+}
+function mqFrame(now){
+  _mqRaf = 0;
+  for(const [box, s] of _mq){
+    if(!box.isConnected){ _mq.delete(box); continue; }
+    const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : 1 / 60;
+    s.t = now;
+    const K = 520, C = 2 * Math.sqrt(K) * .68;                    // it flows from chip to chip with a hint of overshoot
+    for(const k of ["x", "y", "w", "h"]){ const v = "v" + k, t = "t" + k; s[v] += (-K * (s[k] - s[t]) - C * s[v]) * dt; s[k] += s[v] * dt; }
+    s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
+    if(_mqMem) _mqMem.f = s.f;
+    mqApply(s);
+    if(!s.drag && s.f < .01 && Math.abs(s.vx) + Math.abs(s.vy) < 2){ s.f = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
+  }
+  if(_mq.size) _mqRaf = requestAnimationFrame(mqFrame);
 }
 function dropApply(bub, st){
   const el = st.bar || bub;                                        // on the bar: the drop and its lens both read them
@@ -4378,17 +4526,18 @@ function dropFrame(now){
     const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
     st.t = now;
     const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
-    const Kf = 520, Ks = 230, Cf = 2 * Math.sqrt(Kf) * .6, Cs = 2 * Math.sqrt(Ks) * .62;   // a little bounce on landing
+    const dr = !!st.drag;                                           // under the finger: stiff and calm; let go: the flowing drop
+    const Kf = dr ? 900 : 520, Ks = dr ? 700 : 230, Cf = 2 * Math.sqrt(Kf) * (dr ? .9 : .6), Cs = 2 * Math.sqrt(Ks) * (dr ? .9 : .62);   // a little bounce on landing
     const Kl = right ? Ks : Kf, Cl = right ? Cs : Cf, Kr = right ? Kf : Ks, Cr = right ? Cf : Cs;
     st.vl += (-Kl * (st.l - st.tl) - Cl * st.vl) * dt; st.l += st.vl * dt;
     st.vr += (-Kr * (st.r - st.tr) - Cr * st.vr) * dt; st.r += st.vr * dt;
     if(st.r - st.l < 8) st.r = st.l + 8;
     // the lens rides the speed: up fast while the drop flows, melting back as it lands
-    const flf = Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
+    const flf = st.drag ? 1 : Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
     st.lf += (flf - st.lf) * (1 - Math.exp(-dt / (flf > st.lf ? .05 : .16)));
-    const done = Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01;
+    const done = !st.drag && Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01;
     if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; }
-    _dropMem[st.key] = { l: st.l, r: st.r };
+    _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf };
     dropApply(bub, st);
     if(done) _drops.delete(bub);
   }
@@ -4423,7 +4572,7 @@ function bindScreen(){
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
   root.querySelectorAll("[data-glass-toggle]").forEach(b=> b.onclick = ()=> setGlass(!glassOn()));
-  root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
+  root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ if(performance.now() - _subByDrag < 400) return; S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=> setChartTF(b.dataset.tf));
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
     const a = b.dataset.chz;
@@ -4741,7 +4890,6 @@ function openLotWheel(){
     <div class="lw-edit" hidden><input id="lwInput" class="mono" inputmode="decimal" autocomplete="off" enterkeyhint="done"><span class="lw-err" id="lwErr"></span></div>
     <div class="lw-body"><canvas id="lwCanvas"></canvas><div class="lw-lens"></div></div>`;
   document.body.appendChild(el);
-  if(glassOn()){ const ln = el.querySelector(".lw-lens"); lgGlass(ln, ln.offsetWidth, ln.offsetHeight, 6, .5); }    // the chosen row under a magnifying drop (a gentle lens: 26 scrambled the digits)
   const cv = el.querySelector("#lwCanvas"), inp = el.querySelector("#lwInput"), err = el.querySelector("#lwErr");
   const box = el.querySelector(".lw-edit"), doneBtn = el.querySelector('[data-lw="done"]');
   const field = v => {
@@ -4762,7 +4910,8 @@ function openLotWheel(){
   const ctx = cv.getContext("2d"), sx = cv.width / W, sy = cv.height / VH;
   const css = getComputedStyle(document.documentElement);
   const INK = css.getPropertyValue("--ink").trim() || "#111", BANDC = css.getPropertyValue("--lw-band").trim() || "#f1f1f3";
-  const FONT = FS + "px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";   // one font a frame — rows scale by transform
+  const FONT = FS + "px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
+  const LENS_MAG = glassOn() ? 1.14 : 1;   // one font a frame — rows scale by transform
   const BX = 10, BY = MID - BH / 2, BW = W - 20;                       // the selection band
   ctx.font = FONT;
   const BASE = (ctx.measureText("0123456789").actualBoundingBoxAscent || FS * 0.71) / 2;   // baseline below a row's centre that centres its digits
@@ -4777,7 +4926,8 @@ function openLotWheel(){
       const k = Math.cos(th), y = MID + RAD * Math.sin(th);
       if(y < lo || y > hi) continue;
       ctx.globalAlpha = ink ? 1 : 0.55 * Math.sqrt(k);
-      ctx.setTransform(sx * (0.9 + 0.1 * k), 0, 0, sy * k, sx * W / 2, sy * y);   // foreshortened, a touch narrower off the front
+      const mg = ink ? LENS_MAG : 1;                                   // under the glass lens the row reads a size larger — drawn, so it stays crisp
+      ctx.setTransform(sx * (0.9 + 0.1 * k) * mg, 0, 0, sy * k * mg, sx * W / 2, sy * y);   // foreshortened, a touch narrower off the front
       ctx.fillText(labels[i], 0, BASE);
     }
   };
@@ -5238,6 +5388,7 @@ function openSheet(html, sheetCls){
   modalEl.addEventListener("click", e=>{ if(e.target === modalEl) closeModal(); });
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
   glassDrops(modalEl);                                            // Market / Pending, SELL / BUY flow on
+  quickLens(modalEl);                                             // the lot sheet's quick chips
 }
 /* modalEl lets go at once (the app sees no sheet); the element slides down and is removed after */
 function closeModal(now){
