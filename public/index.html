@@ -4461,7 +4461,6 @@ function quickLens(root){
       if(s.f < .05){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; }   // it appears where the finger is
       s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false }; s.tf = 1;
       try{ box.setPointerCapture(e.pointerId); }catch(_){}
-      if(!s.lens._lg){ s.lens._lg = 1; lgGlass(s.lens, s.tw, s.th, 10, .5); }
       _mq.set(box, s); mqKick();
     });
     box.addEventListener("pointermove", e => {
@@ -4491,6 +4490,7 @@ function mqApply(s){
   l.style.setProperty("--qw", Math.max(0, s.w).toFixed(1) + "px"); l.style.setProperty("--qh", Math.max(0, s.h).toFixed(1) + "px");
   l.style.setProperty("--qf", s.f.toFixed(3));
   const idle = s.f < .01; if(l._idle !== idle){ l._idle = idle; l.classList.toggle("idle", idle); }
+  if(!idle) lgFit(l, s.w, s.h, 10, 0);                          // no blur: the lot under it stays sharp
 }
 function mqFrame(now){
   _mqRaf = 0;
@@ -4515,8 +4515,8 @@ function dropApply(bub, st){
   const L = st.lens;
   if(L){
     const idle = (st.lf || 0) < .01;
-    if(L._idle !== idle){ L._idle = idle; L.classList.toggle("idle", idle);
-      if(!idle && !L._lg){ L._lg = 1; lgGlass(L, Math.max(8, st.tr - st.tl), L.offsetHeight || 30, 10, .5); } }   // mild: labels stay readable under it
+    if(L._idle !== idle){ L._idle = idle; L.classList.toggle("idle", idle); }
+    if(!idle) lgFit(L, st.r - st.l, L._h || (L._h = L.offsetHeight) || 30, 10, 0);   // mild: labels stay readable under it
   }
 }
 function dropFrame(now){
@@ -5925,9 +5925,16 @@ function lgFilterId(w, h, scale){
 }
 function lgGlass(el, w, h, scale, blur){
   if(!LG_LENS || !el || !glassOn()) return;
-  blur = blur || 1;
+  blur = blur == null ? 1 : blur;
   const f = "url(#" + lgFilterId(w, h, scale) + ") blur(" + blur + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
+}
+/* a lens that changes size (the subtab drop, the lot lens) needs a map of ITS size: one built for another size
+   leaves a strip past its edge that is shifted by half the scale — the cut, doubled labels (user: «теперь они
+   как-то срезаются»). The size goes in 4 px steps (a map a hair larger than the lens is fine), so few filters. */
+function lgFit(el, w, h, scale, blur){
+  const q = v => Math.max(8, Math.ceil(v / 4) * 4);
+  lgGlass(el, q(w), q(h), scale, blur);
 }
 /* iOS 26's glass buttons on the chart (user: «на кнопках можно ещё более лучше эффект капли сделать»):
    pressed, a button swells like a drop (quick in; released it wobbles back — a bouncy spring), leans a
