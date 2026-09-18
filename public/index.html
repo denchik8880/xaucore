@@ -38,6 +38,9 @@
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
+  /* liquid glass on the chart's floating buttons (see .chfs … below) */
+  --lg-tint:rgba(255,255,255,.36); --lg-line:rgba(16,24,40,.12); --lg-shadow:rgba(16,24,40,.12); --lg-spec:rgba(255,255,255,.95);
+  --lg-sheen:rgba(255,255,255,.55); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.6); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
@@ -55,6 +58,8 @@
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
+  --lg-tint:rgba(30,30,34,.36); --lg-line:rgba(255,255,255,.1); --lg-shadow:rgba(0,0,0,.55); --lg-spec:rgba(255,255,255,.24);
+  --lg-sheen:rgba(255,255,255,.1); --lg-rim:rgba(255,255,255,.5); --lg-rim2:rgba(255,255,255,.2); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
@@ -258,13 +263,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chartbox{position:relative;background:var(--chart-bg);max-width:100%;overflow:hidden}
 /* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
    timeframe pill bottom-left, and our round + / − zoom column above those pills */
-.chfs{position:absolute;left:16px;top:9px;z-index:5;width:46px;height:46px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.chfs{position:absolute;left:16px;top:9px;z-index:5;width:46px;height:46px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chfs:active{transform:scale(.92)}
 .chzoom{position:absolute;left:16px;bottom:77px;z-index:5;display:flex;flex-direction:column;gap:8px}
-.chzoom button{width:40px;height:40px;padding:0;border-radius:50%;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.chzoom button{position:relative;width:40px;height:40px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chzoom button:active{transform:scale(.92)}
 .chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;will-change:transform}
-.chpill{display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;will-change:padding;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
+.chpill{position:relative;display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;will-change:padding;border-radius:16px;color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 .chpill svg{display:block}
 .chpill:active{filter:brightness(.92)}
@@ -274,10 +279,27 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    The wrapper holds its place and the step-aside drawChart gives it when a level pill needs that spot; the
    button itself keeps its fade / scale, so the two never fight over one transform. */
 .chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
-.chlast{width:44px;height:31px;padding:0;border-radius:16px;background:var(--chart-btn);border:1px solid var(--chart-btn-edge);color:var(--ink);display:flex;align-items:center;justify-content:center;
+.chlast{position:relative;width:44px;height:31px;padding:0;border-radius:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
 .chlast.on{opacity:1;transform:none;pointer-events:auto}
 .chlast.on:active{transform:scale(.92)}
+/* LIQUID GLASS, iOS-style (user 2026-09-18: in cTrader the chart shows through these buttons — «можно ли
+   сделать больше жидкое стекло, что бы выглядело как в айфоне»): a thin tint over a lightly blurred,
+   saturated view of the candles, a specular rim brightest at the top-left and bottom-right (::after, a 1 px
+   gradient ring), a sheen on the upper half (::before), a soft shadow and a hairline so it reads on a
+   white chart. On Chromium (Android) lgGlass() adds the lens: the view bends at the rim (an SVG
+   displacement map in backdrop-filter); Safari keeps the blur. */
+.chfs,.chzoom button,.chpill,.chlast{isolation:isolate;border:0;background:var(--lg-tint);
+  -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
+  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec);text-shadow:var(--lg-text-shadow)}
+.chfs::before,.chzoom button::before,.chpill::before,.chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
+.chfs::after,.chzoom button::after,.chpill::after,.chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+@media (prefers-reduced-transparency:reduce){
+  .chfs,.chzoom button,.chpill,.chlast{background:var(--chart-btn);-webkit-backdrop-filter:none;backdrop-filter:none;text-shadow:none}
+}
 
 /* forms / modal */
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
@@ -5375,6 +5397,55 @@ function chartTabHeight(c){
 }
 /* where the on-chart buttons sit, in canvas px — drawChart moves the position / order pills out of
    their way (measured on setup and resize, never per frame) */
+/* iOS's lens for the glass buttons, on Chromium (Android Chrome / WebView, desktop Chrome, Samsung): an SVG
+   filter per button size whose displacement map pulls the view inward along a 12 px band at the rim, so
+   the candles bend at the edge like under curved glass. Safari and Firefox don't take url() in
+   backdrop-filter — they keep the plain blur from the CSS. */
+const LG_LENS = /(Chrome|Chromium)\/\d+/.test(navigator.userAgent) && !/CriOS|FxiOS/.test(navigator.userAgent)
+  && !(window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches);
+const _lgIds = new Set();
+let _lgDefs = null;
+function lgFilterId(w, h){
+  w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
+  const id = "lg" + w + "x" + h;
+  if(_lgIds.has(id)) return id;
+  if(!_lgDefs){
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
+    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+    _lgDefs = document.createElementNS(svg.namespaceURI, "defs"); svg.appendChild(_lgDefs); document.body.appendChild(svg);
+  }
+  // every chart button is fully rounded (a circle or a capsule): r = half the short side
+  const r = Math.min(w, h) / 2, BAND = Math.min(r, 12);
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
+    let dx = cx - px, dy = cy - py; const dist = Math.hypot(dx, dy), edge = r - dist;   // edge: 0 at the rim
+    let m = 0;
+    if(dist > 0 && edge < BAND){ const t = 1 - Math.max(edge, 0) / BAND; m = t * t; dx /= dist; dy /= dist; }
+    const i = (y * w + x) * 4;
+    d[i] = 128 + 127 * dx * m; d[i + 1] = 128 + 127 * dy * m; d[i + 2] = 128; d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
+  fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
+  fl.setAttribute("color-interpolation-filters", "sRGB");
+  const im = document.createElementNS(NS, "feImage");
+  im.setAttribute("href", cv.toDataURL()); im.setAttribute("x", "0"); im.setAttribute("y", "0");
+  im.setAttribute("width", w); im.setAttribute("height", h); im.setAttribute("preserveAspectRatio", "none"); im.setAttribute("result", "m");
+  const dm = document.createElementNS(NS, "feDisplacementMap");
+  dm.setAttribute("in", "SourceGraphic"); dm.setAttribute("in2", "m"); dm.setAttribute("scale", "16");
+  dm.setAttribute("xChannelSelector", "R"); dm.setAttribute("yChannelSelector", "G");
+  fl.appendChild(im); fl.appendChild(dm); _lgDefs.appendChild(fl);
+  _lgIds.add(id);
+  return id;
+}
+function lgGlass(el, w, h){
+  if(!LG_LENS || !el) return;
+  const f = "url(#" + lgFilterId(w, h) + ") blur(1px) saturate(1.35) brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+  if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
+}
 function chartZones(c){
   const box = c.getBoundingClientRect(), root = c.parentElement, z = {};
   const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };
@@ -5398,6 +5469,9 @@ function chartZones(c){
     const r = lastWrap.getBoundingClientRect();
     z.lastX0 = r.left - box.left; z.lastW = r.width; z.lastT = r.top - box.top; z.lastB = r.bottom - box.top;
   }
+  root.querySelectorAll(".chfs, .chzoom button, .chpill, .chlast").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));
+  const sym = root.querySelector(".chpill.sym");
+  if(sym){ z.symW = sym.offsetWidth; z.symH = sym.offsetHeight; }
   chart._zones = z;
 }
 function setupChartCanvas(){
@@ -6070,6 +6144,7 @@ function drawChart(){
       symEl.style.paddingLeft = (16 * q).toFixed(1) + "px";
       symEl.style.paddingRight = (12 * q).toFixed(1) + "px";
       symEl.style.gap = (10 * q).toFixed(1) + "px";
+      if(Z.symW) lgGlass(symEl, Z.symW - 38 * (1 - q), Z.symH || 31);
     }
   }
   const rowL = rowL0 - slide - narrowPx;                                  // the row's right edge as it is right now
