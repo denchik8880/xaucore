@@ -288,15 +288,12 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
    timeframe pill bottom-left, and our round + / − zoom column above those pills */
 .chfs{position:absolute;left:16px;top:9px;z-index:5;width:46px;height:46px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
-.chfs:active{transform:scale(.92)}
 .chzoom{position:absolute;left:16px;bottom:77px;z-index:5;display:flex;flex-direction:column;gap:8px}
 .chzoom button{position:relative;width:40px;height:40px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
-.chzoom button:active{transform:scale(.92)}
 .chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;will-change:transform}
 .chpill{position:relative;display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;will-change:padding;border-radius:16px;color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 .chpill svg{display:block}
-.chpill:active{filter:brightness(.92)}
 .chartinfo{position:absolute;left:16px;top:62px;max-width:calc(100% - 90px);z-index:4;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartinfo[hidden]{display:none}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
@@ -305,15 +302,19 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
 .chlast{position:relative;width:44px;height:31px;padding:0;border-radius:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
-.chlast.on{opacity:1;transform:none;pointer-events:auto}
-.chlast.on:active{transform:scale(.92)}
+.chlast.on{opacity:1;transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1));pointer-events:auto}
+.chlast.pressing{transition:opacity .2s ease}                       /* the press spring drives its transform */
 /* LIQUID GLASS, iOS-style (user 2026-09-18: in cTrader the chart shows through these buttons — «можно ли
    сделать больше жидкое стекло, что бы выглядело как в айфоне»): a thin tint over a lightly blurred,
    saturated view of the candles, a specular rim brightest at the top-left and bottom-right (::after, a 1 px
    gradient ring), a sheen on the upper half (::before), a soft shadow and a hairline so it reads on a
    white chart. On Chromium (Android) lgGlass() adds the lens: the view bends at the rim (an SVG
    displacement map in backdrop-filter); Safari keeps the blur. */
-.chfs,.chzoom button,.chpill,.chlast{isolation:isolate;border:0;background:var(--lg-tint);
+/* a press (glassFrame) swells the drop, leans it toward the finger (--pdx/--pdy, --psx/--psy) and lights the
+   glass where it is touched (--lx/--ly, --la) */
+.chfs,.chzoom button,.chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+.chfs,.chzoom button,.chpill,.chlast{isolation:isolate;border:0;
+  background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec);text-shadow:var(--lg-text-shadow)}
 .chfs::before,.chzoom button::before,.chpill::before,.chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
@@ -5509,9 +5510,10 @@ const LG_LENS = /(Chrome|Chromium)\/\d+/.test(navigator.userAgent) && !/CriOS|Fx
   && !(window.matchMedia && matchMedia("(prefers-reduced-transparency: reduce)").matches);
 const _lgIds = new Set();
 let _lgDefs = null;
-function lgFilterId(w, h){
+function lgFilterId(w, h, scale){
+  scale = scale || 16;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h;
+  const id = "lg" + w + "x" + h + (scale === 16 ? "" : "s" + scale);
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -5526,8 +5528,13 @@ function lgFilterId(w, h){
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
     const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
     let dx = cx - px, dy = cy - py; const dist = Math.hypot(dx, dy), edge = r - dist;   // edge: 0 at the rim
+    // toward the drop's core: a strong bend in the rim band plus a gentle magnifier over the whole drop
     let m = 0;
-    if(dist > 0 && edge < BAND){ const t = 1 - Math.max(edge, 0) / BAND; m = t * t; dx /= dist; dy /= dist; }
+    if(dist > 0){
+      const t = edge < BAND ? 1 - Math.max(edge, 0) / BAND : 0;
+      m = Math.min(1, t * t + .22 * Math.min(dist / r, 1));
+      dx /= dist; dy /= dist;
+    }
     const i = (y * w + x) * 4;
     d[i] = 128 + 127 * dx * m; d[i + 1] = 128 + 127 * dy * m; d[i + 2] = 128; d[i + 3] = 255;
   }
@@ -5539,17 +5546,81 @@ function lgFilterId(w, h){
   im.setAttribute("href", cv.toDataURL()); im.setAttribute("x", "0"); im.setAttribute("y", "0");
   im.setAttribute("width", w); im.setAttribute("height", h); im.setAttribute("preserveAspectRatio", "none"); im.setAttribute("result", "m");
   const dm = document.createElementNS(NS, "feDisplacementMap");
-  dm.setAttribute("in", "SourceGraphic"); dm.setAttribute("in2", "m"); dm.setAttribute("scale", "16");
+  dm.setAttribute("in", "SourceGraphic"); dm.setAttribute("in2", "m"); dm.setAttribute("scale", String(scale));
   dm.setAttribute("xChannelSelector", "R"); dm.setAttribute("yChannelSelector", "G");
   fl.appendChild(im); fl.appendChild(dm); _lgDefs.appendChild(fl);
   _lgIds.add(id);
   return id;
 }
-function lgGlass(el, w, h){
+function lgGlass(el, w, h, scale){
   if(!LG_LENS || !el) return;
-  const f = "url(#" + lgFilterId(w, h) + ") blur(1px) saturate(1.35) brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+  const f = "url(#" + lgFilterId(w, h, scale) + ") blur(1px) saturate(1.35) brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
 }
+/* iOS 26's glass buttons on the chart (user: «на кнопках можно ещё более лучше эффект капли сделать»):
+   pressed, a button swells like a drop (quick in; released it wobbles back — a bouncy spring), leans a
+   few px toward the finger and stretches that way, lights up where it is touched, and its lens deepens
+   (Chromium). One rAF loop for every button still moving; clicks are untouched. */
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast";
+const _glass = new Set();
+let _glassRaf = 0, _glassBtn = null;
+function glassAim(g, x, y){
+  const r = g.r, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  g.fx = clamp((x - r.left) / r.width, 0, 1); g.fy = clamp((y - r.top) / r.height, 0, 1);
+  g.tx = clamp((x - cx) * .14, -5, 5); g.ty = clamp((y - cy) * .14, -5, 5);
+}
+function glassKick(){ if(!_glassRaf) _glassRaf = requestAnimationFrame(glassFrame); }
+function glassFrame(now){
+  _glassRaf = 0;
+  const glow = document.documentElement.dataset.theme === "dark" ? .2 : .5;
+  for(const b of _glass){
+    const g = b._gs;
+    if(!b.isConnected || !g){ _glass.delete(b); continue; }
+    const dt = g.t ? Math.min(Math.max((now - g.t) / 1000, 0), 1 / 30) : 1 / 60;
+    g.t = now;
+    const K = g.down ? 700 : 420, C = 2 * Math.sqrt(K) * (g.down ? .75 : .4);
+    g.pv += (-K * (g.p - (g.down ? 1 : 0)) - C * g.pv) * dt; g.p += g.pv * dt;
+    const lk = 1 - Math.exp(-dt / (g.down ? .05 : .09));
+    g.ox += ((g.down ? g.tx : 0) - g.ox) * lk; g.oy += ((g.down ? g.ty : 0) - g.oy) * lk;
+    const sc = 1 + (g.round ? .14 : .09) * g.p;
+    b.style.setProperty("--psx", (sc * (1 + Math.abs(g.ox) / 70)).toFixed(4));
+    b.style.setProperty("--psy", (sc * (1 + Math.abs(g.oy) / 70)).toFixed(4));
+    b.style.setProperty("--pdx", g.ox.toFixed(2) + "px"); b.style.setProperty("--pdy", g.oy.toFixed(2) + "px");
+    b.style.setProperty("--la", (clamp(g.p, 0, 1) * glow).toFixed(3));
+    b.style.setProperty("--lx", (g.fx * 100).toFixed(1) + "%"); b.style.setProperty("--ly", (g.fy * 100).toFixed(1) + "%");
+    if(!g.down && Math.abs(g.p) < .002 && Math.abs(g.pv) < .02 && Math.abs(g.ox) < .05 && Math.abs(g.oy) < .05){
+      for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--la", "--lx", "--ly"]) b.style.removeProperty(p);
+      g.p = g.pv = g.ox = g.oy = 0; g.t = 0;
+      b.classList.remove("pressing");
+      lgGlass(b, g.w, g.h);                                                // back to the resting lens
+      _glass.delete(b);
+    }
+  }
+  if(_glass.size) _glassRaf = requestAnimationFrame(glassFrame);
+}
+document.addEventListener("pointerdown", e => {
+  const b = e.button > 0 ? null : e.target.closest && e.target.closest(GLASS_SEL);
+  if(!b) return;
+  const r = b.getBoundingClientRect();
+  const g = b._gs || (b._gs = { p: 0, pv: 0, ox: 0, oy: 0, tx: 0, ty: 0, fx: .5, fy: .3, t: 0 });
+  g.down = true; g.id = e.pointerId; g.r = r;
+  g.w = b.offsetWidth; g.h = b.offsetHeight; g.round = Math.abs(g.w - g.h) < 4;
+  glassAim(g, e.clientX, e.clientY);
+  b.classList.add("pressing");
+  lgGlass(b, g.w, g.h, 26);                                              // the lens deepens under the finger
+  _glassBtn = b; _glass.add(b); glassKick();
+}, { capture: true, passive: true });
+document.addEventListener("pointermove", e => {
+  const b = _glassBtn, g = b && b._gs;
+  if(g && g.down && e.pointerId === g.id){ glassAim(g, e.clientX, e.clientY); glassKick(); }
+}, { capture: true, passive: true });
+const glassUp = e => {
+  const b = _glassBtn, g = b && b._gs;
+  if(!g || e.pointerId !== g.id) return;
+  g.down = false; _glassBtn = null; glassKick();
+};
+document.addEventListener("pointerup", glassUp, { capture: true, passive: true });
+document.addEventListener("pointercancel", glassUp, { capture: true, passive: true });
 function chartZones(c){
   const box = c.getBoundingClientRect(), root = c.parentElement, z = {};
   const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };
