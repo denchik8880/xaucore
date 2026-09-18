@@ -39,8 +39,8 @@
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
-  --lg-tint:rgba(255,255,255,.36); --lg-line:rgba(16,24,40,.12); --lg-shadow:rgba(16,24,40,.12); --lg-spec:rgba(255,255,255,.95);
-  --lg-sheen:rgba(255,255,255,.55); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.6); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
+  --lg-tint:rgba(255,255,255,.26); --lg-line:rgba(16,24,40,.12); --lg-shadow:rgba(16,24,40,.14); --lg-spec:rgba(255,255,255,.95);
+  --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.78); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
   --nav-glass:rgba(255,255,255,.72); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.075); --nav-lens:rgba(255,255,255,.16);
@@ -62,8 +62,8 @@
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
   --nav-glass:rgba(28,28,30,.74); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.13); --nav-lens:rgba(255,255,255,.05);
-  --lg-tint:rgba(30,30,34,.36); --lg-line:rgba(255,255,255,.1); --lg-shadow:rgba(0,0,0,.55); --lg-spec:rgba(255,255,255,.24);
-  --lg-sheen:rgba(255,255,255,.1); --lg-rim:rgba(255,255,255,.5); --lg-rim2:rgba(255,255,255,.2); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
+  --lg-tint:rgba(30,30,34,.28); --lg-line:rgba(255,255,255,.1); --lg-shadow:rgba(0,0,0,.55); --lg-spec:rgba(255,255,255,.3);
+  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,.66); --lg-rim2:rgba(255,255,255,.3); --lg-glow:rgba(255,255,255,.14); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
@@ -226,7 +226,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
 .bottomnav button.on{color:var(--nav-on)}
 .bottomnav .ic svg{width:26px;height:26px}
-.nav-bub{display:none}
+.nav-bub,.nav-lens{display:none}
 /* liquid glass ON (the default; «Ещё» → «Жидкое стекло») — iOS 26's floating tab bar (user 2026-09-18, an Apple
    Music recording): a frosted capsule the page scrolls under; the current tab sits on a soft drop (.nav-bub).
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
@@ -236,24 +236,31 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"] .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec)}
-:root[data-glass="on"] .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;
+  box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"] .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%}
+:root[data-glass="on"] .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color .22s ease}
 :root[data-glass="on"] .bottomnav button.near{color:var(--nav-on)}
 :root[data-glass="on"] .bottomnav.dragging button.on:not(.near){color:var(--ink2)}
 :root[data-glass="on"] .bottomnav .ic svg{width:24px;height:24px}
-:root[data-glass="on"] .nav-bub{display:block;position:absolute;z-index:0;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;background:var(--nav-bub);
-  transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform}
-:root[data-glass="on"] .nav-bub.lift{z-index:2;background:var(--nav-lens);-webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
-  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec)}
-:root[data-glass="on"] .nav-bub.lift::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+/* the resting drop and the lens share one place and shape (--u, --sx, --sy on the bar) and CROSS-FADE by
+   --lf, the lift: pressed, the lens rises out of the drop; released, it melts back into it (user: it turned
+   grey in one jump — «нужно более плавнее, как с того видео») */
+:root[data-glass="on"] .nav-bub,:root[data-glass="on"] .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;
+  transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform,opacity}
+:root[data-glass="on"] .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 62%),var(--nav-bub);
+  box-shadow:inset 0 1px 1px var(--nb-sheen)}
+:root[data-glass="on"] .nav-lens{z-index:2;opacity:var(--lf,0);background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 52%),var(--nav-lens);
+  -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
+  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .nav-lens.idle{visibility:hidden}
+:root[data-glass="on"] .nav-lens::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
   :root[data-glass="on"] .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
-  :root[data-glass="on"] .nav-bub.lift{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"] .nav-lens{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 .bottomnav .ic{line-height:0;position:relative}
 .bottomnav .ic svg{display:block}
@@ -330,10 +337,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill,:root[data-glass="on"] .chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
-  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec);text-shadow:var(--lg-text-shadow)}
+  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);text-shadow:var(--lg-text-shadow)}
 :root[data-glass="on"] .chfs::before,:root[data-glass="on"] .chzoom button::before,:root[data-glass="on"] .chpill::before,:root[data-glass="on"] .chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
-:root[data-glass="on"] .chfs::after,:root[data-glass="on"] .chzoom button::after,:root[data-glass="on"] .chpill::after,:root[data-glass="on"] .chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+:root[data-glass="on"] .chfs::after,:root[data-glass="on"] .chzoom button::after,:root[data-glass="on"] .chpill::after,:root[data-glass="on"] .chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
@@ -809,34 +816,34 @@ html:has(body.route-wallet){background:#0c0a08}
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.1);
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: tinted glass (still the primary look), a drop under the finger like the chart buttons */
 :root[data-glass="on"] .bignew{isolation:isolate;filter:none;transition:none;
   background:radial-gradient(110px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--bn-glass),var(--bn-glass));
   -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 10px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec);
+  box-shadow:0 0 0 .5px var(--lg-line),0 10px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translateX(-50%) translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"] .fabnew{isolation:isolate;filter:none;
   background:radial-gradient(80px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--fab-glass),var(--fab-glass));
   -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px var(--lg-spec);
+  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 /* 2. the Markets subtabs: a frosted bar the page scrolls under; the current tab sits on a drop that
    flows to the next one (its leading edge runs ahead, the trailing one catches up — dropFrame) */
 .sub-bub,.seg-bub{display:none}
 :root[data-glass="on"] .subtabs{background:var(--bar-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
 :root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
-:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;background:var(--sub-bub);
-  box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
+:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
+  box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"] .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
 :root[data-glass="on"] .seg button{position:relative;z-index:1}
 :root[data-glass="on"] .seg button.on,:root[data-glass="on"] .seg.theme button.on{background:transparent;box-shadow:none}
-:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;background:var(--seg-bub);
-  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
-:root[data-glass="on"] .seg.theme .seg-bub{background:var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
+:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
+  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
+:root[data-glass="on"] .seg.theme .seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 65%),var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
 /* 4. toasts: glass capsules */
 :root[data-glass="on"] .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);
   -webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);
@@ -845,7 +852,7 @@ html:has(body.route-wallet){background:#0c0a08}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"] .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec)}
+  box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"] .modal .sheet{animation-name:shInG}
 :root[data-glass="on"] .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
 @keyframes shInG{from{transform:translateY(calc(100% + 40px))}}
@@ -854,10 +861,10 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"] .wl-topbar{background:var(--bg-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8)}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
 :root[data-glass="on"] .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);border-top:0;
-  border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec)}
+  border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* 8. the crosshair's OHLC readout on the chart: a small glass card over the candles */
 :root[data-glass="on"] .chartinfo{background:var(--info-glass);-webkit-backdrop-filter:blur(10px) saturate(1.7);backdrop-filter:blur(10px) saturate(1.7);border-radius:10px;
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec)}
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 @media (prefers-reduced-transparency:reduce){
   :root[data-glass="on"] .subtabs,:root[data-glass="on"] .appbar,:root[data-glass="on"] .wl-topbar,:root[data-glass="on"] .sheet,:root[data-glass="on"] .lotwheel,:root[data-glass="on"] .toast,:root[data-glass="on"] .bignew,:root[data-glass="on"] .fabnew,:root[data-glass="on"] .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
 }
@@ -2902,7 +2909,7 @@ function render(){
   document.querySelectorAll("#app .btn.fit").forEach(b => fitText(b, 11));   // a long word shrinks to its button instead of spilling
   if(glassOn()){
     glassDrops(app());
-    document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 16, 12));   // «Новый ордер»: a frosted lens
+    document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 0, 12));    // «Новый ордер»: a frosted lens
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -3331,7 +3338,7 @@ function dayCardMarkup(){
     <div class="pill-toggle">
       ${TIME_SCALES.map(v=>`<button data-ts="${v}" class="${simSpeed()===v?'on':''}">${v===1?'NORMAL':'×'+v}</button>`).join("")}
     </div>
-    <div class="hint" style="margin-top:6px">${Math.round(dur/60000)} реальных минут = 1 торговый день при NORMAL (замирает, когда вкладка закрыта). Ускоритель ×${simSpeed()} масштабирует всё игровое время: рынок, тики, свечи, день, режимы, события, свопы. Целевой диапазон дня не раскрывается — см. Debug Console.</div>`;
+    `;
 }
 function newsButtonsMarkup(){
   const dis = tradingLocked() ? "disabled" : "";
@@ -3471,7 +3478,6 @@ function screenMore(){
         <button class="btn ghost fit" data-act="syncnow">Синхронизировать сейчас</button>
         <button class="btn ghost" data-act="logout">${XC.token?"Выйти":"Войти"}</button>
       </div>
-      <div class="hint" style="margin-top:6px">Симуляция (цена, баланс, позиции, день, график) принадлежит аккаунту: она замирает, когда вы уходите, и продолжается с того же места при входе с любого устройства. Одновременно терминал активен только на одном устройстве.</div>
     </div>
     <div class="card">
       <div class="row"><span class="k">Тема оформления</span></div>
@@ -3480,7 +3486,6 @@ function screenMore(){
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>🌙 Тёмная</span><span class="ck" aria-hidden="true">✓</span></button>
       </div>
       <div class="sw-row"><span class="k">💧 Жидкое стекло</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="Жидкое стекло"><span class="knob"></span></button></div>
-      <div class="hint" style="margin-top:6px">Стекло, капли и живая анимация в стиле iOS 26. Выключено — плоский вид, как в cTrader.</div>
     </div>
     ${WALLET_SOON
       ? `<div class="menu-item soon" aria-disabled="true"><span>💳 Брокерский кошелёк</span><span class="soon-pill">Скоро</span></div>`
@@ -3496,9 +3501,6 @@ function screenMore(){
     <div class="menu-item" data-act="triggerroll"><span>▶️ Форсировать смену дня / своп (тест)</span><span>⚡</span></div>
     <hr class="d">
     <div class="menu-item" data-act="reset" style="color:var(--red-ink)"><span>♻️ Сбросить симулятор</span><span>›</span></div>
-    <div class="hint" style="text-align:center;color:var(--ink3);margin-top:14px">
-      XAUCORE · Автономный симулятор. Реальные котировки / брокер / счета не используются.
-    </div>
     <div class="creator">Создатель — <b>Denis Goldman</b></div>
   </div>`;
 }
@@ -3761,7 +3763,6 @@ function screenCalendar(){
   const evs = [...S.events].sort((a,b)=>a.time-b.time);
   return appbar("Экономический календарь",{back:true}) + `<div class="wrap">
     <div class="card">
-      <div class="hint" style="color:var(--orange-ink);font-weight:600">SYNTHETIC / DEMO — все события генерируются симулятором</div>
     </div>
     <div class="card">
       ${evs.map(e=>{
@@ -3790,7 +3791,6 @@ function screenDOM(){
   const rows = domRows();                          // steps the book first; the imbalance reads it
   return appbar("Стакан заявок (DOM)",{back:true}) + `<div class="wrap">
     <div class="card" style="padding:8px">
-      <div class="hint" style="text-align:center;margin-bottom:6px">Синтетическая ликвидность — DEMO</div>
       <div id="domImb">${domImbMarkup()}</div>
       <div class="dom-grid" id="domGrid">${rows}</div>
       <div class="grid2" style="margin-top:10px">
@@ -3900,7 +3900,6 @@ function engineLiveCard(){
   const row = (k,v)=>`<div class="row"><span class="k">${k}</span><span class="v mono">${v}</span></div>`;
   return `<div class="card">
     <h3 style="margin-top:0">Движок — коэффициенты сейчас (live)</h3>
-    <div class="hint" style="margin-bottom:6px">Каждое значение читается движком на лету. Измените настройку → сохраните → цифры здесь меняются.</div>
     ${row("Внутридневной шум ×", fmt(M.intradayNoise,2)+"  → volMul ×"+fmt(volMul,2))}
     ${row("Масштаб дрейфа режима ×", fmt(M.regimeDriftScale,2)+"  (режим "+RG.label+", drift "+(RG.drift>0?'+':'')+RG.drift+")")}
     ${row("Макро-бычий дрейф ×", fmt(M.macroBull,2)+"  → итог дрейфа ≈ "+signMoney(driftDay)+" / игр. день")}
@@ -3950,7 +3949,7 @@ function screenDebug(){
         <div class="row"><span class="k">Стандартное отклонение</span><span class="v mono">$${fmt(st.sd,2)}</span></div>
         <hr class="d">
         ${DAYVOL_ORDER.filter(k=>bandDist[k]).map(k=>`<div class="row"><span class="k">${bandRu[k]||k}</span><span class="v mono">${bandDist[k]} дн.</span></div>`).join("")}
-      ` : `<div class="hint">Дни ещё не закрывались (1 день = ${S.market.dayDurationMin} реальных минут).</div>`}
+      ` : `<div class="hint">Закрытых дней пока нет.</div>`}
     </div>
     <button class="btn dark" data-act="simdays100">Симуляция 100 дней (офлайн)</button>
     <div class="card" id="sim100" style="display:none;font-size:12px"></div>
@@ -4049,7 +4048,6 @@ function screenSettings(){
           <option value="false" ${!c.allowExtreme?"selected":""}>Нет</option></select></div>
         <div class="field"><label>Запуск</label><button class="btn ghost" style="margin:0;padding:9px" data-news="${ty}">▶ ${NEWS_LABEL[ty]}</button></div>
       </div>
-      <div class="hint">Распределение: ${c.dist.map(b=>`${b[0]}–${b[1]} (${Math.round(b[2]*100)}%)`).join(" · ")} — масштабируется к Мин/Макс.</div>
     </details>`;
   };
   return appbar("Настройки симулятора",{back:true}) + `<div class="wrap">
@@ -4057,22 +4055,18 @@ function screenSettings(){
     <div class="card"><h3>Счёт</h3>
       ${F("set_bal","Баланс (USD)", fmt(A.balance,2))}
       ${F("set_cur","Валюта", A.currency)}
-      <div class="hint">Новый баланс применяется по кнопке «Сохранить настройки» (или «Применить баланс»). Открытые позиции и ордера сохраняются.</div>
     </div>
     <div class="card"><h3>Инструмент — XAUUSD</h3>
       ${F("set_cs","Размер контракта (унций в лоте)", sym.contractSize)}
       <div class="row"><span class="k">Мин. лот</span><span class="v mono">${fmt(LOT_MIN,2)}</span></div>
       <div class="row"><span class="k">Макс. лот</span><span class="v mono">${fmt(LOT_MAX,2)}</span></div>
       <div class="row"><span class="k">Шаг лота</span><span class="v mono">${fmt(LOT_STEP,2)}</span></div>
-      <div class="hint" style="margin:2px 0 10px">Лимиты объёма фиксированы и в настройках не меняются.</div>
       ${SEL("set_lev","Кредитное плечо",[[50,"1:50"],[100,"1:100"],[200,"1:200"],[500,"1:500"],[1000,"1:1000"],[2000,"1:2000"],[3000,"1:3000"],[4000,"1:4000"],[10000,"1:10000"]],sym.leverage)}
-      <div class="hint">Маржа = лоты × ${fmt(sym.contractSize,0)} oz × цена ÷ плечо. Сейчас (1:${sym.leverage}) 1 лот ≈ ${money(sym.contractSize*S.price.mid/sym.leverage)}.</div>
     </div>
     <div class="card"><h3>Торговля</h3>
       ${SEL("set_ctype","Тип комиссии",[["usd_per_lot","USD за лот"],["usd_per_million","USD за миллион USD оборота"],["percent","Процент от объёма сделки"],["quote_per_lot","Валюта котировки за лот"]],T.commissionType)}
-      ${F("set_comm","Комиссия (за сторону)", T.commission, "USD за лот за сторону (по умолчанию 6.00)")}
+      ${F("set_comm","Комиссия (за сторону)", T.commission)}
       <div class="row"><span class="k">Спред</span><span class="v mono">авто 0.16–0.24</span></div>
-      <div class="hint" style="margin:2px 0 10px">Спред генерируется сам на каждом тике и в настройках не задаётся. Шире он становится только во время новостей.</div>
       ${SEL("set_slon","Проскальзывание",[["true","Вкл"],["false","Выкл"]],String(T.slippageOn))}
       ${F("set_swl","Swap Long (USD/лот/день)", T.swapLong)}
       ${F("set_sws","Swap Short (USD/лот/день)", T.swapShort)}
@@ -4081,7 +4075,6 @@ function screenSettings(){
       ${F("set_mc","Уровень Margin Call (%)", T.marginCallLevel)}
     </div>
     <div class="card"><h3>Частота генерации тиков (TPS)</h3>
-      <div class="hint" style="margin-bottom:8px">Скорость обновления обычного рынка. Интервал таймера = 1000 / TPS мс. Свечи закрываются строго по таймфрейму (M1 — за 60 сек рыночного времени) независимо от числа тиков внутри (при ручном управлении рынком свеча M1 — ровно 5 тиков). Применяется мгновенно, без перезагрузки.</div>
       <div class="row" style="margin-bottom:6px"><span class="k">Тиков в секунду</span><span class="v tps-val mono" id="tpsVal">${fmt(M.ticksPerSecond,1)}</span></div>
       <div class="field" style="margin-bottom:8px"><label>Точное значение (0.1 – 20, шаг 0.1)</label>
         <input id="set_tps" type="number" min="0.1" max="20" step="0.1" value="${M.ticksPerSecond}"></div>
@@ -4093,10 +4086,8 @@ function screenSettings(){
         <button data-tps="5">5.0 т/с</button>
         <button data-tps="10">10 т/с</button>
       </div>
-      <div class="hint" style="margin-top:6px">0.5 — медленный рынок · 1.0 — стандарт · 2.0 — умеренно · 5.0 — активно · 10.0 — высокая скорость</div>
     </div>
     <div class="card"><h3>Ускоритель симуляции</h3>
-      <div class="hint" style="margin-bottom:8px">Ускоряет ВСЁ игровое время: движение рынка, тики, свечи, торговый день, режимы, события, свопы. Реальные 20 секунд новости остаются 20 реальными секундами. Переключается без сброса состояния.</div>
       <input type="hidden" id="set_ts" value="${M.timeScale||1}">
       <div class="pill-toggle" id="tsPills">
         ${TIME_SCALES.map(v=>`<button data-ts="${v}" class="${(M.timeScale||1)===v?'on':''}">${v===1?'NORMAL':'×'+v}</button>`).join("")}
@@ -4104,26 +4095,23 @@ function screenSettings(){
     </div>
     <div class="card"><h3>Обычный рынок — движок режимов</h3>
       <div class="row"><span class="k">Стартовая цена</span><span class="v mono">случайная $${fmt(START_PX_MIN,0)}–$${fmt(START_PX_MAX,0)}</span></div>
-      <div class="hint" style="margin:2px 0 10px">Каждый новый аккаунт (и сброс симулятора) открывает золото по случайной цене в этом диапазоне.</div>
-      ${F("set_ddur","Длительность торгового дня (реальных минут)", M.dayDurationMin, "45 реальных минут = 1 торговый день")}
-      ${F("set_inoise","Внутридневной шум (×)", M.intradayNoise, "множитель амплитуды шума")}
-      ${F("set_rds","Масштаб дрейфа режима (×)", M.regimeDriftScale, "сила направленного движения трендовых режимов")}
-      ${F("set_mb","Макро-бычий дрейф (×)", M.macroBull, "долгосрочный бычий уклон золота ("+MACRO_DRIFT+" $/день)")}
-      ${F("set_vcp","Память кластеризации волатильности (0.90 … 0.999)", M.volClusterPersist, "выше = кластеры волатильности длятся дольше")}
+      ${F("set_ddur","Длительность торгового дня (реальных минут)", M.dayDurationMin)}
+      ${F("set_inoise","Внутридневной шум (×)", M.intradayNoise)}
+      ${F("set_rds","Масштаб дрейфа режима (×)", M.regimeDriftScale)}
+      ${F("set_mb","Макро-бычий дрейф (×)", M.macroBull)}
+      ${F("set_vcp","Память кластеризации волатильности (0.90 … 0.999)", M.volClusterPersist)}
       ${F("set_nsl","Обычное проскальзывание ($ макс)", M.normalSlippage)}
       ${SEL("set_fo","Принудительно открытый рынок (игнорировать выходные)",[["true","Да"],["false","Нет"]],String(M.forceOpen))}
     </div>
     <div class="card"><h3>Полосы дневной волатильности — целевой дневной диапазон ($)</h3>
-      <div class="hint" style="margin-bottom:6px">Вероятность каждой полосы на новый день (нормируется автоматически; кластеризация волатильности сдвигает выбор). Диапазоны заданы для цены $2 600 и растут вместе с ценой — при $4 500 примерно в 1.7 раза:</div>
       ${DAYVOL_ORDER.map(k=>F("set_dv_"+k, ({LOW:"НИЗКАЯ",NORMAL:"ОБЫЧНАЯ",ACTIVE:"АКТИВНАЯ",EXTREME:"ЭКСТРЕМАЛЬНАЯ"}[k]||k)+" — $"+DAYVOL_RANGE[k][0]+"–"+DAYVOL_RANGE[k][1]+(k==="EXTREME"?"+":""), (M.dayVolProbs[k]!=null?M.dayVolProbs[k]:dayVolProbDefaults()[k]))).join("")}
     </div>
     <div class="card"><h3>Ручное управление рынком (Manual Market Control)</h3>
       ${SEL("set_god","Режим ручного управления",[["false","Выкл — работает авто Price Engine"],["true","Вкл — ручное управление XAUUSD"]],String(S.manual.enabled))}
       ${F("set_nbr","Вероятность слома режима новостью (0…1)", NE.newsBreaksRegimeProb)}
-      <div class="hint">По умолчанию выключено — цена движется автоматическим Price Engine. При включении на экране «Обзор» появляется панель: PAUSE/RESUME авто-движка, ручные тики UP/DOWN с заданным шагом, ручное изменение цены на нужную величину, точная установка цены и плавный импульс. Котировки, график, P/L и SL/TP сразу используют новую цену. Пока режим включён, спред генерируется сам в пределах 0.16–0.24, а каждая свеча M1 строится ровно из 5 тиков (ручные тики тоже считаются).</div>
     </div>
     <div class="card"><h3>Движок новостей</h3>
-      <div class="hint" style="margin-bottom:6px">Запустить синтетическое событие (20 реальных секунд, независимо от дневного цикла):</div>
+      <div class="hint" style="margin-bottom:6px">Запустить событие</div>
       ${newsButtonsMarkup()}
       ${F("set_nhmin","Частота тиков в новостях, мин (тиков/сек)", NE.tickHzNewsMin)}
       ${F("set_nhmax","Частота тиков в новостях, макс (тиков/сек)", NE.tickHzNewsMax)}
@@ -4164,7 +4152,6 @@ async function refreshLockCard(){
         <button data-lock="1" class="${info.locked?'on':''}">ON · закрыт</button>
         <button data-lock="0" class="${info.locked?'':'on'}">OFF · открыт</button>
       </div>
-      <div class="hint" style="margin-top:8px">«ON» — посетители видят страницу технических работ. Ваш вход владельца, симулятор, данные и прогресс не сбрасываются. Применяется в течение ~5 секунд.</div>
       <button class="btn ghost" id="ownerLogout" style="margin-top:10px">Выйти из режима владельца</button>`;
     card.querySelectorAll("[data-lock]").forEach(b=> b.onclick = async ()=>{
       const want = b.dataset.lock === "1";
@@ -4218,8 +4205,8 @@ let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 function navBubFrame(now){
   NB.raf = 0;
-  const bar = document.querySelector(".bottomnav"), bub = bar && bar.querySelector(".nav-bub");
-  if(!bub){ NB.u = NB.target; NB.vel = 0; NB.lift = 0; return; }
+  const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
+  if(!lens){ NB.u = NB.target; NB.vel = 0; NB.lift = 0; return; }
   const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : 1 / 60;
   NB.t = now;
   const target = NB.drag ? NB.drag.u : NB.target;
@@ -4228,19 +4215,22 @@ function navBubFrame(now){
   const K = NB.drag ? 900 : 300, C = 2 * Math.sqrt(K) * (NB.drag ? .9 : .7);
   NB.vel += (-K * (NB.u - target) - C * NB.vel) * dt;
   NB.u = clamp(NB.u + NB.vel * dt, -0.15, 4.15);
+  // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
   const lt = NB.drag ? 1 : 0;
-  NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .055 : .12)));
+  NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
   const stretch = Math.min(Math.abs(NB.vel) * .05, .3);             // tabs / s → stretched along its path
   const sx = 1 + .1 * NB.lift + stretch, sy = 1 + .2 * NB.lift - stretch * .35;
-  bub.style.setProperty("--u", NB.u.toFixed(4));
-  bub.style.setProperty("--sx", sx.toFixed(3));
-  bub.style.setProperty("--sy", sy.toFixed(3));
-  const lifted = NB.lift > .3;
-  if(bub._lifted !== lifted){
-    bub._lifted = lifted; bub.classList.toggle("lift", lifted);
-    if(LG_LENS && glassOn()) bub.style.backdropFilter = lifted ? "url(#" + lgFilterId(bub.offsetWidth, bub.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)" : "";
+  bar.style.setProperty("--u", NB.u.toFixed(4));
+  bar.style.setProperty("--sx", sx.toFixed(3));
+  bar.style.setProperty("--sy", sy.toFixed(3));
+  bar.style.setProperty("--lf", NB.lift.toFixed(3));
+  const idle = NB.lift < .01;
+  if(lens._idle !== idle){
+    lens._idle = idle; lens.classList.toggle("idle", idle);
+    if(!idle && !lens._lg && LG_LENS && glassOn()){ lens._lg = 1; lens.style.backdropFilter = "url(#" + lgFilterId(lens.offsetWidth, lens.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)"; }
   }
-  // the icons under the lens swell and take the accent colour
+  // the icons under the lens swell and take the accent colour (a CSS colour transition, no jump)
+  const lifted = NB.lift > .3;
   bar.querySelectorAll("button[data-nav]").forEach((b, i) => {
     const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .16 * k * NB.lift;
     const tr = sc > 1.002 ? "scale(" + sc.toFixed(3) + ")" : "";
@@ -4250,7 +4240,8 @@ function navBubFrame(now){
   });
   if(!NB.drag && Math.abs(NB.u - target) < .002 && Math.abs(NB.vel) < .02 && NB.lift < .01){
     NB.u = target; NB.vel = 0; NB.lift = 0; NB.t = 0;
-    bub.style.setProperty("--u", String(target)); bub.style.setProperty("--sx", "1"); bub.style.setProperty("--sy", "1");
+    bar.style.setProperty("--u", String(target)); bar.style.setProperty("--sx", "1"); bar.style.setProperty("--sy", "1"); bar.style.setProperty("--lf", "0");
+    if(!lens._idle){ lens._idle = true; lens.classList.add("idle"); }
     return;
   }
   NB.raf = requestAnimationFrame(navBubFrame);
@@ -4258,6 +4249,7 @@ function navBubFrame(now){
 function navBind(bar){
   if(!bar) return;
   if(!glassOn()){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
+  lgGlass(bar, bar.offsetWidth, bar.offsetHeight, 0, 18);                // the capsule bends what scrolls under its rim
   const uAt = x => { const r = bar.getBoundingClientRect(); return clamp((x - r.left) / (r.width / 5) - .5, 0, 4); };
   const end = (e, go) => {
     const d = NB.drag;
@@ -4347,7 +4339,7 @@ function bottomNav(){
   const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   if(NB.u == null) NB.u = navIndexOf(t);
   if(!NB.drag) NB.target = navIndexOf(t);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}"><span class="nav-bub${NB.lift > .3 ? " lift" : ""}" style="--u:${NB.u.toFixed(4)}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.u.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     <button data-nav="markets" class="${["markets","calendar","dom"].includes(t)?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>Рынки</button>
     <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>Графики</button>
     <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
@@ -4584,7 +4576,7 @@ function bindScreen(){
       const row = (ty)=>{ const x = r[ty]; return `<div class="row"><span class="k">${NEWS_LABEL[ty]}</span><span class="v mono">медиана $${x.medRange} · среднее $${x.meanRange} · [$${x.minRange}–$${x.maxRange}]<br>≥35: ${x.pctOver35}% · ≥75: ${x.pctOver75}% · ≥100: ${x.pctOver100}% · вверх/вниз ${x.up}/${x.down}</span></div>`; };
       box.innerHTML = `<h3 style="margin-top:0">Симуляции новостей · по 20 каждой · СИНТЕТИКА</h3>
         ${NEWS_TYPES.map(row).join("")}
-        <div class="hint">PPI спокойнее CPI/NFP; FOMC — самый широкий разброс; направление не гарантировано.</div>`;
+        `;
     }, 30);
   });
   act("rundaytests", ()=>{
@@ -4607,7 +4599,7 @@ function bindScreen(){
         <div class="row"><span class="k">Макс. просадка</span><span class="v mono">${r.maxDrawdownPct}%</span></div>
         <hr class="d">
         ${Object.keys(r.regimeCounts).map(k=>`<div class="row"><span class="k">${MARKET_REGIMES[k]?MARKET_REGIMES[k].label:k}</span><span class="v mono">${r.regimeCounts[k]} дн.</span></div>`).join("")}
-        <div class="hint">Цена уходит и НЕ возвращается к старту; дни разные; глубокие просадки допустимы. Диапазон = High − Low.</div>`;
+        `;
     }, 30);
   });
 }
@@ -4974,7 +4966,6 @@ function drawTicket(){
         <select id="tk-ptype">
           ${["buy_limit","sell_limit","buy_stop","sell_stop"].map(x=>`<option value="${x}" ${t.ptype===x?"selected":""}>${x.replace("_"," ").toUpperCase()}</option>`).join("")}
         </select>
-        <div class="hint">Limit: Buy ниже рынка / Sell выше. Stop: Buy выше / Sell ниже.</div>
       </div>
       <div class="field"><label>Entry Price</label><input id="tk-price" inputmode="decimal" value="${pxfmt(t.ptype.includes("buy")? S.price.ask - 3 : S.price.bid + 3)}"></div>
     `}
@@ -5167,7 +5158,6 @@ function showNewsResult(r){
       ${row("Two-way", r.twoWay?"yes":"no")}
       ${row("Planned range", "$"+fmt(r.plannedR,2))}
     </div>
-    <div class="hint" style="text-align:center">Данные сгенерированы симулятором</div>
     <button class="btn dark" data-close>OK</button>
   `);
 }
@@ -5677,9 +5667,9 @@ const LG_LENS = /(Chrome|Chromium)\/\d+/.test(navigator.userAgent) && !/CriOS|Fx
 const _lgIds = new Set();
 let _lgDefs = null;
 function lgFilterId(w, h, scale){
-  scale = scale || 16;
+  scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h + (scale === 16 ? "" : "s" + scale);
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale);
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -5688,7 +5678,7 @@ function lgFilterId(w, h, scale){
     _lgDefs = document.createElementNS(svg.namespaceURI, "defs"); svg.appendChild(_lgDefs); document.body.appendChild(svg);
   }
   // every chart button is fully rounded (a circle or a capsule): r = half the short side
-  const r = Math.min(w, h) / 2, BAND = Math.min(r, 12);
+  const r = Math.min(w, h) / 2, BAND = Math.min(r, 16);
   const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
   const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
@@ -5698,7 +5688,7 @@ function lgFilterId(w, h, scale){
     let m = 0;
     if(dist > 0){
       const t = edge < BAND ? 1 - Math.max(edge, 0) / BAND : 0;
-      m = Math.min(1, t * t + .22 * Math.min(dist / r, 1));
+      m = Math.min(1, t * t + .3 * Math.min(dist / r, 1));
       dx /= dist; dy /= dist;
     }
     const i = (y * w + x) * 4;
@@ -5794,7 +5784,7 @@ function glassFrame(now){
       for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--la", "--lx", "--ly"]) b.style.removeProperty(p);
       g.p = g.pv = g.ox = g.oy = 0; g.t = 0;
       b.classList.remove("pressing");
-      lgGlass(b, g.w, g.h, 16, g.blur);                                    // back to the resting lens
+      lgGlass(b, g.w, g.h, 0, g.blur);                                     // back to the resting lens
       _glass.delete(b);
     }
   }
@@ -5809,7 +5799,7 @@ document.addEventListener("pointerdown", e => {
   g.w = b.offsetWidth; g.h = b.offsetHeight; g.round = Math.abs(g.w - g.h) < 4; g.blur = b.matches(".bignew, .fabnew") ? 12 : 1;
   glassAim(g, e.clientX, e.clientY);
   b.classList.add("pressing");
-  lgGlass(b, g.w, g.h, 26, g.blur);                                      // the lens deepens under the finger
+  lgGlass(b, g.w, g.h, 32, g.blur);                                      // the lens deepens under the finger
   _glassBtn = b; _glass.add(b); glassKick();
 }, { capture: true, passive: true });
 document.addEventListener("pointermove", e => {
@@ -7121,7 +7111,6 @@ function screenAuth(msg, kind){
     <div class="wrap" style="max-width:420px;margin:0 auto">
       <div class="card" style="text-align:center;padding:22px 16px">
         <div style="font-size:26px;font-weight:700;letter-spacing:.04em">XAUCORE</div>
-        <div class="hint" style="margin-top:4px">Синтетический DEMO-терминал XAUUSD. Не подключает реальные счета или брокеров.</div>
       </div>
       <div class="card">
         <div class="seg" style="margin-bottom:14px">
