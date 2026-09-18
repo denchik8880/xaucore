@@ -5078,19 +5078,35 @@ function quickLens(root){
     if(box._mqBound) return;
     box._mqBound = true;
     const chips = () => [...box.querySelectorAll(":scope > button")];
-    const aim = (s, x, y) => {
+    // the chip the lens sits on changes only when the finger is ON another chip (its box + half the gap);
+    // in a gap it stays where it is (user: «нужно именно в числе»). A press takes the nearest chip.
+    const aim = (s, x, y, press) => {
       const r = box.getBoundingClientRect(), lx = x - r.left, ly = y - r.top;
-      let best = null, bd = 1e9;
-      for(const c of chips()){ const dx = lx - (c.offsetLeft + c.offsetWidth / 2), dy = (ly - (c.offsetTop + c.offsetHeight / 2)) * 1.6, d = dx * dx + dy * dy; if(d < bd){ bd = d; best = c; } }
-      if(!best) return null;
-      s.tx = best.offsetLeft - 3; s.ty = best.offsetTop - 3; s.tw = best.offsetWidth + 6; s.th = best.offsetHeight + 6;
-      return best;
+      // the current chip holds the lens 10 px past its edge (the gaps are 6 px); another one takes it only with the finger inside
+      // it — so a finger trembling over a gap doesn't flick the lens back and forth
+      const inBox = (c, m) => Math.abs(lx - (c.offsetLeft + c.offsetWidth / 2)) <= c.offsetWidth / 2 + m && Math.abs(ly - (c.offsetTop + c.offsetHeight / 2)) <= c.offsetHeight / 2 + m;
+      const held = !press && s.cur && s.cur.isConnected;
+      let best = null, bd = 1e9, hit = held && inBox(s.cur, 10) ? s.cur : null;
+      for(const c of chips()){
+        if(!hit && inBox(c, 0)) hit = c;
+        const dx = lx - (c.offsetLeft + c.offsetWidth / 2), dy = (ly - (c.offsetTop + c.offsetHeight / 2)) * 1.6, d = dx * dx + dy * dy; if(d < bd){ bd = d; best = c; }
+      }
+      const c = hit || (held ? s.cur : best);
+      if(!c) return null;
+      if(c !== s.cur){
+        const hop = s.cur && s.cur.isConnected && s.f > .05;
+        const dx = c.offsetLeft - (s.cur ? s.cur.offsetLeft : c.offsetLeft), dy = c.offsetTop - (s.cur ? s.cur.offsetTop : c.offsetTop);
+        s.cur = c;
+        s.tx = s.x = c.offsetLeft - 3; s.ty = s.y = c.offsetTop - 3; s.tw = s.w = c.offsetWidth + 6; s.th = s.h = c.offsetHeight + 6;
+        if(hop){ s.p = 1; s.pv = 0; s.jx = Math.abs(dx) >= Math.abs(dy); }   // it lands on the new number like a drop
+      }
+      return c;
     };
     box.addEventListener("pointerdown", e => {
       if(!glassOn() || e.button > 0) return;
       const s = _mq.get(box) || box._mqSt || st; box._mqSt = s;
-      const c = aim(s, e.clientX, e.clientY); if(!c) return;
-      if(s.f < .05){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; s.vx = s.vy = s.vw = s.vh = 0; s.j = s.jv = 0; }   // it appears where the finger is
+      if(s.f < .05){ s.cur = null; s.p = s.pv = 0; }                  // a fresh press: it appears on the chip under the finger
+      const c = aim(s, e.clientX, e.clientY, true); if(!c) return;
       s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false }; s.tf = 1;
       try{ box.setPointerCapture(e.pointerId); }catch(_){}
       _mq.set(box, s); mqKick();
@@ -5099,14 +5115,14 @@ function quickLens(root){
       const s = box._mqSt, d = s && s.drag;
       if(!d || e.pointerId !== d.id) return;
       if(Math.hypot(e.clientX - d.x0, e.clientY - d.y0) > 6) d.moved = true;
-      aim(s, e.clientX, e.clientY); mqKick();
+      aim(s, e.clientX, e.clientY); _mq.set(box, s); mqKick();
     });
     const end = (e, go) => {
       const s = box._mqSt, d = s && s.drag;
       if(!d || e.pointerId !== d.id) return;
-      s.drag = null; s.tf = 0; mqKick();
+      s.drag = null; s.tf = 0; _mq.set(box, s); mqKick();
       const c = aim(s, e.clientX, e.clientY);
-      if(go) _mqMem = { x: s.x, y: s.y, w: s.w, h: s.h, f: s.f };    // the re-render the new lot causes keeps the fade going
+      if(go) _mqMem = { x: s.x, y: s.y, w: s.w, h: s.h, f: s.f, p: s.p || 0, pv: s.pv || 0, jx: s.jx };   // the re-render the new lot causes keeps the fade going
       if(go && c){ box._mqPick = performance.now(); box._mqSelf = true; c.click(); box._mqSelf = false; }   // drag or tap: the chip under the lens
     };
     box.addEventListener("pointerup", e => end(e, true));
@@ -5117,17 +5133,14 @@ function quickLens(root){
 }
 function mqKick(){ if(!_mqRaf) _mqRaf = requestAnimationFrame(mqFrame); }
 function mqApply(s){
-  const l = s.lens, j = s.j || 0, jx = s.jx !== false;
+  const l = s.lens, p = s.p || 0, jx = s.jx !== false;
   l.style.setProperty("--qx", s.x.toFixed(1) + "px"); l.style.setProperty("--qy", s.y.toFixed(1) + "px");
   l.style.setProperty("--qw", Math.max(0, s.w).toFixed(1) + "px"); l.style.setProperty("--qh", Math.max(0, s.h).toFixed(1) + "px");
-  l.style.setProperty("--qsx", (jx ? 1 + j : 1 - j * .6).toFixed(3)); l.style.setProperty("--qsy", (jx ? 1 - j * .6 : 1 + j).toFixed(3));
-  l.style.setProperty("--qf", s.f.toFixed(3));
+  // landing: spread flat along the hop, then a taller rebound, then still — and a quick fade-in with it
+  l.style.setProperty("--qsx", (jx ? 1 + .14 * p : 1 - .1 * p).toFixed(3)); l.style.setProperty("--qsy", (jx ? 1 - .1 * p : 1 + .14 * p).toFixed(3));
+  l.style.setProperty("--qf", (s.f * (1 - .3 * Math.max(0, p))).toFixed(3));
   const idle = s.f < .01; if(l._idle !== idle){ l._idle = idle; l.classList.toggle("idle", idle); }
-  // in flight over the gap between chips the lens would magnify the dark gap into a hole (user: «стекло
-  // пропадает между числами») — it bends the view only once it sits on a chip
-  if(idle) return;
-  if(s.fly){ if(l._lg){ l._lg = null; l.style.backdropFilter = ""; } }
-  else lgFit(l, s.w, s.h, 10, 0);                                // no blur: the lot under it stays sharp
+  if(!idle) lgFit(l, s.w, s.h, 10, 0);                           // always over a chip; no blur: the lot under it stays sharp
 }
 function mqFrame(now){
   _mqRaf = 0;
@@ -5135,21 +5148,16 @@ function mqFrame(now){
     if(!box.isConnected){ _mq.delete(box); continue; }
     const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : 1 / 60;
     s.t = now;
-    // it hops onto the chip under the finger — stiff, so it is on ONE number almost at once — and lands with a
-    // small bounce; its size is a softer spring, so it wobbles like a drop as it lands
-    const K = 1500, C = 2 * Math.sqrt(K) * .6, Kw = 800, Cw = 2 * Math.sqrt(Kw) * .42;
-    for(const k of ["x", "y"]){ const v = "v" + k, t = "t" + k; s[v] += (-K * (s[k] - s[t]) - C * s[v]) * dt; s[k] += s[v] * dt; }
-    for(const k of ["w", "h"]){ const v = "v" + k, t = "t" + k; s[v] += (-Kw * (s[k] - s[t]) - Cw * s[v]) * dt; s[k] += s[v] * dt; }
-    // the body: stretched along its way while it flies, a jelly wobble after it lands (underdamped, K 320 ζ .28)
-    const sp = Math.hypot(s.vx, s.vy);
-    if(sp > 60) s.jx = Math.abs(s.vx) >= Math.abs(s.vy);
-    s.jv = (s.jv || 0) + (-320 * ((s.j || 0) - Math.min(sp / 2600, .18)) - 2 * Math.sqrt(320) * .28 * (s.jv || 0)) * dt;
-    s.j = (s.j || 0) + s.jv * dt;
-    s.fly = s.fly ? sp > 90 : sp > 220;
+    // it never travels over a gap: aim() puts it straight on the new chip; here only the landing wobble plays
+    // out — an underdamped spring (K 420, ζ .3) from the squash back to still
+    s.pv = (s.pv || 0) + (-420 * (s.p || 0) - 2 * Math.sqrt(420) * .3 * (s.pv || 0)) * dt;
+    s.p = (s.p || 0) + s.pv * dt;
     s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
     if(_mqMem) _mqMem.f = s.f;
     mqApply(s);
-    if(!s.drag && s.f < .01 && Math.abs(s.vx) + Math.abs(s.vy) < 2 && Math.abs(s.j || 0) < .004){ s.f = 0; s.j = s.jv = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
+    const still = Math.abs(s.p || 0) < .004 && Math.abs(s.pv || 0) < .05;
+    if(still && s.drag && s.f > .99){ s.p = s.pv = 0; mqApply(s); _mq.delete(box); continue; }   // held still: nothing to animate
+    if(!s.drag && s.f < .01 && still){ s.f = 0; s.p = s.pv = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
   }
   if(_mq.size) _mqRaf = requestAnimationFrame(mqFrame);
 }
@@ -5580,7 +5588,10 @@ function openLotWheel(){
       const k = Math.cos(th), y = MID + RAD * Math.sin(th);
       if(y < lo || y > hi) continue;
       ctx.globalAlpha = ink ? 1 : 0.55 * Math.sqrt(k);
-      const mg = ink ? LENS_MAG : 1;                                   // under the glass lens the row reads a size larger — drawn, so it stays crisp
+      // under the glass lens the row reads a size larger — drawn, so it stays crisp. The size follows the row's
+      // place (×1.14 in the middle, ×1 a row away), the SAME for its grey part and its inked part, so a row
+      // crossing the band's edge doesn't split into two misaligned halves (user: «на барабане криво цифры идут»)
+      const mg = 1 + (LENS_MAG - 1) * Math.max(0, 1 - Math.abs(y - MID) / ROW);
       ctx.setTransform(sx * (0.9 + 0.1 * k) * mg, 0, 0, sy * k * mg, sx * W / 2, sy * y);   // foreshortened, a touch narrower off the front
       ctx.fillText(labels[i], 0, BASE);
     }
@@ -7976,10 +7987,10 @@ function screenAuth(msg, kind){
   const t = _authMode, reg = t === "register";
   const bad = kind === "err";
   app().innerHTML = `
-    <div class="appbar"><div class="ttl">XAUCORE</div><div class="sp"></div></div>
+    <div class="appbar"><div class="ttl">cTrade Simulator</div><div class="sp"></div></div>
     <div class="wrap" style="max-width:420px;margin:0 auto">
       <div class="card" style="text-align:center;padding:22px 16px">
-        <div style="font-size:26px;font-weight:700;letter-spacing:.04em">XAUCORE</div>
+        <div style="font-size:clamp(21px,7.2vw,26px);font-weight:700;letter-spacing:.01em;white-space:nowrap">cTrade Simulator</div>
       </div>
       <div class="card">
         <div class="seg" style="margin-bottom:14px">
