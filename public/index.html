@@ -4,7 +4,7 @@
 <title>XAUCORE — DEMO XAUUSD Simulator</title>
 <meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
 <meta name="theme-color" content="#eff1f4">
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var l=localStorage.getItem("xc_lang");document.documentElement.lang=(l==="ru"||l==="uk")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -380,7 +380,9 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .seg.theme button.on,:root[data-theme="dark"] .seg.theme button.on{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(47,123,246,.35)}
 .seg.theme .ck{display:none;font-weight:700}
 .seg.theme button.on .ck{display:inline}
-.seg.lang button{padding:10px 4px;font-size:clamp(12px,3.6vw,14px);white-space:nowrap}
+.lang-row{width:100%;background:none;border:0;padding:4px 0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.lang-row .v{display:flex;align-items:center;gap:8px;font-weight:600}
+.lang-row .chev{color:var(--ink3);font-size:20px;line-height:1}
 .btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:600;text-align:center;margin-top:6px;overflow-wrap:normal}   /* a button never splits a word (the cards' overflow-wrap:anywhere broke «Синхронизирова / ть») */
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
@@ -841,30 +843,32 @@ html:has(body.route-wallet){background:#0c0a08}
 .sub-bub,.seg-bub,.sub-lens,.seg-lens,.lw-lens,.mq-lens{display:none}
 :root[data-glass="on"] .miniquick{position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 :root[data-glass="on"] .mq-lens{display:block;position:absolute;left:0;top:0;pointer-events:none;z-index:2;isolation:isolate;border-radius:11px;
-  transform:translate(var(--qx,0px),var(--qy,0px));width:var(--qw,0px);height:var(--qh,0px);opacity:var(--qf,0);will-change:transform,width,height,opacity;
+  transform:translate(var(--qx,0px),var(--qy,0px)) scale(var(--qsx,1),var(--qsy,1));width:var(--qw,0px);height:var(--qh,0px);opacity:var(--qf,0);will-change:transform,width,height,opacity;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.06);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
   box-shadow:0 0 0 .5px var(--lg-line),0 5px 16px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"] .mq-lens.idle{visibility:hidden}
 :root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
-:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0) * .7);background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
-  box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
+:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
+  box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"] .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
 :root[data-glass="on"] .seg button{position:relative;z-index:1}
 :root[data-glass="on"] .seg button.on,:root[data-glass="on"] .seg.theme button.on{background:transparent;box-shadow:none}
-:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0) * .7);background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
-  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
+:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
+  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 :root[data-glass="on"] .seg.theme .seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 65%),var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
 /* while a drop FLOWS it lifts into a clear lens over the labels it passes (they swell and bend under it) and
-   sinks back into the resting drop as it settles — --lf follows its speed (dropFrame) */
+   sinks back into the resting drop as it settles — --lf follows its speed (dropFrame). The lens has the drop's
+   very shape and body transform and the two cross-fade fully, so there is never a second rim above and below
+   (user: «сверху и снизу образовались лишние капли») */
 :root[data-glass="on"] .sub-lens,:root[data-glass="on"] .seg-lens{display:block;position:absolute;left:0;pointer-events:none;z-index:2;isolation:isolate;
-  transform:translateX(var(--bx,0px));width:var(--bw,0px);opacity:var(--lf,0);will-change:transform,width,opacity;
+  transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);opacity:var(--lf,0);will-change:transform,width,opacity;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.05);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .sub-lens{top:3px;bottom:3px;border-radius:999px}
-:root[data-glass="on"] .seg-lens{top:0;bottom:0;border-radius:11px}
+  box-shadow:0 0 0 .5px var(--lg-line),0 2px 8px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .sub-lens{top:6px;bottom:6px;border-radius:999px}
+:root[data-glass="on"] .seg-lens{top:3px;bottom:3px;border-radius:9px}
 :root[data-glass="on"] .sub-lens.idle,:root[data-glass="on"] .seg-lens.idle{visibility:hidden}
 /* 4. toasts: clear glass capsules that drop in with a bounce and shrink away */
 :root[data-glass="on"] .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
@@ -949,581 +953,583 @@ html:has(body.route-wallet){background:#0c0a08}
 "use strict";
 /* =========================================================================
    LANGUAGES — English (the default), Russian, Ukrainian (user: «нам нужно 3 языка всего симулятора:
-   Английский по дефолту, русский и украинский»). The source text stays Russian: L("…") finds it in I18N
-   (at the end of this script) and gives the English or the Ukrainian; {0} {1} … take the values, so each
+   Английский по дефолту, русский и украинский»), French and Turkish («Добавьте французкий и турецкий»). The
+   source text stays Russian: L("…") finds it in I18N (below) and gives the English, Ukrainian, French or
+   Turkish; {0} {1} … take the values, so each
    language keeps its own word order; LP() picks a plural. Text missing from the table shows as it is. The
    choice lives on the device (localStorage xc_lang), like the theme; switching re-renders — no reload.
    ========================================================================= */
-const LANGS = ["en", "ru", "uk"];
+const LANGS = ["en", "ru", "uk", "fr", "tr"];
+const LANG_COL = { en: 0, uk: 1, fr: 2, tr: 3 };                    // the columns of I18N (Russian is the key)
 let LANG = "en";
 try{ const v = localStorage.getItem("xc_lang"); if(LANGS.includes(v)) LANG = v; }catch(e){}
 const _l10n = new Map();
-// Russian → [English, Ukrainian]; the server's answers (api/*) are here too, they are shown through L()
+// Russian → [English, Ukrainian, French, Turkish]; the server's answers (api/*) are here too, they are shown through L()
 const I18N = {
-"MARKET REGIME → {0}  (было {1})":["MARKET REGIME → {0}  (was {1})","MARKET REGIME → {0}  (було {1})"],
-"Некорректная цена":["Invalid price","Некоректна ціна"],
-"Цена установлена: {0}":["Price set: {0}","Ціну встановлено: {0}"],
-"⏸ Авто Price Engine остановлен":["⏸ Auto Price Engine stopped","⏸ Авто Price Engine зупинено"],
-"▶ Авто Price Engine возобновлён":["▶ Auto Price Engine resumed","▶ Авто Price Engine відновлено"],
-"Идёт новость — дождитесь окончания":["News in progress — wait until it ends","Триває новина — дочекайтеся завершення"],
-"Проверьте параметры импульса":["Check the impulse settings","Перевірте параметри імпульсу"],
-"Импульс {0}":["Impulse {0}","Імпульс {0}"],
-"Импульс завершён ({0})":["Impulse finished ({0})","Імпульс завершено ({0})"],
-"Новость уже идёт — дождитесь завершения":["A news event is already running — wait until it ends","Новина вже триває — дочекайтеся завершення"],
-"Объём должен быть больше 0":["Volume must be greater than 0","Обсяг має бути більшим за 0"],
-"Минимальный объём {0}":["Minimum volume {0}","Мінімальний обсяг {0}"],
-"Максимальный объём {0}":["Maximum volume {0}","Максимальний обсяг {0}"],
-"Объём должен быть кратен {0}":["Volume must be a multiple of {0}","Обсяг має бути кратним {0}"],
-"Ордер отправлен — исполняется":["Order sent — executing","Ордер надіслано — виконується"],
-"Не удалось отправить ордер — нет связи":["Couldn't send the order — no connection","Не вдалося надіслати ордер — немає зв'язку"],
-"Рынок закрыт — исполнение недоступно":["Market closed — execution unavailable","Ринок закрито — виконання недоступне"],
-"Недостаточно свободной маржи (нужно {0})":["Not enough free margin ({0} needed)","Недостатньо вільної маржі (потрібно {0})"],
-"SL для BUY должен быть ниже цены входа":["SL for BUY must be below the entry price","SL для BUY має бути нижче ціни входу"],
-"SL для SELL должен быть выше цены входа":["SL for SELL must be above the entry price","SL для SELL має бути вище ціни входу"],
-"TP для BUY должен быть выше цены входа":["TP for BUY must be above the entry price","TP для BUY має бути вище ціни входу"],
-"TP для SELL должен быть ниже цены входа":["TP for SELL must be below the entry price","TP для SELL має бути нижче ціни входу"],
-"по":["at","за"],
-"Закрыта #{0}":["Closed #{0}","Закрито #{0}"],
-"SL для BUY должен быть ниже текущей цены {0} — позиция не изменена":["SL for BUY must be below the current price {0} — position not changed","SL для BUY має бути нижче поточної ціни {0} — позицію не змінено"],
-"SL для SELL должен быть выше текущей цены {0} — позиция не изменена":["SL for SELL must be above the current price {0} — position not changed","SL для SELL має бути вище поточної ціни {0} — позицію не змінено"],
-"TP для BUY должен быть выше текущей цены {0} — позиция не изменена":["TP for BUY must be above the current price {0} — position not changed","TP для BUY має бути вище поточної ціни {0} — позицію не змінено"],
-"TP для SELL должен быть ниже текущей цены {0} — позиция не изменена":["TP for SELL must be below the current price {0} — position not changed","TP для SELL має бути нижче поточної ціни {0} — позицію не змінено"],
-"Позиция #{0} изменена — SL {1} · TP {2}":["Position #{0} modified — SL {1} · TP {2}","Позицію #{0} змінено — SL {1} · TP {2}"],
-"Ордер отменён":["Order cancelled","Ордер скасовано"],
-"Ордер #{0} не исполнен — недостаточно маржи":["Order #{0} not filled — not enough margin","Ордер #{0} не виконано — недостатньо маржі"],
-"Исполнен {0} #{1} по {2}":["Filled {0} #{1} at {2}","Виконано {0} #{1} за {2}"],
-"🌙 Rollover — swap начислен":["🌙 Rollover — swap charged","🌙 Rollover — своп нараховано"],
-"🛑 STOP OUT — закрыта позиция #{0}":["🛑 STOP OUT — position #{0} closed","🛑 STOP OUT — закрито позицію #{0}"],
-"Создано событие: {0} (через {1}с)":["Event created: {0} (in {1}s)","Створено подію: {0} (через {1}с)"],
-"💧 Жидкое стекло включено":["💧 Liquid Glass on","💧 Рідке скло увімкнено"],
-"Жидкое стекло выключено":["Liquid Glass off","Рідке скло вимкнено"],
-"🌙 Тёмная тема":["🌙 Dark theme","🌙 Темна тема"],
-"☀️ Светлая тема":["☀️ Light theme","☀️ Світла тема"],
-"Закрыто всё":["Closed all","Закрито все"],
-"Рынки по этому инструменту закрыты. Торговля ограничена. (Synthetic weekend)":["Markets for this instrument are closed. Trading is restricted. (Synthetic weekend)","Ринки за цим інструментом закриті. Торгівля обмежена. (Synthetic weekend)"],
-"Новый ордер":["New Order","Новий ордер"],
-"Поиск":["Search","Пошук"],
-"Добавить инструмент":["Add instrument","Додати інструмент"],
-"Изменить список":["Edit list","Змінити список"],
-"ПРОДАТЬ":["SELL","ПРОДАТИ"],
-"КУПИТЬ":["BUY","КУПИТИ"],
-"Добавить инструменты":["Add instruments","Додати інструменти"],
-"Доступно только XAUUSD":["Only XAUUSD is available","Доступний лише XAUUSD"],
-"ОБЗОР":["OVERVIEW","ОГЛЯД"],
-"ПОЗИЦИИ":["POSITIONS","ПОЗИЦІЇ"],
-"ОРДЕРА":["ORDERS","ОРДЕРИ"],
-"ГРАФИК":["CHART","ГРАФІК"],
-"Продать":["Sell","Продати"],
-"Купить":["Buy","Купити"],
-"· Купить":["· Buy","· Купити"],
-"· спред":["· spread","· спред"],
-"▶ RESUME (авто)":["▶ RESUME (auto)","▶ RESUME (авто)"],
-"⏸ PAUSE (авто-движок)":["⏸ PAUSE (auto engine)","⏸ PAUSE (авторушій)"],
-"АВТО PRICE ENGINE ОСТАНОВЛЕН — движение задаёте вы":["AUTO PRICE ENGINE STOPPED — you drive the price","АВТО PRICE ENGINE ЗУПИНЕНО — рух задаєте ви"],
-"Авто Price Engine работает":["Auto Price Engine is running","Авто Price Engine працює"],
-"Точная цена":["Exact price","Точна ціна"],
-"Установить":["Set","Встановити"],
-"Ручной тик — шаг $":["Manual tick — step $","Ручний тік — крок $"],
-"▼ SELL тик":["▼ SELL tick","▼ SELL тік"],
-"▲ BUY тик":["▲ BUY tick","▲ BUY тік"],
-"Сдвинуть цену на $":["Move the price by $","Зсунути ціну на $"],
-"▼ Вниз":["▼ Down","▼ Вниз"],
-"▲ Вверх":["▲ Up","▲ Вгору"],
-"Быстрая дельта ($)":["Quick delta ($)","Швидка дельта ($)"],
-"Плавный импульс":["Smooth impulse","Плавний імпульс"],
-"— идёт:":["— running:","— триває:"],
-"Направление":["Direction","Напрямок"],
-"Размер $ / Время с":["Size $ / Time s","Розмір $ / Час с"],
-"Импульс идёт…":["Impulse running…","Імпульс триває…"],
-"Запустить импульс":["Start impulse","Запустити імпульс"],
-"Количество (Лоты)":["Quantity (Lots)","Кількість (Лоти)"],
-"Объём в лотах":["Volume in lots","Обсяг у лотах"],
-"Выбрать объём колесом":["Pick the volume on the wheel","Вибрати обсяг колесом"],
-"График на весь экран":["Full-screen chart","Графік на весь екран"],
-"Обычный вид":["Normal view","Звичайний вигляд"],
-"Таймфрейм":["Timeframe","Таймфрейм"],
-"Настроение рынка":["Market Sentiment","Настрій ринку"],
-"Глубина рынка":["Market Depth","Глибина ринку"],
-"Показать еще":["Show more","Показати ще"],
-"Экономический календарь":["Economic Calendar","Економічний календар"],
-"Больше событий":["More events","Більше подій"],
-"Торговый день · СИНТЕТИКА":["Trading day · SYNTHETIC","Торговий день · СИНТЕТИКА"],
-"Счёт":["Account","Рахунок"],
-"Сегодня":["Today","Сьогодні"],
-"Завтра":["Tomorrow","Завтра"],
-"Вчера":["Yesterday","Учора"],
-"в":["at","о"],
-"(игровое время)":["(game time)","(ігровий час)"],
-"Нет событий":["No events","Немає подій"],
-"Волатильность":["Volatility","Волатильність"],
-"Фактическое":["Actual","Фактичне"],
-"Прогноз":["Forecast","Прогноз"],
-"Предыдущее":["Previous","Попереднє"],
-"вышло":["released","вийшло"],
-"через ~":["in ~","через ~"],
-"мин":["min","хв"],
-"Вышло ·":["Released ·","Вийшло ·"],
-"· через":["· in","· через"],
-"+ Создать Synthetic News":["+ Create Synthetic News","+ Створити Synthetic News"],
-"День":["Day","День"],
-"Режим рынка":["Market regime","Режим ринку"],
-"Время рынка":["Market time","Час ринку"],
-"Время в дне":["Time into the day","Час у дні"],
-"Открытие":["Open","Відкриття"],
-"Максимум / Минимум":["High / Low","Максимум / Мінімум"],
-"Диапазон за день":["Day range","Діапазон за день"],
-"Изменение":["Change","Зміна"],
-"Ускоритель симуляции":["Simulation speed","Прискорювач симуляції"],
-"🎲 Случайное событие":["🎲 Random event","🎲 Випадкова подія"],
-"Позиции":["Positions","Позиції"],
-"Нет открытых позиций":["No open positions","Немає відкритих позицій"],
-"Закрыть позиции (":["Close positions (","Закрити позиції ("],
-"Ордера":["Orders","Ордери"],
-"Лоты":["Lots","Лоти"],
-"Нет отложенных ордеров":["No pending orders","Немає відкладених ордерів"],
-"Создать ордер":["Create order","Створити ордер"],
-"Инструмент":["Symbol","Інструмент"],
-"Размер":["Size","Розмір"],
-"Расстояние":["Distance","Відстань"],
-"Отменить ордер #":["Cancel order #","Скасувати ордер #"],
-"Закрыть {0}?":["Close {0}?","Закрити {0}?"],
-"позицию|позиции|позиций":["position|positions","позицію|позиції|позицій"],
-"Суммарный объём":["Total volume","Загальний обсяг"],
-"лот · результат":["lot · result","лот · результат"],
-"Закрытие пройдёт по текущим рыночным ценам.":["Positions will close at current market prices.","Закриття відбудеться за поточними ринковими цінами."],
-"Закрыть всё ·":["Close all ·","Закрити все ·"],
-"аккаунт":["account","акаунт"],
-"Не выполнен вход":["Not signed in","Вхід не виконано"],
-"Ещё":["More","Ще"],
-"Аккаунт":["Account","Акаунт"],
-"Синхронизация":["Sync","Синхронізація"],
-"Синхронизировать сейчас":["Sync now","Синхронізувати зараз"],
-"Выйти":["Sign out","Вийти"],
-"Войти":["Sign in","Увійти"],
-"Язык":["Language","Мова"],
-"Тема оформления":["Theme","Тема оформлення"],
-"☀️ Светлая":["☀️ Light","☀️ Світла"],
-"🌙 Тёмная":["🌙 Dark","🌙 Темна"],
-"💧 Жидкое стекло":["💧 Liquid Glass","💧 Рідке скло"],
-"Жидкое стекло":["Liquid Glass","Рідке скло"],
-"💳 Брокерский кошелёк":["💳 Broker wallet","💳 Брокерський гаманець"],
-"Скоро":["Soon","Незабаром"],
-"⚙️ Настройки симулятора":["⚙️ Simulator settings","⚙️ Налаштування симулятора"],
-"📜 История сделок":["📜 Trade history","📜 Історія угод"],
-"🐞 Debug-консоль (день / статистика)":["🐞 Debug console (day / stats)","🐞 Debug-консоль (день / статистика)"],
-"📰 Создать Synthetic News (календарь)":["📰 Create Synthetic News (calendar)","📰 Створити Synthetic News (календар)"],
-"📊 Последний News Result":["📊 Last News Result","📊 Останній News Result"],
-"MACRO NEWS ENGINE — запустить сейчас":["MACRO NEWS ENGINE — run now","MACRO NEWS ENGINE — запустити зараз"],
-"▶️ Форсировать смену дня / своп (тест)":["▶️ Force the day change / swap (test)","▶️ Примусова зміна дня / своп (тест)"],
-"♻️ Сбросить симулятор":["♻️ Reset simulator","♻️ Скинути симулятор"],
-"Создатель —":["Created by","Автор —"],
-"Виртуальный кошелёк":["Virtual wallet","Віртуальний гаманець"],
-"Пополнение":["Deposit","Поповнення"],
-"Вывод средств":["Withdrawal","Виведення коштів"],
-"Перевод":["Transfer","Переказ"],
-"Безопасность":["Security","Безпека"],
-"DEMO-среда — реальные средства не задействованы":["DEMO environment — no real funds involved","DEMO-середовище — реальні кошти не задіяні"],
-"Надёжность":["Reliability","Надійність"],
-"Синтетический симулятор, состояние кошелька сохраняется":["Synthetic simulator, the wallet state is saved","Синтетичний симулятор, стан гаманця зберігається"],
-"Быстрота":["Speed","Швидкість"],
-"Мгновенное пополнение и вывод внутри симулятора":["Instant deposits and withdrawals inside the simulator","Миттєве поповнення та виведення всередині симулятора"],
-"Поддержка":["Support","Підтримка"],
-"Учебный проект":["Educational project","Навчальний проєкт"],
-"‹ НАЗАД":["‹ BACK","‹ НАЗАД"],
-"Управляйте средствами брокера и операциями платформы (DEMO • SYNTHETIC).":["Manage broker funds and platform operations (DEMO • SYNTHETIC).","Керуйте коштами брокера та операціями платформи (DEMO • SYNTHETIC)."],
-"Номер виртуального кошелька":["Virtual wallet number","Номер віртуального гаманця"],
-"Копировать":["Copy","Копіювати"],
-"ПОПОЛНИТЬ":["DEPOSIT","ПОПОВНИТИ"],
-"ПЕРЕВЕСТИ":["TRANSFER","ПЕРЕКАЗАТИ"],
-"ВЫВОД СРЕДСТВ":["WITHDRAW","ВИВЕДЕННЯ"],
-"Общая информация":["Overview","Загальна інформація"],
-"Общий баланс":["Total balance","Загальний баланс"],
-"Доступно":["Available","Доступно"],
-"Последние операции":["Recent transactions","Останні операції"],
-"СМОТРЕТЬ ВСЕ":["VIEW ALL","ДИВИТИСЯ ВСІ"],
-"Нет операций":["No transactions","Немає операцій"],
-"Здесь будут отображаться ваши операции":["Your transactions will appear here","Тут відображатимуться ваші операції"],
-"Условия использования":["Terms of use","Умови використання"],
-"Политика конфиденциальности":["Privacy policy","Політика конфіденційності"],
-"Введите сумму больше 0":["Enter an amount greater than 0","Введіть суму більшу за 0"],
-"Кошелёк пополнен на {0}":["Wallet topped up by {0}","Гаманець поповнено на {0}"],
-"Недостаточно средств. Доступно: {0}":["Insufficient funds. Available: {0}","Недостатньо коштів. Доступно: {0}"],
-"Выведено {0}":["Withdrawn {0}","Виведено {0}"],
-"Укажите получателя":["Enter a recipient","Вкажіть отримувача"],
-"Переводы будут подключены позже — операция не выполнена":["Transfers will be enabled later — nothing was sent","Перекази буде підключено пізніше — операцію не виконано"],
-"Пополнить кошелёк":["Top up wallet","Поповнити гаманець"],
-"Пополнить":["Top up","Поповнити"],
-"Вывести":["Withdraw","Вивести"],
-"DEMO • SYNTHETIC — меняется только внутренний баланс симулятора.":["DEMO • SYNTHETIC — only the simulator's internal balance changes.","DEMO • SYNTHETIC — змінюється лише внутрішній баланс симулятора."],
-"Текущий баланс кошелька:":["Current wallet balance:","Поточний баланс гаманця:"],
-"Сумма (USD)":["Amount (USD)","Сума (USD)"],
-"Всё":["All","Усе"],
-"Отмена":["Cancel","Скасувати"],
-"Перевести":["Transfer","Переказати"],
-"DEMO • SYNTHETIC — переводы пока не проводятся, форма готова к подключению.":["DEMO • SYNTHETIC — transfers aren't processed yet; the form is ready to be connected.","DEMO • SYNTHETIC — перекази поки не проводяться, форма готова до підключення."],
-"Доступно:":["Available:","Доступно:"],
-"Получатель (номер кошелька / email)":["Recipient (wallet number / email)","Отримувач (номер гаманця / email)"],
-"Комментарий (необязательно)":["Comment (optional)","Коментар (необов'язково)"],
-"Недоступно":["Unavailable","Недоступно"],
-"История сделок":["Trade History","Історія угод"],
-"Статистика":["Statistics","Статистика"],
-"История пуста":["No history yet","Історія порожня"],
-"Стакан заявок (DOM)":["Depth of Market (DOM)","Стакан заявок (DOM)"],
-"спред":["spread","спред"],
-"Покупатели":["Buyers","Покупці"],
-"лот":["lot","лот"],
-"лот ·":["lot ·","лот ·"],
-"% Продавцы":["% Sellers","% Продавці"],
-"Движок — коэффициенты сейчас (live)":["Engine — current coefficients (live)","Рушій — коефіцієнти зараз (live)"],
-"Внутридневной шум ×":["Intraday noise ×","Внутрішньоденний шум ×"],
-"Масштаб дрейфа режима ×":["Regime drift scale ×","Масштаб дрейфу режиму ×"],
-"режим":["regime","режим"],
-"Макро-бычий дрейф ×":["Macro bull drift ×","Макро-бичачий дрейф ×"],
-"итог дрейфа ≈ {0} / игр. день":["net drift ≈ {0} / game day","підсумок дрейфу ≈ {0} / ігр. день"],
-"Память волатильности":["Volatility memory","Пам'ять волатильності"],
-"тек. кластер":["current cluster","пот. кластер"],
-"Частота тиков (TPS)":["Tick rate (TPS)","Частота тіків (TPS)"],
-"{0} т/с  (таймер {1} мс)":["{0} t/s  (timer {1} ms)","{0} т/с  (таймер {1} мс)"],
-"(игр. время идёт в {0}× быстрее)":["(game time runs {0}× faster)","(ігр. час іде в {0}× швидше)"],
-"Спред":["Spread","Спред"],
-"авто $0.16–0.24  → сейчас ${0}":["auto $0.16–0.24  → now ${0}","авто $0.16–0.24  → зараз ${0}"],
-"Обычное проскальзывание":["Normal slippage","Звичайне прослизання"],
-"макс":["max","макс"],
-"Целевой диапазон дня":["Target day range","Цільовий діапазон дня"],
-"игр. мин":["game min","ігр. хв"],
-"Длительность дня":["Day length","Тривалість дня"],
-"{0} реальных мин  (при NORMAL)":["{0} real min  (at NORMAL)","{0} реальних хв  (при NORMAL)"],
-"Слом режима новостью":["Regime break by news","Злам режиму новиною"],
-"Тиков/сек в новости":["Ticks/s during news","Тіків/с у новині"],
-"Ручное управление":["Manual control","Ручне керування"],
-"ВКЛ · авто-движок на ПАУЗЕ":["ON · auto engine PAUSED","УВІМК · авторушій на ПАУЗІ"],
-"ВКЛ · авто-движок работает":["ON · auto engine running","УВІМК · авторушій працює"],
-"выкл":["off","вимк"],
-"НИЗКАЯ":["LOW","НИЗЬКА"],
-"ОБЫЧНАЯ":["NORMAL","ЗВИЧАЙНА"],
-"АКТИВНАЯ":["ACTIVE","АКТИВНА"],
-"ЭКСТРЕМАЛЬНАЯ":["EXTREME","ЕКСТРЕМАЛЬНА"],
-"Debug-консоль":["Debug console","Debug-консоль"],
-"Текущий":["Current","Поточний"],
-"Длительность":["Duration","Тривалість"],
-"игр. дней (осталось":["game days (left","ігр. днів (залишилось"],
-"мин)":["min)","хв)"],
-"Дрейф / волат.":["Drift / vol.","Дрейф / волат."],
-"Равновесие EMA":["EMA equilibrium","Рівновага EMA"],
-"Текущий день":["Current day","Поточний день"],
-"День #":["Day #","День #"],
-"полоса":["band","смуга"],
-"Целевой диапазон (скрыт в UI)":["Target range (hidden in the UI)","Цільовий діапазон (прихований в UI)"],
-"Откр / Макс / Мин / сейчас":["Open / High / Low / now","Відкр / Макс / Мін / зараз"],
-"Последние":["Last","Останні"],
-"дней":["days","днів"],
-"Средний дневной диапазон":["Average daily range","Середній денний діапазон"],
-"Медианный дневной диапазон":["Median daily range","Медіанний денний діапазон"],
-"Минимальный дневной диапазон":["Minimum daily range","Мінімальний денний діапазон"],
-"Максимальный дневной диапазон":["Maximum daily range","Максимальний денний діапазон"],
-"Стандартное отклонение":["Standard deviation","Стандартне відхилення"],
-"дн.":["d","дн."],
-"Закрытых дней пока нет.":["No closed days yet.","Закритих днів поки немає."],
-"Симуляция 100 дней (офлайн)":["Simulate 100 days (offline)","Симуляція 100 днів (офлайн)"],
-"История дней":["Day history","Історія днів"],
-"пусто":["empty","порожньо"],
-"ДЕНЬ":["DAY","ДЕНЬ"],
-"О":["O","О"],
-"Н":["H","Н"],
-"Л":["L","Л"],
-"З":["C","З"],
-"· Н":["· H","· Н"],
-"· Л":["· L","· Л"],
-"· З":["· C","· З"],
-"Диапазон":["Range","Діапазон"],
-"Приблизить":["Zoom in","Наблизити"],
-"Отдалить":["Zoom out","Віддалити"],
-"К последним свечам":["To the latest candles","До останніх свічок"],
-"Выбрать объём":["Choose volume","Вибрати обсяг"],
-"д":["d","д"],
-"ТП":["TP","ТП"],
-"СЛ":["SL","СЛ"],
-"м1":["m1","хв1"],
-"м5":["m5","хв5"],
-"м15":["m15","хв15"],
-"м30":["m30","хв30"],
-"ч1":["h1","г1"],
-"ч4":["h4","г4"],
-"д1":["D1","д1"],
-"1Д":["1D","1Д"],
-"5Д":["5D","5Д"],
-"1М":["1M","1М"],
-"3М":["3M","3М"],
-"6М":["6M","6М"],
-"1Г":["1Y","1Р"],
-"5Л":["5Y","5Р"],
-"1 минута":["1 minute","1 хвилина"],
-"5 минут":["5 minutes","5 хвилин"],
-"15 минут":["15 minutes","15 хвилин"],
-"30 минут":["30 minutes","30 хвилин"],
-"1 час":["1 hour","1 година"],
-"4 часа":["4 hours","4 години"],
-"1 день":["1 day","1 день"],
-"&nbsp;·&nbsp; диапазон $":["&nbsp;·&nbsp; range $","&nbsp;·&nbsp; діапазон $"],
-"Разрешить экстремум":["Allow extreme","Дозволити екстремум"],
-"Да":["Yes","Так"],
-"Нет":["No","Ні"],
-"Запуск":["Run","Запуск"],
-"Мин. движение $":["Min move $","Мін. рух $"],
-"Макс. движение $":["Max move $","Макс. рух $"],
-"Вероятность вверх":["Probability up","Ймовірність вгору"],
-"Вероятность вниз":["Probability down","Ймовірність вниз"],
-"Вероятность двустороннего":["Two-way probability","Ймовірність двостороннього"],
-"Вероятность ложного пробоя":["Fakeout probability","Ймовірність хибного пробою"],
-"Вероятность разворота":["Reversal probability","Ймовірність розвороту"],
-"Длительность (сек)":["Duration (s)","Тривалість (с)"],
-"Множитель спреда":["Spread multiplier","Множник спреду"],
-"Множитель проскальзывания":["Slippage multiplier","Множник прослизання"],
-"слабый":["weak","слабкий"],
-"средний":["medium","середній"],
-"сильный":["strong","сильний"],
-"очень сильный":["very strong","дуже сильний"],
-"экстремальный":["extreme","екстремальний"],
-"SPIKE вниз → разворот в BUY-side":["SPIKE down → reversal to BUY-side","SPIKE вниз → розворот у BUY-side"],
-"SPIKE вверх → разворот в SELL-side":["SPIKE up → reversal to SELL-side","SPIKE вгору → розворот у SELL-side"],
-"однонаправленный":["one-directional","односпрямований"],
-"Сила (tier)":["Strength (tier)","Сила (tier)"],
-"Формат":["Format","Формат"],
-"одна новостная свеча · sim-время держится 20 сек":["one news candle · sim time holds for 20 s","одна новинна свічка · sim-час тримається 20 с"],
-"Название":["Name","Назва"],
-"Создать событие":["Create event","Створити подію"],
-"Настройки симулятора":["Simulator Settings","Налаштування симулятора"],
-"Инструмент — XAUUSD":["Symbol — XAUUSD","Інструмент — XAUUSD"],
-"Мин. лот":["Min lot","Мін. лот"],
-"Макс. лот":["Max lot","Макс. лот"],
-"Шаг лота":["Lot step","Крок лота"],
-"Торговля":["Trading","Торгівля"],
-"авто 0.16–0.24":["auto 0.16–0.24","авто 0.16–0.24"],
-"Частота генерации тиков (TPS)":["Tick generation rate (TPS)","Частота генерації тіків (TPS)"],
-"Тиков в секунду":["Ticks per second","Тіків за секунду"],
-"Точное значение (0.1 – 20, шаг 0.1)":["Exact value (0.1 – 20, step 0.1)","Точне значення (0.1 – 20, крок 0.1)"],
-"0.5 т/с":["0.5 t/s","0.5 т/с"],
-"1.0 т/с":["1.0 t/s","1.0 т/с"],
-"2.0 т/с":["2.0 t/s","2.0 т/с"],
-"5.0 т/с":["5.0 t/s","5.0 т/с"],
-"10 т/с":["10 t/s","10 т/с"],
-"Обычный рынок — движок режимов":["Normal market — regime engine","Звичайний ринок — рушій режимів"],
-"Стартовая цена":["Starting price","Стартова ціна"],
-"случайная $":["random $","випадкова $"],
-"Полосы дневной волатильности — целевой дневной диапазон ($)":["Daily volatility bands — target daily range ($)","Смуги денної волатильності — цільовий денний діапазон ($)"],
-"Ручное управление рынком (Manual Market Control)":["Manual Market Control","Ручне керування ринком (Manual Market Control)"],
-"Движок новостей":["News engine","Рушій новин"],
-"Запустить событие":["Run an event","Запустити подію"],
-"🧪 Симуляция 300 торговых дней":["🧪 Simulate 300 trading days","🧪 Симуляція 300 торгових днів"],
-"🧪 Прогнать 20×5 симуляций новостей":["🧪 Run 20×5 news simulations","🧪 Прогнати 20×5 симуляцій новин"],
-"Сохранить настройки":["Save settings","Зберегти налаштування"],
-"Применить баланс":["Apply balance","Застосувати баланс"],
-"Сбросить симулятор":["Reset simulator","Скинути симулятор"],
-"Баланс (USD)":["Balance (USD)","Баланс (USD)"],
-"Валюта":["Currency","Валюта"],
-"Размер контракта (унций в лоте)":["Contract size (ounces per lot)","Розмір контракту (унцій у лоті)"],
-"Кредитное плечо":["Leverage","Кредитне плече"],
-"Тип комиссии":["Commission type","Тип комісії"],
-"USD за лот":["USD per lot","USD за лот"],
-"USD за миллион USD оборота":["USD per million USD turnover","USD за мільйон USD обороту"],
-"Процент от объёма сделки":["Percent of trade volume","Відсоток від обсягу угоди"],
-"Валюта котировки за лот":["Quote currency per lot","Валюта котирування за лот"],
-"Комиссия (за сторону)":["Commission (per side)","Комісія (за сторону)"],
-"Проскальзывание":["Slippage","Прослизання"],
-"Вкл":["On","Увімк"],
-"Выкл":["Off","Вимк"],
-"Swap Long (USD/лот/день)":["Swap Long (USD/lot/day)","Swap Long (USD/лот/день)"],
-"Swap Short (USD/лот/день)":["Swap Short (USD/lot/day)","Swap Short (USD/лот/день)"],
-"День тройного свопа":["Triple swap day","День потрійного свопу"],
-"Воскресенье":["Sunday","Неділя"],
-"Понедельник":["Monday","Понеділок"],
-"Вторник":["Tuesday","Вівторок"],
-"Среда":["Wednesday","Середа"],
-"Четверг":["Thursday","Четвер"],
-"Пятница":["Friday","П'ятниця"],
-"Суббота":["Saturday","Субота"],
-"Уровень Stop Out (%)":["Stop Out level (%)","Рівень Stop Out (%)"],
-"Уровень Margin Call (%)":["Margin Call level (%)","Рівень Margin Call (%)"],
-"Длительность торгового дня (реальных минут)":["Trading day length (real minutes)","Тривалість торгового дня (реальних хвилин)"],
-"Внутридневной шум (×)":["Intraday noise (×)","Внутрішньоденний шум (×)"],
-"Масштаб дрейфа режима (×)":["Regime drift scale (×)","Масштаб дрейфу режиму (×)"],
-"Макро-бычий дрейф (×)":["Macro bull drift (×)","Макро-бичачий дрейф (×)"],
-"Память кластеризации волатильности (0.90 … 0.999)":["Volatility clustering memory (0.90 … 0.999)","Пам'ять кластеризації волатильності (0.90 … 0.999)"],
-"Обычное проскальзывание ($ макс)":["Normal slippage ($ max)","Звичайне прослизання ($ макс)"],
-"Принудительно открытый рынок (игнорировать выходные)":["Force the market open (ignore weekends)","Примусово відкритий ринок (ігнорувати вихідні)"],
-"Режим ручного управления":["Manual control mode","Режим ручного керування"],
-"Выкл — работает авто Price Engine":["Off — the auto Price Engine runs","Вимк — працює авто Price Engine"],
-"Вкл — ручное управление XAUUSD":["On — manual XAUUSD control","Увімк — ручне керування XAUUSD"],
-"Вероятность слома режима новостью (0…1)":["Probability of a regime break by news (0…1)","Ймовірність зламу режиму новиною (0…1)"],
-"Частота тиков в новостях, мин (тиков/сек)":["News tick rate, min (ticks/s)","Частота тіків у новинах, мін (тіків/с)"],
-"Частота тиков в новостях, макс (тиков/сек)":["News tick rate, max (ticks/s)","Частота тіків у новинах, макс (тіків/с)"],
-"Для обычных посетителей":["For regular visitors","Для звичайних відвідувачів"],
-"ЗАКРЫТ":["CLOSED","ЗАКРИТО"],
-"ОТКРЫТ":["OPEN","ВІДКРИТО"],
-"🔒 САЙТ ЗАКРЫТ":["🔒 SITE CLOSED","🔒 САЙТ ЗАКРИТО"],
-"ON · закрыт":["ON · closed","ON · закрито"],
-"OFF · открыт":["OFF · open","OFF · відкрито"],
-"Выйти из режима владельца":["Leave owner mode","Вийти з режиму власника"],
-"🔒 Сайт закрыт для посетителей":["🔒 Site closed to visitors","🔒 Сайт закрито для відвідувачів"],
-"🔓 Сайт снова открыт":["🔓 Site open again","🔓 Сайт знову відкрито"],
-"Не удалось изменить":["Couldn't change it","Не вдалося змінити"],
-"Режим владельца выключен на этом устройстве":["Owner mode is off on this device","Режим власника вимкнено на цьому пристрої"],
-"🔒 Доступ к сайту":["🔒 Site access","🔒 Доступ до сайту"],
-"Статус":["Status","Статус"],
-"закрыт для посетителей":["closed to visitors","закрито для відвідувачів"],
-"открыт":["open","відкрито"],
-"Ключ владельца":["Owner key","Ключ власника"],
-"Войти как владелец":["Sign in as owner","Увійти як власник"],
-"Вы вошли как владелец":["Signed in as owner","Ви увійшли як власник"],
-"Неверный ключ":["Wrong key","Невірний ключ"],
-"Рынки":["Markets","Ринки"],
-"Графики":["Charts","Графіки"],
-"Ордеры":["Orders","Ордери"],
-"Номер скопирован":["Number copied","Номер скопійовано"],
-"Номер: {0}":["Number: {0}","Номер: {0}"],
-"Раздел в разработке — DEMO • SYNTHETIC":["Section in development — DEMO • SYNTHETIC","Розділ у розробці — DEMO • SYNTHETIC"],
-"В DEMO-режиме доступен только XAUUSD":["Only XAUUSD is available in DEMO mode","У DEMO-режимі доступний лише XAUUSD"],
-"Поиск инструментов будет добавлен позже":["Instrument search is coming later","Пошук інструментів буде додано пізніше"],
-"Выполняется…":["Running…","Виконується…"],
-"100 торговых дней · офлайн · СИНТЕТИКА":["100 trading days · offline · SYNTHETIC","100 торгових днів · офлайн · СИНТЕТИКА"],
-"Мин / Макс":["Min / Max","Мін / Макс"],
-"Цена":["Price","Ціна"],
-"· просадка":["· drawdown","· просідання"],
-"Сбросить симулятор?":["Reset the simulator?","Скинути симулятор?"],
-"Цена, баланс, позиции, ордера, история, день и график вернутся к начальному состоянию.":["Price, balance, positions, orders, history, the day and the chart will return to their initial state.","Ціна, баланс, позиції, ордери, історія, день і графік повернуться до початкового стану."],
-"Сбросить всё":["Reset everything","Скинути все"],
-"Синхронизация…":["Syncing…","Синхронізація…"],
-"Сохранено в облако":["Saved to the cloud","Збережено в хмару"],
-"Нет связи с сервером":["No connection to the server","Немає зв'язку з сервером"],
-"Вы вышли из аккаунта":["You've signed out","Ви вийшли з акаунта"],
-"Выйти из аккаунта?":["Sign out?","Вийти з акаунта?"],
-"Симуляция сохранена за аккаунтом — вы продолжите с этого же места при следующем входе.":["The simulation is saved to your account — you'll pick up right here next time you sign in.","Симуляцію збережено за акаунтом — ви продовжите з цього ж місця під час наступного входу."],
-"Частота тиков: {0} т/с":["Tick rate: {0} t/s","Частота тіків: {0} т/с"],
-"медиана $":["median $","медіана $"],
-"· среднее $":["· mean $","· середнє $"],
-"% · вверх/вниз":["% · up/down","% · вгору/вниз"],
-"Симуляции новостей · по 20 каждой · СИНТЕТИКА":["News simulations · 20 each · SYNTHETIC","Симуляції новин · по 20 кожної · СИНТЕТИКА"],
-"300 торговых дней · цепочка режимов · СИНТЕТИКА":["300 trading days · regime chain · SYNTHETIC","300 торгових днів · ланцюг режимів · СИНТЕТИКА"],
-"Цена: старт → финиш (300 дней)":["Price: start → finish (300 days)","Ціна: старт → фініш (300 днів)"],
-"Мин / Макс цена за период":["Min / Max price for the period","Мін / Макс ціна за період"],
-"Макс. просадка":["Max drawdown","Макс. просідання"],
-"Объём (лоты)":["Volume (lots)","Обсяг (лоти)"],
-"Меньше":["Less","Менше"],
-"Больше":["More","Більше"],
-"От":["From","Від"],
-"до":["to","до"],
-"· маржа ≈":["· margin ≈","· маржа ≈"],
-"Готово":["Done","Готово"],
-"Исполнение:":["Executing:","Виконання:"],
-"ордер исполнен":["order filled","ордер виконано"],
-"ордер отправлен":["order sent","ордер надіслано"],
-"КУПИТЬ (BUY)":["BUY","КУПИТИ (BUY)"],
-"ПРОДАТЬ (SELL)":["SELL","ПРОДАТИ (SELL)"],
-"Объём":["Volume","Обсяг"],
-"SL для BUY должен быть ниже цены":["SL for BUY must be below the price","SL для BUY має бути нижче ціни"],
-"SL для SELL должен быть выше цены":["SL for SELL must be above the price","SL для SELL має бути вище ціни"],
-"TP для BUY должен быть выше цены":["TP for BUY must be above the price","TP для BUY має бути вище ціни"],
-"TP для SELL должен быть ниже цены":["TP for SELL must be below the price","TP для SELL має бути нижче ціни"],
-"Новый ордер · XAUUSD":["New Order · XAUUSD","Новий ордер · XAUUSD"],
-"Объём (Лоты) —":["Volume (Lots) —","Обсяг (Лоти) —"],
-", шаг":[", step",", крок"],
-"Тип":["Type","Тип"],
-"Разместить":["Place","Розмістити"],
-"Укажите Entry Price":["Enter the Entry Price","Вкажіть Entry Price"],
-"Позиция #":["Position #","Позиція #"],
-"Закрыть позицию по рынку":["Close position at market","Закрити позицію за ринком"],
-"Назад":["Back","Назад"],
-"Сохранить":["Save","Зберегти"],
-"Ордер #{0} изменён":["Order #{0} modified","Ордер #{0} змінено"],
-"Подтвердить":["Confirm","Підтвердити"],
-"Применено к движку: шум ×{0} · дрейф ×{1}":["Applied to the engine: noise ×{0} · drift ×{1}","Застосовано до рушія: шум ×{0} · дрейф ×{1}"],
-"· спред авто 0.16–0.24 · TPS {0} · ускоритель ×{1}":["· spread auto 0.16–0.24 · TPS {0} · speed ×{1}","· спред авто 0.16–0.24 · TPS {0} · прискорювач ×{1}"],
-"Баланс изменён: {0} · позиции сохранены":["Balance changed: {0} · positions kept","Баланс змінено: {0} · позиції збережено"],
-"Rollover форсирован":["Rollover forced","Rollover виконано примусово"],
-"Ускоритель: {0} — состояние не сброшено":["Speed: {0} — state not reset","Прискорювач: {0} — стан не скинуто"],
-"Не удалось подключиться: {0}":["Couldn't connect: {0}","Не вдалося підключитися: {0}"],
-"◐ другое устройство":["◐ another device","◐ інший пристрій"],
-"● облако":["● cloud","● хмара"],
-"○ нет связи":["○ offline","○ немає зв'язку"],
-"Регистрация":["Sign up","Реєстрація"],
-"Вход":["Sign in","Вхід"],
-"Пароль":["Password","Пароль"],
-"(минимум 6 символов)":["(at least 6 characters)","(щонайменше 6 символів)"],
-"Повторите пароль":["Repeat password","Повторіть пароль"],
-"Создать аккаунт":["Create account","Створити акаунт"],
-"Аккаунт хранит вашу симуляцию: цену, баланс, позиции и историю. Войдя с любого устройства, вы продолжите с того же места.":["Your account keeps your simulation: price, balance, positions and history. Sign in from any device and carry on where you left off.","Акаунт зберігає вашу симуляцію: ціну, баланс, позиції та історію. Увійшовши з будь-якого пристрою, ви продовжите з того самого місця."],
-"Ещё нет аккаунта? Откройте «Регистрация» — это займёт полминуты.":["No account yet? Open “Sign up” — it takes half a minute.","Ще немає акаунта? Відкрийте «Реєстрація» — це займе пів хвилини."],
-"Введите корректный email":["Enter a valid email","Введіть коректний email"],
-"Пароль минимум 6 символов":["Password must be at least 6 characters","Пароль — щонайменше 6 символів"],
-"Пароли не совпадают":["Passwords don't match","Паролі не збігаються"],
-"Введите пароль":["Enter your password","Введіть пароль"],
-"Этот email уже зарегистрирован — войдите":["This email is already registered — sign in","Цей email уже зареєстровано — увійдіть"],
-"Сессия истекла — войдите снова":["Session expired — sign in again","Сесія закінчилася — увійдіть знову"],
-"ошибка":["error","помилка"],
-"Ошибка":["Error","Помилка"],
-"Неверный email или пароль":["Wrong email or password","Невірний email або пароль"],
-"Неверный email":["Invalid email","Невірний email"],
-"Этот email уже занят":["This email is already taken","Цей email уже зайнято"],
-"Требуется вход владельца":["Owner sign-in required","Потрібен вхід власника"],
-"Не авторизован":["Not authorized","Не авторизовано"],
-"Владельческий доступ не настроен":["Owner access isn't configured","Доступ власника не налаштовано"],
-"Слишком много ордеров в очереди":["Too many orders in the queue","Забагато ордерів у черзі"],
-"Симуляция запущена в другой сессии":["The simulation is running in another session","Симуляцію запущено в іншій сесії"],
-"Терминал уже открыт в другой сессии":["The terminal is already open in another session","Термінал уже відкрито в іншій сесії"],
-"Сайт закрыт на техническое обслуживание":["The site is closed for maintenance","Сайт закрито на технічне обслуговування"],
-"Уровень маржи":["Margin Level","Рівень маржі"],
-"Баланс":["Balance","Баланс"],
-"Средства":["Equity","Кошти"],
-"Маржа":["Margin","Маржа"],
-"Свободная маржа":["Free Margin","Вільна маржа"],
-"Плавающая П/У":["Floating P/L","Плаваючий П/З"],
-"Требуемая маржа":["Required Margin","Необхідна маржа"],
-"пред.":["prev","попер."],
-"прогн.":["fc","прогн."],
-"факт":["act","факт"],
-"вручную":["manual","вручну"],
-"Выпустить":["Release","Випустити"],
-"Вход~entry":["Entry","Вхід"],
-"Брутто":["Gross","Брутто"],
-"Комис.":["Comm","Коміс."],
-"Своп":["Swap","Своп"],
-"Всего сделок":["Total trades","Усього угод"],
-"Прибыльные / Убыточные":["Winning / Losing","Прибуткові / Збиткові"],
-"Доля прибыльных":["Win rate","Частка прибуткових"],
-"Валовая прибыль":["Gross profit","Валовий прибуток"],
-"Валовой убыток":["Gross loss","Валовий збиток"],
-"Чистая прибыль":["Net profit","Чистий прибуток"],
-"Всего комиссий":["Total commission","Усього комісій"],
-"Всего свопов":["Total swap","Усього свопів"],
-"Общий объём":["Total volume","Загальний обсяг"],
-"лотов":["lots","лотів"],
-"Макс. прибыль / убыток":["Largest win / loss","Найбільший прибуток / збиток"],
-"Средняя сделка":["Average trade","Середня угода"],
-"Изменить":["Edit","Змінити"],
-"Изменить~modify":["Modify","Змінити"],
-"Исполнение":["Execution","Виконання"],
-"Рыночное":["Market","Ринкове"],
-"(± проскальзывание)":["(± slippage)","(± прослизання)"],
-"Комиссия (открытие)":["Commission (open)","Комісія (відкриття)"],
-"Комиссия туда-обратно":["Commission round-trip","Комісія в обидва боки"],
-"Stop Loss (цена, необязательно)":["Stop Loss (price, optional)","Stop Loss (ціна, необов'язково)"],
-"Take Profit (цена, необязательно)":["Take Profit (price, optional)","Take Profit (ціна, необов'язково)"],
-"Рыночный":["Market","Ринковий"],
-"Отложенный":["Pending","Відкладений"],
-"Цена входа":["Entry Price","Ціна входу"],
-"Stop Loss (цена)":["Stop Loss (price)","Stop Loss (ціна)"],
-"Take Profit (цена)":["Take Profit (price)","Take Profit (ціна)"],
-"Комиссия / сторона":["Commission / side","Комісія / сторона"],
-"Текущая цена":["Current price","Поточна ціна"],
-"Время открытия":["Open time","Час відкриття"],
-"Валовая П/У":["Gross P/L","Валовий П/З"],
-"Комиссия (открытие+закрытие)":["Commission (open+close)","Комісія (відкриття+закриття)"],
-"Чистая П/У":["Net P/L","Чистий П/З"],
-"Изменить SL/TP":["Modify SL/TP","Змінити SL/TP"],
-"Единица":["Unit","Одиниця"],
-"Важность ★":["Impact ★","Важливість ★"],
-"Фактическое (пусто = случайно)":["Actual (empty = random)","Фактичне (порожньо = випадково)"],
-"Выход через (сек)":["Release in (sec)","Вихід через (с)"]
+"MARKET REGIME → {0}  (было {1})":["MARKET REGIME → {0}  (was {1})","MARKET REGIME → {0}  (було {1})","MARKET REGIME → {0}  (avant {1})","MARKET REGIME → {0}  (önceki {1})"],
+"Некорректная цена":["Invalid price","Некоректна ціна","Prix invalide","Geçersiz fiyat"],
+"Цена установлена: {0}":["Price set: {0}","Ціну встановлено: {0}","Prix défini : {0}","Fiyat ayarlandı: {0}"],
+"⏸ Авто Price Engine остановлен":["⏸ Auto Price Engine stopped","⏸ Авто Price Engine зупинено","⏸ Auto Price Engine arrêté","⏸ Otomatik Price Engine durduruldu"],
+"▶ Авто Price Engine возобновлён":["▶ Auto Price Engine resumed","▶ Авто Price Engine відновлено","▶ Auto Price Engine relancé","▶ Otomatik Price Engine devam ediyor"],
+"Идёт новость — дождитесь окончания":["News in progress — wait until it ends","Триває новина — дочекайтеся завершення","Annonce en cours — attendez la fin","Haber sürüyor — bitmesini bekleyin"],
+"Проверьте параметры импульса":["Check the impulse settings","Перевірте параметри імпульсу","Vérifiez les paramètres de l'impulsion","İmpuls ayarlarını kontrol edin"],
+"Импульс {0}":["Impulse {0}","Імпульс {0}","Impulsion {0}","İmpuls {0}"],
+"Импульс завершён ({0})":["Impulse finished ({0})","Імпульс завершено ({0})","Impulsion terminée ({0})","İmpuls bitti ({0})"],
+"Новость уже идёт — дождитесь завершения":["A news event is already running — wait until it ends","Новина вже триває — дочекайтеся завершення","Une annonce est déjà en cours — attendez la fin","Bir haber zaten sürüyor — bitmesini bekleyin"],
+"Объём должен быть больше 0":["Volume must be greater than 0","Обсяг має бути більшим за 0","Le volume doit être supérieur à 0","Hacim 0'dan büyük olmalı"],
+"Минимальный объём {0}":["Minimum volume {0}","Мінімальний обсяг {0}","Volume minimum {0}","Minimum hacim {0}"],
+"Максимальный объём {0}":["Maximum volume {0}","Максимальний обсяг {0}","Volume maximum {0}","Maksimum hacim {0}"],
+"Объём должен быть кратен {0}":["Volume must be a multiple of {0}","Обсяг має бути кратним {0}","Le volume doit être un multiple de {0}","Hacim {0} katı olmalı"],
+"Ордер отправлен — исполняется":["Order sent — executing","Ордер надіслано — виконується","Ordre envoyé — exécution en cours","Emir gönderildi — gerçekleştiriliyor"],
+"Не удалось отправить ордер — нет связи":["Couldn't send the order — no connection","Не вдалося надіслати ордер — немає зв'язку","Impossible d'envoyer l'ordre — pas de connexion","Emir gönderilemedi — bağlantı yok"],
+"Рынок закрыт — исполнение недоступно":["Market closed — execution unavailable","Ринок закрито — виконання недоступне","Marché fermé — exécution indisponible","Piyasa kapalı — işlem yapılamıyor"],
+"Недостаточно свободной маржи (нужно {0})":["Not enough free margin ({0} needed)","Недостатньо вільної маржі (потрібно {0})","Marge libre insuffisante ({0} requis)","Serbest teminat yetersiz ({0} gerekli)"],
+"SL для BUY должен быть ниже цены входа":["SL for BUY must be below the entry price","SL для BUY має бути нижче ціни входу","Le SL d'un BUY doit être sous le prix d'entrée","BUY için SL giriş fiyatının altında olmalı"],
+"SL для SELL должен быть выше цены входа":["SL for SELL must be above the entry price","SL для SELL має бути вище ціни входу","Le SL d'un SELL doit être au-dessus du prix d'entrée","SELL için SL giriş fiyatının üstünde olmalı"],
+"TP для BUY должен быть выше цены входа":["TP for BUY must be above the entry price","TP для BUY має бути вище ціни входу","Le TP d'un BUY doit être au-dessus du prix d'entrée","BUY için TP giriş fiyatının üstünde olmalı"],
+"TP для SELL должен быть ниже цены входа":["TP for SELL must be below the entry price","TP для SELL має бути нижче ціни входу","Le TP d'un SELL doit être sous le prix d'entrée","SELL için TP giriş fiyatının altında olmalı"],
+"по":["at","за","à","—"],
+"Закрыта #{0}":["Closed #{0}","Закрито #{0}","Clôturée #{0}","Kapatıldı #{0}"],
+"SL для BUY должен быть ниже текущей цены {0} — позиция не изменена":["SL for BUY must be below the current price {0} — position not changed","SL для BUY має бути нижче поточної ціни {0} — позицію не змінено","Le SL d'un BUY doit être sous le prix actuel {0} — position inchangée","BUY için SL güncel fiyatın ({0}) altında olmalı — pozisyon değiştirilmedi"],
+"SL для SELL должен быть выше текущей цены {0} — позиция не изменена":["SL for SELL must be above the current price {0} — position not changed","SL для SELL має бути вище поточної ціни {0} — позицію не змінено","Le SL d'un SELL doit être au-dessus du prix actuel {0} — position inchangée","SELL için SL güncel fiyatın ({0}) üstünde olmalı — pozisyon değiştirilmedi"],
+"TP для BUY должен быть выше текущей цены {0} — позиция не изменена":["TP for BUY must be above the current price {0} — position not changed","TP для BUY має бути вище поточної ціни {0} — позицію не змінено","Le TP d'un BUY doit être au-dessus du prix actuel {0} — position inchangée","BUY için TP güncel fiyatın ({0}) üstünde olmalı — pozisyon değiştirilmedi"],
+"TP для SELL должен быть ниже текущей цены {0} — позиция не изменена":["TP for SELL must be below the current price {0} — position not changed","TP для SELL має бути нижче поточної ціни {0} — позицію не змінено","Le TP d'un SELL doit être sous le prix actuel {0} — position inchangée","SELL için TP güncel fiyatın ({0}) altında olmalı — pozisyon değiştirilmedi"],
+"Позиция #{0} изменена — SL {1} · TP {2}":["Position #{0} modified — SL {1} · TP {2}","Позицію #{0} змінено — SL {1} · TP {2}","Position #{0} modifiée — SL {1} · TP {2}","Pozisyon #{0} değiştirildi — SL {1} · TP {2}"],
+"Ордер отменён":["Order cancelled","Ордер скасовано","Ordre annulé","Emir iptal edildi"],
+"Ордер #{0} не исполнен — недостаточно маржи":["Order #{0} not filled — not enough margin","Ордер #{0} не виконано — недостатньо маржі","Ordre #{0} non exécuté — marge insuffisante","Emir #{0} gerçekleşmedi — teminat yetersiz"],
+"Исполнен {0} #{1} по {2}":["Filled {0} #{1} at {2}","Виконано {0} #{1} за {2}","Exécuté {0} #{1} à {2}","Gerçekleşti {0} #{1} — {2}"],
+"🌙 Rollover — swap начислен":["🌙 Rollover — swap charged","🌙 Rollover — своп нараховано","🌙 Rollover — swap appliqué","🌙 Rollover — swap uygulandı"],
+"🛑 STOP OUT — закрыта позиция #{0}":["🛑 STOP OUT — position #{0} closed","🛑 STOP OUT — закрито позицію #{0}","🛑 STOP OUT — position #{0} clôturée","🛑 STOP OUT — pozisyon #{0} kapatıldı"],
+"Создано событие: {0} (через {1}с)":["Event created: {0} (in {1}s)","Створено подію: {0} (через {1}с)","Événement créé : {0} (dans {1} s)","Etkinlik oluşturuldu: {0} ({1} sn sonra)"],
+"💧 Жидкое стекло включено":["💧 Liquid Glass on","💧 Рідке скло увімкнено","💧 Verre liquide activé","💧 Sıvı Cam açık"],
+"Жидкое стекло выключено":["Liquid Glass off","Рідке скло вимкнено","Verre liquide désactivé","Sıvı Cam kapalı"],
+"🌙 Тёмная тема":["🌙 Dark theme","🌙 Темна тема","🌙 Thème sombre","🌙 Koyu tema"],
+"☀️ Светлая тема":["☀️ Light theme","☀️ Світла тема","☀️ Thème clair","☀️ Açık tema"],
+"Закрыто всё":["Closed all","Закрито все","Tout clôturé","Tümü kapatıldı"],
+"Рынки по этому инструменту закрыты. Торговля ограничена. (Synthetic weekend)":["Markets for this instrument are closed. Trading is restricted. (Synthetic weekend)","Ринки за цим інструментом закриті. Торгівля обмежена. (Synthetic weekend)","Les marchés de cet instrument sont fermés. Trading restreint. (Synthetic weekend)","Bu enstrümanın piyasaları kapalı. İşlem kısıtlı. (Synthetic weekend)"],
+"Новый ордер":["New Order","Новий ордер","Nouvel ordre","Yeni Emir"],
+"Поиск":["Search","Пошук","Rechercher","Ara"],
+"Добавить инструмент":["Add instrument","Додати інструмент","Ajouter un instrument","Enstrüman ekle"],
+"Изменить список":["Edit list","Змінити список","Modifier la liste","Listeyi düzenle"],
+"ПРОДАТЬ":["SELL","ПРОДАТИ","VENDRE","SAT"],
+"КУПИТЬ":["BUY","КУПИТИ","ACHETER","AL"],
+"Добавить инструменты":["Add instruments","Додати інструменти","Ajouter des instruments","Enstrüman ekle"],
+"Доступно только XAUUSD":["Only XAUUSD is available","Доступний лише XAUUSD","Seul XAUUSD est disponible","Yalnızca XAUUSD kullanılabilir"],
+"ОБЗОР":["OVERVIEW","ОГЛЯД","APERÇU","GENEL"],
+"ПОЗИЦИИ":["POSITIONS","ПОЗИЦІЇ","POSITIONS","POZİSYONLAR"],
+"ОРДЕРА":["ORDERS","ОРДЕРИ","ORDRES","EMİRLER"],
+"ГРАФИК":["CHART","ГРАФІК","GRAPHIQUE","GRAFİK"],
+"Продать":["Sell","Продати","Vendre","Sat"],
+"Купить":["Buy","Купити","Acheter","Al"],
+"· Купить":["· Buy","· Купити","· Acheter","· Al"],
+"· спред":["· spread","· спред","· spread","· spread"],
+"▶ RESUME (авто)":["▶ RESUME (auto)","▶ RESUME (авто)","▶ RESUME (auto)","▶ RESUME (otomatik)"],
+"⏸ PAUSE (авто-движок)":["⏸ PAUSE (auto engine)","⏸ PAUSE (авторушій)","⏸ PAUSE (moteur auto)","⏸ PAUSE (otomatik motor)"],
+"АВТО PRICE ENGINE ОСТАНОВЛЕН — движение задаёте вы":["AUTO PRICE ENGINE STOPPED — you drive the price","АВТО PRICE ENGINE ЗУПИНЕНО — рух задаєте ви","AUTO PRICE ENGINE ARRÊTÉ — c'est vous qui menez le prix","OTOMATİK PRICE ENGINE DURDU — fiyatı siz yönetiyorsunuz"],
+"Авто Price Engine работает":["Auto Price Engine is running","Авто Price Engine працює","Auto Price Engine en marche","Otomatik Price Engine çalışıyor"],
+"Точная цена":["Exact price","Точна ціна","Prix exact","Tam fiyat"],
+"Установить":["Set","Встановити","Définir","Ayarla"],
+"Ручной тик — шаг $":["Manual tick — step $","Ручний тік — крок $","Tick manuel — pas $","Manuel tick — adım $"],
+"▼ SELL тик":["▼ SELL tick","▼ SELL тік","▼ Tick SELL","▼ SELL tick"],
+"▲ BUY тик":["▲ BUY tick","▲ BUY тік","▲ Tick BUY","▲ BUY tick"],
+"Сдвинуть цену на $":["Move the price by $","Зсунути ціну на $","Déplacer le prix de $","Fiyatı kaydır: $"],
+"▼ Вниз":["▼ Down","▼ Вниз","▼ Bas","▼ Aşağı"],
+"▲ Вверх":["▲ Up","▲ Вгору","▲ Haut","▲ Yukarı"],
+"Быстрая дельта ($)":["Quick delta ($)","Швидка дельта ($)","Delta rapide ($)","Hızlı delta ($)"],
+"Плавный импульс":["Smooth impulse","Плавний імпульс","Impulsion progressive","Yumuşak impuls"],
+"— идёт:":["— running:","— триває:","— en cours :","— sürüyor:"],
+"Направление":["Direction","Напрямок","Direction","Yön"],
+"Размер $ / Время с":["Size $ / Time s","Розмір $ / Час с","Taille $ / Durée s","Boyut $ / Süre sn"],
+"Импульс идёт…":["Impulse running…","Імпульс триває…","Impulsion en cours…","İmpuls sürüyor…"],
+"Запустить импульс":["Start impulse","Запустити імпульс","Lancer l'impulsion","İmpulsu başlat"],
+"Количество (Лоты)":["Quantity (Lots)","Кількість (Лоти)","Quantité (lots)","Miktar (Lot)"],
+"Объём в лотах":["Volume in lots","Обсяг у лотах","Volume en lots","Lot cinsinden hacim"],
+"Выбрать объём колесом":["Pick the volume on the wheel","Вибрати обсяг колесом","Choisir le volume sur la roue","Hacmi çarktan seç"],
+"График на весь экран":["Full-screen chart","Графік на весь екран","Graphique plein écran","Tam ekran grafik"],
+"Обычный вид":["Normal view","Звичайний вигляд","Vue normale","Normal görünüm"],
+"Таймфрейм":["Timeframe","Таймфрейм","Unité de temps","Zaman dilimi"],
+"Настроение рынка":["Market Sentiment","Настрій ринку","Sentiment du marché","Piyasa Duyarlılığı"],
+"Глубина рынка":["Market Depth","Глибина ринку","Profondeur du marché","Piyasa Derinliği"],
+"Показать еще":["Show more","Показати ще","Afficher plus","Daha fazla göster"],
+"Экономический календарь":["Economic Calendar","Економічний календар","Calendrier économique","Ekonomik Takvim"],
+"Больше событий":["More events","Більше подій","Plus d'événements","Daha fazla etkinlik"],
+"Торговый день · СИНТЕТИКА":["Trading day · SYNTHETIC","Торговий день · СИНТЕТИКА","Journée de trading · SYNTHÉTIQUE","İşlem günü · SENTETİK"],
+"Счёт":["Account","Рахунок","Compte","Hesap"],
+"Сегодня":["Today","Сьогодні","Aujourd'hui","Bugün"],
+"Завтра":["Tomorrow","Завтра","Demain","Yarın"],
+"Вчера":["Yesterday","Учора","Hier","Dün"],
+"в":["at","о","à","saat"],
+"(игровое время)":["(game time)","(ігровий час)","(heure du jeu)","(oyun saati)"],
+"Нет событий":["No events","Немає подій","Aucun événement","Etkinlik yok"],
+"Волатильность":["Volatility","Волатильність","Volatilité","Volatilite"],
+"Фактическое":["Actual","Фактичне","Réel","Gerçekleşen"],
+"Прогноз":["Forecast","Прогноз","Prévision","Beklenti"],
+"Предыдущее":["Previous","Попереднє","Précédent","Önceki"],
+"вышло":["released","вийшло","publié","açıklandı"],
+"через ~":["in ~","через ~","dans ~","kalan ~"],
+"мин":["min","хв","min","dk"],
+"Вышло ·":["Released ·","Вийшло ·","Publié ·","Açıklandı ·"],
+"· через":["· in","· через","· dans","· kalan"],
+"+ Создать Synthetic News":["+ Create Synthetic News","+ Створити Synthetic News","+ Créer une Synthetic News","+ Synthetic News oluştur"],
+"День":["Day","День","Jour","Gün"],
+"Режим рынка":["Market regime","Режим ринку","Régime de marché","Piyasa rejimi"],
+"Время рынка":["Market time","Час ринку","Heure du marché","Piyasa saati"],
+"Время в дне":["Time into the day","Час у дні","Temps écoulé dans la journée","Gün içindeki süre"],
+"Открытие":["Open","Відкриття","Ouverture","Açılış"],
+"Максимум / Минимум":["High / Low","Максимум / Мінімум","Plus haut / Plus bas","En yüksek / En düşük"],
+"Диапазон за день":["Day range","Діапазон за день","Amplitude du jour","Günlük aralık"],
+"Изменение":["Change","Зміна","Variation","Değişim"],
+"Ускоритель симуляции":["Simulation speed","Прискорювач симуляції","Vitesse de simulation","Simülasyon hızı"],
+"🎲 Случайное событие":["🎲 Random event","🎲 Випадкова подія","🎲 Événement aléatoire","🎲 Rastgele etkinlik"],
+"Позиции":["Positions","Позиції","Positions","Pozisyonlar"],
+"Нет открытых позиций":["No open positions","Немає відкритих позицій","Aucune position ouverte","Açık pozisyon yok"],
+"Закрыть позиции (":["Close positions (","Закрити позиції (","Clôturer les positions (","Pozisyonları kapat ("],
+"Ордера":["Orders","Ордери","Ordres","Emirler"],
+"Лоты":["Lots","Лоти","Lots","Lot"],
+"Нет отложенных ордеров":["No pending orders","Немає відкладених ордерів","Aucun ordre en attente","Bekleyen emir yok"],
+"Создать ордер":["Create order","Створити ордер","Créer un ordre","Emir oluştur"],
+"Инструмент":["Symbol","Інструмент","Symbole","Sembol"],
+"Размер":["Size","Розмір","Taille","Boyut"],
+"Расстояние":["Distance","Відстань","Distance","Mesafe"],
+"Отменить ордер #":["Cancel order #","Скасувати ордер #","Annuler l'ordre #","Emri iptal et #"],
+"Закрыть {0}?":["Close {0}?","Закрити {0}?","Clôturer {0} ?","{0} kapatılsın mı?"],
+"позицию|позиции|позиций":["position|positions","позицію|позиції|позицій","position|positions","pozisyon"],
+"Суммарный объём":["Total volume","Загальний обсяг","Volume total","Toplam hacim"],
+"лот · результат":["lot · result","лот · результат","lot · résultat","lot · sonuç"],
+"Закрытие пройдёт по текущим рыночным ценам.":["Positions will close at current market prices.","Закриття відбудеться за поточними ринковими цінами.","Les positions seront clôturées aux prix actuels du marché.","Pozisyonlar güncel piyasa fiyatlarından kapatılacak."],
+"Закрыть всё ·":["Close all ·","Закрити все ·","Tout clôturer ·","Tümünü kapat ·"],
+"аккаунт":["account","акаунт","compte","hesap"],
+"Не выполнен вход":["Not signed in","Вхід не виконано","Non connecté","Giriş yapılmadı"],
+"Ещё":["More","Ще","Plus","Diğer"],
+"Аккаунт":["Account","Акаунт","Compte","Hesap"],
+"Синхронизация":["Sync","Синхронізація","Synchronisation","Senkronizasyon"],
+"Синхронизировать сейчас":["Sync now","Синхронізувати зараз","Synchroniser","Şimdi senkronize et"],
+"Выйти":["Sign out","Вийти","Se déconnecter","Çıkış yap"],
+"Войти":["Sign in","Увійти","Se connecter","Giriş yap"],
+"Язык":["Language","Мова","Langue","Dil"],
+"Тема оформления":["Theme","Тема оформлення","Thème","Tema"],
+"☀️ Светлая":["☀️ Light","☀️ Світла","☀️ Clair","☀️ Açık"],
+"🌙 Тёмная":["🌙 Dark","🌙 Темна","🌙 Sombre","🌙 Koyu"],
+"💧 Жидкое стекло":["💧 Liquid Glass","💧 Рідке скло","💧 Verre liquide","💧 Sıvı Cam"],
+"Жидкое стекло":["Liquid Glass","Рідке скло","Verre liquide","Sıvı Cam"],
+"💳 Брокерский кошелёк":["💳 Broker wallet","💳 Брокерський гаманець","💳 Portefeuille courtier","💳 Aracı kurum cüzdanı"],
+"Скоро":["Soon","Незабаром","Bientôt","Yakında"],
+"⚙️ Настройки симулятора":["⚙️ Simulator settings","⚙️ Налаштування симулятора","⚙️ Paramètres du simulateur","⚙️ Simülatör ayarları"],
+"📜 История сделок":["📜 Trade history","📜 Історія угод","📜 Historique des trades","📜 İşlem geçmişi"],
+"🐞 Debug-консоль (день / статистика)":["🐞 Debug console (day / stats)","🐞 Debug-консоль (день / статистика)","🐞 Console de débogage (jour / stats)","🐞 Hata ayıklama konsolu (gün / istatistik)"],
+"📰 Создать Synthetic News (календарь)":["📰 Create Synthetic News (calendar)","📰 Створити Synthetic News (календар)","📰 Créer une Synthetic News (calendrier)","📰 Synthetic News oluştur (takvim)"],
+"📊 Последний News Result":["📊 Last News Result","📊 Останній News Result","📊 Dernier News Result","📊 Son News Result"],
+"MACRO NEWS ENGINE — запустить сейчас":["MACRO NEWS ENGINE — run now","MACRO NEWS ENGINE — запустити зараз","MACRO NEWS ENGINE — lancer maintenant","MACRO NEWS ENGINE — şimdi çalıştır"],
+"▶️ Форсировать смену дня / своп (тест)":["▶️ Force the day change / swap (test)","▶️ Примусова зміна дня / своп (тест)","▶️ Forcer le changement de jour / swap (test)","▶️ Gün değişimini / swap'ı zorla (test)"],
+"♻️ Сбросить симулятор":["♻️ Reset simulator","♻️ Скинути симулятор","♻️ Réinitialiser le simulateur","♻️ Simülatörü sıfırla"],
+"Создатель —":["Created by","Автор —","Créé par","Geliştiren —"],
+"Виртуальный кошелёк":["Virtual wallet","Віртуальний гаманець","Portefeuille virtuel","Sanal cüzdan"],
+"Пополнение":["Deposit","Поповнення","Dépôt","Para yatırma"],
+"Вывод средств":["Withdrawal","Виведення коштів","Retrait","Para çekme"],
+"Перевод":["Transfer","Переказ","Virement","Transfer"],
+"Безопасность":["Security","Безпека","Sécurité","Güvenlik"],
+"DEMO-среда — реальные средства не задействованы":["DEMO environment — no real funds involved","DEMO-середовище — реальні кошти не задіяні","Environnement DEMO — aucun fonds réel en jeu","DEMO ortamı — gerçek para kullanılmaz"],
+"Надёжность":["Reliability","Надійність","Fiabilité","Güvenilirlik"],
+"Синтетический симулятор, состояние кошелька сохраняется":["Synthetic simulator, the wallet state is saved","Синтетичний симулятор, стан гаманця зберігається","Simulateur synthétique, l'état du portefeuille est sauvegardé","Sentetik simülatör, cüzdan durumu kaydedilir"],
+"Быстрота":["Speed","Швидкість","Rapidité","Hız"],
+"Мгновенное пополнение и вывод внутри симулятора":["Instant deposits and withdrawals inside the simulator","Миттєве поповнення та виведення всередині симулятора","Dépôts et retraits instantanés dans le simulateur","Simülatör içinde anında yatırma ve çekme"],
+"Поддержка":["Support","Підтримка","Assistance","Destek"],
+"Учебный проект":["Educational project","Навчальний проєкт","Projet pédagogique","Eğitim projesi"],
+"‹ НАЗАД":["‹ BACK","‹ НАЗАД","‹ RETOUR","‹ GERİ"],
+"Управляйте средствами брокера и операциями платформы (DEMO • SYNTHETIC).":["Manage broker funds and platform operations (DEMO • SYNTHETIC).","Керуйте коштами брокера та операціями платформи (DEMO • SYNTHETIC).","Gérez les fonds du courtier et les opérations de la plateforme (DEMO • SYNTHETIC).","Aracı kurum fonlarını ve platform işlemlerini yönetin (DEMO • SYNTHETIC)."],
+"Номер виртуального кошелька":["Virtual wallet number","Номер віртуального гаманця","Numéro du portefeuille virtuel","Sanal cüzdan numarası"],
+"Копировать":["Copy","Копіювати","Copier","Kopyala"],
+"ПОПОЛНИТЬ":["DEPOSIT","ПОПОВНИТИ","DÉPOSER","YATIR"],
+"ПЕРЕВЕСТИ":["TRANSFER","ПЕРЕКАЗАТИ","VIRER","TRANSFER ET"],
+"ВЫВОД СРЕДСТВ":["WITHDRAW","ВИВЕДЕННЯ","RETIRER","ÇEK"],
+"Общая информация":["Overview","Загальна інформація","Informations générales","Genel bilgiler"],
+"Общий баланс":["Total balance","Загальний баланс","Solde total","Toplam bakiye"],
+"Доступно":["Available","Доступно","Disponible","Kullanılabilir"],
+"Последние операции":["Recent transactions","Останні операції","Opérations récentes","Son işlemler"],
+"СМОТРЕТЬ ВСЕ":["VIEW ALL","ДИВИТИСЯ ВСІ","TOUT VOIR","TÜMÜNÜ GÖR"],
+"Нет операций":["No transactions","Немає операцій","Aucune opération","İşlem yok"],
+"Здесь будут отображаться ваши операции":["Your transactions will appear here","Тут відображатимуться ваші операції","Vos opérations apparaîtront ici","İşlemleriniz burada görünecek"],
+"Условия использования":["Terms of use","Умови використання","Conditions d'utilisation","Kullanım koşulları"],
+"Политика конфиденциальности":["Privacy policy","Політика конфіденційності","Politique de confidentialité","Gizlilik politikası"],
+"Введите сумму больше 0":["Enter an amount greater than 0","Введіть суму більшу за 0","Saisissez un montant supérieur à 0","0'dan büyük bir tutar girin"],
+"Кошелёк пополнен на {0}":["Wallet topped up by {0}","Гаманець поповнено на {0}","Portefeuille crédité de {0}","Cüzdana {0} yüklendi"],
+"Недостаточно средств. Доступно: {0}":["Insufficient funds. Available: {0}","Недостатньо коштів. Доступно: {0}","Fonds insuffisants. Disponible : {0}","Yetersiz bakiye. Kullanılabilir: {0}"],
+"Выведено {0}":["Withdrawn {0}","Виведено {0}","Retiré {0}","Çekildi: {0}"],
+"Укажите получателя":["Enter a recipient","Вкажіть отримувача","Indiquez un destinataire","Alıcıyı girin"],
+"Переводы будут подключены позже — операция не выполнена":["Transfers will be enabled later — nothing was sent","Перекази буде підключено пізніше — операцію не виконано","Les virements seront activés plus tard — rien n'a été envoyé","Transferler daha sonra açılacak — işlem yapılmadı"],
+"Пополнить кошелёк":["Top up wallet","Поповнити гаманець","Alimenter le portefeuille","Cüzdana para yükle"],
+"Пополнить":["Top up","Поповнити","Alimenter","Yükle"],
+"Вывести":["Withdraw","Вивести","Retirer","Çek"],
+"DEMO • SYNTHETIC — меняется только внутренний баланс симулятора.":["DEMO • SYNTHETIC — only the simulator's internal balance changes.","DEMO • SYNTHETIC — змінюється лише внутрішній баланс симулятора.","DEMO • SYNTHETIC — seul le solde interne du simulateur change.","DEMO • SYNTHETIC — yalnızca simülatörün iç bakiyesi değişir."],
+"Текущий баланс кошелька:":["Current wallet balance:","Поточний баланс гаманця:","Solde actuel du portefeuille :","Güncel cüzdan bakiyesi:"],
+"Сумма (USD)":["Amount (USD)","Сума (USD)","Montant (USD)","Tutar (USD)"],
+"Всё":["All","Усе","Tout","Tümü"],
+"Отмена":["Cancel","Скасувати","Annuler","İptal"],
+"Перевести":["Transfer","Переказати","Virer","Transfer et"],
+"DEMO • SYNTHETIC — переводы пока не проводятся, форма готова к подключению.":["DEMO • SYNTHETIC — transfers aren't processed yet; the form is ready to be connected.","DEMO • SYNTHETIC — перекази поки не проводяться, форма готова до підключення.","DEMO • SYNTHETIC — les virements ne sont pas encore traités ; le formulaire est prêt à être connecté.","DEMO • SYNTHETIC — transferler henüz işlenmiyor; form bağlanmaya hazır."],
+"Доступно:":["Available:","Доступно:","Disponible :","Kullanılabilir:"],
+"Получатель (номер кошелька / email)":["Recipient (wallet number / email)","Отримувач (номер гаманця / email)","Destinataire (numéro de portefeuille / e-mail)","Alıcı (cüzdan numarası / e-posta)"],
+"Комментарий (необязательно)":["Comment (optional)","Коментар (необов'язково)","Commentaire (facultatif)","Açıklama (isteğe bağlı)"],
+"Недоступно":["Unavailable","Недоступно","Indisponible","Kullanılamıyor"],
+"История сделок":["Trade History","Історія угод","Historique des trades","İşlem Geçmişi"],
+"Статистика":["Statistics","Статистика","Statistiques","İstatistikler"],
+"История пуста":["No history yet","Історія порожня","Aucun historique pour l'instant","Henüz geçmiş yok"],
+"Стакан заявок (DOM)":["Depth of Market (DOM)","Стакан заявок (DOM)","Profondeur du marché (DOM)","Piyasa Derinliği (DOM)"],
+"спред":["spread","спред","spread","spread"],
+"Покупатели":["Buyers","Покупці","Acheteurs","Alıcılar"],
+"лот":["lot","лот","lot","lot"],
+"лот ·":["lot ·","лот ·","lot ·","lot ·"],
+"% Продавцы":["% Sellers","% Продавці","% Vendeurs","% Satıcılar"],
+"Движок — коэффициенты сейчас (live)":["Engine — current coefficients (live)","Рушій — коефіцієнти зараз (live)","Moteur — coefficients actuels (live)","Motor — güncel katsayılar (live)"],
+"Внутридневной шум ×":["Intraday noise ×","Внутрішньоденний шум ×","Bruit intrajournalier ×","Gün içi gürültü ×"],
+"Масштаб дрейфа режима ×":["Regime drift scale ×","Масштаб дрейфу режиму ×","Échelle de dérive du régime ×","Rejim kayması ölçeği ×"],
+"режим":["regime","режим","régime","rejim"],
+"Макро-бычий дрейф ×":["Macro bull drift ×","Макро-бичачий дрейф ×","Dérive macro haussière ×","Makro yükseliş kayması ×"],
+"итог дрейфа ≈ {0} / игр. день":["net drift ≈ {0} / game day","підсумок дрейфу ≈ {0} / ігр. день","dérive nette ≈ {0} / jour de jeu","net kayma ≈ {0} / oyun günü"],
+"Память волатильности":["Volatility memory","Пам'ять волатильності","Mémoire de volatilité","Volatilite hafızası"],
+"тек. кластер":["current cluster","пот. кластер","cluster actuel","mevcut küme"],
+"Частота тиков (TPS)":["Tick rate (TPS)","Частота тіків (TPS)","Fréquence des ticks (TPS)","Tick hızı (TPS)"],
+"{0} т/с  (таймер {1} мс)":["{0} t/s  (timer {1} ms)","{0} т/с  (таймер {1} мс)","{0} t/s  (minuterie {1} ms)","{0} t/sn  (zamanlayıcı {1} ms)"],
+"(игр. время идёт в {0}× быстрее)":["(game time runs {0}× faster)","(ігр. час іде в {0}× швидше)","(le temps de jeu va {0}× plus vite)","(oyun zamanı {0}× hızlı akar)"],
+"Спред":["Spread","Спред","Spread","Spread"],
+"авто $0.16–0.24  → сейчас ${0}":["auto $0.16–0.24  → now ${0}","авто $0.16–0.24  → зараз ${0}","auto $0.16–0.24  → actuel ${0}","otomatik $0.16–0.24  → şu an ${0}"],
+"Обычное проскальзывание":["Normal slippage","Звичайне прослизання","Glissement normal","Normal kayma"],
+"макс":["max","макс","max","maks"],
+"Целевой диапазон дня":["Target day range","Цільовий діапазон дня","Amplitude cible du jour","Hedef günlük aralık"],
+"игр. мин":["game min","ігр. хв","min de jeu","oyun dk"],
+"Длительность дня":["Day length","Тривалість дня","Durée du jour","Gün uzunluğu"],
+"{0} реальных мин  (при NORMAL)":["{0} real min  (at NORMAL)","{0} реальних хв  (при NORMAL)","{0} min réelles  (en NORMAL)","{0} gerçek dk  (NORMAL'de)"],
+"Слом режима новостью":["Regime break by news","Злам режиму новиною","Rupture de régime par une annonce","Haberle rejim kırılması"],
+"Тиков/сек в новости":["Ticks/s during news","Тіків/с у новині","Ticks/s pendant les annonces","Haber sırasında tick/sn"],
+"Ручное управление":["Manual control","Ручне керування","Contrôle manuel","Manuel kontrol"],
+"ВКЛ · авто-движок на ПАУЗЕ":["ON · auto engine PAUSED","УВІМК · авторушій на ПАУЗІ","ON · moteur auto en PAUSE","AÇIK · otomatik motor DURAKLATILDI"],
+"ВКЛ · авто-движок работает":["ON · auto engine running","УВІМК · авторушій працює","ON · moteur auto en marche","AÇIK · otomatik motor çalışıyor"],
+"выкл":["off","вимк","off","kapalı"],
+"НИЗКАЯ":["LOW","НИЗЬКА","BASSE","DÜŞÜK"],
+"ОБЫЧНАЯ":["NORMAL","ЗВИЧАЙНА","NORMALE","NORMAL"],
+"АКТИВНАЯ":["ACTIVE","АКТИВНА","ACTIVE","AKTİF"],
+"ЭКСТРЕМАЛЬНАЯ":["EXTREME","ЕКСТРЕМАЛЬНА","EXTRÊME","AŞIRI"],
+"Debug-консоль":["Debug console","Debug-консоль","Console de débogage","Hata ayıklama konsolu"],
+"Текущий":["Current","Поточний","Actuel","Mevcut"],
+"Длительность":["Duration","Тривалість","Durée","Süre"],
+"игр. дней (осталось":["game days (left","ігр. днів (залишилось","jours de jeu (reste","oyun günü (kalan"],
+"мин)":["min)","хв)","min)","dk)"],
+"Дрейф / волат.":["Drift / vol.","Дрейф / волат.","Dérive / vol.","Kayma / vol."],
+"Равновесие EMA":["EMA equilibrium","Рівновага EMA","Équilibre EMA","EMA dengesi"],
+"Текущий день":["Current day","Поточний день","Jour en cours","Mevcut gün"],
+"День #":["Day #","День #","Jour #","Gün #"],
+"полоса":["band","смуга","bande","bant"],
+"Целевой диапазон (скрыт в UI)":["Target range (hidden in the UI)","Цільовий діапазон (прихований в UI)","Amplitude cible (masquée dans l'UI)","Hedef aralık (arayüzde gizli)"],
+"Откр / Макс / Мин / сейчас":["Open / High / Low / now","Відкр / Макс / Мін / зараз","Ouv. / Haut / Bas / actuel","Açılış / Yüksek / Düşük / şimdi"],
+"Последние":["Last","Останні","Derniers","Son"],
+"дней":["days","днів","jours","gün"],
+"Средний дневной диапазон":["Average daily range","Середній денний діапазон","Amplitude journalière moyenne","Ortalama günlük aralık"],
+"Медианный дневной диапазон":["Median daily range","Медіанний денний діапазон","Amplitude journalière médiane","Medyan günlük aralık"],
+"Минимальный дневной диапазон":["Minimum daily range","Мінімальний денний діапазон","Amplitude journalière minimale","Minimum günlük aralık"],
+"Максимальный дневной диапазон":["Maximum daily range","Максимальний денний діапазон","Amplitude journalière maximale","Maksimum günlük aralık"],
+"Стандартное отклонение":["Standard deviation","Стандартне відхилення","Écart type","Standart sapma"],
+"дн.":["d","дн.","j","g"],
+"Закрытых дней пока нет.":["No closed days yet.","Закритих днів поки немає.","Aucun jour clôturé pour l'instant.","Henüz kapanan gün yok."],
+"Симуляция 100 дней (офлайн)":["Simulate 100 days (offline)","Симуляція 100 днів (офлайн)","Simuler 100 jours (hors ligne)","100 gün simüle et (çevrimdışı)"],
+"История дней":["Day history","Історія днів","Historique des jours","Gün geçmişi"],
+"пусто":["empty","порожньо","vide","boş"],
+"ДЕНЬ":["DAY","ДЕНЬ","JOUR","GÜN"],
+"О":["O","О","O","A"],
+"Н":["H","Н","H","Y"],
+"Л":["L","Л","B","D"],
+"З":["C","З","C","K"],
+"· Н":["· H","· Н","· H","· Y"],
+"· Л":["· L","· Л","· B","· D"],
+"· З":["· C","· З","· C","· K"],
+"Диапазон":["Range","Діапазон","Amplitude","Aralık"],
+"Приблизить":["Zoom in","Наблизити","Zoom avant","Yakınlaştır"],
+"Отдалить":["Zoom out","Віддалити","Zoom arrière","Uzaklaştır"],
+"К последним свечам":["To the latest candles","До останніх свічок","Aller aux dernières bougies","Son mumlara git"],
+"Выбрать объём":["Choose volume","Вибрати обсяг","Choisir le volume","Hacmi seç"],
+"д":["d","д","j","g"],
+"ТП":["TP","ТП","TP","TP"],
+"СЛ":["SL","СЛ","SL","SL"],
+"м1":["m1","хв1","m1","m1"],
+"м5":["m5","хв5","m5","m5"],
+"м15":["m15","хв15","m15","m15"],
+"м30":["m30","хв30","m30","m30"],
+"ч1":["h1","г1","h1","h1"],
+"ч4":["h4","г4","h4","h4"],
+"д1":["D1","д1","D1","D1"],
+"1Д":["1D","1Д","1J","1G"],
+"5Д":["5D","5Д","5J","5G"],
+"1М":["1M","1М","1M","1A"],
+"3М":["3M","3М","3M","3A"],
+"6М":["6M","6М","6M","6A"],
+"1Г":["1Y","1Р","1A","1Y"],
+"5Л":["5Y","5Р","5A","5Y"],
+"1 минута":["1 minute","1 хвилина","1 minute","1 dakika"],
+"5 минут":["5 minutes","5 хвилин","5 minutes","5 dakika"],
+"15 минут":["15 minutes","15 хвилин","15 minutes","15 dakika"],
+"30 минут":["30 minutes","30 хвилин","30 minutes","30 dakika"],
+"1 час":["1 hour","1 година","1 heure","1 saat"],
+"4 часа":["4 hours","4 години","4 heures","4 saat"],
+"1 день":["1 day","1 день","1 jour","1 gün"],
+"&nbsp;·&nbsp; диапазон $":["&nbsp;·&nbsp; range $","&nbsp;·&nbsp; діапазон $","&nbsp;·&nbsp; amplitude $","&nbsp;·&nbsp; aralık $"],
+"Разрешить экстремум":["Allow extreme","Дозволити екстремум","Autoriser l'extrême","Aşırıya izin ver"],
+"Да":["Yes","Так","Oui","Evet"],
+"Нет":["No","Ні","Non","Hayır"],
+"Запуск":["Run","Запуск","Lancer","Çalıştır"],
+"Мин. движение $":["Min move $","Мін. рух $","Mouvement min $","Min hareket $"],
+"Макс. движение $":["Max move $","Макс. рух $","Mouvement max $","Maks hareket $"],
+"Вероятность вверх":["Probability up","Ймовірність вгору","Probabilité de hausse","Yükseliş olasılığı"],
+"Вероятность вниз":["Probability down","Ймовірність вниз","Probabilité de baisse","Düşüş olasılığı"],
+"Вероятность двустороннего":["Two-way probability","Ймовірність двостороннього","Probabilité bidirectionnelle","Çift yön olasılığı"],
+"Вероятность ложного пробоя":["Fakeout probability","Ймовірність хибного пробою","Probabilité de faux breakout","Sahte kırılım olasılığı"],
+"Вероятность разворота":["Reversal probability","Ймовірність розвороту","Probabilité de retournement","Dönüş olasılığı"],
+"Длительность (сек)":["Duration (s)","Тривалість (с)","Durée (s)","Süre (sn)"],
+"Множитель спреда":["Spread multiplier","Множник спреду","Multiplicateur de spread","Spread çarpanı"],
+"Множитель проскальзывания":["Slippage multiplier","Множник прослизання","Multiplicateur de glissement","Kayma çarpanı"],
+"слабый":["weak","слабкий","faible","zayıf"],
+"средний":["medium","середній","moyen","orta"],
+"сильный":["strong","сильний","fort","güçlü"],
+"очень сильный":["very strong","дуже сильний","très fort","çok güçlü"],
+"экстремальный":["extreme","екстремальний","extrême","aşırı"],
+"SPIKE вниз → разворот в BUY-side":["SPIKE down → reversal to BUY-side","SPIKE вниз → розворот у BUY-side","SPIKE baissier → retournement côté BUY","Aşağı SPIKE → BUY yönüne dönüş"],
+"SPIKE вверх → разворот в SELL-side":["SPIKE up → reversal to SELL-side","SPIKE вгору → розворот у SELL-side","SPIKE haussier → retournement côté SELL","Yukarı SPIKE → SELL yönüne dönüş"],
+"однонаправленный":["one-directional","односпрямований","unidirectionnel","tek yönlü"],
+"Сила (tier)":["Strength (tier)","Сила (tier)","Force (tier)","Güç (tier)"],
+"Формат":["Format","Формат","Format","Biçim"],
+"одна новостная свеча · sim-время держится 20 сек":["one news candle · sim time holds for 20 s","одна новинна свічка · sim-час тримається 20 с","une bougie d'annonce · le temps sim reste figé 20 s","tek haber mumu · sim zamanı 20 sn bekler"],
+"Название":["Name","Назва","Nom","Ad"],
+"Создать событие":["Create event","Створити подію","Créer l'événement","Etkinlik oluştur"],
+"Настройки симулятора":["Simulator Settings","Налаштування симулятора","Paramètres du simulateur","Simülatör Ayarları"],
+"Инструмент — XAUUSD":["Symbol — XAUUSD","Інструмент — XAUUSD","Symbole — XAUUSD","Sembol — XAUUSD"],
+"Мин. лот":["Min lot","Мін. лот","Lot min","Min lot"],
+"Макс. лот":["Max lot","Макс. лот","Lot max","Maks lot"],
+"Шаг лота":["Lot step","Крок лота","Pas du lot","Lot adımı"],
+"Торговля":["Trading","Торгівля","Trading","İşlem"],
+"авто 0.16–0.24":["auto 0.16–0.24","авто 0.16–0.24","auto 0.16–0.24","otomatik 0.16–0.24"],
+"Частота генерации тиков (TPS)":["Tick generation rate (TPS)","Частота генерації тіків (TPS)","Fréquence de génération des ticks (TPS)","Tick üretim hızı (TPS)"],
+"Тиков в секунду":["Ticks per second","Тіків за секунду","Ticks par seconde","Saniyedeki tick"],
+"Точное значение (0.1 – 20, шаг 0.1)":["Exact value (0.1 – 20, step 0.1)","Точне значення (0.1 – 20, крок 0.1)","Valeur exacte (0.1 – 20, pas 0.1)","Tam değer (0.1 – 20, adım 0.1)"],
+"0.5 т/с":["0.5 t/s","0.5 т/с","0.5 t/s","0.5 t/sn"],
+"1.0 т/с":["1.0 t/s","1.0 т/с","1.0 t/s","1.0 t/sn"],
+"2.0 т/с":["2.0 t/s","2.0 т/с","2.0 t/s","2.0 t/sn"],
+"5.0 т/с":["5.0 t/s","5.0 т/с","5.0 t/s","5.0 t/sn"],
+"10 т/с":["10 t/s","10 т/с","10 t/s","10 t/sn"],
+"Обычный рынок — движок режимов":["Normal market — regime engine","Звичайний ринок — рушій режимів","Marché normal — moteur de régimes","Normal piyasa — rejim motoru"],
+"Стартовая цена":["Starting price","Стартова ціна","Prix de départ","Başlangıç fiyatı"],
+"случайная $":["random $","випадкова $","aléatoire $","rastgele $"],
+"Полосы дневной волатильности — целевой дневной диапазон ($)":["Daily volatility bands — target daily range ($)","Смуги денної волатильності — цільовий денний діапазон ($)","Bandes de volatilité journalière — amplitude cible ($)","Günlük volatilite bantları — hedef günlük aralık ($)"],
+"Ручное управление рынком (Manual Market Control)":["Manual Market Control","Ручне керування ринком (Manual Market Control)","Contrôle manuel du marché (Manual Market Control)","Manuel piyasa kontrolü (Manual Market Control)"],
+"Движок новостей":["News engine","Рушій новин","Moteur d'annonces","Haber motoru"],
+"Запустить событие":["Run an event","Запустити подію","Lancer un événement","Etkinlik başlat"],
+"🧪 Симуляция 300 торговых дней":["🧪 Simulate 300 trading days","🧪 Симуляція 300 торгових днів","🧪 Simuler 300 jours de trading","🧪 300 işlem günü simüle et"],
+"🧪 Прогнать 20×5 симуляций новостей":["🧪 Run 20×5 news simulations","🧪 Прогнати 20×5 симуляцій новин","🧪 Lancer 20×5 simulations d'annonces","🧪 20×5 haber simülasyonu çalıştır"],
+"Сохранить настройки":["Save settings","Зберегти налаштування","Enregistrer les paramètres","Ayarları kaydet"],
+"Применить баланс":["Apply balance","Застосувати баланс","Appliquer le solde","Bakiyeyi uygula"],
+"Сбросить симулятор":["Reset simulator","Скинути симулятор","Réinitialiser le simulateur","Simülatörü sıfırla"],
+"Баланс (USD)":["Balance (USD)","Баланс (USD)","Solde (USD)","Bakiye (USD)"],
+"Валюта":["Currency","Валюта","Devise","Para birimi"],
+"Размер контракта (унций в лоте)":["Contract size (ounces per lot)","Розмір контракту (унцій у лоті)","Taille du contrat (onces par lot)","Kontrat büyüklüğü (lot başına ons)"],
+"Кредитное плечо":["Leverage","Кредитне плече","Effet de levier","Kaldıraç"],
+"Тип комиссии":["Commission type","Тип комісії","Type de commission","Komisyon türü"],
+"USD за лот":["USD per lot","USD за лот","USD par lot","Lot başına USD"],
+"USD за миллион USD оборота":["USD per million USD turnover","USD за мільйон USD обороту","USD par million d'USD échangés","Milyon USD işlem hacmi başına USD"],
+"Процент от объёма сделки":["Percent of trade volume","Відсоток від обсягу угоди","Pourcentage du volume de la transaction","İşlem hacminin yüzdesi"],
+"Валюта котировки за лот":["Quote currency per lot","Валюта котирування за лот","Devise de cotation par lot","Lot başına kotasyon para birimi"],
+"Комиссия (за сторону)":["Commission (per side)","Комісія (за сторону)","Commission (par sens)","Komisyon (yön başına)"],
+"Проскальзывание":["Slippage","Прослизання","Glissement","Kayma"],
+"Вкл":["On","Увімк","Activé","Açık"],
+"Выкл":["Off","Вимк","Désactivé","Kapalı"],
+"Swap Long (USD/лот/день)":["Swap Long (USD/lot/day)","Swap Long (USD/лот/день)","Swap Long (USD/lot/jour)","Swap Long (USD/lot/gün)"],
+"Swap Short (USD/лот/день)":["Swap Short (USD/lot/day)","Swap Short (USD/лот/день)","Swap Short (USD/lot/jour)","Swap Short (USD/lot/gün)"],
+"День тройного свопа":["Triple swap day","День потрійного свопу","Jour du triple swap","Üçlü swap günü"],
+"Воскресенье":["Sunday","Неділя","Dimanche","Pazar"],
+"Понедельник":["Monday","Понеділок","Lundi","Pazartesi"],
+"Вторник":["Tuesday","Вівторок","Mardi","Salı"],
+"Среда":["Wednesday","Середа","Mercredi","Çarşamba"],
+"Четверг":["Thursday","Четвер","Jeudi","Perşembe"],
+"Пятница":["Friday","П'ятниця","Vendredi","Cuma"],
+"Суббота":["Saturday","Субота","Samedi","Cumartesi"],
+"Уровень Stop Out (%)":["Stop Out level (%)","Рівень Stop Out (%)","Niveau de Stop Out (%)","Stop Out seviyesi (%)"],
+"Уровень Margin Call (%)":["Margin Call level (%)","Рівень Margin Call (%)","Niveau de Margin Call (%)","Margin Call seviyesi (%)"],
+"Длительность торгового дня (реальных минут)":["Trading day length (real minutes)","Тривалість торгового дня (реальних хвилин)","Durée de la journée de trading (minutes réelles)","İşlem günü uzunluğu (gerçek dakika)"],
+"Внутридневной шум (×)":["Intraday noise (×)","Внутрішньоденний шум (×)","Bruit intrajournalier (×)","Gün içi gürültü (×)"],
+"Масштаб дрейфа режима (×)":["Regime drift scale (×)","Масштаб дрейфу режиму (×)","Échelle de dérive du régime (×)","Rejim kayması ölçeği (×)"],
+"Макро-бычий дрейф (×)":["Macro bull drift (×)","Макро-бичачий дрейф (×)","Dérive macro haussière (×)","Makro yükseliş kayması (×)"],
+"Память кластеризации волатильности (0.90 … 0.999)":["Volatility clustering memory (0.90 … 0.999)","Пам'ять кластеризації волатильності (0.90 … 0.999)","Mémoire du clustering de volatilité (0.90 … 0.999)","Volatilite kümelenme hafızası (0.90 … 0.999)"],
+"Обычное проскальзывание ($ макс)":["Normal slippage ($ max)","Звичайне прослизання ($ макс)","Glissement normal ($ max)","Normal kayma ($ maks)"],
+"Принудительно открытый рынок (игнорировать выходные)":["Force the market open (ignore weekends)","Примусово відкритий ринок (ігнорувати вихідні)","Forcer l'ouverture du marché (ignorer les week-ends)","Piyasayı açık tut (hafta sonlarını yok say)"],
+"Режим ручного управления":["Manual control mode","Режим ручного керування","Mode de contrôle manuel","Manuel kontrol modu"],
+"Выкл — работает авто Price Engine":["Off — the auto Price Engine runs","Вимк — працює авто Price Engine","Désactivé — l'auto Price Engine fonctionne","Kapalı — otomatik Price Engine çalışır"],
+"Вкл — ручное управление XAUUSD":["On — manual XAUUSD control","Увімк — ручне керування XAUUSD","Activé — contrôle manuel de XAUUSD","Açık — XAUUSD manuel kontrol"],
+"Вероятность слома режима новостью (0…1)":["Probability of a regime break by news (0…1)","Ймовірність зламу режиму новиною (0…1)","Probabilité de rupture de régime par une annonce (0…1)","Haberle rejim kırılma olasılığı (0…1)"],
+"Частота тиков в новостях, мин (тиков/сек)":["News tick rate, min (ticks/s)","Частота тіків у новинах, мін (тіків/с)","Fréquence des ticks en annonce, min (ticks/s)","Haberde tick hızı, min (tick/sn)"],
+"Частота тиков в новостях, макс (тиков/сек)":["News tick rate, max (ticks/s)","Частота тіків у новинах, макс (тіків/с)","Fréquence des ticks en annonce, max (ticks/s)","Haberde tick hızı, maks (tick/sn)"],
+"Для обычных посетителей":["For regular visitors","Для звичайних відвідувачів","Pour les visiteurs","Normal ziyaretçiler için"],
+"ЗАКРЫТ":["CLOSED","ЗАКРИТО","FERMÉ","KAPALI"],
+"ОТКРЫТ":["OPEN","ВІДКРИТО","OUVERT","AÇIK"],
+"🔒 САЙТ ЗАКРЫТ":["🔒 SITE CLOSED","🔒 САЙТ ЗАКРИТО","🔒 SITE FERMÉ","🔒 SİTE KAPALI"],
+"ON · закрыт":["ON · closed","ON · закрито","ON · fermé","ON · kapalı"],
+"OFF · открыт":["OFF · open","OFF · відкрито","OFF · ouvert","OFF · açık"],
+"Выйти из режима владельца":["Leave owner mode","Вийти з режиму власника","Quitter le mode propriétaire","Sahip modundan çık"],
+"🔒 Сайт закрыт для посетителей":["🔒 Site closed to visitors","🔒 Сайт закрито для відвідувачів","🔒 Site fermé aux visiteurs","🔒 Site ziyaretçilere kapalı"],
+"🔓 Сайт снова открыт":["🔓 Site open again","🔓 Сайт знову відкрито","🔓 Site de nouveau ouvert","🔓 Site yeniden açık"],
+"Не удалось изменить":["Couldn't change it","Не вдалося змінити","Modification impossible","Değiştirilemedi"],
+"Режим владельца выключен на этом устройстве":["Owner mode is off on this device","Режим власника вимкнено на цьому пристрої","Le mode propriétaire est désactivé sur cet appareil","Bu cihazda sahip modu kapalı"],
+"🔒 Доступ к сайту":["🔒 Site access","🔒 Доступ до сайту","🔒 Accès au site","🔒 Site erişimi"],
+"Статус":["Status","Статус","Statut","Durum"],
+"закрыт для посетителей":["closed to visitors","закрито для відвідувачів","fermé aux visiteurs","ziyaretçilere kapalı"],
+"открыт":["open","відкрито","ouvert","açık"],
+"Ключ владельца":["Owner key","Ключ власника","Clé du propriétaire","Sahip anahtarı"],
+"Войти как владелец":["Sign in as owner","Увійти як власник","Se connecter en tant que propriétaire","Sahip olarak giriş yap"],
+"Вы вошли как владелец":["Signed in as owner","Ви увійшли як власник","Connecté en tant que propriétaire","Sahip olarak giriş yapıldı"],
+"Неверный ключ":["Wrong key","Невірний ключ","Clé incorrecte","Yanlış anahtar"],
+"Рынки":["Markets","Ринки","Marchés","Piyasalar"],
+"Графики":["Charts","Графіки","Graphiques","Grafikler"],
+"Ордеры":["Orders","Ордери","Ordres","Emirler"],
+"Номер скопирован":["Number copied","Номер скопійовано","Numéro copié","Numara kopyalandı"],
+"Номер: {0}":["Number: {0}","Номер: {0}","Numéro : {0}","Numara: {0}"],
+"Раздел в разработке — DEMO • SYNTHETIC":["Section in development — DEMO • SYNTHETIC","Розділ у розробці — DEMO • SYNTHETIC","Section en développement — DEMO • SYNTHETIC","Bölüm geliştiriliyor — DEMO • SYNTHETIC"],
+"В DEMO-режиме доступен только XAUUSD":["Only XAUUSD is available in DEMO mode","У DEMO-режимі доступний лише XAUUSD","Seul XAUUSD est disponible en mode DEMO","DEMO modunda yalnızca XAUUSD kullanılabilir"],
+"Поиск инструментов будет добавлен позже":["Instrument search is coming later","Пошук інструментів буде додано пізніше","La recherche d'instruments arrivera plus tard","Enstrüman arama daha sonra eklenecek"],
+"Выполняется…":["Running…","Виконується…","En cours…","Çalışıyor…"],
+"100 торговых дней · офлайн · СИНТЕТИКА":["100 trading days · offline · SYNTHETIC","100 торгових днів · офлайн · СИНТЕТИКА","100 jours de trading · hors ligne · SYNTHÉTIQUE","100 işlem günü · çevrimdışı · SENTETİK"],
+"Мин / Макс":["Min / Max","Мін / Макс","Min / Max","Min / Maks"],
+"Цена":["Price","Ціна","Prix","Fiyat"],
+"· просадка":["· drawdown","· просідання","· drawdown","· düşüş"],
+"Сбросить симулятор?":["Reset the simulator?","Скинути симулятор?","Réinitialiser le simulateur ?","Simülatör sıfırlansın mı?"],
+"Цена, баланс, позиции, ордера, история, день и график вернутся к начальному состоянию.":["Price, balance, positions, orders, history, the day and the chart will return to their initial state.","Ціна, баланс, позиції, ордери, історія, день і графік повернуться до початкового стану.","Le prix, le solde, les positions, les ordres, l'historique, la journée et le graphique reviendront à leur état initial.","Fiyat, bakiye, pozisyonlar, emirler, geçmiş, gün ve grafik başlangıç durumuna dönecek."],
+"Сбросить всё":["Reset everything","Скинути все","Tout réinitialiser","Her şeyi sıfırla"],
+"Синхронизация…":["Syncing…","Синхронізація…","Synchronisation…","Senkronize ediliyor…"],
+"Сохранено в облако":["Saved to the cloud","Збережено в хмару","Enregistré dans le cloud","Buluta kaydedildi"],
+"Нет связи с сервером":["No connection to the server","Немає зв'язку з сервером","Pas de connexion au serveur","Sunucuyla bağlantı yok"],
+"Вы вышли из аккаунта":["You've signed out","Ви вийшли з акаунта","Vous êtes déconnecté","Çıkış yaptınız"],
+"Выйти из аккаунта?":["Sign out?","Вийти з акаунта?","Se déconnecter ?","Çıkış yapılsın mı?"],
+"Симуляция сохранена за аккаунтом — вы продолжите с этого же места при следующем входе.":["The simulation is saved to your account — you'll pick up right here next time you sign in.","Симуляцію збережено за акаунтом — ви продовжите з цього ж місця під час наступного входу.","La simulation est enregistrée sur votre compte — vous reprendrez ici à votre prochaine connexion.","Simülasyon hesabınıza kaydedildi — bir sonraki girişte buradan devam edeceksiniz."],
+"Частота тиков: {0} т/с":["Tick rate: {0} t/s","Частота тіків: {0} т/с","Fréquence des ticks : {0} t/s","Tick hızı: {0} t/sn"],
+"медиана $":["median $","медіана $","médiane $","medyan $"],
+"· среднее $":["· mean $","· середнє $","· moyenne $","· ortalama $"],
+"% · вверх/вниз":["% · up/down","% · вгору/вниз","% · hausse/baisse","% · yukarı/aşağı"],
+"Симуляции новостей · по 20 каждой · СИНТЕТИКА":["News simulations · 20 each · SYNTHETIC","Симуляції новин · по 20 кожної · СИНТЕТИКА","Simulations d'annonces · 20 chacune · SYNTHÉTIQUE","Haber simülasyonları · her biri 20 · SENTETİK"],
+"300 торговых дней · цепочка режимов · СИНТЕТИКА":["300 trading days · regime chain · SYNTHETIC","300 торгових днів · ланцюг режимів · СИНТЕТИКА","300 jours de trading · chaîne de régimes · SYNTHÉTIQUE","300 işlem günü · rejim zinciri · SENTETİK"],
+"Цена: старт → финиш (300 дней)":["Price: start → finish (300 days)","Ціна: старт → фініш (300 днів)","Prix : début → fin (300 jours)","Fiyat: başlangıç → bitiş (300 gün)"],
+"Мин / Макс цена за период":["Min / Max price for the period","Мін / Макс ціна за період","Prix min / max sur la période","Dönem için min / maks fiyat"],
+"Макс. просадка":["Max drawdown","Макс. просідання","Drawdown max","Maks düşüş"],
+"Объём (лоты)":["Volume (lots)","Обсяг (лоти)","Volume (lots)","Hacim (lot)"],
+"Меньше":["Less","Менше","Moins","Azalt"],
+"Больше":["More","Більше","Plus","Artır"],
+"От":["From","Від","De","En az"],
+"до":["to","до","à","en çok"],
+"· маржа ≈":["· margin ≈","· маржа ≈","· marge ≈","· teminat ≈"],
+"Готово":["Done","Готово","Terminé","Tamam"],
+"Исполнение:":["Executing:","Виконання:","Exécution :","Gerçekleştiriliyor:"],
+"ордер исполнен":["order filled","ордер виконано","ordre exécuté","emir gerçekleşti"],
+"ордер отправлен":["order sent","ордер надіслано","ordre envoyé","emir gönderildi"],
+"КУПИТЬ (BUY)":["BUY","КУПИТИ (BUY)","ACHETER (BUY)","AL (BUY)"],
+"ПРОДАТЬ (SELL)":["SELL","ПРОДАТИ (SELL)","VENDRE (SELL)","SAT (SELL)"],
+"Объём":["Volume","Обсяг","Volume","Hacim"],
+"SL для BUY должен быть ниже цены":["SL for BUY must be below the price","SL для BUY має бути нижче ціни","Le SL d'un BUY doit être sous le prix","BUY için SL fiyatın altında olmalı"],
+"SL для SELL должен быть выше цены":["SL for SELL must be above the price","SL для SELL має бути вище ціни","Le SL d'un SELL doit être au-dessus du prix","SELL için SL fiyatın üstünde olmalı"],
+"TP для BUY должен быть выше цены":["TP for BUY must be above the price","TP для BUY має бути вище ціни","Le TP d'un BUY doit être au-dessus du prix","BUY için TP fiyatın üstünde olmalı"],
+"TP для SELL должен быть ниже цены":["TP for SELL must be below the price","TP для SELL має бути нижче ціни","Le TP d'un SELL doit être sous le prix","SELL için TP fiyatın altında olmalı"],
+"Новый ордер · XAUUSD":["New Order · XAUUSD","Новий ордер · XAUUSD","Nouvel ordre · XAUUSD","Yeni Emir · XAUUSD"],
+"Объём (Лоты) —":["Volume (Lots) —","Обсяг (Лоти) —","Volume (lots) —","Hacim (Lot) —"],
+", шаг":[", step",", крок",", pas",", adım"],
+"Тип":["Type","Тип","Type","Tür"],
+"Разместить":["Place","Розмістити","Passer l'ordre","Gönder"],
+"Укажите Entry Price":["Enter the Entry Price","Вкажіть Entry Price","Indiquez l'Entry Price","Entry Price girin"],
+"Позиция #":["Position #","Позиція #","Position #","Pozisyon #"],
+"Закрыть позицию по рынку":["Close position at market","Закрити позицію за ринком","Clôturer la position au marché","Pozisyonu piyasadan kapat"],
+"Назад":["Back","Назад","Retour","Geri"],
+"Сохранить":["Save","Зберегти","Enregistrer","Kaydet"],
+"Ордер #{0} изменён":["Order #{0} modified","Ордер #{0} змінено","Ordre #{0} modifié","Emir #{0} değiştirildi"],
+"Подтвердить":["Confirm","Підтвердити","Confirmer","Onayla"],
+"Применено к движку: шум ×{0} · дрейф ×{1}":["Applied to the engine: noise ×{0} · drift ×{1}","Застосовано до рушія: шум ×{0} · дрейф ×{1}","Appliqué au moteur : bruit ×{0} · dérive ×{1}","Motora uygulandı: gürültü ×{0} · kayma ×{1}"],
+"· спред авто 0.16–0.24 · TPS {0} · ускоритель ×{1}":["· spread auto 0.16–0.24 · TPS {0} · speed ×{1}","· спред авто 0.16–0.24 · TPS {0} · прискорювач ×{1}","· spread auto 0.16–0.24 · TPS {0} · vitesse ×{1}","· spread otomatik 0.16–0.24 · TPS {0} · hız ×{1}"],
+"Баланс изменён: {0} · позиции сохранены":["Balance changed: {0} · positions kept","Баланс змінено: {0} · позиції збережено","Solde modifié : {0} · positions conservées","Bakiye değişti: {0} · pozisyonlar korundu"],
+"Rollover форсирован":["Rollover forced","Rollover виконано примусово","Rollover forcé","Rollover zorlandı"],
+"Ускоритель: {0} — состояние не сброшено":["Speed: {0} — state not reset","Прискорювач: {0} — стан не скинуто","Vitesse : {0} — état non réinitialisé","Hız: {0} — durum sıfırlanmadı"],
+"Не удалось подключиться: {0}":["Couldn't connect: {0}","Не вдалося підключитися: {0}","Connexion impossible : {0}","Bağlanılamadı: {0}"],
+"◐ другое устройство":["◐ another device","◐ інший пристрій","◐ autre appareil","◐ başka cihaz"],
+"● облако":["● cloud","● хмара","● cloud","● bulut"],
+"○ нет связи":["○ offline","○ немає зв'язку","○ hors ligne","○ çevrimdışı"],
+"Регистрация":["Sign up","Реєстрація","Inscription","Kayıt ol"],
+"Вход":["Sign in","Вхід","Connexion","Giriş"],
+"Пароль":["Password","Пароль","Mot de passe","Şifre"],
+"(минимум 6 символов)":["(at least 6 characters)","(щонайменше 6 символів)","(au moins 6 caractères)","(en az 6 karakter)"],
+"Повторите пароль":["Repeat password","Повторіть пароль","Répétez le mot de passe","Şifreyi tekrarla"],
+"Создать аккаунт":["Create account","Створити акаунт","Créer un compte","Hesap oluştur"],
+"Аккаунт хранит вашу симуляцию: цену, баланс, позиции и историю. Войдя с любого устройства, вы продолжите с того же места.":["Your account keeps your simulation: price, balance, positions and history. Sign in from any device and carry on where you left off.","Акаунт зберігає вашу симуляцію: ціну, баланс, позиції та історію. Увійшовши з будь-якого пристрою, ви продовжите з того самого місця.","Votre compte conserve votre simulation : prix, solde, positions et historique. Connectez-vous depuis n'importe quel appareil et reprenez là où vous en étiez.","Hesabınız simülasyonunuzu saklar: fiyat, bakiye, pozisyonlar ve geçmiş. Herhangi bir cihazdan giriş yapın ve kaldığınız yerden devam edin."],
+"Ещё нет аккаунта? Откройте «Регистрация» — это займёт полминуты.":["No account yet? Open “Sign up” — it takes half a minute.","Ще немає акаунта? Відкрийте «Реєстрація» — це займе пів хвилини.","Pas encore de compte ? Ouvrez « Inscription » — cela prend trente secondes.","Henüz hesabınız yok mu? “Kayıt ol” sekmesini açın — yarım dakika sürer."],
+"Введите корректный email":["Enter a valid email","Введіть коректний email","Saisissez un e-mail valide","Geçerli bir e-posta girin"],
+"Пароль минимум 6 символов":["Password must be at least 6 characters","Пароль — щонайменше 6 символів","Le mot de passe doit comporter au moins 6 caractères","Şifre en az 6 karakter olmalı"],
+"Пароли не совпадают":["Passwords don't match","Паролі не збігаються","Les mots de passe ne correspondent pas","Şifreler eşleşmiyor"],
+"Введите пароль":["Enter your password","Введіть пароль","Saisissez votre mot de passe","Şifrenizi girin"],
+"Этот email уже зарегистрирован — войдите":["This email is already registered — sign in","Цей email уже зареєстровано — увійдіть","Cet e-mail est déjà inscrit — connectez-vous","Bu e-posta zaten kayıtlı — giriş yapın"],
+"Сессия истекла — войдите снова":["Session expired — sign in again","Сесія закінчилася — увійдіть знову","Session expirée — reconnectez-vous","Oturum sona erdi — tekrar giriş yapın"],
+"ошибка":["error","помилка","erreur","hata"],
+"Ошибка":["Error","Помилка","Erreur","Hata"],
+"Неверный email или пароль":["Wrong email or password","Невірний email або пароль","E-mail ou mot de passe incorrect","E-posta veya şifre yanlış"],
+"Неверный email":["Invalid email","Невірний email","E-mail invalide","Geçersiz e-posta"],
+"Этот email уже занят":["This email is already taken","Цей email уже зайнято","Cet e-mail est déjà utilisé","Bu e-posta zaten kullanılıyor"],
+"Требуется вход владельца":["Owner sign-in required","Потрібен вхід власника","Connexion du propriétaire requise","Sahip girişi gerekli"],
+"Не авторизован":["Not authorized","Не авторизовано","Non autorisé","Yetkisiz"],
+"Владельческий доступ не настроен":["Owner access isn't configured","Доступ власника не налаштовано","L'accès propriétaire n'est pas configuré","Sahip erişimi yapılandırılmamış"],
+"Слишком много ордеров в очереди":["Too many orders in the queue","Забагато ордерів у черзі","Trop d'ordres en file d'attente","Kuyrukta çok fazla emir var"],
+"Симуляция запущена в другой сессии":["The simulation is running in another session","Симуляцію запущено в іншій сесії","La simulation tourne dans une autre session","Simülasyon başka bir oturumda çalışıyor"],
+"Терминал уже открыт в другой сессии":["The terminal is already open in another session","Термінал уже відкрито в іншій сесії","Le terminal est déjà ouvert dans une autre session","Terminal zaten başka bir oturumda açık"],
+"Сайт закрыт на техническое обслуживание":["The site is closed for maintenance","Сайт закрито на технічне обслуговування","Le site est fermé pour maintenance","Site bakım nedeniyle kapalı"],
+"Уровень маржи":["Margin Level","Рівень маржі","Niveau de marge","Teminat seviyesi"],
+"Баланс":["Balance","Баланс","Solde","Bakiye"],
+"Средства":["Equity","Кошти","Capitaux propres","Varlık"],
+"Маржа":["Margin","Маржа","Marge","Teminat"],
+"Свободная маржа":["Free Margin","Вільна маржа","Marge libre","Serbest teminat"],
+"Плавающая П/У":["Floating P/L","Плаваючий П/З","P/L latent","Değişken K/Z"],
+"Требуемая маржа":["Required Margin","Необхідна маржа","Marge requise","Gerekli teminat"],
+"пред.":["prev","попер.","préc.","önc."],
+"прогн.":["fc","прогн.","prév.","bekl."],
+"факт":["act","факт","réel","gerç."],
+"вручную":["manual","вручну","manuel","manuel"],
+"Выпустить":["Release","Випустити","Publier","Yayınla"],
+"Вход~entry":["Entry","Вхід","Entrée","Giriş"],
+"Брутто":["Gross","Брутто","Brut","Brüt"],
+"Комис.":["Comm","Коміс.","Comm.","Kom."],
+"Своп":["Swap","Своп","Swap","Swap"],
+"Всего сделок":["Total trades","Усього угод","Total des trades","Toplam işlem"],
+"Прибыльные / Убыточные":["Winning / Losing","Прибуткові / Збиткові","Gagnants / Perdants","Kazanan / Kaybeden"],
+"Доля прибыльных":["Win rate","Частка прибуткових","Taux de réussite","Kazanma oranı"],
+"Валовая прибыль":["Gross profit","Валовий прибуток","Profit brut","Brüt kâr"],
+"Валовой убыток":["Gross loss","Валовий збиток","Perte brute","Brüt zarar"],
+"Чистая прибыль":["Net profit","Чистий прибуток","Profit net","Net kâr"],
+"Всего комиссий":["Total commission","Усього комісій","Commissions totales","Toplam komisyon"],
+"Всего свопов":["Total swap","Усього свопів","Swaps totaux","Toplam swap"],
+"Общий объём":["Total volume","Загальний обсяг","Volume total","Toplam hacim"],
+"лотов":["lots","лотів","lots","lot"],
+"Макс. прибыль / убыток":["Largest win / loss","Найбільший прибуток / збиток","Plus gros gain / perte","En büyük kâr / zarar"],
+"Средняя сделка":["Average trade","Середня угода","Trade moyen","Ortalama işlem"],
+"Изменить":["Edit","Змінити","Modifier","Düzenle"],
+"Изменить~modify":["Modify","Змінити","Modifier","Değiştir"],
+"Исполнение":["Execution","Виконання","Exécution","Gerçekleştirme"],
+"Рыночное":["Market","Ринкове","Au marché","Piyasa"],
+"(± проскальзывание)":["(± slippage)","(± прослизання)","(± glissement)","(± kayma)"],
+"Комиссия (открытие)":["Commission (open)","Комісія (відкриття)","Commission (ouverture)","Komisyon (açılış)"],
+"Комиссия туда-обратно":["Commission round-trip","Комісія в обидва боки","Commission aller-retour","Gidiş-dönüş komisyon"],
+"Stop Loss (цена, необязательно)":["Stop Loss (price, optional)","Stop Loss (ціна, необов'язково)","Stop Loss (prix, facultatif)","Stop Loss (fiyat, isteğe bağlı)"],
+"Take Profit (цена, необязательно)":["Take Profit (price, optional)","Take Profit (ціна, необов'язково)","Take Profit (prix, facultatif)","Take Profit (fiyat, isteğe bağlı)"],
+"Рыночный":["Market","Ринковий","Au marché","Piyasa"],
+"Отложенный":["Pending","Відкладений","En attente","Bekleyen"],
+"Цена входа":["Entry Price","Ціна входу","Prix d'entrée","Giriş fiyatı"],
+"Stop Loss (цена)":["Stop Loss (price)","Stop Loss (ціна)","Stop Loss (prix)","Stop Loss (fiyat)"],
+"Take Profit (цена)":["Take Profit (price)","Take Profit (ціна)","Take Profit (prix)","Take Profit (fiyat)"],
+"Комиссия / сторона":["Commission / side","Комісія / сторона","Commission / sens","Komisyon / yön"],
+"Текущая цена":["Current price","Поточна ціна","Prix actuel","Güncel fiyat"],
+"Время открытия":["Open time","Час відкриття","Heure d'ouverture","Açılış zamanı"],
+"Валовая П/У":["Gross P/L","Валовий П/З","P/L brut","Brüt K/Z"],
+"Комиссия (открытие+закрытие)":["Commission (open+close)","Комісія (відкриття+закриття)","Commission (ouverture+clôture)","Komisyon (açılış+kapanış)"],
+"Чистая П/У":["Net P/L","Чистий П/З","P/L net","Net K/Z"],
+"Изменить SL/TP":["Modify SL/TP","Змінити SL/TP","Modifier SL/TP","SL/TP değiştir"],
+"Единица":["Unit","Одиниця","Unité","Birim"],
+"Важность ★":["Impact ★","Важливість ★","Impact ★","Etki ★"],
+"Фактическое (пусто = случайно)":["Actual (empty = random)","Фактичне (порожньо = випадково)","Réel (vide = aléatoire)","Gerçekleşen (boş = rastgele)"],
+"Выход через (сек)":["Release in (sec)","Вихід через (с)","Publication dans (s)","Yayın (sn sonra)"]
 };
 function L(s, ...a){
   let t = s;
@@ -1531,16 +1537,19 @@ function L(s, ...a){
     t = _l10n.get(s);
     if(t === undefined){
       const k = String(s), m = /^(\s*)([\s\S]*?)(\s*)$/.exec(k), e = LANG !== "ru" && I18N[m[2]];
-      t = e ? m[1] + e[LANG === "uk" ? 1 : 0] + m[3] : k.replace(/~[\w-]+/, "");
+      t = e ? m[1] + e[LANG_COL[LANG]] + m[3] : k.replace(/~[\w-]+/, "");
       _l10n.set(s, t);
     }
   }
   return a.length ? String(t).replace(/\{(\d)\}/g, (x, i) => a[i] == null ? "" : a[i]) : t;
 }
-// "позицию|позиции|позиций" → the form for n (Russian and Ukrainian have three, English two)
+// "позицию|позиции|позиций" → the form for n (Russian and Ukrainian have three, English and French two —
+// French counts 0 as one — Turkish one: a noun after a number stays singular)
 function LP(n, forms){
   const f = String(L(forms)).split("|"), a = Math.abs(n) % 100, b = a % 10;
+  if(LANG === "tr") return f[0];
   if(LANG === "en") return f[n === 1 ? 0 : 1] || f[0];
+  if(LANG === "fr") return f[n === 0 || n === 1 ? 0 : 1] || f[0];
   return f[b === 1 && a !== 11 ? 0 : b >= 2 && b <= 4 && (a < 12 || a > 14) ? 1 : 2] || f[0];
 }
 // the NFP pattern is stored as the Russian words — they are translated where it is shown
@@ -1552,14 +1561,20 @@ function setLang(v, redraw){
   document.documentElement.lang = v;
   (redraw || render)();
 }
-const LANG_NAMES = { en: "English", ru: "Русский", uk: "Українська" };
+const LANG_NAMES = { en: "English", ru: "Русский", uk: "Українська", fr: "Français", tr: "Türkçe" };
 // the chart's date labels
 const MON_L = { en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-  ru: ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"], uk: ["Січ","Лют","Бер","Кві","Тра","Чер","Лип","Сер","Вер","Жов","Лис","Гру"] };
-const DAYS_L = { en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], ru: ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"], uk: ["Нд","Пн","Вт","Ср","Чт","Пт","Сб"] };
-// d h m s after a duration: 2h 13m / 2ч 13м / 2г 13хв
-const DUR_U = { en: ["d", "h", "m", "s"], ru: ["д", "ч", "м", "с"], uk: ["д", "г", "хв", "с"] };
-const langSeg = id => `<div class="seg theme lang" id="${id}">${LANGS.map(k => `<button type="button" data-lang-set="${k}" class="${LANG === k ? "on" : ""}" aria-pressed="${LANG === k}" lang="${k}">${LANG_NAMES[k]}</button>`).join("")}</div>`;
+  ru: ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"], uk: ["Січ","Лют","Бер","Кві","Тра","Чер","Лип","Сер","Вер","Жов","Лис","Гру"],
+  fr: ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"], tr: ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"] };
+const DAYS_L = { en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], ru: ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"], uk: ["Нд","Пн","Вт","Ср","Чт","Пт","Сб"],
+  fr: ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"], tr: ["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"] };
+// d h m s after a duration: 2h 13m / 2ч 13м / 2г 13хв / 2h 13min / 2sa 13dk
+const DUR_U = { en: ["d", "h", "m", "s"], ru: ["д", "ч", "м", "с"], uk: ["д", "г", "хв", "с"], fr: ["j", "h", "min", "s"], tr: ["g", "sa", "dk", "sn"] };
+// the language list (user: «нельзя выбирать язык во входе, только во вкладке еще»)
+function openLangSheet(){
+  openSheet(`<h2>${L("Язык")}</h2><div class="tfsheet">${LANGS.map(k => `<button type="button" data-langpick="${k}" class="${LANG === k ? "on" : ""}" lang="${k}"><span>${LANG_NAMES[k]}</span><b>${LANG === k ? "✓" : ""}</b></button>`).join("")}</div>`);
+  modalEl.querySelectorAll("[data-langpick]").forEach(b => b.onclick = ()=>{ closeModal(); setLang(b.dataset.langpick); });
+}
 /* =========================================================================
    XAUUSD DEMO TERMINAL — fully autonomous synthetic trading simulator
    DEMO • SYNTHETIC DATA — no real quotes / broker / accounts / trades
@@ -3954,15 +3969,15 @@ function ovDepthRows(){
    read as the wrong time — the flag and currency, the name, volatility · actual · forecast ·
    previous, and what the release is; «Больше событий» opens the calendar */
 const FLAG_US = `<svg viewBox="0 0 22 14" width="22" height="14" aria-hidden="true"><rect width="22" height="14" fill="#fff"/><path d="M0 0h22v1.08H0zM0 2.15h22v1.08H0zM0 4.31h22v1.08H0zM0 6.46h22v1.08H0zM0 8.62h22v1.08H0zM0 10.77h22v1.08H0zM0 12.92h22V14H0z" fill="#d52b1e"/><rect width="9.5" height="7.54" fill="#223a8f"/></svg>`;
-// [pattern, English, Russian, Ukrainian]
+// [pattern, English, Russian, Ukrainian, French, Turkish]
 const EV_DESC = [
-  [/NFP|Payroll/i, "Nonfarm Payrolls measures the change in the number of people employed in the US during the previous month, excluding the farming industry. Job creation drives consumer spending, so a stronger than expected figure is taken as positive for the US dollar and negative for gold.", "Nonfarm Payrolls показывает изменение числа занятых в США за прошлый месяц без учёта сельского хозяйства. Рост рабочих мест поддерживает потребительские расходы, поэтому цифра выше ожиданий считается позитивом для доллара США и негативом для золота.", "Nonfarm Payrolls показує зміну кількості зайнятих у США за минулий місяць без урахування сільського господарства. Нові робочі місця підтримують споживчі витрати, тому показник, вищий за очікування, вважають позитивом для долара США й негативом для золота."],
-  [/CPI/i, "The Consumer Price Index measures the change in the price of goods and services bought by consumers. It is the main gauge of inflation and of pressure on the Federal Reserve to keep rates high; a higher than expected reading supports the US dollar and weighs on gold.", "Индекс потребительских цен показывает изменение цен на товары и услуги, которые покупают потребители. Это главный показатель инфляции и давления на ФРС, чтобы держать ставки высокими; значение выше ожиданий поддерживает доллар США и давит на золото.", "Індекс споживчих цін показує зміну цін на товари й послуги, які купують споживачі. Це головний показник інфляції та тиску на ФРС, щоб тримати ставки високими; значення, вище за очікування, підтримує долар США й тисне на золото."],
-  [/PPI/i, "The Producer Price Index measures the change in the price of goods and services sold by producers. Rising producer prices tend to pass through to consumer inflation, so a higher than expected reading supports the US dollar.", "Индекс цен производителей показывает изменение цен на товары и услуги, которые продают производители. Рост цен производителей обычно переходит в потребительскую инфляцию, поэтому значение выше ожиданий поддерживает доллар США.", "Індекс цін виробників показує зміну цін на товари й послуги, які продають виробники. Зростання цін виробників зазвичай переходить у споживчу інфляцію, тому значення, вище за очікування, підтримує долар США."],
-  [/FOMC|Rate Decision/i, "The Federal Open Market Committee sets the federal funds rate. Traders watch the decision and the tone of the statement for the future path of rates; a hawkish outcome supports the US dollar and weighs on gold.", "Федеральный комитет по открытым рынкам устанавливает ставку по федеральным фондам. Трейдеры следят за решением и тоном заявления, чтобы понять дальнейший путь ставок; «ястребиный» итог поддерживает доллар США и давит на золото.", "Федеральний комітет з відкритих ринків встановлює ставку за федеральними фондами. Трейдери стежать за рішенням і тоном заяви, щоб зрозуміти подальший шлях ставок; «яструбиний» підсумок підтримує долар США й тисне на золото."],
-  [/Press Conference|Speech|Statement/i, "The Federal Reserve comments on monetary policy and the economic outlook. The tone is read for hints about future rate moves and often brings sharp swings in the US dollar and gold.", "Федеральная резервная система комментирует денежно-кредитную политику и экономические перспективы. В тоне ищут намёки на будущие изменения ставок, и это часто вызывает резкие колебания доллара США и золота.", "Федеральна резервна система коментує грошово-кредитну політику та економічні перспективи. У тоні шукають натяки на майбутні зміни ставок, і це часто спричиняє різкі коливання долара США та золота."],
-  [/GDP/i, "Gross Domestic Product measures the annualized change in the value of all goods and services produced by the US economy. It is the broadest measure of economic activity; a stronger than expected reading supports the US dollar.", "Валовой внутренний продукт показывает годовое изменение стоимости всех товаров и услуг, произведённых экономикой США. Это самый широкий показатель экономической активности; значение выше ожиданий поддерживает доллар США.", "Валовий внутрішній продукт показує річну зміну вартості всіх товарів і послуг, вироблених економікою США. Це найширший показник економічної активності; значення, вище за очікування, підтримує долар США."],
-  [/Unemployment/i, "The Unemployment Rate measures the share of the labor force that is out of work and actively looking for a job. A lower than expected rate supports the US dollar.", "Уровень безработицы показывает долю рабочей силы, у которой нет работы и которая активно её ищет. Значение ниже ожиданий поддерживает доллар США.", "Рівень безробіття показує частку робочої сили, яка не має роботи й активно її шукає. Значення, нижче за очікування, підтримує долар США."]
+  [/NFP|Payroll/i, "Nonfarm Payrolls measures the change in the number of people employed in the US during the previous month, excluding the farming industry. Job creation drives consumer spending, so a stronger than expected figure is taken as positive for the US dollar and negative for gold.", "Nonfarm Payrolls показывает изменение числа занятых в США за прошлый месяц без учёта сельского хозяйства. Рост рабочих мест поддерживает потребительские расходы, поэтому цифра выше ожиданий считается позитивом для доллара США и негативом для золота.", "Nonfarm Payrolls показує зміну кількості зайнятих у США за минулий місяць без урахування сільського господарства. Нові робочі місця підтримують споживчі витрати, тому показник, вищий за очікування, вважають позитивом для долара США й негативом для золота.", "Les Nonfarm Payrolls mesurent la variation du nombre d'emplois aux États-Unis le mois précédent, hors secteur agricole. La création d'emplois soutient la consommation : un chiffre supérieur aux attentes est positif pour le dollar américain et négatif pour l'or.", "Tarım Dışı İstihdam, ABD'de tarım sektörü hariç önceki ayda çalışan sayısındaki değişimi ölçer. İstihdam artışı tüketici harcamalarını desteklediği için beklentinin üzerindeki bir veri ABD doları için olumlu, altın için olumsuz kabul edilir."],
+  [/CPI/i, "The Consumer Price Index measures the change in the price of goods and services bought by consumers. It is the main gauge of inflation and of pressure on the Federal Reserve to keep rates high; a higher than expected reading supports the US dollar and weighs on gold.", "Индекс потребительских цен показывает изменение цен на товары и услуги, которые покупают потребители. Это главный показатель инфляции и давления на ФРС, чтобы держать ставки высокими; значение выше ожиданий поддерживает доллар США и давит на золото.", "Індекс споживчих цін показує зміну цін на товари й послуги, які купують споживачі. Це головний показник інфляції та тиску на ФРС, щоб тримати ставки високими; значення, вище за очікування, підтримує долар США й тисне на золото.", "L'indice des prix à la consommation mesure la variation des prix des biens et services achetés par les ménages. C'est la principale jauge de l'inflation et de la pression sur la Fed pour maintenir des taux élevés ; un chiffre supérieur aux attentes soutient le dollar américain et pèse sur l'or.", "Tüketici Fiyat Endeksi, tüketicilerin satın aldığı mal ve hizmetlerin fiyatlarındaki değişimi ölçer. Enflasyonun ve Fed üzerindeki faizleri yüksek tutma baskısının ana göstergesidir; beklentinin üzerindeki bir veri ABD dolarını destekler ve altını baskılar."],
+  [/PPI/i, "The Producer Price Index measures the change in the price of goods and services sold by producers. Rising producer prices tend to pass through to consumer inflation, so a higher than expected reading supports the US dollar.", "Индекс цен производителей показывает изменение цен на товары и услуги, которые продают производители. Рост цен производителей обычно переходит в потребительскую инфляцию, поэтому значение выше ожиданий поддерживает доллар США.", "Індекс цін виробників показує зміну цін на товари й послуги, які продають виробники. Зростання цін виробників зазвичай переходить у споживчу інфляцію, тому значення, вище за очікування, підтримує долар США.", "L'indice des prix à la production mesure la variation des prix des biens et services vendus par les producteurs. La hausse des prix à la production se répercute généralement sur l'inflation à la consommation ; un chiffre supérieur aux attentes soutient le dollar américain.", "Üretici Fiyat Endeksi, üreticilerin sattığı mal ve hizmetlerin fiyatlarındaki değişimi ölçer. Üretici fiyatlarındaki artış genellikle tüketici enflasyonuna yansır; bu nedenle beklentinin üzerindeki bir veri ABD dolarını destekler."],
+  [/FOMC|Rate Decision/i, "The Federal Open Market Committee sets the federal funds rate. Traders watch the decision and the tone of the statement for the future path of rates; a hawkish outcome supports the US dollar and weighs on gold.", "Федеральный комитет по открытым рынкам устанавливает ставку по федеральным фондам. Трейдеры следят за решением и тоном заявления, чтобы понять дальнейший путь ставок; «ястребиный» итог поддерживает доллар США и давит на золото.", "Федеральний комітет з відкритих ринків встановлює ставку за федеральними фондами. Трейдери стежать за рішенням і тоном заяви, щоб зрозуміти подальший шлях ставок; «яструбиний» підсумок підтримує долар США й тисне на золото.", "Le Federal Open Market Committee fixe le taux des fonds fédéraux. Les traders suivent la décision et le ton du communiqué pour anticiper l'évolution des taux ; une issue restrictive soutient le dollar américain et pèse sur l'or.", "Federal Açık Piyasa Komitesi federal fon faizini belirler. Yatırımcılar faizlerin gelecekteki seyri için karara ve açıklamanın tonuna bakar; şahin bir sonuç ABD dolarını destekler ve altını baskılar."],
+  [/Press Conference|Speech|Statement/i, "The Federal Reserve comments on monetary policy and the economic outlook. The tone is read for hints about future rate moves and often brings sharp swings in the US dollar and gold.", "Федеральная резервная система комментирует денежно-кредитную политику и экономические перспективы. В тоне ищут намёки на будущие изменения ставок, и это часто вызывает резкие колебания доллара США и золота.", "Федеральна резервна система коментує грошово-кредитну політику та економічні перспективи. У тоні шукають натяки на майбутні зміни ставок, і це часто спричиняє різкі коливання долара США та золота.", "La Réserve fédérale commente la politique monétaire et les perspectives économiques. Le ton est scruté pour y déceler des indices sur les futurs mouvements de taux et provoque souvent de fortes variations du dollar américain et de l'or.", "Federal Rezerv para politikası ve ekonomik görünüm hakkında açıklama yapar. Tonda gelecekteki faiz hareketlerine dair ipuçları aranır ve bu çoğu zaman ABD doları ile altında sert dalgalanmalara yol açar."],
+  [/GDP/i, "Gross Domestic Product measures the annualized change in the value of all goods and services produced by the US economy. It is the broadest measure of economic activity; a stronger than expected reading supports the US dollar.", "Валовой внутренний продукт показывает годовое изменение стоимости всех товаров и услуг, произведённых экономикой США. Это самый широкий показатель экономической активности; значение выше ожиданий поддерживает доллар США.", "Валовий внутрішній продукт показує річну зміну вартості всіх товарів і послуг, вироблених економікою США. Це найширший показник економічної активності; значення, вище за очікування, підтримує долар США.", "Le produit intérieur brut mesure la variation annualisée de la valeur de tous les biens et services produits par l'économie américaine. C'est la mesure la plus large de l'activité économique ; un chiffre supérieur aux attentes soutient le dollar américain.", "Gayri Safi Yurt İçi Hasıla, ABD ekonomisinin ürettiği tüm mal ve hizmetlerin değerindeki yıllıklandırılmış değişimi ölçer. Ekonomik faaliyetin en geniş ölçüsüdür; beklentinin üzerindeki bir veri ABD dolarını destekler."],
+  [/Unemployment/i, "The Unemployment Rate measures the share of the labor force that is out of work and actively looking for a job. A lower than expected rate supports the US dollar.", "Уровень безработицы показывает долю рабочей силы, у которой нет работы и которая активно её ищет. Значение ниже ожиданий поддерживает доллар США.", "Рівень безробіття показує частку робочої сили, яка не має роботи й активно її шукає. Значення, нижче за очікування, підтримує долар США.", "Le taux de chômage mesure la part de la population active sans emploi et en recherche active d'un travail. Un taux inférieur aux attentes soutient le dollar américain.", "İşsizlik Oranı, işgücünün işsiz olan ve aktif olarak iş arayan kısmını ölçer. Beklentinin altındaki bir oran ABD dolarını destekler."]
 ];
 function ovCalEvent(){                                                 // the next one still to come, else the latest in the past
   const next = S.events.filter(e => !e.released && e.time >= S.simClock - 60000).sort((a, b)=> a.time - b.time)[0];
@@ -3983,7 +3998,7 @@ function ovCalBody(){
   const e = ovCalEvent();
   if(!e) return `<div class="cal-when"><span>${L("Нет событий")}</span></div>`;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
-  const desc = (EV_DESC.find(([re]) => re.test(e.name)) || [0, "A synthetic event created in the simulator (DEMO).", "Синтетическое событие, созданное в симуляторе (DEMO).", "Синтетична подія, створена в симуляторі (DEMO)."])[LANGS.indexOf(LANG) + 1];
+  const desc = (EV_DESC.find(([re]) => re.test(e.name)) || [0, "A synthetic event created in the simulator (DEMO).", "Синтетическое событие, созданное в симуляторе (DEMO).", "Синтетична подія, створена в симуляторі (DEMO).", "Un événement synthétique créé dans le simulateur (DEMO).", "Simülatörde oluşturulmuş sentetik bir etkinlik (DEMO)."])[LANGS.indexOf(LANG) + 1];
   const cell = (v, k) => `<div class="cal-c"><div class="cal-v">${v}</div><div class="cal-k">${k}</div></div>`;
   return `<div class="cal-when"><span>${evWhen(e.time)}</span><span class="cal-cur">${FLAG_US}USD</span></div>
       <div class="cal-name">${esc(e.name)}</div>
@@ -4159,9 +4174,8 @@ function screenMore(){
       </div>
     </div>
     <div class="card">
-      <div class="row"><span class="k">${L("Язык")}</span></div>
-      ${langSeg("langSeg")}
-      <div class="row" style="margin-top:14px"><span class="k">${L("Тема оформления")}</span></div>
+      <button type="button" class="row lang-row" data-act="langpick"><span class="k">${L("Язык")}</span><span class="v">${LANG_NAMES[LANG]}<span class="chev" aria-hidden="true">›</span></span></button>
+      <div class="row" style="margin-top:10px"><span class="k">${L("Тема оформления")}</span></div>
       <div class="seg theme" id="themeSeg" style="margin-top:8px">
         <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}" aria-pressed="${currentTheme()==="light"}"><span>${L("☀️ Светлая")}</span><span class="ck" aria-hidden="true">✓</span></button>
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
@@ -4893,13 +4907,13 @@ function navBubFrame(now){
   const target = NB.drag ? NB.drag.u : NB.target;
   // under the finger a stiff, well-damped spring (it keeps up without wobble); let go, a softer one that
   // overshoots a hair onto the tab — the island's settle
-  const K = NB.drag ? 900 : 300, C = 2 * Math.sqrt(K) * (NB.drag ? .9 : .7);
+  const K = NB.drag ? 900 : 320, C = 2 * Math.sqrt(K) * (NB.drag ? .9 : .6);
   NB.vel += (-K * (NB.u - target) - C * NB.vel) * dt;
   NB.u = clamp(NB.u + NB.vel * dt, -0.15, 4.15);
   // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
   const lt = NB.drag ? 1 : 0;
   NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
-  const stretch = Math.min(Math.abs(NB.vel) * .05, .3);             // tabs / s → stretched along its path
+  const stretch = Math.min(Math.abs(NB.vel) * .06, .32);            // tabs / s → stretched along its path
   const sx = 1 + .1 * NB.lift + stretch, sy = 1 + .2 * NB.lift - stretch * .35;
   bar.style.setProperty("--u", NB.u.toFixed(4));
   bar.style.setProperty("--sx", sx.toFixed(3));
@@ -4984,7 +4998,7 @@ function glassDrops(root){
     if(!lens){ lens = document.createElement("span"); lens.className = (sub ? "sub-lens" : "seg-lens") + " idle"; bar.appendChild(lens); }
     const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
     const key = dropKey(bar), mem = _dropMem[key];
-    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, bar, lens, inset };
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset };
     bar._st = st; bar._bub = bub;
     _drops.set(bub, st);
     dropApply(bub, st);
@@ -5021,7 +5035,7 @@ function subDragBind(bar){
     const h = hit(e.clientX), on = bar.querySelector(":scope > button.on");
     if(go && h.b && h.b !== on){                                 // a drag or a tap: the bar holds the finger, so it picks
       _subByDrag = performance.now();
-      _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf };
+      _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv };
       S.ui.subtab = h.b.dataset.sub; render(); save();
       return;
     }
@@ -5076,7 +5090,7 @@ function quickLens(root){
       if(!glassOn() || e.button > 0) return;
       const s = _mq.get(box) || box._mqSt || st; box._mqSt = s;
       const c = aim(s, e.clientX, e.clientY); if(!c) return;
-      if(s.f < .05){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; }   // it appears where the finger is
+      if(s.f < .05){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; s.vx = s.vy = s.vw = s.vh = 0; s.j = s.jv = 0; }   // it appears where the finger is
       s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false }; s.tf = 1;
       try{ box.setPointerCapture(e.pointerId); }catch(_){}
       _mq.set(box, s); mqKick();
@@ -5103,12 +5117,17 @@ function quickLens(root){
 }
 function mqKick(){ if(!_mqRaf) _mqRaf = requestAnimationFrame(mqFrame); }
 function mqApply(s){
-  const l = s.lens;
+  const l = s.lens, j = s.j || 0, jx = s.jx !== false;
   l.style.setProperty("--qx", s.x.toFixed(1) + "px"); l.style.setProperty("--qy", s.y.toFixed(1) + "px");
   l.style.setProperty("--qw", Math.max(0, s.w).toFixed(1) + "px"); l.style.setProperty("--qh", Math.max(0, s.h).toFixed(1) + "px");
+  l.style.setProperty("--qsx", (jx ? 1 + j : 1 - j * .6).toFixed(3)); l.style.setProperty("--qsy", (jx ? 1 - j * .6 : 1 + j).toFixed(3));
   l.style.setProperty("--qf", s.f.toFixed(3));
   const idle = s.f < .01; if(l._idle !== idle){ l._idle = idle; l.classList.toggle("idle", idle); }
-  if(!idle) lgFit(l, s.w, s.h, 10, 0);                          // no blur: the lot under it stays sharp
+  // in flight over the gap between chips the lens would magnify the dark gap into a hole (user: «стекло
+  // пропадает между числами») — it bends the view only once it sits on a chip
+  if(idle) return;
+  if(s.fly){ if(l._lg){ l._lg = null; l.style.backdropFilter = ""; } }
+  else lgFit(l, s.w, s.h, 10, 0);                                // no blur: the lot under it stays sharp
 }
 function mqFrame(now){
   _mqRaf = 0;
@@ -5116,12 +5135,21 @@ function mqFrame(now){
     if(!box.isConnected){ _mq.delete(box); continue; }
     const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : 1 / 60;
     s.t = now;
-    const K = 520, C = 2 * Math.sqrt(K) * .68;                    // it flows from chip to chip with a hint of overshoot
-    for(const k of ["x", "y", "w", "h"]){ const v = "v" + k, t = "t" + k; s[v] += (-K * (s[k] - s[t]) - C * s[v]) * dt; s[k] += s[v] * dt; }
+    // it hops onto the chip under the finger — stiff, so it is on ONE number almost at once — and lands with a
+    // small bounce; its size is a softer spring, so it wobbles like a drop as it lands
+    const K = 1500, C = 2 * Math.sqrt(K) * .6, Kw = 800, Cw = 2 * Math.sqrt(Kw) * .42;
+    for(const k of ["x", "y"]){ const v = "v" + k, t = "t" + k; s[v] += (-K * (s[k] - s[t]) - C * s[v]) * dt; s[k] += s[v] * dt; }
+    for(const k of ["w", "h"]){ const v = "v" + k, t = "t" + k; s[v] += (-Kw * (s[k] - s[t]) - Cw * s[v]) * dt; s[k] += s[v] * dt; }
+    // the body: stretched along its way while it flies, a jelly wobble after it lands (underdamped, K 320 ζ .28)
+    const sp = Math.hypot(s.vx, s.vy);
+    if(sp > 60) s.jx = Math.abs(s.vx) >= Math.abs(s.vy);
+    s.jv = (s.jv || 0) + (-320 * ((s.j || 0) - Math.min(sp / 2600, .18)) - 2 * Math.sqrt(320) * .28 * (s.jv || 0)) * dt;
+    s.j = (s.j || 0) + s.jv * dt;
+    s.fly = s.fly ? sp > 90 : sp > 220;
     s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
     if(_mqMem) _mqMem.f = s.f;
     mqApply(s);
-    if(!s.drag && s.f < .01 && Math.abs(s.vx) + Math.abs(s.vy) < 2){ s.f = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
+    if(!s.drag && s.f < .01 && Math.abs(s.vx) + Math.abs(s.vy) < 2 && Math.abs(s.j || 0) < .004){ s.f = 0; s.j = s.jv = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
   }
   if(_mq.size) _mqRaf = requestAnimationFrame(mqFrame);
 }
@@ -5130,6 +5158,10 @@ function dropApply(bub, st){
   el.style.setProperty("--bx", st.l.toFixed(2) + "px");
   el.style.setProperty("--bw", Math.max(0, st.r - st.l).toFixed(2) + "px");
   el.style.setProperty("--lf", (st.lf || 0).toFixed(3));
+  // its body: lifted a little as a lens, squashed while it flows, wobbling after it lands
+  const lf = st.lf || 0, j = st.j || 0;
+  el.style.setProperty("--dsx", (1 + .03 * lf + .25 * j).toFixed(3));
+  el.style.setProperty("--dsy", (1 + .1 * lf - j).toFixed(3));
   const L = st.lens;
   if(L){
     const idle = (st.lf || 0) < .01;
@@ -5145,7 +5177,7 @@ function dropFrame(now){
     st.t = now;
     const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
     const dr = !!st.drag;                                           // under the finger: stiff and calm; let go: the flowing drop
-    const Kf = dr ? 900 : 520, Ks = dr ? 700 : 230, Cf = 2 * Math.sqrt(Kf) * (dr ? .9 : .6), Cs = 2 * Math.sqrt(Ks) * (dr ? .9 : .62);   // a little bounce on landing
+    const Kf = dr ? 900 : 540, Ks = dr ? 700 : 240, Cf = 2 * Math.sqrt(Kf) * (dr ? .9 : .52), Cs = 2 * Math.sqrt(Ks) * (dr ? .9 : .55);   // a bounce on landing
     const Kl = right ? Ks : Kf, Cl = right ? Cs : Cf, Kr = right ? Kf : Ks, Cr = right ? Cf : Cs;
     st.vl += (-Kl * (st.l - st.tl) - Cl * st.vl) * dt; st.l += st.vl * dt;
     st.vr += (-Kr * (st.r - st.tr) - Cr * st.vr) * dt; st.r += st.vr * dt;
@@ -5153,9 +5185,12 @@ function dropFrame(now){
     // the lens rides the speed: up fast while the drop flows, melting back as it lands
     const flf = st.drag ? 1 : Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
     st.lf += (flf - st.lf) * (1 - Math.exp(-dt / (flf > st.lf ? .05 : .16)));
-    const done = !st.drag && Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01;
-    if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; }
-    _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf };
+    // the jelly: squashed by its speed, an underdamped spring (K 260, ζ .3) — it wobbles a couple of times after it stops
+    const jt = Math.min((Math.abs(st.vl) + Math.abs(st.vr)) / 3200, .14);
+    st.jv += (-260 * (st.j - jt) - 2 * Math.sqrt(260) * .3 * st.jv) * dt; st.j += st.jv * dt;
+    const done = !st.drag && Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01 && Math.abs(st.j) < .003 && Math.abs(st.jv) < .05;
+    if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; st.j = st.jv = 0; }
+    _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv };
     dropApply(bub, st);
     if(done) _drops.delete(bub);
   }
@@ -5190,7 +5225,6 @@ function bindScreen(){
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
   root.querySelectorAll("[data-glass-toggle]").forEach(b=> b.onclick = ()=> setGlass(!glassOn()));
-  root.querySelectorAll("[data-lang-set]").forEach(b=> b.onclick = ()=> setLang(b.dataset.langSet));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ if(performance.now() - _subByDrag < 400) return; S.ui.subtab = b.dataset.sub; render(); save(); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=> setChartTF(b.dataset.tf));
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
@@ -5218,6 +5252,7 @@ function bindScreen(){
   act("openxau", ()=>{ S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
   act("addinstr", ()=> toast("o", L("В DEMO-режиме доступен только XAUUSD")));
   act("search", ()=> toast("o", L("Поиск инструментов будет добавлен позже")));
+  act("langpick", openLangSheet);
   act("newticket", ()=> openTicket());
   act("gotocal", ()=> nav("calendar"));
   act("gotosettings", ()=> nav("settings"));
@@ -7557,16 +7592,9 @@ function drawMini(){
     ctx.fillStyle = upPass ? TC.up : TC.down; ctx.fill();
   }
 
-  // open positions + pending orders — cTrader's dash-dot, same as the main chart
-  const mSym = S.symbol.name;
-  ctx.lineWidth = hairY; ctx.setLineDash([6, 3.5, 1.6, 3.5]);
-  for(const p of S.positions){ if(p.symbol !== mSym || p.entry < lo || p.entry > hi) continue;
-    ctx.strokeStyle = p.side === "buy" ? TC.up : TC.down;
-    const yy = crispY(y(p.entry)); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); }
-  for(const o of S.pendings){ if(o.symbol !== mSym || o.price < lo || o.price > hi) continue;
-    ctx.strokeStyle = o.type.includes("buy") ? TC.up : TC.down;
-    const yy = crispY(y(o.price)); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); }
-  ctx.setLineDash([]);
+  // no position / order lines here: cTrader's overview chart has none (user 2026-09-18: a lone dash-dot line
+  // «такого в cTrade нету») — they live on the Charts tab with their labels
+  ctx.lineWidth = hairY;
   // GREEN Ask on top, RED Bid below, solid into the middle of their tags (centred, overlapping)
   ctx.strokeStyle = TC.up; ctx.beginPath(); ctx.moveTo(0, yAsk); ctx.lineTo(plotW + 6, yAsk); ctx.stroke();
   ctx.strokeStyle = TC.down; ctx.beginPath(); ctx.moveTo(0, yBid); ctx.lineTo(plotW + 6, yBid); ctx.stroke();
@@ -7952,7 +7980,6 @@ function screenAuth(msg, kind){
     <div class="wrap" style="max-width:420px;margin:0 auto">
       <div class="card" style="text-align:center;padding:22px 16px">
         <div style="font-size:26px;font-weight:700;letter-spacing:.04em">XAUCORE</div>
-        <div style="margin-top:14px">${langSeg("authLang")}</div>
       </div>
       <div class="card">
         <div class="seg" style="margin-bottom:14px">
@@ -7971,7 +7998,6 @@ function screenAuth(msg, kind){
       </div>
     </div>`;
   app().querySelectorAll("[data-am]").forEach(b=> b.onclick = ()=>{ _authMode = b.dataset.am; screenAuth(); });
-  app().querySelectorAll("[data-lang-set]").forEach(b=> b.onclick = ()=> setLang(b.dataset.langSet, ()=> screenAuth()));
   const val = id => (document.getElementById(id) ? (document.getElementById(id).value||"") : "");
   const go = async ()=>{
     const email = val("au-email").trim(), pass = val("au-pass");

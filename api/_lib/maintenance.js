@@ -5,7 +5,7 @@
    site is locked and the caller is not the owner. It is FULLY self-contained
    (inline CSS + JS, system fonts, no external requests) so it renders even
    though every other asset request is intercepted. Nothing internal is exposed.
-   English by default; a device that chose Russian or Ukrainian in the app (localStorage
+   English by default; a device that chose another language in the app (localStorage
    xc_lang, same origin) gets the page in that language.
    ========================================================================= */
 export const MAINTENANCE_HTML = `<!doctype html><html lang="en"><head>
@@ -56,8 +56,10 @@ export const MAINTENANCE_HTML = `<!doctype html><html lang="en"><head>
       ok=document.getElementById('ok'),ob=document.getElementById('ob'),om=document.getElementById('om');
   var T={en:['XAUCORE — maintenance','The system is temporarily unavailable','Maintenance is under way. Please come back later.','Owner access','Owner key','Sign in','Wrong key','Network error','Owner access is not configured'],
     ru:['XAUCORE — технические работы','Система временно недоступна','Ведутся технические работы. Пожалуйста, зайдите позже.','Доступ владельца','Ключ владельца','Войти','Неверный ключ','Ошибка сети','Владельческий доступ не настроен'],
-    uk:['XAUCORE — технічні роботи','Система тимчасово недоступна','Тривають технічні роботи. Будь ласка, зайдіть пізніше.','Доступ власника','Ключ власника','Увійти','Невірний ключ','Помилка мережі','Доступ власника не налаштовано']};
-  var lg='en';try{var v=localStorage.getItem('xc_lang');if(v==='ru'||v==='uk')lg=v;}catch(e){}
+    uk:['XAUCORE — технічні роботи','Система тимчасово недоступна','Тривають технічні роботи. Будь ласка, зайдіть пізніше.','Доступ власника','Ключ власника','Увійти','Невірний ключ','Помилка мережі','Доступ власника не налаштовано'],
+    fr:['XAUCORE — maintenance','Le système est temporairement indisponible','Une maintenance est en cours. Merci de revenir plus tard.','Accès propriétaire','Clé du propriétaire','Se connecter','Clé incorrecte','Erreur réseau','L’accès propriétaire n’est pas configuré'],
+    tr:['XAUCORE — bakım','Sistem geçici olarak kullanılamıyor','Bakım çalışması yapılıyor. Lütfen daha sonra tekrar deneyin.','Sahip erişimi','Sahip anahtarı','Giriş yap','Yanlış anahtar','Ağ hatası','Sahip erişimi yapılandırılmamış']};
+  var lg='en';try{var v=localStorage.getItem('xc_lang');if(v&&Object.prototype.hasOwnProperty.call(T,v))lg=v;}catch(e){}
   var t=T[lg];document.documentElement.lang=lg;document.title=t[0];
   document.getElementById('mh').textContent=t[1];document.getElementById('mp').textContent=t[2];
   og.textContent=t[3];ok.placeholder=t[4];ok.setAttribute('aria-label',t[4]);ob.textContent=t[5];
