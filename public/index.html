@@ -41,6 +41,9 @@
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
   --lg-tint:rgba(255,255,255,.36); --lg-line:rgba(16,24,40,.12); --lg-shadow:rgba(16,24,40,.12); --lg-spec:rgba(255,255,255,.95);
   --lg-sheen:rgba(255,255,255,.55); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.6); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
+  /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
+  --nav-top:calc(70px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge */
+  --nav-glass:rgba(255,255,255,.72); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.075); --nav-lens:rgba(255,255,255,.16);
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
@@ -58,6 +61,7 @@
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
+  --nav-glass:rgba(28,28,30,.74); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.13); --nav-lens:rgba(255,255,255,.05);
   --lg-tint:rgba(30,30,34,.36); --lg-line:rgba(255,255,255,.1); --lg-shadow:rgba(0,0,0,.55); --lg-spec:rgba(255,255,255,.24);
   --lg-sheen:rgba(255,255,255,.1); --lg-rim:rgba(255,255,255,.5); --lg-rim2:rgba(255,255,255,.2); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -75,11 +79,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
 img,canvas,svg,video{max-width:100%}
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-#app{padding-bottom:92px;overflow-x:clip;max-width:100%}
-#app:has(.bignew),#app:has(.fabnew){padding-bottom:144px}   /* the floating «Новый ордер» must not cover the last card */
+#app{padding-bottom:calc(var(--nav-top) + 22px);overflow-x:clip;max-width:100%}
+#app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 74px)}   /* the floating «Новый ордер» must not cover the last card */
 /* the Charts tab fills the screen (chart height is fitted in chartTabHeight); ⛶ hides the tab bar too */
 body.route-chart{background:var(--chart-bg)}
-body.route-chart #app{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+body.route-chart #app{padding-bottom:var(--nav-top)}
 body.chart-full #app{padding-bottom:0}
 body.chart-full .bottomnav{display:none}
 .row>*{min-width:0}
@@ -210,18 +214,38 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .loterr{color:var(--red-ink);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
 
 /* «Новый ордер» over the Markets screens — cTrader's big pill: dark on the light theme, light on the dark one */
-.bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;width:min(492px,calc(100% - 32px));
+.bignew{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-top) + 8px);width:min(492px,calc(100% - 32px));
   background:var(--invert);color:var(--invert-ink);font-size:18px;line-height:21px;font-weight:700;padding:17px;border-radius:18px;text-align:center;z-index:35;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 :root[data-theme="dark"] .bignew{background:#efefef;color:#2b2b2b;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .bignew:active{filter:brightness(.9)}
 
-/* bottom nav */
-/* bottom navigation — cTrader's: outline icons and large grey labels, the current tab in blue,
-   on the page ground with a hairline on top */
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
-  display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
-.bottomnav button.on{color:var(--nav-on)}
+/* bottom nav — iOS 26's floating Liquid Glass tab bar (user 2026-09-18, an Apple Music recording: «можем ли
+   мы сделать такое в наши нижние ячейки»): a frosted capsule the page scrolls under; the current tab sits
+   on a soft drop (.nav-bub). Pressed, the drop lifts into a clear lens over the icons — swelling them and
+   tinting the one beneath it (Chromium also bends them at its rim) — follows the finger along the bar,
+   stretching with its speed like liquid, and on release springs onto the nearest tab, which opens.
+   Motion lives in navBubFrame(). */
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;
+  display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding:0;border-radius:31px;isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
+  background:var(--nav-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec)}
+.bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;
+  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.bottomnav button{position:relative;z-index:1;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink2);font-size:11.5px;font-weight:500;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
+.bottomnav button.on,.bottomnav button.near{color:var(--nav-on)}
+.bottomnav.dragging button.on:not(.near){color:var(--ink2)}
+.nav-bub{position:absolute;z-index:0;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;background:var(--nav-bub);
+  transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform}
+.nav-bub.lift{z-index:2;background:var(--nav-lens);-webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
+  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec)}
+.nav-bub.lift::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+@media (prefers-reduced-transparency:reduce){
+  .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .nav-bub.lift{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
+}
 .bottomnav .ic{line-height:0;position:relative}
 .bottomnav .ic svg{display:block}
 .navpill{position:absolute;top:-4px;right:-10px;background:var(--blue);color:#fff;border-radius:999px;font-size:9px;font-weight:600;line-height:1.3;padding:1px 4px;min-width:14px;text-align:center}
@@ -564,7 +588,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-addbtn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 0;width:64%;min-width:230px;height:36px;border:0;border-radius:4px;background:#1f4e9c;color:#fff;font-size:15px;font-weight:500}
 .wl-addbtn span{font-size:20px;line-height:1}
 :root[data-theme="dark"] .wl-addbtn{background:#2a6bd0}
-.fabnew{--fab-bg:#d3e3fd;position:fixed;right:max(14px, calc(50% - 246px));bottom:88px;z-index:35;display:flex;align-items:center;gap:14px;padding:13px 22px 13px 18px;border:0;border-radius:16px;background:var(--fab-bg);color:#0b1d38;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.fabnew{--fab-bg:#d3e3fd;position:fixed;right:max(14px, calc(50% - 246px));bottom:calc(var(--nav-top) + 18px);z-index:35;display:flex;align-items:center;gap:14px;padding:13px 22px 13px 18px;border:0;border-radius:16px;background:var(--fab-bg);color:#0b1d38;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 :root[data-theme="dark"] .fabnew{--fab-bg:#0d47a1;color:#dbe7fb}
 .fabnew:active{filter:brightness(.92)}
 body.trade-locked .fabnew{opacity:.5;pointer-events:none}
@@ -2589,7 +2613,7 @@ const app = () => document.getElementById("app");
    листаю, а нужно, когда заходить прям буду»), so — like Android — the ripple waits: it lights up
    after a 110 ms hold on the spot, or on the tap itself (click) for a quicker touch; a finger that
    moves 8 px, or a pointercancel (the page took the gesture to scroll), puts it out / never starts it. */
-const RIPPLE_SEL = ".bottomnav button, .subtabs button, .menu-item, .ne-card > summary, .tfsheet button";
+const RIPPLE_SEL = ".subtabs button, .menu-item, .ne-card > summary, .tfsheet button";   // the tab bar has its drop instead
 let _rip = null;                                                 // the press being watched
 function rippleShow(el, cx, cy){
   const r = el.getBoundingClientRect(), rad = getComputedStyle(el).borderRadius;
@@ -4071,13 +4095,94 @@ async function refreshLockCard(){
 }
 
 /* ---------- bottom nav ---------- */
+/* ---- the tab bar's drop (see .bottomnav in the CSS) ---- */
+const NAV_TABS = ["markets", "chart", "positions", "orders", "more"];
+function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : t === "positions" ? 2 : t === "orders" ? 3 : 4; }
+function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
+// u: the drop's place in tabs (0…4, fractional in motion); lift 0…1: resting drop → lens under the finger
+const NB = { u: null, vel: 0, target: 0, lift: 0, t: 0, raf: 0, drag: null };
+let _navByDrop = 0;
+function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
+function navBubFrame(now){
+  NB.raf = 0;
+  const bar = document.querySelector(".bottomnav"), bub = bar && bar.querySelector(".nav-bub");
+  if(!bub){ NB.u = NB.target; NB.vel = 0; NB.lift = 0; return; }
+  const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : 1 / 60;
+  NB.t = now;
+  const target = NB.drag ? NB.drag.u : NB.target;
+  // under the finger a stiff, well-damped spring (it keeps up without wobble); let go, a softer one that
+  // overshoots a hair onto the tab — the island's settle
+  const K = NB.drag ? 900 : 300, C = 2 * Math.sqrt(K) * (NB.drag ? .9 : .7);
+  NB.vel += (-K * (NB.u - target) - C * NB.vel) * dt;
+  NB.u = clamp(NB.u + NB.vel * dt, -0.15, 4.15);
+  const lt = NB.drag ? 1 : 0;
+  NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .055 : .12)));
+  const stretch = Math.min(Math.abs(NB.vel) * .05, .3);             // tabs / s → stretched along its path
+  const sx = 1 + .1 * NB.lift + stretch, sy = 1 + .2 * NB.lift - stretch * .35;
+  bub.style.setProperty("--u", NB.u.toFixed(4));
+  bub.style.setProperty("--sx", sx.toFixed(3));
+  bub.style.setProperty("--sy", sy.toFixed(3));
+  const lifted = NB.lift > .3;
+  if(bub._lifted !== lifted){
+    bub._lifted = lifted; bub.classList.toggle("lift", lifted);
+    if(LG_LENS) bub.style.backdropFilter = lifted ? "url(#" + lgFilterId(bub.offsetWidth, bub.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)" : "";
+  }
+  // the icons under the lens swell and take the accent colour
+  bar.querySelectorAll("button[data-nav]").forEach((b, i) => {
+    const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .16 * k * NB.lift;
+    const tr = sc > 1.002 ? "scale(" + sc.toFixed(3) + ")" : "";
+    if(b.style.transform !== tr) b.style.transform = tr;
+    const near = lifted && k > .5;
+    if(b.classList.contains("near") !== near) b.classList.toggle("near", near);
+  });
+  if(!NB.drag && Math.abs(NB.u - target) < .002 && Math.abs(NB.vel) < .02 && NB.lift < .01){
+    NB.u = target; NB.vel = 0; NB.lift = 0; NB.t = 0;
+    bub.style.setProperty("--u", String(target)); bub.style.setProperty("--sx", "1"); bub.style.setProperty("--sy", "1");
+    return;
+  }
+  NB.raf = requestAnimationFrame(navBubFrame);
+}
+function navBind(bar){
+  if(!bar) return;
+  const uAt = x => { const r = bar.getBoundingClientRect(); return clamp((x - r.left) / (r.width / 5) - .5, 0, 4); };
+  const end = (e, go) => {
+    const d = NB.drag;
+    if(!d || e.pointerId !== d.id) return;
+    NB.drag = null;
+    const b = document.querySelector(".bottomnav"); if(b) b.classList.remove("dragging");
+    const i = clamp(Math.round(d.u), 0, 4);
+    NB.target = i; navBubKick();
+    if(go){ _navByDrop = performance.now(); navTo(NAV_TABS[i]); }
+  };
+  bar.onpointerdown = e => {
+    if(e.button > 0) return;
+    NB.drag = { id: e.pointerId, u: uAt(e.clientX) };
+    try{ bar.setPointerCapture(e.pointerId); }catch(_){}
+    bar.classList.add("dragging");
+    navBubKick();
+  };
+  bar.onpointermove = e => { const d = NB.drag; if(!d || e.pointerId !== d.id) return; d.u = uAt(e.clientX); navBubKick(); };
+  bar.onpointerup = e => end(e, true);
+  bar.onpointercancel = e => end(e, false);
+  // a screen re-rendered mid-drag gets a new bar: it takes the finger over
+  if(NB.drag){ try{ bar.setPointerCapture(NB.drag.id); }catch(_){} }
+  if(NB.drag || NB.lift > .01 || Math.abs((NB.u == null ? NB.target : NB.u) - NB.target) > .001) navBubKick();
+}
+// a finger lifted outside everything still ends the drag
+// (bubbling, after the bar's own handler — which opens the tab — has had its turn)
+window.addEventListener("pointerup", e => {
+  if(!NB.drag || e.pointerId !== NB.drag.id || (e.target && e.target.closest && e.target.closest(".bottomnav"))) return;
+  const d = NB.drag; NB.drag = null; NB.target = clamp(Math.round(d.u), 0, 4); navBubKick();
+});
 function bottomNav(){
   const t = S.ui.tab;
   const on = x => (t===x || (x==="markets" && t==="chart" && false)) ? "on":"";
   const posCount = S.positions.length;
   // cTrader's outline icons (stroke = the label colour: grey, blue on the current tab)
-  const I = d => `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-  return `<div class="bottomnav">
+  const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  if(NB.u == null) NB.u = navIndexOf(t);
+  if(!NB.drag) NB.target = navIndexOf(t);
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}"><span class="nav-bub${NB.lift > .3 ? " lift" : ""}" style="--u:${NB.u.toFixed(4)}"></span>
     <button data-nav="markets" class="${["markets","calendar","dom"].includes(t)?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>Рынки</button>
     <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>Графики</button>
     <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>Позиции</button>
@@ -4092,10 +4197,9 @@ function bottomNav(){
 function bindScreen(){
   const root = app();
 
-  root.querySelectorAll("[data-nav]").forEach(b=> b.onclick = ()=>{
-    if(b.dataset.nav === "markets") S.ui.marketOpen = false;   // "Рынки" tab -> watchlist
-    nav(b.dataset.nav);
-  });
+  // a keyboard / accessibility click still works; a finger goes through the drop (navBind) and its click is skipped
+  root.querySelectorAll("[data-nav]").forEach(b=> b.onclick = ()=>{ if(performance.now() - _navByDrop < 600) return; navTo(b.dataset.nav); });
+  navBind(root.querySelector(".bottomnav"));
   root.querySelectorAll("[data-ts]").forEach(b=> b.onclick = ()=> setTimeScale(b.dataset.ts));
   root.querySelectorAll("[data-theme-set]").forEach(b=> b.onclick = ()=> setTheme(b.dataset.themeSet));
   root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ S.ui.subtab = b.dataset.sub; render(); save(); });
@@ -5389,7 +5493,7 @@ function chartGoLatest(){          // the «›|» button: glide back to the new
 function chartTabHeight(c){
   if(!c || S.ui.tab !== "chart" || c.closest(".sub")) return;
   const nav = document.querySelector(".bottomnav"), bar = document.querySelector(".chtrade-wrap");
-  const navH = _chartFull || !nav ? 0 : nav.offsetHeight, barH = bar ? bar.offsetHeight : 0;
+  const navH = _chartFull || !nav ? 0 : Math.max(0, (window.innerHeight || 640) - nav.getBoundingClientRect().top), barH = bar ? bar.offsetHeight : 0;   // the bar floats: its top edge, gap included
   let top = 0;                                                    // offsetTop, not the rect: a screen sliding in is transformed
   for(let el = c.parentElement; el; el = el.offsetParent) top += el.offsetTop;
   const h = Math.max(220, Math.round((window.innerHeight || 640) - top - navH - barH));
