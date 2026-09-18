@@ -804,66 +804,91 @@ html:has(body.route-wallet){background:#0c0a08}
 /* ---- LIQUID GLASS everywhere else it fits (user 2026-09-18: «первые 8 пунктов отличны») — all gated on
    html[data-glass=on]; off, every one of these keeps its flat cTrader look ---- */
 :root[data-glass="on"]{
-  --bar-glass:rgba(255,255,255,.72); --bg-glass:rgba(239,241,244,.72); --sheet-glass:rgba(255,255,255,.86);
-  --seg-track:rgba(120,120,128,.13); --seg-bub:rgba(255,255,255,.95); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,.6);
-  --toast-glass:rgba(22,24,28,.74); --bn-glass:rgba(17,20,24,.78); --fab-glass:rgba(211,227,253,.8);
-  --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.16);
+  --bar-glass:rgba(255,255,255,.6); --bg-glass:rgba(239,241,244,.6); --sheet-glass:rgba(255,255,255,.8);
+  --seg-track:rgba(120,120,128,.13); --seg-bub:rgba(255,255,255,.95); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,.42);
+  --toast-glass:rgba(22,24,28,.6); --bn-glass:rgba(17,20,24,.58); --fab-glass:rgba(211,227,253,.62); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
+  --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55);
 }
 :root[data-theme="dark"][data-glass="on"]{
-  --bar-glass:rgba(12,12,12,.7); --bg-glass:rgba(0,0,0,.62); --sheet-glass:rgba(26,26,28,.86);
-  --seg-track:rgba(255,255,255,.08); --seg-bub:rgba(84,84,90,.82); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,.58);
-  --toast-glass:rgba(52,52,56,.74); --bn-glass:rgba(245,245,245,.84); --fab-glass:rgba(13,71,161,.74);
-  --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.1);
+  --bar-glass:rgba(12,12,12,.58); --bg-glass:rgba(0,0,0,.52); --sheet-glass:rgba(26,26,28,.82);
+  --seg-track:rgba(255,255,255,.08); --seg-bub:rgba(84,84,90,.82); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,.4);
+  --toast-glass:rgba(52,52,56,.58); --bn-glass:rgba(245,245,245,.66); --fab-glass:rgba(13,71,161,.6); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
+  --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.09);
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after,:root[data-glass="on"] .chartinfo::after,:root[data-glass="on"] .appbar .iconbtn::after,:root[data-glass="on"] .sub-lens::after,:root[data-glass="on"] .seg-lens::after,:root[data-glass="on"] .lw-lens::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* 1. «Новый ордер»: tinted glass (still the primary look), a drop under the finger like the chart buttons */
+/* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
+:root[data-glass="on"] .bignew::before,:root[data-glass="on"] .fabnew::before,:root[data-glass="on"] .toast::before,:root[data-glass="on"] .chartinfo::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
 :root[data-glass="on"] .bignew{isolation:isolate;filter:none;transition:none;
   background:radial-gradient(110px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--bn-glass),var(--bn-glass));
-  -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  -webkit-backdrop-filter:blur(5px) saturate(1.8);backdrop-filter:blur(5px) saturate(1.8);text-shadow:var(--bn-text-shadow);
   box-shadow:0 0 0 .5px var(--lg-line),0 10px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translateX(-50%) translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"] .fabnew{isolation:isolate;filter:none;
   background:radial-gradient(80px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--fab-glass),var(--fab-glass));
-  -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  -webkit-backdrop-filter:blur(5px) saturate(1.8);backdrop-filter:blur(5px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 /* 2. the Markets subtabs: a frosted bar the page scrolls under; the current tab sits on a drop that
    flows to the next one (its leading edge runs ahead, the trailing one catches up — dropFrame) */
-.sub-bub,.seg-bub{display:none}
+.sub-bub,.seg-bub,.sub-lens,.seg-lens,.lw-lens{display:none}
 :root[data-glass="on"] .subtabs{background:var(--bar-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
 :root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
-:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
+:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0) * .7);background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"] .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
 :root[data-glass="on"] .seg button{position:relative;z-index:1}
 :root[data-glass="on"] .seg button.on,:root[data-glass="on"] .seg.theme button.on{background:transparent;box-shadow:none}
-:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
+:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0) * .7);background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
   box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px));width:var(--bw,0px);will-change:transform,width}
 :root[data-glass="on"] .seg.theme .seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 65%),var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
-/* 4. toasts: glass capsules */
-:root[data-glass="on"] .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);
-  -webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);
+/* while a drop FLOWS it lifts into a clear lens over the labels it passes (they swell and bend under it) and
+   sinks back into the resting drop as it settles — --lf follows its speed (dropFrame) */
+:root[data-glass="on"] .sub-lens,:root[data-glass="on"] .seg-lens{display:block;position:absolute;left:0;pointer-events:none;z-index:2;isolation:isolate;
+  transform:translateX(var(--bx,0px));width:var(--bw,0px);opacity:var(--lf,0);will-change:transform,width,opacity;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.05);
+  -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .sub-lens{top:3px;bottom:3px;border-radius:999px}
+:root[data-glass="on"] .seg-lens{top:0;bottom:0;border-radius:11px}
+:root[data-glass="on"] .sub-lens.idle,:root[data-glass="on"] .seg-lens.idle{visibility:hidden}
+/* 4. toasts: clear glass capsules that drop in with a bounce and shrink away */
+:root[data-glass="on"] .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
+  -webkit-backdrop-filter:blur(6px) saturate(1.8);backdrop-filter:blur(6px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px rgba(255,255,255,.18)}
-:root[data-glass="on"] .toast.g{background:rgba(11,122,69,.8)}:root[data-glass="on"] .toast.r{background:rgba(192,42,34,.8)}:root[data-glass="on"] .toast.o{background:rgba(201,106,8,.8)}
+:root[data-glass="on"] .toast.g{background:rgba(11,122,69,.7)}:root[data-glass="on"] .toast.r{background:rgba(192,42,34,.7)}:root[data-glass="on"] .toast.o{background:rgba(201,106,8,.7)}
+@keyframes tinG{from{opacity:0;transform:translateY(-16px) scale(.84)}55%{opacity:1}to{transform:none}}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"] .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
-  background:var(--sheet-glass);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .modal .sheet{animation-name:shInG}
+  background:var(--sheet-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"] .modal .sheet{animation:shInG .5s cubic-bezier(.25,.9,.3,1)}
 :root[data-glass="on"] .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
-@keyframes shInG{from{transform:translateY(calc(100% + 40px))}}
+@keyframes shInG{0%{transform:translateY(calc(100% + 40px))}66%{transform:translateY(-7px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
 /* 6. the top bars: frosted, the page scrolls under them */
-:root[data-glass="on"] .appbar{background:var(--bar-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
-:root[data-glass="on"] .wl-topbar{background:var(--bg-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8)}
+:root[data-glass="on"] .appbar{background:var(--bar-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border-bottom-color:transparent;box-shadow:0 .5px 0 var(--lg-line)}
+:root[data-glass="on"] .appbar .iconbtn{position:relative;isolation:isolate;width:38px;height:38px;border-radius:50%;color:var(--ink);font-size:22px;
+  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+:root[data-glass="on"] .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+:root[data-glass="on"] .wl-topbar{background:var(--bg-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8)}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
-:root[data-glass="on"] .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);border-top:0;
+:root[data-glass="on"] .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
   border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-/* 8. the crosshair's OHLC readout on the chart: a small glass card over the candles */
-:root[data-glass="on"] .chartinfo{background:var(--info-glass);-webkit-backdrop-filter:blur(10px) saturate(1.7);backdrop-filter:blur(10px) saturate(1.7);border-radius:10px;
+@keyframes lwInG{0%{transform:translateY(100%)}66%{transform:translateY(-6px)}100%{transform:none}}
+/* the chosen row sits under a glass drop that swells its digits, like an iOS picker's lens */
+:root[data-glass="on"] .lw-lens{display:block;position:absolute;left:8px;right:8px;top:89px;height:38px;border-radius:12px;pointer-events:none;isolation:isolate;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.04);
+  -webkit-backdrop-filter:blur(.3px) saturate(1.3);backdrop-filter:blur(.3px) saturate(1.3);
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+/* 8. the crosshair's OHLC readout on the chart: a small clear drop over the candles */
+:root[data-glass="on"] .chartinfo{isolation:isolate;background:var(--info-glass);-webkit-backdrop-filter:blur(5px) saturate(1.7);backdrop-filter:blur(5px) saturate(1.7);border-radius:12px;text-shadow:var(--lg-text-shadow);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 @media (prefers-reduced-transparency:reduce){
   :root[data-glass="on"] .subtabs,:root[data-glass="on"] .appbar,:root[data-glass="on"] .wl-topbar,:root[data-glass="on"] .sheet,:root[data-glass="on"] .lotwheel,:root[data-glass="on"] .toast,:root[data-glass="on"] .bignew,:root[data-glass="on"] .fabnew,:root[data-glass="on"] .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -2481,7 +2506,7 @@ function openPosition(side, volume, opts){
   S.positions.push(pos);
   recalcAccount();
   if(!opts.quiet)                  // the quick-trade pill is the confirmation there
-    toast("g", (side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+" @ "+pxfmt(px)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip):""));
+    toast("g", (side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+" по "+pxfmt(px)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip):""));
   save();
   return pos;
 }
@@ -2554,7 +2579,7 @@ function addPending(o){
     price: o.price, sl: o.sl||null, tp: o.tp||null, createTime: S.simClock
   };
   S.pendings.push(ord);
-  toast("", o.type.replace("_"," ").toUpperCase()+" "+fmt(o.volume,2)+" @ "+pxfmt(o.price));
+  toast("", o.type.replace("_"," ").toUpperCase()+" "+fmt(o.volume,2)+" по "+pxfmt(o.price));
   save();
   return ord;
 }
@@ -2589,7 +2614,7 @@ function processPendings(){
       openTime: S.simClock, sl: o.sl, tp: o.tp, openCommission: openComm, swap: 0,
       slippage: isStop?roundTo(Math.abs(px-o.price),S.symbol.digits):0, lastSwapDay: simDateStr()
     });
-    toast("g", "Исполнен "+o.type.replace("_"," ")+" #"+o.id+" @ "+pxfmt(px));
+    toast("g", "Исполнен "+o.type.replace("_"," ")+" #"+o.id+" по "+pxfmt(px));
     save();
   }
 }
@@ -2795,7 +2820,8 @@ function toast(kind, msg){
   t.className = "toast " + (kind||"");
   t.textContent = msg;
   w.appendChild(t);
-  setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .3s"; setTimeout(()=>t.remove(),300); }, 3200);
+  if(glassOn()) requestAnimationFrame(() => lgGlass(t, t.offsetWidth, t.offsetHeight, 0, 6));
+  setTimeout(()=>{ t.style.transition="opacity .3s, transform .3s"; t.style.opacity="0"; if(glassOn()) t.style.transform="translateY(-8px) scale(.9)"; setTimeout(()=>t.remove(),300); }, 3200);
 }
 
 function nav(tab, subtab){
@@ -2909,7 +2935,8 @@ function render(){
   document.querySelectorAll("#app .btn.fit").forEach(b => fitText(b, 11));   // a long word shrinks to its button instead of spilling
   if(glassOn()){
     glassDrops(app());
-    document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 0, 12));    // «Новый ордер»: a frosted lens
+    document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 0, 5));     // «Новый ордер»: a clear lens
+    document.querySelectorAll("#app .appbar .iconbtn").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));             // «‹»: a glass drop
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -4118,13 +4145,13 @@ function screenSettings(){
       <hr class="d">
       ${NEWS_TYPES.map(neCard).join("")}
     </div>
-    <button class="btn dark" data-act="rundaytests" style="margin-top:0">🧪 Симуляция 300 торговых дней</button>
+    <button class="btn ghost" data-act="rundaytests" style="margin-top:0">🧪 Симуляция 300 торговых дней</button>
     <div class="card" id="dtest" style="display:none;font-size:12px"></div>
-    <button class="btn dark" data-act="runnewstests" style="margin-top:0">🧪 Прогнать 20×5 симуляций новостей</button>
+    <button class="btn ghost" data-act="runnewstests" style="margin-top:0">🧪 Прогнать 20×5 симуляций новостей</button>
     <div class="card" id="ntest" style="display:none;font-size:12px"></div>
     <button class="btn green" data-act="savesettings">Сохранить настройки</button>
-    <button class="btn ghost" data-act="applybalance">Применить баланс (позиции сохраняются)</button>
-    <button class="btn red" data-act="reset">Сбросить симулятор (начальная цена / свечи)</button>
+    <button class="btn ghost" data-act="applybalance">Применить баланс</button>
+    <button class="btn red" data-act="reset">Сбросить симулятор</button>
   </div>`;
 }
 
@@ -4299,17 +4326,27 @@ function glassDrops(root){
     const sub = bar.classList.contains("subtabs");
     let bub = bar.querySelector(sub ? ":scope > .sub-bub" : ":scope > .seg-bub");
     if(!bub){ bub = document.createElement("span"); bub.className = sub ? "sub-bub" : "seg-bub"; bar.insertBefore(bub, bar.firstChild); }
+    let lens = bar.querySelector(sub ? ":scope > .sub-lens" : ":scope > .seg-lens");
+    if(!lens){ lens = document.createElement("span"); lens.className = (sub ? "sub-lens" : "seg-lens") + " idle"; bar.appendChild(lens); }
     const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
     const key = dropKey(bar), mem = _dropMem[key];
-    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0 };
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: 0, bar, lens };
     _drops.set(bub, st);
     dropApply(bub, st);
   });
   if(_drops.size && !_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
 }
 function dropApply(bub, st){
-  bub.style.setProperty("--bx", st.l.toFixed(2) + "px");
-  bub.style.setProperty("--bw", Math.max(0, st.r - st.l).toFixed(2) + "px");
+  const el = st.bar || bub;                                        // on the bar: the drop and its lens both read them
+  el.style.setProperty("--bx", st.l.toFixed(2) + "px");
+  el.style.setProperty("--bw", Math.max(0, st.r - st.l).toFixed(2) + "px");
+  el.style.setProperty("--lf", (st.lf || 0).toFixed(3));
+  const L = st.lens;
+  if(L){
+    const idle = (st.lf || 0) < .01;
+    if(L._idle !== idle){ L._idle = idle; L.classList.toggle("idle", idle);
+      if(!idle && !L._lg){ L._lg = 1; lgGlass(L, Math.max(8, st.tr - st.tl), L.offsetHeight || 30, 10, .5); } }   // mild: labels stay readable under it
+  }
 }
 function dropFrame(now){
   _dropRaf = 0;
@@ -4318,13 +4355,16 @@ function dropFrame(now){
     const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
     st.t = now;
     const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
-    const Kf = 520, Ks = 230, Cf = 2 * Math.sqrt(Kf) * .78, Cs = 2 * Math.sqrt(Ks) * .8;
+    const Kf = 520, Ks = 230, Cf = 2 * Math.sqrt(Kf) * .6, Cs = 2 * Math.sqrt(Ks) * .62;   // a little bounce on landing
     const Kl = right ? Ks : Kf, Cl = right ? Cs : Cf, Kr = right ? Kf : Ks, Cr = right ? Cf : Cs;
     st.vl += (-Kl * (st.l - st.tl) - Cl * st.vl) * dt; st.l += st.vl * dt;
     st.vr += (-Kr * (st.r - st.tr) - Cr * st.vr) * dt; st.r += st.vr * dt;
     if(st.r - st.l < 8) st.r = st.l + 8;
-    const done = Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3;
-    if(done){ st.l = st.tl; st.r = st.tr; }
+    // the lens rides the speed: up fast while the drop flows, melting back as it lands
+    const flf = Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
+    st.lf += (flf - st.lf) * (1 - Math.exp(-dt / (flf > st.lf ? .05 : .16)));
+    const done = Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01;
+    if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; }
     _dropMem[st.key] = { l: st.l, r: st.r };
     dropApply(bub, st);
     if(done) _drops.delete(bub);
@@ -4676,8 +4716,9 @@ function openLotWheel(){
   el.className = "lotwheel"; el.id = "lotWheel";
   el.innerHTML = `<div class="lw-bar"><button type="button" data-lw="edit">Edit</button><button type="button" class="lw-done" data-lw="done">Done</button></div>
     <div class="lw-edit" hidden><input id="lwInput" class="mono" inputmode="decimal" autocomplete="off" enterkeyhint="done"><span class="lw-err" id="lwErr"></span></div>
-    <div class="lw-body"><canvas id="lwCanvas"></canvas></div>`;
+    <div class="lw-body"><canvas id="lwCanvas"></canvas><div class="lw-lens"></div></div>`;
   document.body.appendChild(el);
+  if(glassOn()){ const ln = el.querySelector(".lw-lens"); lgGlass(ln, ln.offsetWidth, ln.offsetHeight, 6, .5); }    // the chosen row under a magnifying drop (a gentle lens: 26 scrambled the digits)
   const cv = el.querySelector("#lwCanvas"), inp = el.querySelector("#lwInput"), err = el.querySelector("#lwErr");
   const box = el.querySelector(".lw-edit"), doneBtn = el.querySelector('[data-lw="done"]');
   const field = v => {
@@ -4958,8 +4999,8 @@ function drawTicket(){
       <input id="tk-vol" inputmode="decimal" value="${fmt(v,2)}"></div>
     ${t.mode==="market" ? `
       <div class="seg" style="margin-bottom:12px">
-        <button data-tside="sell" class="${t.side==="sell"?"on":""}" style="color:var(--red-ink)">SELL @ <span id="tk-bid" class="mono">${pxfmt(S.price.bid)}</span></button>
-        <button data-tside="buy" class="${t.side==="buy"?"on":""}" style="color:var(--green-ink)">BUY @ <span id="tk-ask" class="mono">${pxfmt(S.price.ask)}</span></button>
+        <button data-tside="sell" class="${t.side==="sell"?"on":""}" style="color:var(--red-ink)">SELL <span id="tk-bid" class="mono">${pxfmt(S.price.bid)}</span></button>
+        <button data-tside="buy" class="${t.side==="buy"?"on":""}" style="color:var(--green-ink)">BUY <span id="tk-ask" class="mono">${pxfmt(S.price.ask)}</span></button>
       </div>
     ` : `
       <div class="field"><label>Тип</label>
@@ -5050,7 +5091,7 @@ function openPosDetail(id){
         <div class="field"><label>Take Profit</label><input id="pd-tp" inputmode="decimal" value="${cur.tp?pxfmt(cur.tp):""}"></div>
       </div>
       <button class="btn ghost" id="pd-mod">Modify SL/TP</button>
-      <button class="btn red" id="pd-close">Закрыть позицию @ market</button>
+      <button class="btn red" id="pd-close">Закрыть позицию по рынку</button>
       <button class="btn ghost" data-close>Назад</button>
     `);
     modalEl._live = ()=>{
@@ -5753,7 +5794,7 @@ function jellyFrame(now){
   }
   if(_jelly.size) _jellyRaf = requestAnimationFrame(jellyFrame);
 }
-const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew";
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn";
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
 function glassAim(g, x, y){
@@ -5796,7 +5837,7 @@ document.addEventListener("pointerdown", e => {
   const r = b.getBoundingClientRect();
   const g = b._gs || (b._gs = { p: 0, pv: 0, ox: 0, oy: 0, tx: 0, ty: 0, fx: .5, fy: .3, t: 0 });
   g.down = true; g.id = e.pointerId; g.r = r;
-  g.w = b.offsetWidth; g.h = b.offsetHeight; g.round = Math.abs(g.w - g.h) < 4; g.blur = b.matches(".bignew, .fabnew") ? 12 : 1;
+  g.w = b.offsetWidth; g.h = b.offsetHeight; g.round = Math.abs(g.w - g.h) < 4; g.blur = b.matches(".bignew, .fabnew") ? 5 : 1;
   glassAim(g, e.clientX, e.clientY);
   b.classList.add("pressing");
   lgGlass(b, g.w, g.h, 32, g.blur);                                      // the lens deepens under the finger
