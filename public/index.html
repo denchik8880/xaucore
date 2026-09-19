@@ -7,8 +7,8 @@
 <script>/* glass clarity 0…100 («Настройки стекла» → the slider): 0 the least glass there is (dense, frosted, no bend),
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
-   ch colour fringes (past 78), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.86,b:1+lo*.4-hi*.92,s:1+lo*.15-hi*.42,sb:1+lo*.2-hi*.5,r:1-lo+hi*1.3,ch:Math.max(0,c-.78)/.22,n:Math.pow(1-c,2)*.75+.03};}
+   ch colour fringes (past 85, faint — user: «радужный эффект сильно минимализируй»), n the crystal «Новый ордер»'s own tint. */
+function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.86,b:1+lo*.4-hi*.92,s:1+lo*.15-hi*.42,sb:1+lo*.2-hi*.5,r:1-lo+hi*1.3,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.03};}
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=75;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
@@ -974,18 +974,41 @@ html:has(body.route-wallet){background:#0c0a08}
   :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 /* the PRESS, one to one with the user's video 1 (glassFrame): the glass fills with a milky light from the finger
-   that frosts what is on it — a round button all over, a bar only around the finger (its other tabs stay
-   readable, as at 9 s in the video) */
+   that frosts what is on it (buttons only) */
 .lg-milk{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;opacity:var(--mk,0);
   background:radial-gradient(var(--mr,80px) circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,var(--mc)) 0%,rgba(255,255,255,calc(var(--mc) * .6)) 45%,rgba(255,255,255,0) 100%);
   -webkit-backdrop-filter:blur(var(--mb,1.5px));backdrop-filter:blur(var(--mb,1.5px));
   -webkit-mask:radial-gradient(var(--mr,80px) circle at var(--mx,50%) var(--my,50%),#000 45%,transparent 100%);mask:radial-gradient(var(--mr,80px) circle at var(--mx,50%) var(--my,50%),#000 45%,transparent 100%)}
 :root{--mc:.9}
 :root[data-theme="dark"]{--mc:.5}
-.bottomnav>.lg-milk{z-index:1}                                   /* over the tabs, under the lens that follows the finger */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{transform:translateX(-50%) translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-.lg-pop{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+/* the tab bar OPENS into a card (user: «про 9 секунду … можно ее раскрывать и там что бы еще какая-то информация была
+   написана» — video 1, 9–12 s: the bar grows up into a big glass card with a grabber and shrinks back). Swipe the
+   bar up; a tap beside it, the grabber or a swipe down closes it. It holds the account at a glance, live. */
+body.navcard-open .bottomnav{opacity:0;pointer-events:none}
+.nav-card-catch{position:fixed;inset:0;z-index:88}
+.nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 20px);max-width:500px;z-index:89;
+  box-sizing:border-box;padding:8px 18px 14px;border-radius:30px;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
+  background:var(--sheet-glass,var(--card));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
+  box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
+.nav-card.shown{opacity:1;transition:opacity .16s ease}
+.nav-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.nav-card .grab{display:block;width:40px;height:5px;margin:0 auto 12px;padding:0;border:0;border-radius:3px;background:var(--ink3);opacity:.55}
+.nav-card .nc-sym{display:flex;justify-content:space-between;align-items:baseline;font-size:17px;font-weight:600}
+.nav-card .nc-q{display:flex;gap:10px;margin-top:8px}
+.nav-card .nc-q span{flex:1;padding:7px 10px;border-radius:12px;background:var(--sheet-card,var(--bg));font-size:12px;color:var(--ink2);display:flex;justify-content:space-between;align-items:baseline}
+.nav-card .nc-q b{font-size:15px;font-weight:600}
+.nav-card .nc-q .s b{color:var(--red-ink)}.nav-card .nc-q .b b{color:var(--green-ink)}
+.nav-card .nc-meta{margin-top:8px;font-size:12px;color:var(--ink3);display:flex;justify-content:space-between}
+.nav-card .nc-rows{margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
+.nav-card .nc-h{margin:2px 0 2px;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
+.nav-card .nc-rows div{display:flex;justify-content:space-between;padding:4px 0;font-size:13.5px}
+.nav-card .nc-rows div span:first-child{color:var(--ink2)}
+.nav-card .nc-rows .pos{color:var(--green-ink)}.nav-card .nc-rows .neg{color:var(--red-ink)}
+.nav-card .nc-cnt{display:flex;gap:8px;margin-top:10px}
+.nav-card .nc-cnt span{flex:1;text-align:center;padding:8px 0;border-radius:12px;background:var(--sheet-card,var(--bg));font-size:13px;color:var(--ink2)}
+.nav-card .nc-cnt b{color:var(--ink);font-weight:600;margin-left:6px}
 /* «Настройки стекла»: one switch per feature */
 .lg-set{margin-top:8px}
 /* the clarity slider, iOS 26 — one to one with the user's video 3 (measured: a 6 px track, a white pill knob 36×24;
@@ -1206,6 +1229,7 @@ const I18N = {
 "Больше событий":["More events","Більше подій","Plus d'événements","Daha fazla etkinlik"],
 "Торговый день · СИНТЕТИКА":["Trading day · SYNTHETIC","Торговий день · СИНТЕТИКА","Journée de trading · SYNTHÉTIQUE","İşlem günü · SENTETİK"],
 "Счёт":["Account","Рахунок","Compte","Hesap"],
+"Закрыть":["Close","Закрити","Fermer","Kapat"],
 "Сегодня":["Today","Сьогодні","Aujourd'hui","Bugün"],
 "Завтра":["Tomorrow","Завтра","Demain","Yarın"],
 "Вчера":["Yesterday","Учора","Hier","Dün"],
@@ -5516,9 +5540,59 @@ function navBubFrame(now){
   }
   NB.raf = requestAnimationFrame(navBubFrame);
 }
+let _navCard = null;
+function navCardBody(){
+  if(!S._acc) recalcAccount();
+  const a = S._acc, fl = a.floating + a.swaps;
+  return `<div class="nc-sym"><span>XAUUSD</span><span class="mono" style="font-size:13px;color:var(--ink3)">${sessionInfo().names.join(" · ")}</span></div>
+    <div class="nc-q"><span class="s">${L("Продать")} <b class="mono">${chartPx(S.price.bid)}</b></span><span class="b">${L("Купить")} <b class="mono">${chartPx(S.price.ask)}</b></span></div>
+    <div class="nc-meta"><span>${L("Спред")} <span class="mono">${pxfmt(S.price.spread)}</span></span></div>
+    <div class="nc-rows"><p class="nc-h">${L("Счёт")}</p>
+      <div><span>${L("Баланс")}</span><span class="mono">${money(a.balance)}</span></div>
+      <div><span>${L("Средства")}</span><span class="mono">${money(a.equity)}</span></div>
+      <div><span>${L("Плавающая П/У")}</span><span class="mono ${Math.abs(fl) < .005 ? "" : fl > 0 ? "pos" : "neg"}">${money(fl)}</span></div>
+      <div><span>${L("Маржа")}</span><span class="mono">${money(a.margin)}</span></div>
+      <div><span>${L("Свободная маржа")}</span><span class="mono">${money(a.freeMargin)}</span></div>
+      <div><span>${L("Уровень маржи")}</span><span class="mono">${isFinite(a.marginLevel) ? fmt(a.marginLevel, 1) + "%" : "—"}</span></div>
+    </div>
+    <div class="nc-cnt"><span>${L("Позиции")}<b>${S.positions.length}</b></span><span>${L("Ордера")}<b>${S.pendings.length}</b></span></div>`;
+}
+// the bar grows up into the card (a glass ghost from the bar's shape to the card's), the card's content fades in
+function openNavCard(){
+  const bar = document.querySelector(".bottomnav");
+  if(_navCard || !bar || !glassOn("nav")) return;
+  closeTFPop(true);
+  const catcher = document.createElement("div"); catcher.className = "nav-card-catch";
+  const card = document.createElement("div"); card.className = "nav-card"; card.setAttribute("role", "dialog"); card.setAttribute("aria-label", L("Счёт"));
+  card.innerHTML = `<button type="button" class="grab" aria-label="${L("Закрыть")}"></button><div class="nc-body">${navCardBody()}</div>`;
+  document.body.append(catcher, card);
+  const a = bar.getBoundingClientRect();
+  document.body.classList.add("navcard-open");
+  const C = _navCard = { card, catcher, t: setInterval(() => { const b = card.querySelector(".nc-body"); if(b) b.innerHTML = navCardBody(); }, 500) };
+  if(glassOn("morph")){ lgMorph(a, "31px", () => card, 420, null, false, "navcard"); setTimeout(() => card.classList.add("shown"), 200); }
+  else card.classList.add("shown");
+  catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeNavCard(true); });
+  card.querySelector(".grab").onclick = () => closeNavCard();
+  // a swipe down closes it
+  card.onpointerdown = e => { C.y0 = e.clientY; C.id = e.pointerId; };
+  card.onpointermove = e => { if(C.id === e.pointerId && C.y0 != null && e.clientY - C.y0 > 36){ C.y0 = null; closeNavCard(); } };
+  card.onpointerup = card.onpointercancel = () => { C.y0 = null; };
+}
+// …and shrinks back into the bar, which shows again once the glass has landed on it
+function closeNavCard(outside){
+  const C = _navCard; if(!C) return;
+  _navCard = null;
+  clearInterval(C.t);
+  if(outside){ const rm = () => C.catcher.remove(); C.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }   // a tap beside it only closes it
+  else C.catcher.remove();
+  const r = C.card.getBoundingClientRect();
+  C.card.remove();
+  const bar = () => document.querySelector(".bottomnav");
+  if(!glassOn("morph") || !bar()){ document.body.classList.remove("navcard-open"); return; }
+  lgMorph(r, "30px", bar, 300, () => document.body.classList.remove("navcard-open"), false, "navcard");
+}
 function navBind(bar){
   if(!bar) return;
-  glassHandOver(".bottomnav");
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   lgGlass(bar, bar.offsetWidth, bar.offsetHeight, 0, 18);                // the capsule bends what scrolls under its rim
   const uAt = x => { const r = bar.getBoundingClientRect(); return clamp((x - r.left) / (r.width / 5) - .5, 0, 4); };
@@ -5533,12 +5607,21 @@ function navBind(bar){
   };
   bar.onpointerdown = e => {
     if(e.button > 0) return;
-    NB.drag = { id: e.pointerId, u: uAt(e.clientX) };
+    NB.drag = { id: e.pointerId, u: uAt(e.clientX), x0: e.clientX, y0: e.clientY };
     try{ bar.setPointerCapture(e.pointerId); }catch(_){}
     bar.classList.add("dragging");
     navBubKick();
   };
-  bar.onpointermove = e => { const d = NB.drag; if(!d || e.pointerId !== d.id) return; d.u = uAt(e.clientX); navBubKick(); };
+  bar.onpointermove = e => {
+    const d = NB.drag; if(!d || e.pointerId !== d.id) return;
+    const dy = d.y0 - e.clientY;
+    if(dy > 26 && dy > Math.abs(e.clientX - d.x0) * 1.2){            // pulled up: the bar opens into its card, no tab changes
+      NB.drag = null; bar.classList.remove("dragging"); navBubKick();
+      _navByDrop = performance.now();
+      openNavCard(); return;
+    }
+    d.u = uAt(e.clientX); navBubKick();
+  };
   bar.onpointerup = e => end(e, true);
   bar.onpointercancel = e => end(e, false);
   // a screen re-rendered mid-drag gets a new bar: it takes the finger over
@@ -7170,7 +7253,7 @@ function lgMap(w, h){
 }
 // its bend right now: the clarity scales it (0 at the least glass, ×2.3 crystal); with colour fringes the three
 // channels bend a little apart (blue most, like a real lens)
-const lgDmScale = dm => (dm._s * LGQ.r * (1 + dm._c * .2 * LGQ.ch)).toFixed(1);
+const lgDmScale = dm => (dm._s * LGQ.r * (1 + dm._c * .035 * LGQ.ch)).toFixed(1);
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
 function lgFilterId(w, h, scale, chroma){
   scale = scale || 22;
@@ -7274,10 +7357,11 @@ function jellyFrame(now){
 /* THE PRESS, one to one with the user's video 1 («такие взаимодействия с кнопками, что бы были 1 в 1»), measured
    frame by frame: pressed, the glass swells (a round button ~17 %, a bar ~5 %) in ~0.1 s and fills with a milky light
    from the finger that frosts what is on it; dragged, it follows the finger on a rubber band and stretches that
-   way; let go (a quick tap is held ~0.13 s so it shows), it springs back with a wobble and clears in ~0.3 s. The
-   tab bar, the chart's trade bar and the timeframe menu do it as a whole (the toolbar at 9 s in the video).
+   way; let go (a quick tap is held ~0.13 s so it shows), it springs back with a wobble and clears in ~0.3 s.
+   BUTTONS ONLY: the tab bar, the trade bar and the menus never swell or glow — in the tab bar only its drop moves
+   (user: «это создано только для маленьких кнопок … плашка не должна вообще дергатся»).
    One rAF loop for everything still moving; clicks are untouched. */
-const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close, .lg-pop, .bottomnav, body.route-chart .chtrade";
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close";   // buttons only: the bars and menus hold still (user)
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
 function glassAim(g, x, y){
@@ -7333,9 +7417,6 @@ function glassKind(b, g){
   const w = g.w, h = g.h;
   // St: how much a full pull stretches it (a round button ~14 %, a bar only a few %, as in the video)
   g.rs = 0; g.blur = 1; g.mb = 1.6; g.R = Math.round(Math.max(w, h) * 1.25); g.St = .1;
-  if(b.matches(".bottomnav")){ g.S = .045; g.Lx = 10; g.Ly = 5; g.St = .03; g.R = 72; g.mb = .8; g.blur = 18; return; }
-  if(b.matches(".chtrade")){ g.S = .035; g.Lx = 8; g.Ly = 4; g.St = .03; g.R = 70; g.mb = .8; g.blur = 12; return; }
-  if(b.matches(".lg-pop")){ g.S = .035; g.Lx = 10; g.Ly = 10; g.St = .03; g.R = 110; g.mb = 1; g.blur = 24; return; }
   if(b.matches(".bignew, .fabnew")){ g.rs = 26; g.blur = .6; g.St = w > 200 ? .04 : .08; }
   if(b.matches(".sheet .close")) g.blur = 16;
   if(Math.abs(w - h) < 4){ g.S = .17; g.Lx = g.Ly = w * .45; g.St = .14; return; }       // a round button: swells the most
@@ -7371,18 +7452,6 @@ const glassUp = e => {
 };
 document.addEventListener("pointerup", glassUp, { capture: true, passive: true });
 document.addEventListener("pointercancel", glassUp, { capture: true, passive: true });
-// a pressed glass that render() replaced (the tab bar opens the tab it was pressed on) hands its spring on to
-// the new one — it springs back and clears there instead of snapping flat
-function glassHandOver(sel){
-  for(const old of _glass){
-    if(old.isConnected || !old.matches(sel)) continue;
-    const nb = document.querySelector(sel);
-    if(!nb || nb === old || nb._gs) continue;
-    nb._gs = old._gs; nb._gs.t = 0; old._gs = null; old._milk = null;
-    if(_glassBtn === old) _glassBtn = nb;
-    _glass.delete(old); _glass.add(nb); nb.classList.add("pressing"); glassKick();
-  }
-}
 function chartZones(c){
   const box = c.getBoundingClientRect(), root = c.parentElement, z = {};
   const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };
