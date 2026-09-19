@@ -258,7 +258,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform,opacity}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 62%),var(--nav-bub);
   box-shadow:inset 0 1px 1px var(--nb-sheen)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:2;opacity:var(--lf,0);background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 52%),var(--nav-lens);
+/* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:2;opacity:var(--lf,0);background:rgba(255,255,255,.025);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
   box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens.idle{visibility:hidden}
@@ -909,7 +910,9 @@ html:has(body.route-wallet){background:#0c0a08}
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.05);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
   box-shadow:0 0 0 .5px var(--lg-line),0 2px 8px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens{top:6px;bottom:6px;border-radius:999px}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens{top:6px;bottom:6px;border-radius:999px;background:rgba(255,255,255,.025)}
+/* the lens pokes out of the capsule (it is taller than it, as in the video): the glass subtabs fit without scrolling */
+:root[data-glass="on"]:not([data-lgoff~="headers"]):not([data-lgoff~="drops"]) .subtabs{overflow:visible}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens{top:3px;bottom:3px;border-radius:9px}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens.idle,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens.idle{visibility:hidden}
 /* 4. toasts: clear glass capsules that drop in with a bounce and shrink away */
@@ -5543,16 +5546,19 @@ function navBubFrame(now){
   const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : 1 / 60;
   NB.t = now;
   const target = NB.drag ? NB.drag.u : NB.target;
-  // under the finger a stiff, well-damped spring (it keeps up without wobble); let go, a softer one that
-  // overshoots a hair onto the tab — the island's settle
-  const K = NB.drag ? 900 : 320, C = 2 * Math.sqrt(K) * (NB.drag ? .9 : .6);
+  // one to one with the user's video (WhatsApp, iOS 26): under the finger a SOFT spring — the lens lags a step
+  // behind and sways when the finger stops; let go, it overshoots a hair onto the tab
+  const K = NB.drag ? 420 : 320, C = 2 * Math.sqrt(K) * (NB.drag ? .62 : .6);
   NB.vel += (-K * (NB.u - target) - C * NB.vel) * dt;
-  NB.u = clamp(NB.u + NB.vel * dt, -0.15, 4.15);
+  NB.u = clamp(NB.u + NB.vel * dt, -0.3, 4.3);
   // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
   const lt = NB.drag ? 1 : 0;
   NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
-  const stretch = Math.min(Math.abs(NB.vel) * .06, .32);            // tabs / s → stretched along its path
-  const sx = 1 + .1 * NB.lift + stretch, sy = 1 + .2 * NB.lift - stretch * .35;
+  // lifted it is a big lens, ~1.3 tabs wide and taller than the bar; stretched along its way by its speed (to
+  // ~1.55×); run past an end, squashed flat against it
+  const stretch = Math.min(Math.abs(NB.vel) * .1, .42);             // tabs / s → up to ~1.6 tabs, as in the video
+  const over = Math.max(0, -NB.u, NB.u - 4);
+  const sx = 1 + .32 * NB.lift + stretch - over * 1.4, sy = 1 + .3 * NB.lift - stretch * .3 + over * .35;
   bar.style.setProperty("--u", NB.u.toFixed(4));
   bar.style.setProperty("--sx", sx.toFixed(3));
   bar.style.setProperty("--sy", sy.toFixed(3));
@@ -5565,7 +5571,7 @@ function navBubFrame(now){
   // the icons under the lens swell and take the accent colour (a CSS colour transition, no jump)
   const lifted = NB.lift > .3;
   bar.querySelectorAll("button[data-nav]").forEach((b, i) => {
-    const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .16 * k * NB.lift;
+    const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .25 * k * NB.lift;    // magnified under the lens
     const tr = sc > 1.002 ? "scale(" + sc.toFixed(3) + ")" : "";
     if(b.style.transform !== tr) b.style.transform = tr;
     const near = lifted && k > .5;
@@ -5665,7 +5671,8 @@ function navBind(bar){
   if(!bar) return;
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   lgGlass(bar, bar.offsetWidth, bar.offsetHeight, 0, 18);                // the capsule bends what scrolls under its rim
-  const uAt = x => { const r = bar.getBoundingClientRect(); return clamp((x - r.left) / (r.width / 5) - .5, 0, 4); };
+  // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
+  const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
   const end = (e, go) => {
     const d = NB.drag;
     if(!d || e.pointerId !== d.id) return;
@@ -5751,8 +5758,11 @@ function subDragBind(bar){
   };
   const aim = (st, x) => {
     const h = hit(x); if(!h.b) return null;
-    const w = h.b.offsetWidth - 2 * (st.inset || 0);
-    st.tl = h.lx - w / 2; st.tr = h.lx + w / 2;
+    const w = h.b.offsetWidth - 2 * (st.inset || 0), bs = btns(), f = bs[0], l = bs[bs.length - 1];
+    // past the first / last tab the finger pulls it on a rubber band
+    const c0 = f.offsetLeft + f.offsetWidth / 2, c1 = l.offsetLeft + l.offsetWidth / 2;
+    const cx = h.lx < c0 ? c0 - 9 * Math.tanh((c0 - h.lx) / 24) : h.lx > c1 ? c1 + 9 * Math.tanh((h.lx - c1) / 24) : h.lx;
+    st.tl = cx - w / 2; st.tr = cx + w / 2;
     btns().forEach(b => b.classList.toggle("near", b === h.b));
     return h;
   };
@@ -5896,9 +5906,9 @@ function dropApply(bub, st){
   el.style.setProperty("--bw", Math.max(0, st.r - st.l).toFixed(2) + "px");
   el.style.setProperty("--lf", (st.lf || 0).toFixed(3));
   // its body: lifted a little as a lens, squashed while it flows, wobbling after it lands
-  const lf = st.lf || 0, j = st.j || 0;
-  el.style.setProperty("--dsx", (1 + .03 * lf + .25 * j).toFixed(3));
-  el.style.setProperty("--dsy", (1 + .1 * lf - j).toFixed(3));
+  const lf = st.lf || 0, j = st.j || 0, sub = st.key === "sub";
+  el.style.setProperty("--dsx", (1 + (sub ? .12 : .03) * lf + .25 * j).toFixed(3));   // the subtabs' lens: bigger than the tab, taller than the capsule
+  el.style.setProperty("--dsy", (1 + (sub ? .42 : .1) * lf - j).toFixed(3));
   const L = st.lens;
   if(L){
     const idle = (st.lf || 0) < .01;
@@ -5913,8 +5923,8 @@ function dropFrame(now){
     const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
     st.t = now;
     const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
-    const dr = !!st.drag;                                           // under the finger: stiff and calm; let go: the flowing drop
-    const Kf = dr ? 900 : 540, Ks = dr ? 700 : 240, Cf = 2 * Math.sqrt(Kf) * (dr ? .9 : .52), Cs = 2 * Math.sqrt(Ks) * (dr ? .9 : .55);   // a bounce on landing
+    const dr = !!st.drag;                                           // under the finger: a soft spring that lags and stretches (the video); let go: the flowing drop
+    const Kf = dr ? 520 : 540, Ks = dr ? 300 : 240, Cf = 2 * Math.sqrt(Kf) * (dr ? .62 : .52), Cs = 2 * Math.sqrt(Ks) * (dr ? .62 : .55);   // a bounce on landing
     const Kl = right ? Ks : Kf, Cl = right ? Cs : Cf, Kr = right ? Kf : Ks, Cr = right ? Cf : Cs;
     st.vl += (-Kl * (st.l - st.tl) - Cl * st.vl) * dt; st.l += st.vl * dt;
     st.vr += (-Kr * (st.r - st.tr) - Cr * st.vr) * dt; st.r += st.vr * dt;
