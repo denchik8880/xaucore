@@ -997,9 +997,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
   box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
 .nav-card.shown{opacity:1}
 .nav-card>*{opacity:var(--ncc,1);transform:translateY(calc((1 - var(--ncc,1)) * 10px))}   /* its content rises into place as it grows */
-/* the pull-up handle in the middle of the bar: the card opens only from there (user: «открытия было только по середине») */
-.nav-grab{display:none}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-grab{display:block;position:absolute;top:4px;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:var(--ink3);opacity:.4;pointer-events:none;z-index:3}
+/* the card opens with a swipe up from the middle of the bar — no handle shows it (user: «убери язычок … пусть люди
+   сами думают как открыть») */
 .nav-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -1149,6 +1148,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root{--ot-edge:#c3c7cd;--ot-idle:#eceef1}
 :root[data-theme="dark"]{--ot-edge:#4d4d52;--ot-idle:#323236}
 .sheet.ot-sheet{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.ot-sheet>.close{z-index:5}                                              /* over the header, which spans the width (it took the ✕'s taps) */
 .ot-top{position:relative;flex:none;display:flex;align-items:center;min-height:54px;padding:12px 60px 6px 18px}
 .sheet .ot-top h2{margin:0;padding:0;font-size:18px;line-height:1.25}
 .ot-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 16px 20px;scrollbar-width:none}
@@ -1162,7 +1162,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .ot-closed{display:flex;align-items:center;gap:8px;margin:10px 0 2px;color:var(--blue-ink);font-size:13.5px;line-height:1.3}
 .ot-closed svg{flex:none}
 .ot-closed[hidden]{display:none}
-.ot-q,.ot-day{text-align:center;font-size:13.5px;line-height:1.3;color:var(--ink2);font-variant-numeric:tabular-nums}
+.ot-q,.ot-day{text-align:center;font-size:clamp(11.5px,3.45vw,13.5px);line-height:1.3;color:var(--ink2);font-variant-numeric:tabular-nums}   /* one line at 360 px, like cTrader */
 .ot-q{margin:16px 0 8px}
 .ot-day{margin-top:7px}
 /* the fields: cTrader's outlined ones — the label sits in a notch of the frame */
@@ -1273,6 +1273,25 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .ot-g .ot-go.sell{box-shadow:0 8px 22px color-mix(in srgb,var(--red) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go:disabled{background-color:var(--cap-glass);background-image:none;box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);color:var(--ink3)}
 .ot-g .ot-go:not(:disabled):active{transform:scale(.98)}
+/* the lot list without liquid glass — cTrader's Android dropdown under «Количество»: the volume ladder, the current
+   one lit at the top, a tap picks, a tap beside closes (the drum is liquid glass's own) */
+.lot-list{position:fixed;z-index:90;overflow-y:auto;overscroll-behavior:contain;padding:6px 0;border-radius:4px;background:var(--card);
+  box-shadow:0 10px 30px rgba(0,0,0,.3),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn .15s ease-out;scrollbar-width:thin}
+.lot-list.up{transform-origin:50% 100%}
+.lot-list.out{opacity:0;transition:opacity .1s ease}
+:root[data-theme="dark"] .lot-list{background:#2a2a2d;box-shadow:0 10px 30px rgba(0,0,0,.55)}
+.lot-list button{display:block;width:100%;min-height:48px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16px;text-align:left;font-variant-numeric:tabular-nums}
+.lot-list button.on{background:rgba(127,127,127,.18)}
+.lot-list button:active{background:rgba(127,127,127,.26)}
+.ll-open .ot-caret,.ll-open .ctp-caret{transform:rotate(180deg)}
+.ot-caret,.ctp-caret{transition:transform .15s ease}
+/* the order-type tabs with glass: the tab bar's drop — pressed it lifts into a clear lens taller than the capsule that
+   follows the finger (a soft spring, a rubber band past the ends); the tab under it swells */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag .seg-lens{background:rgba(255,255,255,.025)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag button{transition:transform .2s cubic-bezier(.3,1.3,.5,1),color .2s ease}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag.dragging button.near{transform:scale(1.1);color:var(--ink)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag.dragging button.on:not(.near){color:var(--ink3)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
@@ -3957,7 +3976,7 @@ document.addEventListener("click", e => {                         // capture: be
   const R = P.shown;
   setTimeout(() => { if(!stays && leftScreen()) R.box.remove(); }, 0);
 }, true);
-let modalEl = null, OT = null, _otMenu = null;                 // the open sheet; the order ticket («Разместить ордер») and its menu
+let modalEl = null, OT = null, _otMenu = null, _lotList = null;                 // the open sheet; the order ticket («Разместить ордер») and its menu
 /* iOS 26 switches (glassOn("switches")): pressed, the knob swells into a clear lens that a drag moves along the
    track; let go past the middle it switches (one click, ours), a tap switches as ever; then it wobbles still */
 let _sw = null, _swSkip = 0;
@@ -6018,18 +6037,18 @@ function glassDrops(root){
   root.querySelectorAll(".subtabs, .seg").forEach(bar => {
     const on = bar.querySelector(":scope > button.on");
     if(!on) return;
-    const sub = bar.classList.contains("subtabs");
+    const sub = bar.classList.contains("subtabs"), big = sub || bar.classList.contains("seg-drag");   // dragged with a big lens (the tab bar's drop)
     let bub = bar.querySelector(sub ? ":scope > .sub-bub" : ":scope > .seg-bub");
     if(!bub){ bub = document.createElement("span"); bub.className = sub ? "sub-bub" : "seg-bub"; bar.insertBefore(bub, bar.firstChild); }
     let lens = bar.querySelector(sub ? ":scope > .sub-lens" : ":scope > .seg-lens");
     if(!lens){ lens = document.createElement("span"); lens.className = (sub ? "sub-lens" : "seg-lens") + " idle"; bar.appendChild(lens); }
     const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
     const key = dropKey(bar), mem = _dropMem[key];
-    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset };
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big };
     bar._st = st; bar._bub = bub;
     _drops.set(bub, st);
     dropApply(bub, st);
-    if(sub) subDragBind(bar);
+    if(big) subDragBind(bar);
   });
   if(_drops.size && !_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
 }
@@ -6066,6 +6085,7 @@ function subDragBind(bar){
     if(go && h.b && h.b !== on){                                 // a drag or a tap: the bar holds the finger, so it picks
       _subByDrag = performance.now();
       _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv };
+      if(bar._pick){ bar._pick(h.b); return; }                    // a seg of its own (the order types): it moves its drop on
       S.ui.subtab = h.b.dataset.sub; render(); save();
       return;
     }
@@ -6197,7 +6217,7 @@ function dropApply(bub, st){
   el.style.setProperty("--bw", Math.max(0, st.r - st.l).toFixed(2) + "px");
   el.style.setProperty("--lf", (st.lf || 0).toFixed(3));
   // its body: lifted a little as a lens, squashed while it flows, wobbling after it lands
-  const lf = st.lf || 0, j = st.j || 0, sub = st.key === "sub";
+  const lf = st.lf || 0, j = st.j || 0, sub = !!st.big;
   el.style.setProperty("--dsx", (1 + (sub ? .12 : .03) * lf + .25 * j).toFixed(3));   // the subtabs' lens: bigger than the tab, taller than the capsule
   el.style.setProperty("--dsy", (1 + (sub ? .42 : .1) * lf - j).toFixed(3));
   const L = st.lens;
@@ -6242,7 +6262,7 @@ function bottomNav(){
   const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   if(NB.u == null) NB.u = navIndexOf(t);
   if(!NB.drag) NB.target = navIndexOf(t);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.u.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span><span class="nav-grab" aria-hidden="true"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.u.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     <button data-nav="markets" class="${["markets","calendar","dom"].includes(t)?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>${L("Рынки")}</button>
     <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>${L("Графики")}</button>
     <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>${L("Позиции")}</button>
@@ -6413,7 +6433,7 @@ function bindScreen(){
   act("quickbuy", ()=> quickTrade("buy"));
   act("quicksell", ()=> quickTrade("sell"));
   act("lotpick", openLotSheet);          // «Лоты» on the Charts bar
-  act("lotwheel", openLotWheel);         // the ▼ in «Количество» on Markets → cTrader's wheel
+  act("lotwheel", lotPicker);            // the ▼ in «Количество» on Markets: the drum with liquid glass, cTrader's list without
   // Markets overview chart: period presets, the tf button (cycles), ⛶ (opens the Charts tab on that tf)
   root.querySelectorAll("[data-minirange]").forEach(b=> b.onclick = ()=>{
     const [tf, bars] = MINI_RANGES[b.dataset.minirange];
@@ -6551,6 +6571,44 @@ function openLotSheet(){
   inp.addEventListener("keydown", e=>{ if(e.key === "Enter") inp.blur(); });
   document.getElementById("lsDone").onclick = ()=>{ if(commit()){ closeModal(); render(); } };
   show();
+}
+/* the ▼ of «Количество» on Markets: with liquid glass the drum (its own — user 2026-09-19), without it cTrader's list */
+function lotPicker(){
+  if(glassOn("lots")){ openLotWheel(); return; }
+  const f = document.querySelector(".ctp-lot");
+  if(f) openLotList(f, S.ui.lot, v => { if(S.ui.lot !== v){ S.ui.lot = v; save(); } setTxt("ovLot", fmt(v, 2)); setTxt("chLot", fmt(v, 2)); });
+}
+/* cTrader's Android lot dropdown (user video 2026-09-19 22:37): the volume ladder (the drum's rows) in a list the
+   width of the field, just under it and down to the screen's foot; the current volume lit and scrolled to the top;
+   a tap picks it and closes, a tap beside only closes. It opens upward when there is no room below. */
+function openLotList(anchor, value, pick){
+  if(guardLock() || !anchor) return;
+  closeLotList();
+  const min = S.symbol.minLot, max = S.symbol.maxLot, set = new Set([min, max]);
+  for(const v of LOT_WHEEL) if(v > min && v < max) set.add(v);
+  if(Number.isFinite(value) && !validateLot(value)) set.add(roundTo(value, 2));
+  const vals = [...set].sort((a, b) => a - b), cur = v => Math.abs(v - value) < 1e-9;
+  const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
+  const list = document.createElement("div"); list.className = "lot-list"; list.setAttribute("role", "listbox");
+  list.innerHTML = vals.map(v => `<button type="button" role="option" data-v="${v}" class="${cur(v) ? "on" : ""}" aria-selected="${cur(v)}">${roundTo(v, 2)}</button>`).join("");
+  document.body.append(catcher, list);
+  const a = anchor.getBoundingClientRect(), below = innerHeight - a.bottom - 10, up = below < 200 && a.top > below;
+  list.style.left = a.left + "px"; list.style.width = Math.max(120, a.width) + "px";
+  if(up){ list.classList.add("up"); list.style.bottom = (innerHeight - a.top + 2) + "px"; list.style.maxHeight = (a.top - 10) + "px"; }
+  else { list.style.top = (a.bottom + 2) + "px"; list.style.maxHeight = below + "px"; }
+  const on = list.querySelector(".on"); if(on) list.scrollTop = Math.max(0, on.offsetTop - 6);
+  anchor.classList.add("ll-open");
+  _lotList = { list, catcher, anchor };
+  catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeLotList(true); });
+  list.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { pick(+b.dataset.v); closeLotList(); });
+}
+function closeLotList(outside){
+  const P = _lotList; if(!P) return;
+  _lotList = null;
+  if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
+  else P.catcher.remove();
+  P.anchor.classList.remove("ll-open");
+  P.list.classList.add("out"); setTimeout(() => P.list.remove(), 110);
 }
 /* ---------- lot wheel (Markets → «Количество») ----------
    cTrader's picker, opened from the field's ▼: an iOS drum under an «Edit · Done» bar. Its rows
@@ -6890,7 +6948,8 @@ function openTicket(){
   openSheet(otMarkup(), "ot-sheet " + (G ? "ot-g" : "ot-p"), G ? "" : "opage");
   modalEl._live = otSync;
   const tabs = document.getElementById("otTypes");
-  tabs.querySelectorAll("[data-ottype]").forEach(b => b.onclick = () => otSetType(b.dataset.ottype));
+  tabs.querySelectorAll("[data-ottype]").forEach(b => b.onclick = () => { if(performance.now() - _subByDrag < 400) return; otSetType(b.dataset.ottype); });
+  tabs._pick = b => otSetType(b.dataset.ottype);                    // picked by the drop under a finger
   document.getElementById("otGo").onclick = otPlace;
   scrollInd(document.getElementById("otBody"), modalEl);
   otUl(false);
@@ -6900,7 +6959,7 @@ function openTicket(){
 function otMarkup(){
   const G = OT.G;
   return `<div class="ot-top">${G ? "" : `<button type="button" class="ot-back" data-close aria-label="${L("Назад")}"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}<h2>${L("Разместить ордер")}</h2></div>
-    <div class="${G ? "seg ot-types" : "ot-tabs"}" id="otTypes" role="tablist">${OT_TYPES.map(([k, t]) => `<button type="button" role="tab" data-ottype="${k}" class="${OT.type === k ? "on" : ""}" aria-selected="${OT.type === k}">${L(t)}</button>`).join("")}${G ? "" : `<span class="ot-ul" aria-hidden="true"></span>`}</div>
+    <div class="${G ? "seg seg-drag ot-types" : "ot-tabs"}" id="otTypes" role="tablist">${OT_TYPES.map(([k, t]) => `<button type="button" role="tab" data-ottype="${k}" class="${OT.type === k ? "on" : ""}" aria-selected="${OT.type === k}">${L(t)}</button>`).join("")}${G ? "" : `<span class="ot-ul" aria-hidden="true"></span>`}</div>
     <div class="ot-body" id="otBody">${otBody()}</div>
     <div class="ot-foot"><button type="button" class="ot-go" id="otGo"><b>${L("Разместить ордер")}</b><span id="otGoSub"></span></button></div>`;
 }
@@ -7142,7 +7201,9 @@ function otToggle(k){
 function otWheel(){
   if(!OT) return;
   const v0 = numIn(OT.volTxt), put = v => { OT.volTxt = fmt(v, 2); if(OT.tp2.on) OT.tp1.vol = null; const i = document.getElementById("otVol"); if(i) i.value = OT.volTxt; otSync(); };
-  openLotWheel({ value: validateLot(v0) ? S.ui.lot : v0, keep: "[data-otwheel]", show: put, commit: put });
+  const v = validateLot(v0) ? S.ui.lot : v0;
+  if(glassOn("lots")) openLotWheel({ value: v, keep: "[data-otwheel]", show: put, commit: put });   // the drum is liquid glass's own
+  else openLotList(document.getElementById("otVolF"), v, put);
 }
 /* the ▼ menus (instrument, trigger): cTrader's dropdown under the field; with glass a glass menu grows out of it */
 function otMenu(anchor, items, cur, pick, foot){
@@ -7399,7 +7460,7 @@ function closeModal(now){
   if(!modalEl) return;
   const m = modalEl;
   modalEl = null;
-  otMenuClose(true);
+  otMenuClose(true); closeLotList();
   if(m.querySelector(".ot-sheet")) OT = null;
   if(now === true){ if(m.classList.contains("morph")) lgStop("sheet"); m.remove(); return; }
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
