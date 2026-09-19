@@ -1022,7 +1022,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none;transition:opacity .1
 .lgc{padding:4px 2px 14px;border-bottom:1px solid var(--line)}
 .lgc-k{font-weight:500;margin-bottom:2px}
 .lgs{position:relative;height:46px;margin:0 2px;touch-action:none;user-select:none;-webkit-user-select:none;outline:none;cursor:pointer;
-  --kx:calc(18px + var(--v,.5) * (100% - 36px))}
+  --kx:calc(17px + var(--v,.5) * (100% - 34px))}
 .lgs-track{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:rgba(120,120,128,.22);overflow:hidden}
 :root[data-theme="dark"] .lgs-track{background:rgba(120,120,128,.38)}
 .lgs-fill{position:absolute;left:0;top:0;bottom:0;width:var(--kx);border-radius:3px;background:var(--blue)}
@@ -1030,18 +1030,22 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none;transition:opacity .1
    hair of give; fading: the lens shrinks back ~0.2 s still clear, and only at the very end turns white (.rel → .frost).
    The lens is always WHITE glass (user: «ползунок должен всегда белый быть независимо как заканчивается»): a white
    body of its own, whatever is under the sheet */
-.lgs-knob{position:absolute;top:50%;left:var(--kx);width:36px;height:24px;margin:-12px 0 0 -18px;border-radius:999px;background:#fff;pointer-events:none;
+/* the DROP, one to one with the user's reference (iOS 26): about a fifth of the track long, 1.55 : 1, a ROUNDED
+   RECTANGLE (corners ~38 % of its height) of thick clear glass — a bright hairline rim, the edges shading in
+   (the glass's thickness), a soft shadow under it; the track shows through its middle, bent at its rim */
+.lgs-knob{position:absolute;top:50%;left:var(--kx);width:34px;height:22px;margin:-11px 0 0 -17px;border-radius:11px;background:#fff;pointer-events:none;
   box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);transform:scale(var(--ksx,1),var(--ksy,1)) skewX(var(--kk,0deg));
-  transition:width .26s cubic-bezier(.3,1.15,.45,1),height .26s cubic-bezier(.3,1.15,.45,1),margin .26s cubic-bezier(.3,1.15,.45,1),background-color .1s ease,box-shadow .2s ease}
-.lgs.press .lgs-knob,.lgs.rel .lgs-knob{background:rgba(255,255,255,var(--lgsw,.28))}
-:root[data-theme="dark"] .lgs{--lgsw:.62}
-.lgs.rel .lgs-knob{transition:width .22s cubic-bezier(.35,0,.25,1),height .22s cubic-bezier(.35,0,.25,1),margin .22s cubic-bezier(.35,0,.25,1),background-color .09s ease,box-shadow .2s ease}
-.lgs.rel.frost .lgs-knob{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06)}
-.lgs.press .lgs-knob{width:66px;height:44px;margin:-22px 0 0 -33px;
+  transition:width .26s cubic-bezier(.3,1.15,.45,1),height .26s cubic-bezier(.3,1.15,.45,1),margin .26s cubic-bezier(.3,1.15,.45,1),border-radius .26s ease,background-color .1s ease,box-shadow .2s ease}
+/* its white is a background COLOUR (the thicker rim a gradient over it), so fading back to the white pill is one smooth colour change */
+.lgs.press .lgs-knob,.lgs.rel .lgs-knob{background-color:rgba(255,255,255,var(--lgsw,.1));background-image:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(255,255,255,.22) 100%)}
+:root[data-theme="dark"] .lgs{--lgsw:.58}
+.lgs.rel .lgs-knob{transition:width .22s cubic-bezier(.35,0,.25,1),height .22s cubic-bezier(.35,0,.25,1),margin .22s cubic-bezier(.35,0,.25,1),border-radius .22s ease,background-color .09s ease,box-shadow .2s ease}
+.lgs.rel.frost .lgs-knob{background-color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06)}
+.lgs.press .lgs-knob{width:56px;height:36px;margin:-18px 0 0 -28px;border-radius:14px;
   -webkit-backdrop-filter:blur(.3px) saturate(1.6) brightness(1.06);backdrop-filter:blur(.3px) saturate(1.6) brightness(1.06);
-  box-shadow:0 0 0 .5px rgba(0,0,0,.16),0 6px 16px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 2px 2px rgba(255,255,255,.62),inset 0 -2px 5px rgba(0,0,0,.08)}
-:root[data-theme="dark"] .lgs.press .lgs-knob{box-shadow:0 0 0 .5px rgba(255,255,255,.22),0 6px 16px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.7),inset 0 2px 2px rgba(255,255,255,.55),inset 0 -2px 5px rgba(0,0,0,.12)}
-.lgs.rel:not(.frost) .lgs-knob{box-shadow:0 0 0 .5px rgba(0,0,0,.16),0 5px 14px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 2px 2px rgba(255,255,255,.62)}
+  box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 7px 16px rgba(0,0,0,.16),0 2px 4px rgba(0,0,0,.06),inset 0 0 0 1px rgba(255,255,255,.75),inset 0 1.5px 1px rgba(255,255,255,.95),inset 0 0 7px rgba(0,0,0,.07),inset 0 -3px 6px rgba(0,0,0,.06)}
+:root[data-theme="dark"] .lgs.press .lgs-knob{box-shadow:0 0 0 .5px rgba(255,255,255,.25),0 7px 16px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.7),inset 0 1.5px 1px rgba(255,255,255,.85),inset 0 0 7px rgba(0,0,0,.12),inset 0 -3px 6px rgba(0,0,0,.1)}
+.lgs.rel:not(.frost) .lgs-knob{box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 6px 14px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 1.5px 1px rgba(255,255,255,.9),inset 0 0 7px rgba(0,0,0,.06)}
 .lgs:focus-visible .lgs-knob{outline:2px solid var(--blue);outline-offset:2px}
 .lgc-ends{display:flex;justify-content:space-between;margin-top:-2px;font-size:12px;color:var(--ink3)}
 .lgf-list .sw-row{margin-top:0;padding:11px 2px;border-bottom:1px solid var(--line)}
@@ -3943,7 +3947,7 @@ function lgsBind(el, v0, onInput, onDone){
   const knob = el.querySelector(".lgs-knob");
   const set = v => { v = clamp(Math.round(v), 0, 100); if(v !== el._v){ el._v = v; el.style.setProperty("--v", (v / 100).toFixed(3)); el.setAttribute("aria-valuenow", v); } return v; };
   set(v0);
-  const vAt = x => { const r = el.getBoundingClientRect(); return (x - r.left - 18) / Math.max(1, r.width - 36) * 100; };
+  const vAt = x => { const r = el.getBoundingClientRect(); return (x - r.left - 17) / Math.max(1, r.width - 34) * 100; };
   const J = { j: 0, jv: 0, vel: 0, t: 0, raf: 0, lx: 0, lt: 0 };
   const jelly = now => {
     J.raf = 0;
@@ -3965,7 +3969,7 @@ function lgsBind(el, v0, onInput, onDone){
     try{ el.setPointerCapture(e.pointerId); }catch(_){}
     clearTimeout(el._t1); clearTimeout(el._t2);
     el.classList.remove("frost", "rel"); el.classList.add("press");
-    lgGlass(knob, 66, 44, 12, .3, true, true);                         // its own bend, the same at any clarity
+    lgGlass(knob, 56, 36, 26, .3, true, true, undefined, 7);           // its own bend, only in a 7 px band at its rim (the track bends up / down along its ends, its middle stays true — the reference), the same at any clarity
     J.lx = e.clientX; J.lt = performance.now(); J.vel = 0;
     onInput(set(vAt(e.clientX))); kick();
   };
@@ -7306,11 +7310,13 @@ let _lgDefs = null;
 function glassClarity(){ try{ const v = parseFloat(localStorage.getItem("xc_glass_clear")); if(v >= 0 && v <= 100) return v; }catch(e){} return 85; }   // 85 by default (user: «еще больше кристализируем»)
 let LGQ = lgq(glassClarity());
 // the displacement map of a w×h drop (its rim bends toward the core), drawn once per size
-function lgMap(w, h){
-  const key = w + "x" + h;
+// rim: a bend only in a narrow band at the rim (px), none inside — the slider's drop (its track shows through its middle
+// undistorted and bends only along its ends, as in the user's reference)
+function lgMap(w, h, rad, rim){
+  const key = w + "x" + h + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
   if(_lgMaps.has(key)) return _lgMaps.get(key);
-  // every chart button is fully rounded (a circle or a capsule): r = half the short side
-  const r = Math.min(w, h) / 2, BAND = Math.min(r, 16);
+  // a capsule / circle (r = half the short side) unless a corner radius is given (the slider's rounded-rectangle drop)
+  const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = rim || Math.min(r, 16);
   const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
   const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
@@ -7320,7 +7326,7 @@ function lgMap(w, h){
     let m = 0;
     if(dist > 0){
       const t = edge < BAND ? 1 - Math.max(edge, 0) / BAND : 0;
-      m = Math.min(1, t * t + .3 * Math.min(dist / r, 1));
+      m = Math.min(1, t * t + (rim ? 0 : .3 * Math.min(dist / r, 1)));
       dx /= dist; dy /= dist;
     }
     const i = (y * w + x) * 4;
@@ -7335,10 +7341,10 @@ function lgMap(w, h){
 // channels bend a little apart (blue most, like a real lens)
 const lgDmScale = dm => (dm._fixed ? dm._s : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)).toFixed(1);
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
-function lgFilterId(w, h, scale, chroma, fixed){
+function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "");
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -7350,7 +7356,7 @@ function lgFilterId(w, h, scale, chroma, fixed){
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
-  el("feImage", { href: lgMap(w, h), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
   const dm = (c, res) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
   if(!chroma) dm(0, "o");
   else {
@@ -7368,12 +7374,12 @@ function lgFilterId(w, h, scale, chroma, fixed){
 const _lgEls = new Set();
 // no colour fringes any more: a channel-split lens darkened what it sat on inside a see-through sheet (the slider
 // went grey at «Кристалл»), and the user wanted them smaller twice. `fixed`: a bend the clarity does not scale
-function lgGlass(el, w, h, scale, blur, force, fixed){
+function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim){
   if(!LG_LENS || !el || (!force && (!glassOn("refract") || !glassOn(lgFeat(el))))) return;
   blur = blur == null ? 1 : blur;
-  el._lga = [w, h, scale, blur, force, fixed]; _lgEls.add(el);
+  el._lga = [w, h, scale, blur, force, fixed, rad, rim]; _lgEls.add(el);
   const bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
-  const f = "url(#" + lgFilterId(w, h, scale, false, fixed) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+  const f = "url(#" + lgFilterId(w, h, scale, false, fixed, rad, rim) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
