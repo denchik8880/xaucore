@@ -967,6 +967,8 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none;opacity:0}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.shown .sheet{opacity:1;transition:opacity .16s ease}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none;opacity:0;transition:opacity .1s ease}
+/* sheets flat (their glass switched off): the ghost is the flat sheet too, so it lands without a change of colour */
+:root[data-lgoff~="sheets"] .lg-ghost{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 .lg-pop-catch{position:fixed;inset:0;z-index:89}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--sheet-glass,var(--card));
   -webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);
@@ -3616,21 +3618,35 @@ document.addEventListener("click", e => {
   const el = e.target.closest && e.target.closest(MORPH_SEL);
   if(el && glassOn("morph")){ _morphFrom = el; _morphT = performance.now(); }
 }, true);
-// a glass ghost from rect a (radius ra) to rect b (radius rb); b may be a function — the ghost then follows the
-// target's CURRENT box every frame (a sheet that fills in after it opens grows on). Ease: a small overshoot.
-function lgMorph(a, ra, b, rb, dur, done){
+// a glass ghost from rect a (radius ra) onto an element: `to()` is asked EVERY frame, so a target that moves, grows
+// or is re-rendered on the way (the «м1» pill turning «м30», a button replaced by render()) is followed and the ghost
+// lands exactly on it, in its shape (user: «плашка исчезает не там где надо, а криво между ними»). With `hide`, the
+// element it lands on stays hidden until it has landed — no twin. Ease: a small overshoot, like a drop.
+function lgMorph(a, ra, to, dur, done, hide){
   const g = document.createElement("div"); g.className = "lg-ghost";
   document.body.appendChild(g);
-  const t0 = performance.now(), num = v => parseFloat(v) || 0, R0 = num(ra), R1 = num(rb);
+  const t0 = performance.now(), num = v => parseFloat(v) || 0, R0 = Math.min(num(ra), a.height / 2);
   const ease = t => { const c1 = 1.25, c3 = c1 + 1, u = t - 1; return 1 + c3 * u * u * u + c1 * u * u; };
+  let hid = null, B = a, R1 = R0;
   const step = now => {
-    const t = Math.min(1, (now - t0) / dur), k = ease(t), B = typeof b === "function" ? b() : b;
+    const t = Math.min(1, (now - t0) / dur), k = ease(t), el = to();
+    if(el && el.isConnected){
+      B = el.getBoundingClientRect();
+      if(el !== hid){
+        if(hide){ if(hid) hid.style.visibility = ""; el.style.visibility = "hidden"; }
+        hid = el; R1 = Math.min(num(getComputedStyle(el).borderRadius), B.height / 2);
+      }
+    }
     const lerp = (p, q) => p + (q - p) * k;
     g.style.left = lerp(a.left, B.left) + "px"; g.style.top = lerp(a.top, B.top) + "px";
     g.style.width = Math.max(0, lerp(a.width, B.width)) + "px"; g.style.height = Math.max(0, lerp(a.height, B.height)) + "px";
     g.style.borderRadius = Math.max(0, R0 + (R1 - R0) * Math.min(1, t * 1.4)) + "px";
     if(t < 1) requestAnimationFrame(step);
-    else { if(done) done(); g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 110, fill: "forwards" }).onfinish = () => g.remove(); }
+    else {
+      if(hide && hid) hid.style.visibility = "";
+      if(done) done();
+      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 110, fill: "forwards" }).onfinish = () => g.remove();
+    }
   };
   step(t0);
   return g;
@@ -3638,21 +3654,23 @@ function lgMorph(a, ra, b, rb, dur, done){
 function morphOpen(from, m){
   const sh = m.querySelector(".sheet"); if(!sh) return;
   const a = from.getBoundingClientRect();
+  m._from = from; m._fromSel = from.dataset.act ? '[data-act="' + from.dataset.act + '"]' : null;
   from.style.visibility = "hidden";
-  m._from = from;
-  lgMorph(a, getComputedStyle(from).borderRadius, () => sh.getBoundingClientRect(), getComputedStyle(sh).borderRadius, 420, () => { from.style.visibility = ""; });
+  lgMorph(a, getComputedStyle(from).borderRadius, () => sh, 420, () => { from.style.visibility = ""; });
   setTimeout(() => m.classList.add("shown"), 230);
 }
+// closing, it lands on its button — the same one, or the one render() put in its place
 function morphClose(m){
-  const from = m._from, sh = m.querySelector(".sheet");
-  if(!from || !from.isConnected || !sh || !glassOn("morph")) return false;
-  const a = sh.getBoundingClientRect(), b = from.getBoundingClientRect();
-  from.style.visibility = "hidden";
-  lgMorph(a, getComputedStyle(sh).borderRadius, b, getComputedStyle(from).borderRadius, 300, () => { from.style.visibility = ""; });
+  const from = m._from, sel = m._fromSel, sh = m.querySelector(".sheet");
+  const shown = e => e.isConnected && e.getClientRects().length > 0;   // offsetParent is null for a fixed button («Новый ордер»)
+  const cur = () => (from && shown(from)) ? from : (sel && [...document.querySelectorAll("#app " + sel)].find(shown)) || null;
+  if(!sh || !glassOn("morph") || !cur()) return false;
+  lgMorph(sh.getBoundingClientRect(), getComputedStyle(sh).borderRadius, cur, 300, null, true);
   return true;
 }
 // «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
 let _tfPop = null;
+const tfPill = () => document.querySelector('.chpill[data-act="charttf"]');
 function openTFPop(pill){
   closeTFPop(true);
   const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
@@ -3665,20 +3683,22 @@ function openTFPop(pill){
   pop.style.left = left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
   _tfPop = { pop, catcher, pill };
   pill.style.visibility = "hidden";
-  lgMorph(a, getComputedStyle(pill).borderRadius, pop.getBoundingClientRect(), "22px", 380, () => { pill.style.visibility = ""; });
+  lgMorph(a, getComputedStyle(pill).borderRadius, () => pop, 380, () => { pill.style.visibility = ""; });
   setTimeout(() => pop.classList.add("shown"), 200);
-  catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(); });
-  pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ const tf = b.dataset.tfpick; closeTFPop(); setChartTF(tf); });
+  // a tap beside the menu only closes it: the catcher stays for that tap's click, so nothing beneath is pressed
+  catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(false, true); });
+  pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ setChartTF(b.dataset.tfpick); closeTFPop(); });
 }
-function closeTFPop(now){
+function closeTFPop(now, outside){
   const P = _tfPop; if(!P) return;
   _tfPop = null;
-  P.catcher.remove();
-  if(now === true || !P.pill.isConnected){ P.pop.remove(); P.pill.style.visibility = ""; return; }
+  if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
+  else P.catcher.remove();
   const a = P.pop.getBoundingClientRect();
   P.pop.remove();
-  P.pill.style.visibility = "hidden";
-  lgMorph(a, "22px", P.pill.getBoundingClientRect(), getComputedStyle(P.pill).borderRadius, 280, () => { P.pill.style.visibility = ""; });
+  P.pill.style.visibility = "";
+  if(now === true || !tfPill()) return;
+  lgMorph(a, "22px", tfPill, 300, null, true);                    // onto the pill as it is NOW (after the new timeframe)
 }
 
 function toast(kind, msg){
