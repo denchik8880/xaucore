@@ -992,16 +992,24 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--green) 76%,transparent)}
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht-lot{top:6px;height:40px;border-radius:20px;padding-top:2px;background:var(--cap-glass);
   -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec)}
-/* 4. switches, iOS 26: pressed, the knob swells into a clear lens (a drag moves it), let go it sets and wobbles */
-:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch .knob{transition:transform .34s cubic-bezier(.3,1.4,.5,1),width .26s cubic-bezier(.3,1.3,.5,1),height .26s ease,top .26s ease,left .26s cubic-bezier(.3,1.3,.5,1),background-color .18s ease,box-shadow .18s ease}
-:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob{top:-2px;left:-3px;width:41px;height:35px;border-radius:999px;background:rgba(255,255,255,.22);
-  -webkit-backdrop-filter:blur(1px) saturate(1.7) brightness(1.12);backdrop-filter:blur(1px) saturate(1.7) brightness(1.12);
-  box-shadow:0 0 0 .5px rgba(255,255,255,.65),0 4px 12px rgba(0,0,0,.2),inset 0 1px 1px rgba(255,255,255,.8),inset 0 -1px 2px rgba(255,255,255,.35);
-  transform:translateX(var(--kx,0px));transition:transform .08s linear,width .22s cubic-bezier(.3,1.3,.5,1),height .22s ease,top .22s ease,left .22s cubic-bezier(.3,1.3,.5,1),background-color .16s ease,box-shadow .16s ease}
-:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.on.press .knob{transform:translateX(calc(18px + var(--kx,0px)))}
-:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.pop .knob{animation:swPop .42s cubic-bezier(.3,1.4,.5,1)}
-@keyframes swPop{0%{scale:1.16 .86}45%{scale:.94 1.06}100%{scale:1 1}}
-/* the switch that turns glass off lives in the flat world after its tap — no lens there */
+/* 4. switches, iOS 26 — one to one with the user's video (2026-09-19, «сделайте 1 в 1 ползунки как на видео»),
+   measured frame by frame: a 62×28 track, a 37×24 PILL knob (60 % of the track). Pressed, the knob becomes a clear
+   glass lens almost as wide as the track and 1.4× as tall, hanging ~12 % past its end; the track shows through it,
+   bent at the rim. Switched, the lens slides ~25 % of the track while the track recolours under it (grey ⇄ green),
+   then it frosts milky-white and shrinks back into the knob — about 0.3 s in all. switchPress / switchRelease. */
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch{width:62px;height:28px;overflow:visible;transition:background-color .26s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch .knob{top:2px;left:2px;width:37px;height:24px;border-radius:999px;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2),0 0 0 .5px rgba(0,0,0,.05);transform:translateX(0);
+  transition:left .2s cubic-bezier(.3,1.18,.5,1),top .17s cubic-bezier(.3,1.18,.5,1),width .2s cubic-bezier(.3,1.18,.5,1),height .17s cubic-bezier(.3,1.18,.5,1),
+    transform .22s cubic-bezier(.3,1.1,.5,1),background-color .1s ease,box-shadow .16s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.on .knob{transform:translateX(21px)}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob{top:-5.5px;left:-7px;width:60px;height:39px;background:rgba(255,255,255,.07);transform:translateX(var(--kx,0px));
+  -webkit-backdrop-filter:blur(.4px) saturate(1.7) brightness(1.06);backdrop-filter:blur(.4px) saturate(1.7) brightness(1.06);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 5px 14px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 2px 2px rgba(255,255,255,.65),inset 0 -2px 5px rgba(0,0,0,.09)}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.on.press .knob{transform:translateX(calc(16px + var(--kx,0px)))}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press.slid .knob{transition:left .2s cubic-bezier(.3,1.18,.5,1),top .17s ease,width .2s ease,height .17s ease,transform .2s cubic-bezier(.35,1.1,.5,1),background-color .1s ease,box-shadow .16s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.frost .knob{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(5px) saturate(1.4);backdrop-filter:blur(5px) saturate(1.4);transition-duration:.17s,.15s,.17s,.15s,.2s,.08s,.15s}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob{box-shadow:0 0 0 .5px rgba(255,255,255,.22),0 5px 14px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.2)}
 /* 5. the execution pill drops in like the Dynamic Island: a dark glass capsule that grows out of a small one at
    the top, overshoots a hair and settles; it shrinks back up when it goes */
 :root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(18,18,20,.74);color:#fff;border-radius:24px;transform-origin:50% 0;
@@ -3582,29 +3590,41 @@ let modalEl = null;
 /* iOS 26 switches (glassOn("switches")): pressed, the knob swells into a clear lens that a drag moves along the
    track; let go past the middle it switches (one click, ours), a tap switches as ever; then it wobbles still */
 let _sw = null, _swSkip = 0;
+function swLens(sw, on){                                          // the lens bends the track at its rim (Chromium)
+  const k = sw.querySelector(".knob"); if(!k) return;
+  if(on) lgGlass(k, 60, 40, 7, .3); else { k._lg = null; k.style.backdropFilter = ""; }   // a mild bend: past the track the lens shows what is around it, as in the video
+}
 document.addEventListener("pointerdown", e => {
   const sw = e.button > 0 ? null : e.target.closest && e.target.closest(".switch");
   if(!sw || !glassOn("switches")) return;
-  _sw = { sw, id: e.pointerId, x0: e.clientX, on: sw.classList.contains("on"), kx: 0, moved: false };
-  sw.style.setProperty("--kx", "0px"); sw.classList.remove("pop"); sw.classList.add("press");
+  clearTimeout(sw._swT); clearTimeout(sw._swF);
+  _sw = { sw, id: e.pointerId, x0: e.clientX, on: sw.classList.contains("on"), kx: 0, moved: false, t0: performance.now() };
+  sw.style.setProperty("--kx", "0px"); sw.classList.remove("frost", "slid"); sw.classList.add("press");
+  swLens(sw, true);
 }, { capture: true, passive: true });
 document.addEventListener("pointermove", e => {
   const P = _sw; if(!P || e.pointerId !== P.id) return;
   const dx = e.clientX - P.x0; if(Math.abs(dx) > 5) P.moved = true;
-  P.kx = clamp(dx, P.on ? -18 : 0, P.on ? 0 : 18);
+  P.kx = clamp(dx, P.on ? -16 : 0, P.on ? 0 : 16);
   P.sw.style.setProperty("--kx", P.kx.toFixed(1) + "px");
 }, { capture: true, passive: true });
+// let go: the switch changes (the tap's click, or ours after a drag) while it is still a lens — it slides over and
+// the track recolours under it; then it frosts and shrinks back into the white knob
 const swEnd = (e, go) => {
   const P = _sw; if(!P || e.pointerId !== P.id) return;
   _sw = null;
   const sw = P.sw;
-  sw.classList.remove("press"); sw.style.setProperty("--kx", "0px");
-  void sw.offsetWidth; sw.classList.add("pop"); setTimeout(() => sw.classList.remove("pop"), 450);
+  sw.classList.add("slid"); sw.style.setProperty("--kx", "0px");
   if(P.moved){
     _swSkip = performance.now();                                   // the browser's click after a drag is not a tap
-    const want = P.on ? P.kx > -9 : P.kx > 9;
+    const want = P.on ? P.kx > -8 : P.kx > 8;
     if(go && want !== P.on) sw.click();
   }
+  const held = performance.now() - P.t0;
+  sw._swT = setTimeout(() => {                                     // the lens has grown (.2 s) and slid (.2 s) — ~.3 s in all, as in the video
+    sw.classList.remove("press", "slid"); sw.classList.add("frost"); swLens(sw, false);
+    sw._swF = setTimeout(() => sw.classList.remove("frost"), 110);
+  }, Math.max(170, 280 - held));
 };
 document.addEventListener("pointerup", e => swEnd(e, true), { capture: true, passive: true });
 document.addEventListener("pointercancel", e => swEnd(e, false), { capture: true, passive: true });
@@ -3767,6 +3787,7 @@ function lgFeat(el){
   if(el.closest(".sheet")) return "sheets";
   if(el.matches(".mq-lens, .lw-lens")) return "lots";
   if(el.matches(".sub-lens, .seg-lens")) return "drops";
+  if(el.closest(".switch")) return "switches";
   return null;
 }
 function openGlassSheet(){
