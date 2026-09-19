@@ -240,7 +240,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
 :root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;transition:opacity .14s ease;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
@@ -988,14 +988,17 @@ html:has(body.route-wallet){background:#0c0a08}
 /* the tab bar OPENS into a card (user: «про 9 секунду … можно ее раскрывать и там что бы еще какая-то информация была
    написана» — video 1, 9–12 s: the bar grows up into a big glass card with a grabber and shrinks back). Swipe the
    bar up; a tap beside it, the grabber or a swipe down closes it. It holds the account at a glance, live. */
-body.navcard-open .bottomnav{opacity:0;pointer-events:none;transition:opacity .14s ease}
+body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while it grows / shrinks navCardRun cross-fades it inline */
 .nav-card-catch{position:fixed;inset:0;z-index:88}
 .nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 20px);max-width:500px;z-index:89;
   box-sizing:border-box;padding:8px 18px 14px;border-radius:31px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
   background:color-mix(in srgb,var(--nav-glass),var(--sheet-glass,var(--card)) calc(var(--ncp,1) * 100%));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
   box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
-.nav-card.shown{opacity:1;transition:opacity .16s ease}
-.nav-card>*{opacity:var(--ncc,1)}                                     /* its content comes up as it grows */
+.nav-card.shown{opacity:1}
+.nav-card>*{opacity:var(--ncc,1);transform:translateY(calc((1 - var(--ncc,1)) * 10px))}   /* its content rises into place as it grows */
+/* the pull-up handle in the middle of the bar: the card opens only from there (user: «открытия было только по середине») */
+.nav-grab{display:none}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-grab{display:block;position:absolute;top:4px;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:var(--ink3);opacity:.4;pointer-events:none;z-index:3}
 .nav-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -5619,11 +5622,11 @@ function openNavCard(){
   document.body.classList.add("navcard-open");
   const C = _navCard = { card, catcher, H, h0, h: h0, v: 0, open: true, raf: 0, t: setInterval(() => { const b = card.querySelector(".nc-body"); if(b) b.innerHTML = navCardBody(); }, 500) };
   card.classList.add("shown");
-  if(glassOn("morph")){ card.style.height = h0 + "px"; navCardRun(C); }
+  if(glassOn("morph")){ card.style.height = h0 + "px"; card.style.opacity = "0"; bar.style.opacity = "1"; navCardRun(C); }
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeNavCard(true); });
   card.querySelector(".grab").onclick = () => closeNavCard();
-  // a swipe down closes it
-  card.onpointerdown = e => { C.y0 = e.clientY; C.id = e.pointerId; };
+  // a swipe down from its middle closes it (like the pull-up: only in the middle)
+  card.onpointerdown = e => { const r = card.getBoundingClientRect(); C.id = e.pointerId; C.y0 = Math.abs(e.clientX - (r.left + r.width / 2)) < r.width * .2 ? e.clientY : null; };
   card.onpointermove = e => { if(C.id === e.pointerId && C.y0 != null && e.clientY - C.y0 > 36){ C.y0 = null; closeNavCard(); } };
   card.onpointerup = card.onpointercancel = () => { C.y0 = null; };
 }
@@ -5640,12 +5643,18 @@ function navCardRun(C){
     const p = clamp((C.h - C.h0) / Math.max(1, C.H - C.h0), 0, 1.05);
     C.card.style.height = C.h.toFixed(1) + "px";
     C.card.style.setProperty("--ncp", Math.min(1, p).toFixed(3));
-    C.card.style.setProperty("--ncc", clamp(p * 2 - 1, 0, 1).toFixed(3));
+    C.card.style.setProperty("--ncc", clamp((p - .55) / .4, 0, 1).toFixed(3));
+    // the bar dissolves into the glass over its first 0.15 s of growing (and comes back through it over the last
+    // ~third of the way down) — never an empty bar, never a pop
+    if(!C.t0) C.t0 = now;
+    const g = C.open ? clamp((now - C.t0) / 150, 0, 1) : clamp(p / .32, 0, 1), nav = document.querySelector(".bottomnav");
+    C.card.style.opacity = g.toFixed(3);
+    if(nav) nav.style.opacity = (1 - g).toFixed(3);
     const bl = (b0 + (b1 - b0) * Math.min(1, p)).toFixed(1) + "px";
     C.card.style.backdropFilter = C.card.style.webkitBackdropFilter = "blur(" + bl + ") saturate(1.4)";
-    if(Math.abs(C.h - to) < (C.open ? .3 : 1.5) && Math.abs(C.v) < (C.open ? 4 : 20)){   // shrinking, the last px go in the cross-fade
+    if(Math.abs(C.h - to) < (C.open ? .3 : .8) && Math.abs(C.v) < (C.open ? 4 : 12)){
       C.raf = 0;
-      if(C.open){ for(const p of ["height", "--ncp", "--ncc"]) C.card.style.removeProperty(p); C.card.style.backdropFilter = C.card.style.webkitBackdropFilter = ""; }
+      if(C.open){ for(const p of ["height", "--ncp", "--ncc", "opacity"]) C.card.style.removeProperty(p); C.card.style.backdropFilter = C.card.style.webkitBackdropFilter = ""; if(nav) nav.style.removeProperty("opacity"); }
       else navCardGone(C);
       return;
     }
@@ -5653,11 +5662,11 @@ function navCardRun(C){
   };
   C.raf = requestAnimationFrame(frame);
 }
-// shrunk to the bar: the bar comes back under it and the card fades away over it — one cross-fade
+// shrunk to the bar: the bar is already back (the frames faded it in through the card)
 function navCardGone(C){
+  C.card.remove();
   document.body.classList.remove("navcard-open");
-  C.card.style.transition = "opacity .14s ease"; C.card.style.opacity = "0";
-  setTimeout(() => C.card.remove(), 160);
+  const nav = document.querySelector(".bottomnav"); if(nav) nav.style.removeProperty("opacity");
 }
 // …and shrinks back into the bar the same way
 function closeNavCard(outside){
@@ -5688,7 +5697,8 @@ function navBind(bar){
   };
   bar.onpointerdown = e => {
     if(e.button > 0) return;
-    NB.drag = { id: e.pointerId, u: uAt(e.clientX), x0: e.clientX, y0: e.clientY };
+    const br = bar.getBoundingClientRect();
+    NB.drag = { id: e.pointerId, u: uAt(e.clientX), x0: e.clientX, y0: e.clientY, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
     try{ bar.setPointerCapture(e.pointerId); }catch(_){}
     bar.classList.add("dragging");
     navBubKick();
@@ -5696,7 +5706,7 @@ function navBind(bar){
   bar.onpointermove = e => {
     const d = NB.drag; if(!d || e.pointerId !== d.id) return;
     const dy = d.y0 - e.clientY;
-    if(dy > 26 && dy > Math.abs(e.clientX - d.x0) * 1.2){            // pulled up: the bar opens into its card, no tab changes
+    if(d.mid && dy > 26 && dy > Math.abs(e.clientX - d.x0) * 1.2){   // pulled up from the MIDDLE: the bar opens into its card, no tab changes (at the sides a drag only picks tabs)
       NB.drag = null; bar.classList.remove("dragging"); navBubKick();
       _navByDrop = performance.now();
       openNavCard(); return;
@@ -5955,7 +5965,7 @@ function bottomNav(){
   const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   if(NB.u == null) NB.u = navIndexOf(t);
   if(!NB.drag) NB.target = navIndexOf(t);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.u.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.u.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span><span class="nav-grab" aria-hidden="true"></span>
     <button data-nav="markets" class="${["markets","calendar","dom"].includes(t)?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>${L("Рынки")}</button>
     <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>${L("Графики")}</button>
     <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>${L("Позиции")}</button>
