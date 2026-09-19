@@ -7,7 +7,7 @@
 <script>/* glass clarity 0…100 («Настройки стекла» → the slider): 0 the least glass there is (dense, frosted, no bend),
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
-   ch colour fringes (past 85, faint — user: «радужный эффект сильно минимализируй»), n the crystal «Новый ордер»'s own tint. */
+   ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
 function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.95,b:1+lo*.4-hi*.96,s:1+lo*.15-hi*.72,sb:1+lo*.2-hi*.7,r:1-lo+hi*1.3,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.02};}
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
@@ -1023,14 +1023,22 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none;transition:opacity .1
 .lgs-track{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:rgba(120,120,128,.22);overflow:hidden}
 :root[data-theme="dark"] .lgs-track{background:rgba(120,120,128,.38)}
 .lgs-fill{position:absolute;left:0;top:0;bottom:0;width:var(--kx);border-radius:3px;background:var(--blue)}
+/* appearing (video 3, played backwards at its end): the white pill clears in ~0.1 s and grows into the lens with a
+   hair of give; fading: the lens shrinks back ~0.2 s still clear, and only at the very end turns white (.rel → .frost).
+   The lens is always WHITE glass (user: «ползунок должен всегда белый быть независимо как заканчивается»): a white
+   body of its own, whatever is under the sheet */
 .lgs-knob{position:absolute;top:50%;left:var(--kx);width:36px;height:24px;margin:-12px 0 0 -18px;border-radius:999px;background:#fff;pointer-events:none;
-  box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);transform:scale(var(--ksx,1),var(--ksy,1));
-  transition:width .2s cubic-bezier(.3,1.18,.5,1),height .2s cubic-bezier(.3,1.18,.5,1),margin .2s cubic-bezier(.3,1.18,.5,1),background-color .12s ease,box-shadow .16s ease}
-.lgs.press .lgs-knob{width:66px;height:44px;margin:-22px 0 0 -33px;background:rgba(255,255,255,.06);
+  box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);transform:scale(var(--ksx,1),var(--ksy,1)) skewX(var(--kk,0deg));
+  transition:width .26s cubic-bezier(.3,1.15,.45,1),height .26s cubic-bezier(.3,1.15,.45,1),margin .26s cubic-bezier(.3,1.15,.45,1),background-color .1s ease,box-shadow .2s ease}
+.lgs.press .lgs-knob,.lgs.rel .lgs-knob{background:rgba(255,255,255,var(--lgsw,.28))}
+:root[data-theme="dark"] .lgs{--lgsw:.62}
+.lgs.rel .lgs-knob{transition:width .22s cubic-bezier(.35,0,.25,1),height .22s cubic-bezier(.35,0,.25,1),margin .22s cubic-bezier(.35,0,.25,1),background-color .09s ease,box-shadow .2s ease}
+.lgs.rel.frost .lgs-knob{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06)}
+.lgs.press .lgs-knob{width:66px;height:44px;margin:-22px 0 0 -33px;
   -webkit-backdrop-filter:blur(.3px) saturate(1.6) brightness(1.06);backdrop-filter:blur(.3px) saturate(1.6) brightness(1.06);
   box-shadow:0 0 0 .5px rgba(0,0,0,.16),0 6px 16px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 2px 2px rgba(255,255,255,.62),inset 0 -2px 5px rgba(0,0,0,.08)}
-:root[data-theme="dark"] .lgs.press .lgs-knob{box-shadow:0 0 0 .5px rgba(255,255,255,.22),0 6px 16px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.2)}
-.lgs.frost .lgs-knob{background:rgba(255,255,255,.75);-webkit-backdrop-filter:blur(5px) saturate(1.4);backdrop-filter:blur(5px) saturate(1.4);transition-duration:.15s,.15s,.15s,.08s,.15s}
+:root[data-theme="dark"] .lgs.press .lgs-knob{box-shadow:0 0 0 .5px rgba(255,255,255,.22),0 6px 16px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.7),inset 0 2px 2px rgba(255,255,255,.55),inset 0 -2px 5px rgba(0,0,0,.12)}
+.lgs.rel:not(.frost) .lgs-knob{box-shadow:0 0 0 .5px rgba(0,0,0,.16),0 5px 14px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 2px 2px rgba(255,255,255,.62)}
 .lgs:focus-visible .lgs-knob{outline:2px solid var(--blue);outline-offset:2px}
 .lgc-ends{display:flex;justify-content:space-between;margin-top:-2px;font-size:12px;color:var(--ink3)}
 .lgf-list .sw-row{margin-top:0;padding:11px 2px;border-bottom:1px solid var(--line)}
@@ -3940,9 +3948,11 @@ function lgsBind(el, v0, onInput, onDone){
     const target = P ? Math.min(Math.abs(J.vel) * .00035, .2) : 0;
     J.vel *= Math.exp(-dt / .06);                                   // no move → its speed dies away
     J.jv += (-420 * (J.j - target) - 2 * Math.sqrt(420) * .3 * J.jv) * dt; J.j += J.jv * dt;
+    if(Math.abs(J.vel) > 30) J.dir = J.vel > 0 ? 1 : -1;
     knob.style.setProperty("--ksx", (1 + J.j).toFixed(4)); knob.style.setProperty("--ksy", (1 - J.j * .55).toFixed(4));
+    knob.style.setProperty("--kk", ((J.dir || 1) * J.j * 38).toFixed(2) + "deg");   // it leans with its speed, its top a step behind (video 3)
     if(P || Math.abs(J.j) > .001 || Math.abs(J.jv) > .01) J.raf = requestAnimationFrame(jelly);
-    else { J.t = 0; knob.style.removeProperty("--ksx"); knob.style.removeProperty("--ksy"); }
+    else { J.t = 0; for(const p of ["--ksx", "--ksy", "--kk"]) knob.style.removeProperty(p); }
   };
   const kick = () => { if(!J.raf) J.raf = requestAnimationFrame(jelly); };
   let P = null;
@@ -3951,8 +3961,8 @@ function lgsBind(el, v0, onInput, onDone){
     P = { id: e.pointerId };
     try{ el.setPointerCapture(e.pointerId); }catch(_){}
     clearTimeout(el._t1); clearTimeout(el._t2);
-    el.classList.remove("frost"); el.classList.add("press");
-    lgGlass(knob, 66, 44, 14, .3, true);
+    el.classList.remove("frost", "rel"); el.classList.add("press");
+    lgGlass(knob, 66, 44, 12, .3, true, true);                         // its own bend, the same at any clarity
     J.lx = e.clientX; J.lt = performance.now(); J.vel = 0;
     onInput(set(vAt(e.clientX))); kick();
   };
@@ -3965,10 +3975,10 @@ function lgsBind(el, v0, onInput, onDone){
   const end = e => {
     if(!P || e.pointerId !== P.id) return;
     P = null; kick();
-    el._t1 = setTimeout(() => {                                      // the lens settles, then frosts back into the pill
-      el.classList.remove("press"); el.classList.add("frost"); knob._lg = null; knob.style.backdropFilter = "";
-      el._t2 = setTimeout(() => el.classList.remove("frost"), 110);
-    }, 90);
+    // it shrinks back still a clear lens and turns white only at the very end (video 3)
+    el.classList.remove("press"); el.classList.add("rel");
+    el._t1 = setTimeout(() => el.classList.add("frost"), 150);
+    el._t2 = setTimeout(() => { el.classList.remove("rel", "frost"); knob._lg = null; knob.style.backdropFilter = ""; }, 270);
     onDone(el._v);
   };
   el.onpointerup = end; el.onpointercancel = end;
@@ -7313,12 +7323,12 @@ function lgMap(w, h){
 }
 // its bend right now: the clarity scales it (0 at the least glass, ×2.3 crystal); with colour fringes the three
 // channels bend a little apart (blue most, like a real lens)
-const lgDmScale = dm => (dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)).toFixed(1);   // fringes: a hint (user: «еще чуть-чуть уменьшить радугу»)
+const lgDmScale = dm => (dm._fixed ? dm._s : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)).toFixed(1);
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
-function lgFilterId(w, h, scale, chroma){
+function lgFilterId(w, h, scale, chroma, fixed){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "");
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "");
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -7331,7 +7341,7 @@ function lgFilterId(w, h, scale, chroma){
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
   el("feImage", { href: lgMap(w, h), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
-  const dm = (c, res) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
+  const dm = (c, res) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
   if(!chroma) dm(0, "o");
   else {
     dm(-1, "dr"); dm(0, "dg"); dm(1, "db");
@@ -7346,12 +7356,14 @@ function lgFilterId(w, h, scale, chroma){
   return id;
 }
 const _lgEls = new Set();
-function lgGlass(el, w, h, scale, blur, force){
+// no colour fringes any more: a channel-split lens darkened what it sat on inside a see-through sheet (the slider
+// went grey at «Кристалл»), and the user wanted them smaller twice. `fixed`: a bend the clarity does not scale
+function lgGlass(el, w, h, scale, blur, force, fixed){
   if(!LG_LENS || !el || (!force && (!glassOn("refract") || !glassOn(lgFeat(el))))) return;
   blur = blur == null ? 1 : blur;
-  el._lga = [w, h, scale, blur, force]; _lgEls.add(el);
+  el._lga = [w, h, scale, blur, force, fixed]; _lgEls.add(el);
   const bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
-  const f = "url(#" + lgFilterId(w, h, scale, LGQ.ch > .01) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+  const f = "url(#" + lgFilterId(w, h, scale, false, fixed) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
