@@ -8,9 +8,9 @@
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
    ch colour fringes (past 85, faint — user: «радужный эффект сильно минимализируй»), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.86,b:1+lo*.4-hi*.92,s:1+lo*.15-hi*.42,sb:1+lo*.2-hi*.5,r:1-lo+hi*1.3,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.03};}
+function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.95,b:1+lo*.4-hi*.96,s:1+lo*.15-hi*.72,sb:1+lo*.2-hi*.7,r:1-lo+hi*1.3,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.02};}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=75;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -360,6 +360,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* a press (glassFrame) swells the drop, leans it toward the finger (--pdx/--pdy, --psx/--psy) and lights the
    glass where it is touched (--lx/--ly, --la) */
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));filter:none}
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill.sym{transform:translateX(var(--pms,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill[data-act="charttf"]{transform:translateX(var(--pmx,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
@@ -848,14 +849,14 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]{
   --bar-glass:rgba(255,255,255,calc(.6 * var(--lgk,1))); --bg-glass:rgba(239,241,244,calc(.6 * var(--lgk,1))); --sheet-glass:rgba(255,255,255,calc(.8 * var(--lgs,1)));
   --seg-track:rgba(120,120,128,.13); --seg-bub:rgba(255,255,255,.95); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,calc(.42 * var(--lgk,1)));
-  --toast-glass:rgba(22,24,28,calc(.6 * var(--lgs,1))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
+  --toast-glass:rgba(22,24,28,calc(.6 * max(.75, var(--lgs,1)))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55);
   --cap-glass:rgba(255,255,255,calc(.62 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92);
 }
 :root[data-theme="dark"][data-glass="on"]{
   --bar-glass:rgba(12,12,12,calc(.58 * var(--lgk,1))); --bg-glass:rgba(0,0,0,calc(.52 * var(--lgk,1))); --sheet-glass:rgba(26,26,28,calc(.82 * var(--lgs,1)));
   --seg-track:rgba(255,255,255,.08); --seg-bub:rgba(84,84,90,.82); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,calc(.4 * var(--lgk,1)));
-  --toast-glass:rgba(52,52,56,calc(.58 * var(--lgs,1))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
+  --toast-glass:rgba(52,52,56,calc(.58 * max(.75, var(--lgs,1)))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.09);
   --cap-glass:rgba(34,34,38,calc(.6 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86);
 }
@@ -915,7 +916,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
   -webkit-backdrop-filter:blur(calc(6px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(6px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px rgba(255,255,255,.18)}
-:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.g{background:rgba(11,122,69,calc(.7 * var(--lgs,1)))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(192,42,34,calc(.7 * var(--lgs,1)))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(201,106,8,calc(.7 * var(--lgs,1)))}
+:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.g{background:rgba(11,122,69,calc(.7 * max(.75, var(--lgs,1))))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(192,42,34,calc(.7 * max(.75, var(--lgs,1))))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(201,106,8,calc(.7 * max(.75, var(--lgs,1))))}
 @keyframes tinG{from{opacity:0;transform:translateY(-16px) scale(.84)}55%{opacity:1}to{transform:none}}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
@@ -1036,8 +1037,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}
 .lgf-list .sw-row .k{font-weight:500}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,.52);--sheet-field:rgba(255,255,255,.66)}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(28,28,31,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,.06);--sheet-field:rgba(0,0,0,.3)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.66 * var(--lgs,1)))}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(28,28,31,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.06 * var(--lgs,1)));--sheet-field:rgba(0,0,0,calc(.3 * var(--lgs,1)))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:rgba(0,0,0,.2)}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:rgba(0,0,0,.42)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing{background:transparent}
@@ -1100,11 +1101,11 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob,:root[data-theme="dark"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle].press .knob{box-shadow:0 0 0 .5px rgba(255,255,255,.22),0 5px 14px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.2)}
 /* 5. the execution pill drops in like the Dynamic Island: a dark glass capsule that grows out of a small one at
    the top, overshoots a hair and settles; it shrinks back up when it goes */
-:root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(18,18,20,calc(.74 * var(--lgs,1)));color:#fff;border-radius:24px;transform-origin:50% 0;
+:root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(18,18,20,calc(.74 * max(.75, var(--lgs,1))));color:#fff;border-radius:24px;transform-origin:50% 0;
   -webkit-backdrop-filter:blur(calc(18px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px rgba(255,255,255,.16),0 10px 30px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.2);
   transform:translate(-50%,-6px) scale(.34,.5);opacity:0;transition:transform .55s cubic-bezier(.3,1.32,.45,1),opacity .16s ease}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(44,44,48,calc(.74 * var(--lgs,1)));color:#fff}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(44,44,48,calc(.74 * max(.75, var(--lgs,1))));color:#fff}
 :root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill.on{transform:translate(-50%,0) scale(1);opacity:1}
 /* the «Жидкое стекло» switch in «Ещё» */
 .sw-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
@@ -5181,17 +5182,21 @@ function chartMarkup(h, o){
    A sideways drag on «м1» (on the merged drop, anywhere) pulls it on a rubber band; near «XAUUSD» a neck reaches
    across and they join; let go past ~40 % (or flicked) it merges, else it springs back. Dragged right, the neck
    stretches thin and snaps (16 px apart while held, 8 let go — just before home) and «м1» springs home with a wobble, stretched by its speed on the way.
+   «XAUUSD ›» is liquid too (user: «что бы и XAUUSD как-то двигался»): it leans toward «м1» coming close, takes the
+   blow when they touch (pushed on, the drop bulging up and settling), is dragged along by the neck and, the neck
+   snapped, recoils home with a wobble — each on its own spring, its glass stretched by its speed.
    The choice is kept (S.ui.chMerge). Taps still open the timeframe menu / the symbol. */
 const PM_D = 21, PM_JOIN = 3;   // joins 3 px apart; the neck snaps 16 px apart under the finger, 8 px let go (home is 9 px apart)
-const PM = { x: null, v: 0, t: 0, raf: 0, drag: null, joined: false, j: 0, jv: 0 };
+const PM = { x: null, v: 0, t: 0, raf: 0, drag: null, joined: false, j: 0, jv: 0, sx: 0, sv: 0, sj: 0, sjv: 0, b: 0, bv: 0, gap: 99 };   // sx/sj «XAUUSD»'s own sway and stretch, b the drop's bulge
 let _pmSkip = 0;
 const pmMerged = () => !!(S.ui && S.ui.chMerge) && glassOn("chart");
 const PM_SVG = `<svg class="chp-shade" aria-hidden="true"><path/></svg><span class="chp-goo" aria-hidden="true"></span><svg class="chp-rim" aria-hidden="true"><defs><linearGradient id="chpRimG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="s1"/><stop offset=".36" class="s0"/><stop offset=".64" class="s0"/><stop offset="1" class="s2"/></linearGradient><clipPath id="chpClip"><path class="c"/></clipPath></defs><path class="h"/><path class="r" clip-path="url(#chpClip)"/></svg>`;
 const pmRow = () => document.querySelector(".chartbox:not(.sub) .chpills");
 // the outline: two capsules (same height) and, joined, a neck whose waist thins with the gap (k 1 → 0); it
 // leaves each cap at an angle that grows as it thins, so the shoulders stay round
-function pmPath(s0, s1, t0, t1, h, joined, gap, brk){
-  const r = h / 2, O = 10, P = (x, y) => (x + O).toFixed(2) + "," + (y + O).toFixed(2), A = (x, y) => "A" + r + "," + r + " 0 0 1 " + P(x, y);   // in the goo box: 10 px out on every side
+function pmPath(s0, s1, t0, t1, h0, joined, gap, brk, bulge){
+  const h = h0 + (bulge || 0), oy = -(bulge || 0) / 2;                     // a bulge grows it about its middle
+  const r = h / 2, O = 10, P = (x, y) => (x + O).toFixed(2) + "," + (y + O + oy).toFixed(2), A = (x, y) => "A" + r + "," + r + " 0 0 1 " + P(x, y);   // in the goo box: 10 px out on every side
   const cap = (a, b) => "M" + P(a + r, 0) + "L" + P(b - r, 0) + A(b - r, h) + "L" + P(a + r, h) + A(a + r, 0) + "Z";
   if(gap <= 0) return cap(s0, Math.max(s1, t1));
   if(!joined) return cap(s0, s1) + cap(t0, t1);
@@ -5213,13 +5218,20 @@ function pmDraw(row){
   const sym = row.querySelector(".chpill.sym"), tf = row.querySelector('[data-act="charttf"]');
   if(!sym || !tf) return;
   row.style.setProperty("--pmx", PM.x.toFixed(2) + "px");
+  row.style.setProperty("--pms", PM.sx.toFixed(2) + "px");
   if(!row.classList.contains("goo")) return;
-  const s0 = sym.offsetLeft, s1 = s0 + sym.offsetWidth, h = sym.offsetHeight || 31;
+  const h = sym.offsetHeight || 31;
+  const sw = sym.offsetWidth * (1 + PM.sj), sc = sym.offsetLeft + PM.sx + sym.offsetWidth / 2;    // «XAUUSD» sways and stretches too
+  const s0 = sc - sw / 2, s1 = sc + sw / 2;
   const tw = tf.offsetWidth * (1 + PM.j), tc = tf.offsetLeft + PM.x + tf.offsetWidth / 2;   // stretched by its speed
   const t0 = tc - tw / 2, t1 = tc + tw / 2, gap = t0 - s1;
   const brk = PM.drag && PM.drag.on ? 16 : 8;
+  const was = PM.joined;
   if(gap <= PM_JOIN) PM.joined = true; else if(gap > brk) PM.joined = false;
-  const d = pmPath(s0, s1, t0, t1, h, PM.joined, gap, brk);
+  if(PM.joined && !was){ PM.sv -= 120 + Math.min(Math.abs(PM.v), 600) * .15; PM.v *= .85; PM.bv += 95; }          // they touch: «XAUUSD» takes the blow, the drop bulges
+  if(!PM.joined && was){ PM.sv -= PM.sx * 22 + 40; PM.bv -= 50; }                  // the neck snaps: «XAUUSD» recoils home
+  PM.gap = gap;
+  const d = pmPath(s0, s1, t0, t1, h, PM.joined, gap, brk, PM.b);
   row.querySelector(".chp-goo").style.setProperty("--gp", 'path("' + d + '")');
   for(const p of row.querySelectorAll(".chp-rim .h, .chp-rim .r, .chp-rim .c, .chp-shade path")) p.setAttribute("d", d);
 }
@@ -5227,7 +5239,7 @@ function pmFrame(now){
   PM.raf = 0;
   const row = pmRow();
   const target = S.ui.chMerge ? -PM_D : 0;
-  if(!row || !glassOn("chart")){ PM.x = target; PM.v = 0; PM.j = PM.jv = 0; return; }
+  if(!row || !glassOn("chart")){ PM.x = target; PM.v = 0; PM.j = PM.jv = 0; PM.sx = PM.sv = PM.sj = PM.sjv = PM.b = PM.bv = 0; return; }
   const dt = PM.t ? Math.min(Math.max((now - PM.t) / 1000, 0), 1 / 30) : 1 / 60;
   PM.t = now;
   if(!PM.drag || !PM.drag.on){
@@ -5236,10 +5248,23 @@ function pmFrame(now){
   }
   const jt = Math.min(Math.abs(PM.v) * .0011, .28);                          // stretched along its way by its speed
   PM.jv += (-380 * (PM.j - jt) - 2 * Math.sqrt(380) * .3 * PM.jv) * dt; PM.j += PM.jv * dt;
+  // «XAUUSD», a soft spring: leans toward «м1» closer than 8 px (home is 9 apart: at rest it stands straight); joined,
+  // the finger pulling «м1» away drags it along by the neck (up to 6 px) and «м1» pushed on in shoves it back; let go,
+  // nothing holds it — so the neck always snaps on the way home
+  const g = PM.gap, dragging = !!(PM.drag && PM.drag.on);
+  let st = 0;
+  if(PM.joined){ if(g > 0 && dragging) st = Math.min(6, g * .6); else if(PM.x < -PM_D) st = (PM.x + PM_D) * .5; }
+  else if(g > 0 && g < 8) st = (8 - g) * .45;
+  PM.sv += (-320 * (PM.sx - st) - 2 * Math.sqrt(320) * .32 * PM.sv) * dt; PM.sx = clamp(PM.sx + PM.sv * dt, -6, 7);
+  const sjt = Math.min(Math.abs(PM.sv) * .0012, .12);
+  PM.sjv += (-380 * (PM.sj - sjt) - 2 * Math.sqrt(380) * .3 * PM.sjv) * dt; PM.sj += PM.sjv * dt;
+  PM.bv += (-420 * PM.b - 2 * Math.sqrt(420) * .28 * PM.bv) * dt; PM.b = clamp(PM.b + PM.bv * dt, -4, 6);   // the bulge settles with a wobble
   pmDraw(row);
-  const still = !PM.drag && Math.abs(PM.x - target) < .05 && Math.abs(PM.v) < .5 && Math.abs(PM.j) < .002 && Math.abs(PM.jv) < .02;
+  const still = !PM.drag && Math.abs(PM.x - target) < .05 && Math.abs(PM.v) < .5 && Math.abs(PM.j) < .002 && Math.abs(PM.jv) < .02
+    && Math.abs(PM.sx - st) < .05 && Math.abs(PM.sv) < .5 && Math.abs(PM.sj) < .002 && Math.abs(PM.sjv) < .02 && Math.abs(PM.b) < .03 && Math.abs(PM.bv) < .3;
   if(still){
     PM.x = target; PM.v = 0; PM.j = PM.jv = 0; PM.t = 0;
+    PM.sx = PM.sv = PM.sj = PM.sjv = PM.b = PM.bv = 0;
     if(!S.ui.chMerge){ row.classList.remove("goo", "merged"); PM.joined = false; }
     else row.classList.add("merged");
     pmDraw(row);
@@ -7223,7 +7248,7 @@ const LG_LENS = /(Chrome|Chromium)\/\d+/.test(navigator.userAgent) && !/CriOS|Fx
 const _lgIds = new Set(), _lgMaps = new Map(), _lgDms = [];
 let _lgDefs = null;
 // the clarity (the early script's lgq): read once here, changed by the slider (applyClarity)
-function glassClarity(){ try{ const v = parseFloat(localStorage.getItem("xc_glass_clear")); if(v >= 0 && v <= 100) return v; }catch(e){} return 75; }
+function glassClarity(){ try{ const v = parseFloat(localStorage.getItem("xc_glass_clear")); if(v >= 0 && v <= 100) return v; }catch(e){} return 85; }   // 85 by default (user: «еще больше кристализируем»)
 let LGQ = lgq(glassClarity());
 // the displacement map of a w×h drop (its rim bends toward the core), drawn once per size
 function lgMap(w, h){
