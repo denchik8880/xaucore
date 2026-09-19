@@ -240,7 +240,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
 :root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;transition:opacity .14s ease;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
@@ -922,9 +922,9 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG .5s cubic-bezier(.25,.9,.3,1)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG .58s cubic-bezier(.22,.8,.28,1)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
-@keyframes shInG{0%{transform:translateY(calc(100% + 40px))}66%{transform:translateY(-7px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
+@keyframes shInG{0%{transform:translateY(calc(100% + 40px))}70%{transform:translateY(-3px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
 /* 6. the top bars: frosted, the page scrolls under them */
 /* 6. the top bars are gone: «‹», the title and the subtabs FLOAT as glass capsules and the page scrolls
    under them (user 2026-09-18, Telegram with / without liquid glass); a soft fade keeps the very top calm */
@@ -963,7 +963,7 @@ html:has(body.route-wallet){background:#0c0a08}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
   border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-@keyframes lwInG{0%{transform:translateY(100%)}66%{transform:translateY(-6px)}100%{transform:none}}
+@keyframes lwInG{0%{transform:translateY(100%)}70%{transform:translateY(-3px)}100%{transform:none}}
 /* the chosen row sits under a glass drop that swells its digits, like an iOS picker's lens */
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens{display:block;position:absolute;left:8px;right:8px;top:89px;height:38px;border-radius:12px;pointer-events:none;isolation:isolate;
   background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,transparent 32%),rgba(255,255,255,.03);
@@ -985,13 +985,14 @@ html:has(body.route-wallet){background:#0c0a08}
 /* the tab bar OPENS into a card (user: «про 9 секунду … можно ее раскрывать и там что бы еще какая-то информация была
    написана» — video 1, 9–12 s: the bar grows up into a big glass card with a grabber and shrinks back). Swipe the
    bar up; a tap beside it, the grabber or a swipe down closes it. It holds the account at a glance, live. */
-body.navcard-open .bottomnav{opacity:0;pointer-events:none}
+body.navcard-open .bottomnav{opacity:0;pointer-events:none;transition:opacity .14s ease}
 .nav-card-catch{position:fixed;inset:0;z-index:88}
 .nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 20px);max-width:500px;z-index:89;
-  box-sizing:border-box;padding:8px 18px 14px;border-radius:30px;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
-  background:var(--sheet-glass,var(--card));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
+  box-sizing:border-box;padding:8px 18px 14px;border-radius:31px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
+  background:color-mix(in srgb,var(--nav-glass),var(--sheet-glass,var(--card)) calc(var(--ncp,1) * 100%));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
   box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
 .nav-card.shown{opacity:1;transition:opacity .16s ease}
+.nav-card>*{opacity:var(--ncc,1)}                                     /* its content comes up as it grows */
 .nav-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -3744,21 +3745,25 @@ document.addEventListener("click", e => {
 // a glass ghost from rect a (radius ra) onto an element: `to()` is asked EVERY frame, so a target that moves, grows
 // or is re-rendered on the way (the «м1» pill turning «м30», a button replaced by render()) is followed and the ghost
 // lands exactly on it, in its shape (user: «плашка исчезает не там где надо, а криво между ними»). With `hide`, the
-// element it lands on stays hidden until it has landed — no twin. Ease: a small overshoot, like a drop.
+// element it lands on stays hidden until it has landed — no twin. Ease: a soft spring, no overshoot (it never grows
+// past its target — that hung a second rim above the card; user: «как будто не успевает за основной плашкой»).
+// near() fires at 90 %: the target shows then and the ghost melts into it.
 // `key` names the surface («tf», «sheet»): it has ONE ghost. A new morph there stops the one in flight and starts from
 // where that one is — a quick second tap turns the ghost round instead of leaving the big one to finish growing
 // beside a small one (user: «когда быстро тапнуть на таймфрейм, окно большое почему-то не успевает закрыться»).
 const _lgRun = {};
 const lgStop = key => _lgRun[key] ? _lgRun[key].stop() : null;
-function lgMorph(a, ra, to, dur, done, hide, key){
+function lgMorph(a, ra, to, dur, done, hide, key, near){
   const was = key && lgStop(key);
   if(was){ a = was; ra = was.r; }
   const g = document.createElement("div"); g.className = "lg-ghost";
   document.body.appendChild(g);
   const t0 = performance.now(), num = v => parseFloat(v) || 0, R0 = Math.min(num(ra), a.height / 2);
-  const ease = t => { const c1 = 1.25, c3 = c1 + 1, u = t - 1; return 1 + c3 * u * u * u + c1 * u * u; };
+  const Z = .9, W = 4.8 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);   // settles within dur
+  const ease = t => { if(t >= 1) return 1; const u = t * dur / 1000, e = Math.exp(-Z * W * u); return Math.min(1, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); };
+  const nearNow = () => { const n = near; near = null; if(n) n(); };
   let hid = null, B = a, R1 = R0, raf = 0, box = { left: a.left, top: a.top, width: a.width, height: a.height, r: R0 };
-  const land = () => { if(hide && hid) hid.classList.remove("lg-hid"); const d = done; done = null; if(d) d(); };
+  const land = () => { nearNow(); if(hide && hid) hid.classList.remove("lg-hid"); const d = done; done = null; if(d) d(); };
   const run = { stop(){ cancelAnimationFrame(raf); land(); g.remove(); if(_lgRun[key] === run) delete _lgRun[key]; return box; } };
   if(key) _lgRun[key] = run;
   const step = now => {
@@ -3772,13 +3777,14 @@ function lgMorph(a, ra, to, dur, done, hide, key){
     }
     const lerp = (p, q) => p + (q - p) * k;
     box = { left: lerp(a.left, B.left), top: lerp(a.top, B.top), width: Math.max(0, lerp(a.width, B.width)), height: Math.max(0, lerp(a.height, B.height)),
-            r: Math.max(0, R0 + (R1 - R0) * Math.min(1, t * 1.4)) };
+            r: Math.max(0, R0 + (R1 - R0) * k) };
+    if(k >= .9) nearNow();
     g.style.left = box.left + "px"; g.style.top = box.top + "px"; g.style.width = box.width + "px"; g.style.height = box.height + "px";
     g.style.borderRadius = box.r + "px";
     if(t < 1) raf = requestAnimationFrame(step);
     else {
       land();
-      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 110, fill: "forwards" }).onfinish = () => { g.remove(); if(_lgRun[key] === run) delete _lgRun[key]; };
+      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: "ease-out", fill: "forwards" }).onfinish = () => { g.remove(); if(_lgRun[key] === run) delete _lgRun[key]; };
     }
   };
   step(t0);
@@ -3788,9 +3794,8 @@ function morphOpen(from, m){
   const sh = m.querySelector(".sheet"); if(!sh) return;
   const a = from.getBoundingClientRect();
   m._from = from; m._fromSel = from.dataset.act ? '[data-act="' + from.dataset.act + '"]' : null;
-  lgMorph(a, getComputedStyle(from).borderRadius, () => sh, 420, () => from.classList.remove("lg-hid"), false, "sheet");
+  lgMorph(a, getComputedStyle(from).borderRadius, () => sh, 520, () => from.classList.remove("lg-hid"), false, "sheet", () => m.classList.add("shown"));
   from.classList.add("lg-hid");
-  setTimeout(() => m.classList.add("shown"), 230);
 }
 // closing, it lands on its button — the same one, or the one render() put in its place
 function morphClose(m){
@@ -3798,7 +3803,7 @@ function morphClose(m){
   const shown = e => e.isConnected && e.getClientRects().length > 0;   // offsetParent is null for a fixed button («Новый ордер»)
   const cur = () => (from && shown(from)) ? from : (sel && [...document.querySelectorAll("#app " + sel)].find(shown)) || null;
   if(!sh || !glassOn("morph") || !cur()){ lgStop("sheet"); return false; }   // no button to go back to: no ghost left growing
-  lgMorph(sh.getBoundingClientRect(), getComputedStyle(sh).borderRadius, cur, 300, null, true, "sheet");
+  lgMorph(sh.getBoundingClientRect(), getComputedStyle(sh).borderRadius, cur, 420, null, true, "sheet");
   return true;
 }
 // «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
@@ -3815,9 +3820,8 @@ function openTFPop(pill){
   let top = a.top - H - 10; if(top < 8) top = Math.min(innerHeight - H - 8, a.bottom + 10);
   pop.style.left = left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
   _tfPop = { pop, catcher, pill };
-  lgMorph(a, getComputedStyle(pill).borderRadius, () => pop, 380, () => pill.classList.remove("lg-hid"), false, "tf");
+  lgMorph(a, getComputedStyle(pill).borderRadius, () => pop, 460, () => pill.classList.remove("lg-hid"), false, "tf", () => pop.classList.add("shown"));
   pill.classList.add("lg-hid");
-  setTimeout(() => pop.classList.add("shown"), 200);
   // a tap beside the menu only closes it: the catcher stays for that tap's click, so nothing beneath is pressed
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(false, true); });
   pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ setChartTF(b.dataset.tfpick); closeTFPop(); });
@@ -3831,7 +3835,7 @@ function closeTFPop(now, outside){
   P.pop.remove();
   P.pill.classList.remove("lg-hid");
   if(now === true || !tfPill()){ lgStop("tf"); return; }
-  lgMorph(a, "22px", tfPill, 300, null, true, "tf");              // onto the pill as it is NOW (after the new timeframe)
+  lgMorph(a, "22px", tfPill, 400, null, true, "tf");              // onto the pill as it is NOW (after the new timeframe)
 }
 
 function toast(kind, msg){
@@ -5591,11 +5595,11 @@ function openNavCard(){
   const card = document.createElement("div"); card.className = "nav-card"; card.setAttribute("role", "dialog"); card.setAttribute("aria-label", L("Счёт"));
   card.innerHTML = `<button type="button" class="grab" aria-label="${L("Закрыть")}"></button><div class="nc-body">${navCardBody()}</div>`;
   document.body.append(catcher, card);
-  const a = bar.getBoundingClientRect();
+  const H = card.offsetHeight, h0 = bar.offsetHeight;
   document.body.classList.add("navcard-open");
-  const C = _navCard = { card, catcher, t: setInterval(() => { const b = card.querySelector(".nc-body"); if(b) b.innerHTML = navCardBody(); }, 500) };
-  if(glassOn("morph")){ lgMorph(a, "31px", () => card, 420, null, false, "navcard"); setTimeout(() => card.classList.add("shown"), 200); }
-  else card.classList.add("shown");
+  const C = _navCard = { card, catcher, H, h0, h: h0, v: 0, open: true, raf: 0, t: setInterval(() => { const b = card.querySelector(".nc-body"); if(b) b.innerHTML = navCardBody(); }, 500) };
+  card.classList.add("shown");
+  if(glassOn("morph")){ card.style.height = h0 + "px"; navCardRun(C); }
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeNavCard(true); });
   card.querySelector(".grab").onclick = () => closeNavCard();
   // a swipe down closes it
@@ -5603,18 +5607,49 @@ function openNavCard(){
   card.onpointermove = e => { if(C.id === e.pointerId && C.y0 != null && e.clientY - C.y0 > 36){ C.y0 = null; closeNavCard(); } };
   card.onpointerup = card.onpointercancel = () => { C.y0 = null; };
 }
-// …and shrinks back into the bar, which shows again once the glass has landed on it
+// one frame of the grow / shrink: a soft spring on the height (ζ .86 — smooth, a whisker of give), the glass mixing
+// from the bar's (--ncp 0) to the card's, the content (--ncc) coming up over the second half of the way
+function navCardRun(C){
+  cancelAnimationFrame(C.raf);
+  let t = 0;
+  const q = LGQ, b0 = 18 * q.b, b1 = 24 * Math.max(.9, q.sb);
+  const frame = now => {
+    const dt = t ? Math.min(Math.max((now - t) / 1000, 0), 1 / 30) : 1 / 60; t = now;
+    const to = C.open ? C.H : C.h0, K = C.open ? 170 : 210;
+    C.v += (-K * (C.h - to) - 2 * Math.sqrt(K) * .86 * C.v) * dt; C.h += C.v * dt;
+    const p = clamp((C.h - C.h0) / Math.max(1, C.H - C.h0), 0, 1.05);
+    C.card.style.height = C.h.toFixed(1) + "px";
+    C.card.style.setProperty("--ncp", Math.min(1, p).toFixed(3));
+    C.card.style.setProperty("--ncc", clamp(p * 2 - 1, 0, 1).toFixed(3));
+    const bl = (b0 + (b1 - b0) * Math.min(1, p)).toFixed(1) + "px";
+    C.card.style.backdropFilter = C.card.style.webkitBackdropFilter = "blur(" + bl + ") saturate(1.4)";
+    if(Math.abs(C.h - to) < (C.open ? .3 : 1.5) && Math.abs(C.v) < (C.open ? 4 : 20)){   // shrinking, the last px go in the cross-fade
+      C.raf = 0;
+      if(C.open){ for(const p of ["height", "--ncp", "--ncc"]) C.card.style.removeProperty(p); C.card.style.backdropFilter = C.card.style.webkitBackdropFilter = ""; }
+      else navCardGone(C);
+      return;
+    }
+    C.raf = requestAnimationFrame(frame);
+  };
+  C.raf = requestAnimationFrame(frame);
+}
+// shrunk to the bar: the bar comes back under it and the card fades away over it — one cross-fade
+function navCardGone(C){
+  document.body.classList.remove("navcard-open");
+  C.card.style.transition = "opacity .14s ease"; C.card.style.opacity = "0";
+  setTimeout(() => C.card.remove(), 160);
+}
+// …and shrinks back into the bar the same way
 function closeNavCard(outside){
   const C = _navCard; if(!C) return;
   _navCard = null;
   clearInterval(C.t);
   if(outside){ const rm = () => C.catcher.remove(); C.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }   // a tap beside it only closes it
   else C.catcher.remove();
-  const r = C.card.getBoundingClientRect();
-  C.card.remove();
-  const bar = () => document.querySelector(".bottomnav");
-  if(!glassOn("morph") || !bar()){ document.body.classList.remove("navcard-open"); return; }
-  lgMorph(r, "30px", bar, 300, () => document.body.classList.remove("navcard-open"), false, "navcard");
+  C.card.style.pointerEvents = "none";
+  if(!glassOn("morph") || !document.querySelector(".bottomnav")){ C.card.remove(); document.body.classList.remove("navcard-open"); return; }
+  if(!C.raf){ C.H = C.card.offsetHeight; C.h = C.H; C.v = 0; }         // at rest: its own height (its figures may have grown it); mid-grow: turns round
+  C.open = false; navCardRun(C);
 }
 function navBind(bar){
   if(!bar) return;
@@ -7278,7 +7313,7 @@ function lgMap(w, h){
 }
 // its bend right now: the clarity scales it (0 at the least glass, ×2.3 crystal); with colour fringes the three
 // channels bend a little apart (blue most, like a real lens)
-const lgDmScale = dm => (dm._s * LGQ.r * (1 + dm._c * .035 * LGQ.ch)).toFixed(1);
+const lgDmScale = dm => (dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)).toFixed(1);   // fringes: a hint (user: «еще чуть-чуть уменьшить радугу»)
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
 function lgFilterId(w, h, scale, chroma){
   scale = scale || 22;
