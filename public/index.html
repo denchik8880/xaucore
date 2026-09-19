@@ -3932,9 +3932,12 @@ function openGlassSheet(){
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
     `<div class="lgs" role="slider" tabindex="0" aria-label="${L("Прозрачность стекла")}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${cv}" style="--v:${(cv / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
     `<div class="lgc-ends"><span>${L("Минимум")}</span><span>${L("Кристалл")}</span></div></div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
-  let raf = 0, want = cv;                                          // the glass follows the knob live (once a frame)
-  lgsBind(modalEl.querySelector(".lgs"), cv, v => { want = v; if(!raf) raf = requestAnimationFrame(() => { raf = 0; applyClarity(want); }); },
-    v => { cancelAnimationFrame(raf); raf = 0; applyClarity(v, true); });
+  // the knob moves every frame; the glass (every surface on screen re-renders) follows ~7 times a second and exactly
+  // on release — applied every frame it cost the slider its frame rate (user: «повысьте фпс ползунку»)
+  let tm = 0, last = 0, want = cv;
+  const apply = () => { tm = 0; last = performance.now(); applyClarity(want); };
+  lgsBind(modalEl.querySelector(".lgs"), cv, v => { want = v; if(!tm) tm = setTimeout(apply, Math.max(0, 140 - (performance.now() - last))); },
+    v => { clearTimeout(tm); tm = 0; want = v; applyClarity(v, true); });
   modalEl.querySelectorAll("[data-lgf]").forEach(b => b.onclick = ()=>{
     const on = !b.classList.contains("on");
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
