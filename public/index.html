@@ -1273,15 +1273,21 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .ot-g .ot-go.sell{box-shadow:0 8px 22px color-mix(in srgb,var(--red) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go:disabled{background-color:var(--cap-glass);background-image:none;box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);color:var(--ink3)}
 .ot-g .ot-go:not(:disabled):active{transform:scale(.98)}
-/* the lot list without liquid glass — cTrader's Android dropdown under «Количество»: the volume ladder, the current
-   one lit at the top, a tap picks, a tap beside closes (the drum is liquid glass's own) */
-.lot-list{position:fixed;z-index:90;overflow-y:auto;overscroll-behavior:contain;padding:6px 0;border-radius:4px;background:var(--card);
-  box-shadow:0 10px 30px rgba(0,0,0,.3),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn .15s ease-out;scrollbar-width:thin}
+/* the lot list without liquid glass — cTrader's Android dropdown under «Количество», one to one with its screenshot:
+   it starts OVER the field, at the middle of its number (no gap, no padding — the lit row sits right at its top), the
+   field's width, 52 px rows, down to the screen's foot; a thin bar only while it scrolls (scrollInd). The current
+   volume is lit and on top; a tap picks, a tap beside closes (the drum is liquid glass's own) */
+.lot-list{position:fixed;z-index:90;display:flex;flex-direction:column;overflow:hidden;border-radius:2px;background:var(--card);
+  box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn .15s ease-out}
+.ll-in{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.ll-in::-webkit-scrollbar{display:none}
+.lot-list .sc-ind{background:var(--blue);width:2.5px}
 .lot-list.up{transform-origin:50% 100%}
 .lot-list.out{opacity:0;transition:opacity .1s ease}
-:root[data-theme="dark"] .lot-list{background:#2a2a2d;box-shadow:0 10px 30px rgba(0,0,0,.55)}
-.lot-list button{display:block;width:100%;min-height:48px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16px;text-align:left;font-variant-numeric:tabular-nums}
-.lot-list button.on{background:rgba(127,127,127,.18)}
+:root[data-theme="dark"] .lot-list{background:#1f2023;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.lot-list button{display:block;width:100%;min-height:52px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16.5px;text-align:left;font-variant-numeric:tabular-nums}
+.lot-list button.on{background:#e6e8ec}
+:root[data-theme="dark"] .lot-list button.on{background:#454850}
 .lot-list button:active{background:rgba(127,127,127,.26)}
 .ll-open .ot-caret,.ll-open .ctp-caret{transform:rotate(180deg)}
 .ot-caret,.ctp-caret{transition:transform .15s ease}
@@ -6589,14 +6595,18 @@ function openLotList(anchor, value, pick){
   if(Number.isFinite(value) && !validateLot(value)) set.add(roundTo(value, 2));
   const vals = [...set].sort((a, b) => a - b), cur = v => Math.abs(v - value) < 1e-9;
   const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
-  const list = document.createElement("div"); list.className = "lot-list"; list.setAttribute("role", "listbox");
-  list.innerHTML = vals.map(v => `<button type="button" role="option" data-v="${v}" class="${cur(v) ? "on" : ""}" aria-selected="${cur(v)}">${roundTo(v, 2)}</button>`).join("");
+  const list = document.createElement("div"); list.className = "lot-list";
+  list.innerHTML = `<div class="ll-in" role="listbox">${vals.map(v => `<button type="button" role="option" data-v="${v}" class="${cur(v) ? "on" : ""}" aria-selected="${cur(v)}">${roundTo(v, 2)}</button>`).join("")}</div>`;
   document.body.append(catcher, list);
-  const a = anchor.getBoundingClientRect(), below = innerHeight - a.bottom - 10, up = below < 200 && a.top > below;
+  // cTrader: it starts at the middle of the field's number and covers the field's lower half — no gap under the field
+  const a = anchor.getBoundingClientRect(), inp = anchor.querySelector("input"), ir = inp ? inp.getBoundingClientRect() : a;
+  const mid = ir.top + ir.height * .55, below = innerHeight - mid - 8, up = below < 200 && mid > below;
   list.style.left = a.left + "px"; list.style.width = Math.max(120, a.width) + "px";
-  if(up){ list.classList.add("up"); list.style.bottom = (innerHeight - a.top + 2) + "px"; list.style.maxHeight = (a.top - 10) + "px"; }
-  else { list.style.top = (a.bottom + 2) + "px"; list.style.maxHeight = below + "px"; }
-  const on = list.querySelector(".on"); if(on) list.scrollTop = Math.max(0, on.offsetTop - 6);
+  if(up){ list.classList.add("up"); list.style.bottom = (innerHeight - mid) + "px"; list.style.maxHeight = (mid - 8) + "px"; }
+  else { list.style.top = mid + "px"; list.style.maxHeight = below + "px"; }
+  const inner = list.firstChild, on = inner.querySelector(".on");
+  if(on) inner.scrollTop = on.offsetTop;                             // the lit row right at the top
+  scrollInd(inner, list);
   anchor.classList.add("ll-open");
   _lotList = { list, catcher, anchor };
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeLotList(true); });
