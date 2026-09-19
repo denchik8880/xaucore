@@ -896,7 +896,8 @@ html:has(body.route-wallet){background:#0c0a08}
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button{position:relative;z-index:1}
+/* the labels lie over the lens: under it, its bend drew bits of them along its rim (user: stray letters above «Рыночный») */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button{position:relative;z-index:3}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.theme button.on{background:transparent;box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
   box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
@@ -1136,6 +1137,142 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .switch.on .knob{transform:translateX(20px)}
 :root[data-theme="dark"] .switch{background:#39393d}
 :root[data-theme="dark"] .switch.on{background:var(--green)}
+/* ---- the sheets' own scroll indicator (scrollInd): the browser's overlay bar ran straight past their rounded
+   corners (user: «ползунок вверх вниз, он выскакивает»); ours keeps to the straight part of the edge ---- */
+:root{--sc-ind:rgba(0,0,0,.32)}
+:root[data-theme="dark"]{--sc-ind:rgba(255,255,255,.4)}
+.sheet{scrollbar-width:none}
+.sheet::-webkit-scrollbar{display:none}
+.sc-ind{position:absolute;left:0;top:0;width:3px;height:40px;border-radius:2px;background:var(--sc-ind);opacity:0;pointer-events:none;z-index:6;transition:opacity .4s ease}
+.sc-ind.on{opacity:1;transition:opacity .08s ease}
+/* ---- «Разместить ордер» (openTicket): cTrader's page without liquid glass, a tall glass sheet with it ---- */
+:root{--ot-edge:#c3c7cd;--ot-idle:#eceef1}
+:root[data-theme="dark"]{--ot-edge:#4d4d52;--ot-idle:#323236}
+.sheet.ot-sheet{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.ot-top{position:relative;flex:none;display:flex;align-items:center;min-height:54px;padding:12px 60px 6px 18px}
+.sheet .ot-top h2{margin:0;padding:0;font-size:18px;line-height:1.25}
+.ot-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 16px 20px;scrollbar-width:none}
+.ot-body::-webkit-scrollbar{display:none}
+.ot-foot{flex:none;padding:8px 16px calc(10px + env(safe-area-inset-bottom))}
+.ot-go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;min-height:56px;padding:6px 10px;border:0;border-radius:4px;color:#fff;background-color:var(--green);transition:background-color .2s ease,color .2s ease,transform .12s ease}
+.ot-go b{font-size:16px;font-weight:500}
+.ot-go span{font-size:13.5px;opacity:.95}
+.ot-go.sell{background-color:var(--red)}
+.ot-go:disabled{background-color:var(--ot-idle);color:var(--ink3);cursor:default}
+.ot-closed{display:flex;align-items:center;gap:8px;margin:10px 0 2px;color:var(--blue-ink);font-size:13.5px;line-height:1.3}
+.ot-closed svg{flex:none}
+.ot-closed[hidden]{display:none}
+.ot-q,.ot-day{text-align:center;font-size:13.5px;line-height:1.3;color:var(--ink2);font-variant-numeric:tabular-nums}
+.ot-q{margin:16px 0 8px}
+.ot-day{margin-top:7px}
+/* the fields: cTrader's outlined ones — the label sits in a notch of the frame */
+.otf{position:relative;display:flex;align-items:center;width:100%;min-height:50px;margin-top:18px;padding:0 4px 0 15px;border:1px solid var(--ot-edge);border-radius:4px;background:none;color:var(--ink);font:inherit;text-align:left}
+.otf-l{position:absolute;left:11px;top:-8px;max-width:calc(100% - 24px);padding:0 4px;font-size:12px;line-height:15px;color:var(--ink2);background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.otf-v,.otf-i{flex:1 1 auto;min-width:0;height:48px;padding:0;border:0;border-radius:0;background:none!important;color:var(--ink);font-size:16px;line-height:48px;outline:none;text-align:left}
+.otf-sub .otf-i{color:var(--ink2)}
+.otf:focus-within{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.otf:focus-within .otf-l{color:var(--blue-ink)}
+.otf.bad,.otf.bad:focus-within{border-color:var(--red-ink);box-shadow:inset 0 0 0 1px var(--red-ink)}
+.otf.bad .otf-l{color:var(--red-ink)}
+.ot-caret{flex:none;width:0;height:0;margin:0 14px 0 10px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--ink2)}
+.ot-dd{flex:none;display:flex;align-items:center;height:48px;padding:0;border:0;background:none}
+.ot-steps{flex:none;display:flex}
+.ot-st{width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:none;color:var(--ink);touch-action:manipulation;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.ot-st:active{background:var(--press)}
+.ot-note{margin:6px 16px 0;font-size:13.5px;line-height:1.35;color:var(--ink2);white-space:pre-wrap;font-variant-numeric:tabular-nums}
+.ot-note:empty{display:none}
+.ot-err{display:none;margin:6px 16px 0;font-size:13.5px;line-height:1.3;color:var(--red-ink)}
+.ot-err.on{display:block}
+/* Продать / Купить: the chosen side framed in its colour, the other a grey block (cTrader) */
+.ot-side{display:flex;gap:10px;margin-top:16px}
+.ot-q+.ot-side{margin-top:0}
+.ot-side button{flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px;border:1px solid transparent;border-radius:4px;background:var(--ot-idle);font-size:14px;font-weight:500;text-transform:uppercase;transition:background-color .15s ease,border-color .15s ease}
+.ot-side.px button{min-height:66px}
+.ot-side button b{font-size:20px;font-weight:500;line-height:1.2}
+.sheet .ot-side button[data-otside="sell"]{color:var(--red-ink)}
+.sheet .ot-side button[data-otside="buy"]{color:var(--green-ink)}
+.ot-side button.on{background:none}
+.ot-side [data-otside="sell"].on{border-color:var(--red)}
+.ot-side [data-otside="buy"].on{border-color:var(--green)}
+/* the options: check boxes (with glass, iOS switches) that open their fields under them */
+.ot-opts{margin-top:8px}
+.ot-ck{display:flex;align-items:center;gap:14px;min-height:56px;font-size:16px;color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;-webkit-tap-highlight-color:transparent}
+.ot-box{position:relative;flex:none;width:18px;height:18px;border:2px solid var(--ink2);border-radius:2px;transition:background-color .12s ease,border-color .12s ease}
+.ot-opt.on>.ot-ck .ot-box{background:var(--blue);border-color:var(--blue)}
+.ot-opt.on>.ot-ck .ot-box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ot-ck:focus-visible .ot-box,.ot-ck:focus-visible .switch{outline:2px solid var(--blue);outline-offset:3px}
+.ot-opt.dis>.ot-ck{opacity:.42;cursor:default}
+.ot-more,.ot-coll{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
+.ot-opt.on>.ot-more,.ot-coll.open{grid-template-rows:1fr}
+.ot-in{min-height:0;overflow:hidden;opacity:0;transition:opacity .16s ease}
+.ot-opt.on>.ot-more>.ot-in,.ot-coll.open>.ot-in{opacity:1;transition:opacity .26s ease .05s}
+.ot-more>.ot-in::after{content:"";display:block;height:10px}
+.ot-more .otf:first-child{margin-top:8px}
+/* the ▼ menus: cTrader's dropdown under its field */
+.ot-mp{position:fixed;z-index:90;padding:8px 0;border-radius:4px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn .15s ease-out}
+@keyframes otMn{from{opacity:0;transform:scaleY(.8)}to{opacity:1;transform:none}}
+.ot-mp button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16px;text-align:left}
+.ot-mp button.on{color:var(--blue-ink)}
+.ot-mp button:active{background:var(--press)}
+.ot-menu-foot{margin-top:4px;padding:8px 16px 4px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3)}
+.lg-pop.ot-menu .ot-menu-foot{padding:8px 12px 4px;border-top-color:var(--lg-line)}
+/* without glass: cTrader's full-screen page, sliding in from the right; «‹» goes back */
+.modal.opage{background:transparent;align-items:stretch}
+.modal.opage .sheet.ot-sheet{height:100%;max-height:none;border-radius:0;box-shadow:none;animation:otIn .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes otIn{from{transform:translateX(100%)}to{transform:none}}
+.modal.opage.closing .sheet{transform:translateX(100%);transition:transform .2s cubic-bezier(.4,0,1,1)}
+.ot-p>.close{display:none}
+.ot-p .ot-top{min-height:56px;padding:calc(4px + env(safe-area-inset-top)) 12px 4px 4px}
+.sheet.ot-p .ot-top h2{font-size:20px;font-weight:500}
+.ot-back{flex:none;width:48px;height:48px;display:grid;place-items:center;margin-right:6px;padding:0;border:0;border-radius:50%;background:none;color:var(--ink)}
+.ot-back:active{background:var(--press)}
+.ot-tabs{position:relative;flex:none;display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.ot-tabs::-webkit-scrollbar{display:none}
+.ot-tabs button{flex:none;height:48px;padding:0 16px;border:0;background:none;color:var(--ink2);font-size:14px;font-weight:500;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;transition:color .2s ease}
+.ot-tabs button.on{color:var(--blue-ink)}
+.ot-ul{position:absolute;left:0;bottom:0;width:var(--ulw,0px);height:3px;border-radius:3px 3px 0 0;background:var(--blue);transform:translateX(var(--ulx,0px));transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1)}
+.ot-p .ot-body{padding:4px 16px 24px}
+.ot-p .ot-foot{padding:0}
+.ot-p .ot-go{border-radius:0;min-height:58px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
+/* with glass: a tall glass sheet — the type and the side are flowing drops (the side's takes its colour), the
+   fields are frosted wells, iOS switches, a glass capsule to place the order */
+.sheet.ot-g{height:calc(92vh - 8px);height:calc(92dvh - 8px)}
+.ot-g .ot-top{min-height:58px;padding:16px 60px 8px 20px}
+.sheet.ot-g .ot-top h2{font-size:19px}
+.ot-g .ot-types{flex:none;margin:2px 16px 6px}
+.ot-g .ot-types button{flex:1 1 auto;padding:9px 3px;white-space:nowrap;font-size:13px}
+.ot-g .ot-body{padding:4px 16px 16px}
+.ot-g .otf{margin-top:10px;min-height:56px;padding:0 6px 0 14px;border:0;border-radius:16px;background:var(--sheet-field,var(--field-bg));box-shadow:0 0 0 .5px var(--lg-line);transition:box-shadow .15s ease}
+.ot-g .otf-l{top:8px;left:14px;padding:0;background:none;font-size:11.5px;line-height:14px}
+.ot-g .otf-v,.ot-g .otf-i{height:56px;padding-top:16px;line-height:40px}
+.ot-g .otf:focus-within{border-color:transparent;box-shadow:0 0 0 1.5px var(--blue)}
+.ot-g .otf.bad,.ot-g .otf.bad:focus-within{box-shadow:0 0 0 1.5px var(--red-ink)}
+.ot-g .ot-st{width:36px;height:36px;margin-left:6px;background:var(--cap-glass);box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transition:transform .12s ease}
+.ot-g .ot-st:active{background:var(--cap-glass);transform:scale(.88)}
+.ot-g .ot-caret{margin-right:12px}
+.ot-g .ot-note,.ot-g .ot-err{margin-left:14px;margin-right:14px}
+.ot-g .ot-side{margin-top:12px;gap:4px}
+.ot-g .ot-q+.ot-side{margin-top:0}
+.ot-g .ot-side button{min-height:44px;border:0;border-radius:9px;font-size:15px;font-weight:600;text-transform:none}
+.ot-g .ot-side.px button{min-height:58px}
+.ot-g .ot-side button b{font-size:18px;font-weight:600}
+.ot-g .ot-side button:not(.on){background:none;box-shadow:none}
+.ot-g .ot-side.buy button.on{background:color-mix(in srgb,var(--green) 22%,transparent);box-shadow:none}
+.ot-g .ot-side.sell button.on{background:color-mix(in srgb,var(--red) 22%,transparent);box-shadow:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side button.on{background:transparent}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side .seg-bub{transition:background-color .25s ease}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy .seg-bub{background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),color-mix(in srgb,var(--green) 24%,transparent)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell .seg-bub{background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),color-mix(in srgb,var(--red) 24%,transparent)}
+.ot-g .ot-opts{margin-top:14px;padding:0 14px;border-radius:18px;background:var(--sheet-card,var(--card));box-shadow:0 0 0 .5px var(--lg-line)}
+.ot-g .ot-ck{justify-content:space-between;min-height:52px;border-top:.5px solid var(--line)}
+.ot-g .ot-opts>:first-child>.ot-ck{border-top:0}
+.ot-g .ot-coll>.ot-in>.ot-opt>.ot-ck{border-top:.5px solid var(--line)}
+.ot-g .ot-more>.ot-in::after{height:14px}
+.ot-g .ot-foot{padding:8px 16px 14px}
+.ot-g .ot-go{border-radius:28px;background-image:linear-gradient(180deg,rgba(255,255,255,.26),transparent 62%);box-shadow:0 8px 22px color-mix(in srgb,var(--green) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
+.ot-g .ot-go.sell{box-shadow:0 8px 22px color-mix(in srgb,var(--red) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
+.ot-g .ot-go:disabled{background-color:var(--cap-glass);background-image:none;box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);color:var(--ink3)}
+.ot-g .ot-go:not(:disabled):active{transform:scale(.98)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
@@ -1742,7 +1879,63 @@ const I18N = {
 "Плашка исполнения":["Execution pill","Плашка виконання","Bulle d’exécution","İşlem bildirimi"],
 "Всплывающие сообщения":["Pop-up messages","Спливні повідомлення","Messages contextuels","Açılır mesajlar"],
 "Лоты и барабан":["Lots and the wheel","Лоти та барабан","Lots et roue","Lotlar ve çark"],
-"Преломление по краям":["Edge refraction","Заломлення по краях","Réfraction des bords","Kenar kırılması"]
+"Преломление по краям":["Edge refraction","Заломлення по краях","Réfraction des bords","Kenar kırılması"],
+"Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
+"Пункты":["Pips","Пункти","Pips","Pip"],
+"Закрыть (лоты)":["Close (lots)","Закрити (лоти)","Clôturer (lots)","Kapat (lot)"],
+"Рынок закрыт. Принимаются только отложенные ордера.":["Market closed. Only pending orders are accepted.","Ринок закрито. Приймаються лише відкладені ордери.","Marché fermé. Seuls les ordres en attente sont acceptés.","Piyasa kapalı. Yalnızca bekleyen emirler kabul edilir."],
+"Триггер":["Trigger","Тригер","Déclencheur","Tetikleyici"],
+"Макс. проскальзывание (пункты)":["Max. slippage (pips)","Макс. прослизання (пункти)","Glissement max. (pips)","Maks. kayma (pip)"],
+"Макс. проскальзывание":["Max. slippage","Макс. прослизання","Glissement max.","Maks. kayma"],
+"Тейк-профит 1":["Take profit 1","Тейк-профіт 1","Take profit 1","Kâr al 1"],
+"Тейк-профит":["Take profit","Тейк-профіт","Take profit","Kâr al"],
+"Тейк-профит 2":["Take profit 2","Тейк-профіт 2","Take profit 2","Kâr al 2"],
+"Стоп-лосс":["Stop loss","Стоп-лос","Stop loss","Zarar durdur"],
+"лимитного ордера":["limit order","лімітного ордера","ordre limite","limit emrinin"],
+"стоп ордера":["stop order","стоп-ордера","ordre stop","stop emrinin"],
+"стоп-лимит ордера":["stop-limit order","стоп-ліміт ордера","ordre stop-limite","stop limit emrinin"],
+"Укажите цену входа":["Enter the entry price","Вкажіть ціну входу","Indiquez le prix d’entrée","Giriş fiyatını girin"],
+"Цена входа {0} на покупку должна быть ниже текущей цены покупки ({1})":["The entry price of a buy {0} must be below the current buy price ({1})","Ціна входу {0} на купівлю має бути нижчою за поточну ціну купівлі ({1})","Le prix d’entrée d’un {0} d’achat doit être inférieur au prix d’achat actuel ({1})","Alış {0} giriş fiyatı mevcut alış fiyatının ({1}) altında olmalıdır"],
+"Цена входа {0} на продажу должна быть выше текущей цены продажи ({1})":["The entry price of a sell {0} must be above the current sell price ({1})","Ціна входу {0} на продаж має бути вищою за поточну ціну продажу ({1})","Le prix d’entrée d’un {0} de vente doit être supérieur au prix de vente actuel ({1})","Satış {0} giriş fiyatı mevcut satış fiyatının ({1}) üzerinde olmalıdır"],
+"Цена входа {0} на покупку должна быть выше текущей цены покупки ({1})":["The entry price of a buy {0} must be above the current buy price ({1})","Ціна входу {0} на купівлю має бути вищою за поточну ціну купівлі ({1})","Le prix d’entrée d’un {0} d’achat doit être supérieur au prix d’achat actuel ({1})","Alış {0} giriş fiyatı mevcut alış fiyatının ({1}) üzerinde olmalıdır"],
+"Цена входа {0} на продажу должна быть ниже текущей цены продажи ({1})":["The entry price of a sell {0} must be below the current sell price ({1})","Ціна входу {0} на продаж має бути нижчою за поточну ціну продажу ({1})","Le prix d’entrée d’un {0} de vente doit être inférieur au prix de vente actuel ({1})","Satış {0} giriş fiyatı mevcut satış fiyatının ({1}) altında olmalıdır"],
+"Укажите число пунктов":["Enter the number of pips","Вкажіть кількість пунктів","Indiquez le nombre de pips","Pip sayısını girin"],
+"Для двух тейк-профитов нужен объём от {0} лота":["Two take profits need a volume of at least {0} lots","Для двох тейк-профітів потрібен обсяг від {0} лота","Deux take profits exigent un volume d’au moins {0} lot","İki kâr al için en az {0} lot hacim gerekir"],
+"Объём тейк-профита 1: от {0} до {1} лота":["Take profit 1 volume: {0} to {1} lots","Обсяг тейк-профіту 1: від {0} до {1} лота","Volume du take profit 1 : de {0} à {1} lot","Kâr al 1 hacmi: {0} – {1} lot"],
+"Тейк-профит должен быть выше цены входа ({0})":["Take profit must be above the entry price ({0})","Тейк-профіт має бути вищим за ціну входу ({0})","Le take profit doit être supérieur au prix d’entrée ({0})","Kâr al giriş fiyatının ({0}) üzerinde olmalıdır"],
+"Тейк-профит должен быть ниже цены входа ({0})":["Take profit must be below the entry price ({0})","Тейк-профіт має бути нижчим за ціну входу ({0})","Le take profit doit être inférieur au prix d’entrée ({0})","Kâr al giriş fiyatının ({0}) altında olmalıdır"],
+"Тейк-профит 2 должен быть дальше тейк-профита 1":["Take profit 2 must be further than take profit 1","Тейк-профіт 2 має бути далі за тейк-профіт 1","Le take profit 2 doit être plus loin que le take profit 1","Kâr al 2, kâr al 1’den daha uzakta olmalıdır"],
+"Стоп-лосс должен быть ниже цены входа ({0})":["Stop loss must be below the entry price ({0})","Стоп-лос має бути нижчим за ціну входу ({0})","Le stop loss doit être inférieur au prix d’entrée ({0})","Zarar durdur giriş fiyatının ({0}) altında olmalıdır"],
+"Стоп-лосс должен быть выше цены входа ({0})":["Stop loss must be above the entry price ({0})","Стоп-лос має бути вищим за ціну входу ({0})","Le stop loss doit être supérieur au prix d’entrée ({0})","Zarar durdur giriş fiyatının ({0}) üzerinde olmalıdır"],
+"Стоп-лосс должен быть ниже текущей цены продажи ({0})":["Stop loss must be below the current sell price ({0})","Стоп-лос має бути нижчим за поточну ціну продажу ({0})","Le stop loss doit être inférieur au prix de vente actuel ({0})","Zarar durdur mevcut satış fiyatının ({0}) altında olmalıdır"],
+"Стоп-лосс должен быть выше текущей цены покупки ({0})":["Stop loss must be above the current buy price ({0})","Стоп-лос має бути вищим за поточну ціну купівлі ({0})","Le stop loss doit être supérieur au prix d’achat actuel ({0})","Zarar durdur mevcut alış fiyatının ({0}) üzerinde olmalıdır"],
+"Баланс: ~ {0}%   Валовая прибыль: ~ {1}":["Balance: ~ {0}%   Gross profit: ~ {1}","Баланс: ~ {0}%   Валовий прибуток: ~ {1}","Solde : ~ {0} %   Profit brut : ~ {1}","Bakiye: ~ %{0}   Brüt kâr: ~ {1}"],
+"Баланс: ~ -{0}%   Валовой убыток: ~ -{1}":["Balance: ~ -{0}%   Gross loss: ~ -{1}","Баланс: ~ -{0}%   Валовий збиток: ~ -{1}","Solde : ~ -{0} %   Perte brute : ~ -{1}","Bakiye: ~ -%{0}   Brüt zarar: ~ -{1}"],
+"Закроет {0}":["Closes {0}","Закриє {0}","Clôture {0}","Kapatır: {0}"],
+"Маржа для покупки: ~ {0}":["Margin to buy: ~ {0}","Маржа для купівлі: ~ {0}","Marge à l’achat : ~ {0}","Alış marjı: ~ {0}"],
+"Маржа для продажи: ~ {0}":["Margin to sell: ~ {0}","Маржа для продажу: ~ {0}","Marge à la vente : ~ {0}","Satış marjı: ~ {0}"],
+"Расстояние: {0}":["Distance: {0}","Відстань: {0}","Distance : {0}","Mesafe: {0}"],
+"Продажа: {0}; покупка: {1}":["Sell: {0}; buy: {1}","Продаж: {0}; купівля: {1}","Vente : {0} ; achat : {1}","Satış: {0}; alış: {1}"],
+"Изм.: {0} ({1}); Выс.: {2}; Низ.: {3}":["Chg.: {0} ({1}); High: {2}; Low: {3}","Зм.: {0} ({1}); Макс.: {2}; Мін.: {3}","Var. : {0} ({1}) ; Haut : {2} ; Bas : {3}","Değ.: {0} ({1}); Yüks.: {2}; Düş.: {3}"],
+"Ордер отклонён: цена ушла на {0} п. — больше допустимых {1} п.":["Order rejected: the price moved {0} pips — more than the allowed {1}","Ордер відхилено: ціна пішла на {0} п. — більше за допустимі {1} п.","Ordre rejeté : le prix a bougé de {0} pips — plus que les {1} admis","Emir reddedildi: fiyat {0} pip kaydı — izin verilen {1} pipten fazla"],
+"Тейк-профит 1 должен быть за ценой входа":["Take profit 1 must be beyond the entry price","Тейк-профіт 1 має бути за ціною входу","Le take profit 1 doit être au-delà du prix d’entrée","Kâr al 1 giriş fiyatının ötesinde olmalıdır"],
+"Неверный объём тейк-профита 1":["Invalid take profit 1 volume","Невірний обсяг тейк-профіту 1","Volume du take profit 1 invalide","Geçersiz kâr al 1 hacmi"],
+"Частично закрыта #{0}: {1} лот":["Partly closed #{0}: {1} lot","Частково закрито #{0}: {1} лот","Clôturée en partie #{0} : {1} lot","Kısmen kapatıldı #{0}: {1} lot"],
+"КУПИТЬ ЛИМИТНЫЙ":["BUY LIMIT","КУПИТИ ЛІМІТНИЙ","ACHAT LIMITE","LİMİT AL"],
+"ПРОДАТЬ ЛИМИТНЫЙ":["SELL LIMIT","ПРОДАТИ ЛІМІТНИЙ","VENTE LIMITE","LİMİT SAT"],
+"КУПИТЬ СТОП":["BUY STOP","КУПИТИ СТОП","ACHAT STOP","STOP AL"],
+"ПРОДАТЬ СТОП":["SELL STOP","ПРОДАТИ СТОП","VENTE STOP","STOP SAT"],
+"КУПИТЬ СТОП-ЛИМИТ":["BUY STOP LIMIT","КУПИТИ СТОП-ЛІМІТ","ACHAT STOP LIMITE","STOP LİMİT AL"],
+"ПРОДАТЬ СТОП-ЛИМИТ":["SELL STOP LIMIT","ПРОДАТИ СТОП-ЛІМІТ","VENTE STOP LIMITE","STOP LİMİT SAT"],
+"ТП1":["TP1","ТП1","TP1","TP1"],
+"ТП2":["TP2","ТП2","TP2","TP2"],
+"Лимитный":["Limit","Лімітний","Limite","Limit"],
+"Стоп":["Stop","Стоп","Stop","Stop"],
+"Стоп-лимит":["Stop limit","Стоп-ліміт","Stop limite","Stop limit"],
+"Сторона сделки":["Trade side","Сторона угоди","Côté de l’opération","İşlem tarafı"],
+"Противоположная сторона":["Opposite side","Протилежна сторона","Côté opposé","Karşı taraf"],
+"Двойная сторона сделки":["Double trade side","Подвійна сторона угоди","Double côté de l’opération","Çift işlem tarafı"],
+"Двойная противоположная сторона":["Double opposite side","Подвійна протилежна сторона","Double côté opposé","Çift karşı taraf"]
 };
 function L(s, ...a){
   let t = s;
@@ -3336,7 +3529,7 @@ function execRemoteOps(ops){
   if(!ops || !ops.length) return;
   for(const o of ops){
     try{
-      if(o.kind === "open")               openPosition(o.side, o.volume, { sl:o.sl, tp:o.tp });
+      if(o.kind === "open")               openPosition(o.side, o.volume, { sl:o.sl, tp:o.tp, slPips:o.slPips, tpPips:o.tpPips, tp1:o.tp1, range:o.range, ref:o.ref });
       else if(o.kind === "close")         closePosition(o.id, o.reason || "manual");
       else if(o.kind === "modify")        modifyPosition(o.id, o.sl, o.tp);
       else if(o.kind === "pending")       addPending(o.order);
@@ -3347,7 +3540,7 @@ function execRemoteOps(ops){
 }
 function openPosition(side, volume, opts){
   opts = opts || {};
-  if(guardMirror("open", { side, volume, sl:opts.sl, tp:opts.tp })) return null;
+  if(guardMirror("open", { side, volume, sl:opts.sl, tp:opts.tp, slPips:opts.slPips, tpPips:opts.tpPips, tp1:opts.tp1, range:opts.range, ref:opts.ref })) return null;
   if(guardLock()) return null;
   if(marketClosed()){ toast("r", L("Рынок закрыт — исполнение недоступно")); return null; }
   const err = validateLot(volume);
@@ -3356,12 +3549,30 @@ function openPosition(side, volume, opts){
   let px = side === "buy" ? S.price.ask : S.price.bid;
   const slip = slippage();
   if(slip>0) px = roundTo(px + (side==="buy" ? slip : -slip), S.symbol.digits);
+  const pip = Math.pow(10, -S.symbol.digits), dir = side === "buy" ? 1 : -1;
+  // the market range (the ticket's «Макс. проскальзывание»): a fill further than that from the price the order was
+  // sent at is refused, as cTrader does
+  if(opts.range != null && isFinite(opts.ref) && (px - opts.ref) * dir > opts.range * pip + 1e-9){
+    toast("r", L("Ордер отклонён: цена ушла на {0} п. — больше допустимых {1} п.", Math.round((px - opts.ref) * dir / pip), opts.range));
+    return null;
+  }
 
   // margin check
   const reqM = (volume * S.symbol.contractSize * S.price.mid) / S.symbol.leverage;
   if(reqM > S._acc.freeMargin + 1e-6){
     toast("r", L("Недостаточно свободной маржи (нужно {0})", money(reqM)));
     return null;
+  }
+  // SL / TP given in points are set from the fill (cTrader: relative to the opening price)
+  if(opts.slPips != null) opts.sl = roundTo(px - dir * opts.slPips * pip, S.symbol.digits);
+  if(opts.tpPips != null) opts.tp = roundTo(px + dir * opts.tpPips * pip, S.symbol.digits);
+  // take profit 1 closes a part of the volume; the position's TP (2) closes the rest
+  let tp1 = null;
+  if(opts.tp1){
+    const t1 = opts.tp1, p1 = t1.pips != null ? roundTo(px + dir * t1.pips * pip, S.symbol.digits) : t1.price, v1 = roundTo(t1.volume, 2);
+    if(!(isFinite(p1) && (p1 - px) * dir > 0)){ toast("r", L("Тейк-профит 1 должен быть за ценой входа")); return null; }
+    if(validateLot(v1) || v1 > volume - S.symbol.minLot + 1e-9){ toast("r", L("Неверный объём тейк-профита 1")); return null; }
+    tp1 = { price: p1, volume: v1 };
   }
   // validate SL/TP sides
   if(opts.sl != null){
@@ -3375,7 +3586,7 @@ function openPosition(side, volume, opts){
   const openComm = commissionFor(volume, px);
   const pos = {
     id: S.seq.pos++, symbol: S.symbol.name, side, volume: roundTo(volume,2),
-    entry: px, openTime: S.simClock, sl: opts.sl||null, tp: opts.tp||null,
+    entry: px, openTime: S.simClock, sl: opts.sl||null, tp: opts.tp||null, tp1,
     openCommission: openComm, swap: 0, slippage: slip,
     lastSwapDay: simDateStr()
   };
@@ -3409,6 +3620,30 @@ function closePosition(id, reason){
   toast(cls, L("Закрыта #{0}", pos.id)+"  "+signMoney(m.gross+m.swap-m.comm)+(reason?"  ("+L(reason)+")":""));
   save();
 }
+/* a part of a position closes (take profit 1): its share of the gross, the swap and the opening commission goes to the
+   balance with the closing commission, a history row for it, the rest runs on */
+function closePartial(id, vol, reason){
+  if(XC.follower) return;                                          // the device driving the market does it
+  const pos = S.positions.find(p => p.id === id);
+  if(!pos) return;
+  vol = roundTo(Math.min(vol, pos.volume), 2);
+  if(vol >= pos.volume - 1e-9){ closePosition(id, reason); return; }
+  const k = vol / pos.volume, exit = closePriceFor(pos);
+  const gross = grossPL(pos) * k, swap = pos.swap * k, openC = pos.openCommission * k, closeC = commissionFor(vol, exit);
+  S.account.balance += gross + swap - closeC;                      // its opening commission was taken at open
+  pos.volume = roundTo(pos.volume - vol, 2); pos.swap -= swap; pos.openCommission -= openC;
+  S.history.unshift({
+    id: pos.id, symbol: pos.symbol, side: pos.side, volume: vol, entry: pos.entry, exit,
+    openTime: pos.openTime, closeTime: S.simClock,
+    gross, commission: openC + closeC, swap, net: gross + swap - openC - closeC,
+    reason: reason || "manual", slippage: pos.slippage
+  });
+  if(S.history.length > 500) S.history.pop();
+  recalcAccount();
+  const net = gross + swap - openC - closeC;
+  toast(net >= 0 ? "g" : "r", L("Частично закрыта #{0}: {1} лот", pos.id, fmt(vol, 2)) + "  " + signMoney(net) + (reason ? "  (" + L(reason) + ")" : ""));
+  save();
+}
 function modifyPosition(id, sl, tp){
   if(guardMirror("modify", { id, sl, tp })) return;
   if(guardLock()) return;
@@ -3435,6 +3670,11 @@ function modifyPosition(id, sl, tp){
 function processPositionSLTP(){
   for(const p of [...S.positions]){
     const bid = S.price.bid, ask = S.price.ask;
+    // take profit 1 closes its part first; the rest runs on to TP (2) / SL
+    if(p.tp1 && !XC.follower && (p.side === "buy" ? bid >= p.tp1.price : ask <= p.tp1.price)){
+      const v = p.tp1.volume; p.tp1 = null; closePartial(p.id, v, "TP1");
+      if(!S.positions.includes(p)) continue;
+    }
     if(p.side === "buy"){
       if(p.sl != null && bid <= p.sl){ closePosition(p.id, "SL"); continue; }
       if(p.tp != null && bid >= p.tp){ closePosition(p.id, "TP"); continue; }
@@ -3455,8 +3695,11 @@ function addPending(o){
     id: S.seq.ord++, symbol: S.symbol.name, type: o.type, volume: roundTo(o.volume,2),
     price: o.price, sl: o.sl||null, tp: o.tp||null, createTime: S.simClock
   };
+  if(o.type.includes("stop")) ord.trig = o.trig || "trade";                     // which price sets it off (cTrader's trigger)
+  if(o.type.endsWith("stop_limit")) ord.lim = Math.max(0, Math.round(o.lim || 0));   // the limit range, points
+  if(o.tp1 && o.tp1.price && o.tp1.volume) ord.tp1 = { price: o.tp1.price, volume: roundTo(o.tp1.volume, 2) };
   S.pendings.push(ord);
-  toast("", o.type.replace("_"," ").toUpperCase()+" "+fmt(o.volume,2)+L(" по ")+pxfmt(o.price));
+  toast("", ordTypeName(o.type)+" "+fmt(o.volume,2)+L(" по ")+pxfmt(o.price));
   save();
   return ord;
 }
@@ -3466,21 +3709,36 @@ function cancelPending(id){
   const i = S.pendings.findIndex(o=>o.id===id);
   if(i>=0){ S.pendings.splice(i,1); toast("", L("Ордер отменён")); save(); }
 }
+/* A limit fills at its price. A stop is set off by its trigger side — the trade side (a buy stop watches the buy
+   price) or the opposite one; «double» wants two ticks in a row past the price — and fills at the market with
+   slippage. A stop-limit set off becomes a limit at its price ± its range: it fills at the market only inside it,
+   else it waits there (armed). */
 function processPendings(){
-  const bid = S.price.bid, ask = S.price.ask;
+  const bid = S.price.bid, ask = S.price.ask, pip = Math.pow(10, -S.symbol.digits);
   for(const o of [...S.pendings]){
-    let trig = false, side = "buy";
-    if(o.type === "buy_limit"  && ask <= o.price){ trig = true; side = "buy"; }
-    if(o.type === "sell_limit" && bid >= o.price){ trig = true; side = "sell"; }
-    if(o.type === "buy_stop"   && ask >= o.price){ trig = true; side = "buy"; }
-    if(o.type === "sell_stop"  && bid <= o.price){ trig = true; side = "sell"; }
-    if(!trig) continue;
+    const side = o.type.startsWith("buy") ? "buy" : "sell", buy = side === "buy", dir = buy ? 1 : -1;
+    const isStop = o.type.includes("stop"), stopLimit = o.type.endsWith("stop_limit");
+    let px = null;
+    if(!isStop){
+      if(buy ? ask <= o.price : bid >= o.price) px = o.price;
+    }else{
+      if(!o.armed){
+        const tr = o.trig || "trade", opp = tr === "opp" || tr === "dopp";
+        const q = buy ? (opp ? bid : ask) : (opp ? ask : bid), past = buy ? q >= o.price : q <= o.price;
+        if(tr === "dtrade" || tr === "dopp"){ o.hits = past ? (o.hits || 0) + 1 : 0; if(o.hits < 2) continue; }
+        else if(!past) continue;
+        if(stopLimit) o.armed = true;
+        else { const sl = slippage(); px = roundTo((buy ? ask : bid) + dir * sl, S.symbol.digits); }
+      }
+      if(stopLimit){
+        const lim = o.price + dir * (o.lim || 0) * pip, m = buy ? ask : bid;
+        if(buy ? m <= lim + 1e-9 : m >= lim - 1e-9) px = m;
+        else continue;
+      }
+    }
+    if(px == null) continue;
     const i = S.pendings.findIndex(x=>x.id===o.id);
     if(i>=0) S.pendings.splice(i,1);
-    // open at trigger price (+slippage for stop orders)
-    const isStop = o.type.includes("stop");
-    let px = o.price;
-    if(isStop){ const sl = slippage(); px = roundTo(px + (side==="buy"?sl:-sl), S.symbol.digits); }
     const openComm = commissionFor(o.volume, px);
     if((o.volume*S.symbol.contractSize*S.price.mid)/S.symbol.leverage > (S._acc?S._acc.freeMargin:1e9)+1e-6){
       toast("r", L("Ордер #{0} не исполнен — недостаточно маржи", o.id)); save(); continue;
@@ -3488,10 +3746,10 @@ function processPendings(){
     S.account.balance -= openComm;
     S.positions.push({
       id: S.seq.pos++, symbol: S.symbol.name, side, volume: o.volume, entry: px,
-      openTime: S.simClock, sl: o.sl, tp: o.tp, openCommission: openComm, swap: 0,
+      openTime: S.simClock, sl: o.sl, tp: o.tp, tp1: o.tp1 || null, openCommission: openComm, swap: 0,
       slippage: isStop?roundTo(Math.abs(px-o.price),S.symbol.digits):0, lastSwapDay: simDateStr()
     });
-    toast("g", L("Исполнен {0} #{1} по {2}", o.type.replace("_"," "), o.id, pxfmt(px)));
+    toast("g", L("Исполнен {0} #{1} по {2}", ordTypeName(o.type), o.id, pxfmt(px)));
     save();
   }
 }
@@ -3699,7 +3957,7 @@ document.addEventListener("click", e => {                         // capture: be
   const R = P.shown;
   setTimeout(() => { if(!stays && leftScreen()) R.box.remove(); }, 0);
 }, true);
-let modalEl = null;
+let modalEl = null, OT = null, _otMenu = null;                 // the open sheet; the order ticket («Разместить ордер») and its menu
 /* iOS 26 switches (glassOn("switches")): pressed, the knob swells into a clear lens that a drag moves along the
    track; let go past the middle it switches (one click, ours), a tap switches as ever; then it wobbles still */
 let _sw = null, _swSkip = 0;
@@ -3933,11 +4191,10 @@ function openGlassSheet(){
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
     `<div class="lgs" role="slider" tabindex="0" aria-label="${L("Прозрачность стекла")}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${cv}" style="--v:${(cv / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
     `<div class="lgc-ends"><span>${L("Минимум")}</span><span>${L("Кристалл")}</span></div></div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
-  // the glass (every surface on screen re-renders) follows when the finger RESTS ~0.18 s and on release — never while
-  // it moves, so nothing heavy lands in the middle of a drag (user: «повысьте фпс ползунку»)
-  let tm = 0;
-  lgsBind(modalEl.querySelector(".lgs"), cv, v => { clearTimeout(tm); tm = setTimeout(() => { tm = 0; applyClarity(v); }, 180); },
-    v => { clearTimeout(tm); tm = 0; applyClarity(v, true); });
+  // the glass follows the finger LIVE (user: «ползунок и тема применяется когда отпустить палец» — it must change while
+  // it moves): lgsBind calls this from its frame loop, once a frame at most and only when the whole percent changes,
+  // in the same frame as the knob; saved on release
+  lgsBind(modalEl.querySelector(".lgs"), cv, v => applyClarity(v), v => applyClarity(v, true));
   modalEl.querySelectorAll("[data-lgf]").forEach(b => b.onclick = ()=>{
     const on = !b.classList.contains("on");
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
@@ -4616,7 +4873,7 @@ function posRow(p){
     </div>
     <div class="mid">
       <span>${L("Вход~entry")} <span class="mono">${pxfmt(p.entry)}</span> → <span class="mono" id="pr-${p.id}-cur">${pxfmt(closePriceFor(p))}</span></span>
-      <span>SL <span class="mono">${p.sl?pxfmt(p.sl):"—"}</span> · TP <span class="mono">${p.tp?pxfmt(p.tp):"—"}</span></span>
+      <span>SL <span class="mono">${p.sl?pxfmt(p.sl):"—"}</span> · ${p.tp1 ? `TP1 <span class="mono">${pxfmt(p.tp1.price)}</span> · ` : ""}TP <span class="mono">${p.tp?pxfmt(p.tp):"—"}</span></span>
     </div>
     <div class="mid">
       <span>${L("Брутто")} <span class="mono ${m.gross>=0?"pos":"neg"}" id="pr-${p.id}-gross">${signMoney(m.gross)}</span></span>
@@ -4632,6 +4889,11 @@ function screenOrders(){ return appbar(L("Ордера")) + listOrders() + (S.pe
    cTrader), then a row per order — ✓, symbol, the order-type glyph in the side's colour,
    «0.01 Лоты», the distance to the trigger in pips (1 $ = 100 pips → «32 446.0»), ✕ cancels.
    A tap on the row opens Modify (SL/TP and the price live there now). */
+// an order type in words, as cTrader's button says it: «КУПИТЬ ЛИМИТНЫЙ», «ПРОДАТЬ СТОП-ЛИМИТ»
+function ordTypeName(t){
+  return L({ buy_limit: "КУПИТЬ ЛИМИТНЫЙ", sell_limit: "ПРОДАТЬ ЛИМИТНЫЙ", buy_stop: "КУПИТЬ СТОП", sell_stop: "ПРОДАТЬ СТОП",
+             buy_stop_limit: "КУПИТЬ СТОП-ЛИМИТ", sell_stop_limit: "ПРОДАТЬ СТОП-ЛИМИТ" }[t] || String(t).replace(/_/g, " ").toUpperCase());
+}
 function lotsTxt(v){ return String(roundTo(v, 2)) + " " + L("Лоты"); }        // 0.01 Лоты, 1 Лоты
 function orderDist(o){ return (o.type.includes("buy") ? S.price.ask : S.price.bid) - o.price; }
 function pipsTxt(d){                                                    // a price distance in pips: 324.46 → «32 446.0»
@@ -4642,7 +4904,7 @@ function pipsTxt(d){                                                    // a pri
    the bar (sell limit: bar on top, arrow down), stop = the arrow runs into it (buy stop: up to
    a top bar); drawn for a top bar and flipped for a bottom one */
 function orderGlyph(type){
-  const buy = type.startsWith("buy"), limit = type.endsWith("limit");
+  const buy = type.startsWith("buy"), limit = type.endsWith("limit") && !type.includes("stop");   // a stop-limit is set off like a stop
   const body = limit ? `<path d="M5 4.6h2v9.6H5z"/><path d="M1.4 13.6h9.2L6 20.6z"/>`
                      : `<path d="M6 4.6l4.6 7H1.4z"/><path d="M5 11h2v9.6H5z"/>`;
   const flip = (buy ? !limit : limit) ? "" : ` transform="matrix(1 0 0 -1 0 21)"`;
@@ -4656,7 +4918,7 @@ function listOrders(){
     ${S.pendings.map(o=>`<div class="otbl-row" data-modord="${o.id}">
       <span class="ok"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 12.5l5.8 5.8L21 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span>${o.symbol}</span>
-      <span title="${o.type.replace("_"," ")}">${orderGlyph(o.type)}</span>
+      <span title="${ordTypeName(o.type)}">${orderGlyph(o.type)}</span>
       <span>${lotsTxt(o.volume)}</span>
       <span class="r" id="od-${o.id}">${pipsTxt(orderDist(o))}</span>
       <button type="button" class="x" data-cancelord="${o.id}" aria-label="${L("Отменить ордер #")}${o.id}"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
@@ -6302,10 +6564,11 @@ function openLotSheet(){
    drum, 21 px digits without trailing zeros; rows foreshorten and fade toward the edges, and
    only the part of a row inside the grey band is full ink — outside it the digits are grey. */
 const LOT_WHEEL = [0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9, 1,2,3,4,5, 10, 50, 100,200,300,400,500];
-function openLotWheel(){
+function openLotWheel(o){
   if(guardLock()) return;
   if(document.getElementById("lotWheel")) return;
-  const min = S.symbol.minLot, max = S.symbol.maxLot, opened = S.ui.lot;
+  o = o && o.commit ? o : null;                                      // the order ticket's volume, or (a click) the Markets lot
+  const min = S.symbol.minLot, max = S.symbol.maxLot, opened = o ? o.value : S.ui.lot;
   const ROW = 33, VH = 216, MID = VH / 2, RAD = 88, BH = 34, FS = 21;   // row arc, drum height, centre, cylinder radius, band height, digits (px)
   let vals = [], labels = [], n = 0, maxPos = 0, shown = -1;
   const ladder = (...extra)=>{
@@ -6328,12 +6591,14 @@ function openLotWheel(){
   const cv = el.querySelector("#lwCanvas"), inp = el.querySelector("#lwInput"), err = el.querySelector("#lwErr");
   const box = el.querySelector(".lw-edit"), doneBtn = el.querySelector('[data-lw="done"]');
   const field = v => {
+    if(o){ o.show(v); return; }
     setTxt("ovLot", fmt(v, 2));
     const f = document.querySelector(".ctp-lot");
     if(f && !f.classList.contains("editing")) f.classList.add("editing");
   };
   const commit = v => {
     if(validateLot(v)) return false;
+    if(o){ o.commit(v); return true; }
     if(S.ui.lot !== v){ S.ui.lot = v; save(); }
     setTxt("chLot", fmt(v, 2));
     return true;
@@ -6459,7 +6724,7 @@ function openLotWheel(){
     glideTo(base + Math.sign(e.deltaY) * ROW, 90);
   }, { passive: false });
   draw();
-  const outside = ev=>{ if(!el.contains(ev.target) && !ev.target.closest(".ctp-caret-btn")) close(); };   // tapping the number closes it for typing
+  const outside = ev=>{ if(!el.contains(ev.target) && !ev.target.closest(o ? o.keep : ".ctp-caret-btn")) close(); };   // tapping the number closes it for typing
   const close = ()=>{
     if(el.classList.contains("out")) return;
     if(anim){ cancelAnimationFrame(anim); anim = 0; }
@@ -6467,6 +6732,7 @@ function openLotWheel(){
     document.removeEventListener("pointerdown", outside, true);
     el.classList.add("out");
     setTimeout(()=> el.remove(), 190);
+    if(o) return;
     const f = document.querySelector(".ctp-lot"); if(f) f.classList.remove("editing");
     setTxt("ovLot", fmt(S.ui.lot, 2));
   };
@@ -6591,86 +6857,356 @@ function confirmMarket(side){
   };
 }
 
-/* ---------- order ticket (market + pending) ---------- */
-let ticketState = { mode:"market", side:"buy", ptype:"buy_limit" };
+/* ---------- «Разместить ордер» — cTrader's Place order (user 2026-09-19: «посмотри видео как в cTrader … должно
+   быть так же у нас») ----------
+   Four order types (Рыночный · Лимитный · Стоп · Стоп-лимит); Продать / Купить; the volume (its ▼ is the lot drum);
+   the entry price with − / + and its distance to the market; cTrader's validation under the fields; the stop orders'
+   trigger side; the stop-limit's range; the market order's max slippage; take profit (1 and 2 — TP 1 closes a part
+   of the volume, TP 2 the rest) and a stop loss, each in points (1 point = 0.01) or as a price, with the gross
+   profit / loss and its share of the balance. No expiry, break-even, comment or ounces (user).
+   Without liquid glass it is cTrader's own full-screen page (underlined tabs, outlined fields, check boxes, a flat
+   button at the foot). With it, a tall glass sheet the button flows into: the type and the side are flowing drops
+   (the side's drop takes its colour), iOS switches instead of check boxes, glass menus that grow out of their
+   field, a glass capsule to place the order. OT holds the ticket; the DOM is built once per type and synced. */
+const OT_TYPES = [["market", "Рыночный"], ["limit", "Лимитный"], ["stop", "Стоп"], ["stoplimit", "Стоп-лимит"]];
+const OT_TRIG = [["trade", "Сторона сделки"], ["opp", "Противоположная сторона"], ["dtrade", "Двойная сторона сделки"], ["dopp", "Двойная противоположная сторона"]];
+const OT_PEND = { limit: "limit", stop: "stop", stoplimit: "stop_limit" };
+const OT_MINUS = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const OT_PLUS = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const OT_INFO = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.6v.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const OT_TICK = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const pipSz = () => Math.pow(10, -S.symbol.digits);                 // a point: 0.01 for gold
+const pxIn = v => Number(v).toFixed(S.symbol.digits);                // a price in a field: 4378.84, no separators
+const numIn = s => parseFloat(String(s).replace(/[\s,]/g, ""));
+const otPts = x => { const n = Math.round(x); return (n < 0 ? "-" : "") + String(Math.abs(n)).replace(/\B(?=(\d{3})+$)/g, " "); };
 function openTicket(){
   if(guardLock()) return;
-  ticketState = { mode:"market", side:"buy", ptype:"buy_limit" };
-  drawTicket();
+  const G = glassOn("sheets");
+  OT = { G, type: "market", side: "buy", volTxt: fmt(S.ui.lot, 2), entry: null, entryUser: false, trig: "trade",
+         rangeOn: false, range: 5, lim: 5, tpSeen: false, busy: false,
+         tp1: { on: false, pips: 100, price: null, mode: "pips", vol: null }, tp2: { on: false, pips: 200, price: null, mode: "pips" },
+         sl: { on: false, pips: 100, price: null, mode: "pips" } };
+  delete _dropMem["seg:otTypes"]; delete _dropMem["seg:otSide"];     // a new ticket's drops start where they are
+  openSheet(otMarkup(), "ot-sheet " + (G ? "ot-g" : "ot-p"), G ? "" : "opage");
+  modalEl._live = otSync;
+  const tabs = document.getElementById("otTypes");
+  tabs.querySelectorAll("[data-ottype]").forEach(b => b.onclick = () => otSetType(b.dataset.ottype));
+  document.getElementById("otGo").onclick = otPlace;
+  scrollInd(document.getElementById("otBody"), modalEl);
+  otUl(false);
+  otBindBody();
+  otSync();
 }
-function drawTicket(){
-  const v = S.ui.lot;
-  const t = ticketState;
-  openSheet(`
-    <h2>${L("Новый ордер · XAUUSD")}</h2>
-    <div class="seg" style="margin-bottom:12px">
-      <button data-tmode="market" class="${t.mode==="market"?"on":""}">${L("Рыночный")}</button>
-      <button data-tmode="pending" class="${t.mode==="pending"?"on":""}">${L("Отложенный")}</button>
+function otMarkup(){
+  const G = OT.G;
+  return `<div class="ot-top">${G ? "" : `<button type="button" class="ot-back" data-close aria-label="${L("Назад")}"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}<h2>${L("Разместить ордер")}</h2></div>
+    <div class="${G ? "seg ot-types" : "ot-tabs"}" id="otTypes" role="tablist">${OT_TYPES.map(([k, t]) => `<button type="button" role="tab" data-ottype="${k}" class="${OT.type === k ? "on" : ""}" aria-selected="${OT.type === k}">${L(t)}</button>`).join("")}${G ? "" : `<span class="ot-ul" aria-hidden="true"></span>`}</div>
+    <div class="ot-body" id="otBody">${otBody()}</div>
+    <div class="ot-foot"><button type="button" class="ot-go" id="otGo"><b>${L("Разместить ордер")}</b><span id="otGoSub"></span></button></div>`;
+}
+const otSteps = k => `<span class="ot-steps"><button type="button" class="ot-st" data-step="${k}" data-d="-1" aria-label="${L("Меньше")}">${OT_MINUS}</button><button type="button" class="ot-st" data-step="${k}" data-d="1" aria-label="${L("Больше")}">${OT_PLUS}</button></span>`;
+const otNum = (id, label, mode, step, cls) => `<div class="otf${cls || ""}" id="${id}F"><span class="otf-l">${label}</span><input class="otf-i mono" id="${id}" inputmode="${mode}" autocomplete="off" enterkeyhint="done">${step ? otSteps(step) : ""}</div>`;
+const otOptOn = k => k === "range" ? OT.rangeOn : OT[k].on;
+function otOpt(k, label, inner){
+  const on = otOptOn(k), G = OT.G;
+  const ck = G ? `<span class="k" id="otL_${k}">${label}</span><span class="switch${on ? " on" : ""}" aria-hidden="true"><span class="knob"></span></span>`
+               : `<span class="ot-box" aria-hidden="true"></span><span class="k" id="otL_${k}">${label}</span>`;
+  return `<div class="ot-opt${on ? " on" : ""}" data-opt="${k}"><div class="ot-ck" role="${G ? "switch" : "checkbox"}" tabindex="0" aria-checked="${on}" data-otck="${k}">${ck}</div><div class="ot-more"><div class="ot-in">${inner}</div></div></div>`;
+}
+// a take profit / the stop loss: points and the price (either can be typed), what it makes / loses
+const otLevel = k => otNum("ot_" + k + "p", L("Пункты"), "numeric", k + "p").replace(`id="ot_${k}pF"`, `id="otF_${k}p"`)
+  + otNum("ot_" + k + "x", L("Цена"), "decimal", "", " otf-sub").replace(`id="ot_${k}xF"`, `id="otF_${k}x"`)
+  + (k === "tp1" ? `<div class="ot-coll${OT.tpSeen && OT.tp2.on ? " open" : ""}" id="otTp1vW"><div class="ot-in">${otNum("ot_tp1v", L("Закрыть (лоты)"), "decimal", "tp1v").replace(`id="ot_tp1vF"`, `id="otF_tp1v"`)}<div class="ot-err" id="otE_tp1v"></div></div></div>` : "")
+  + `<div class="ot-err" id="otE_${k}"></div><div class="ot-note" id="otN_${k}"></div>`;
+function otBody(){
+  const t = OT.type, G = OT.G, pend = t !== "market", buy = OT.side === "buy";
+  const caret = `<span class="ot-caret" aria-hidden="true"></span>`;
+  const trig = (OT_TRIG.find(x => x[0] === OT.trig) || OT_TRIG[0])[1];
+  return `${pend ? "" : `<div class="ot-closed" id="otClosed" hidden>${OT_INFO}<span>${L("Рынок закрыт. Принимаются только отложенные ордера.")}</span></div>`}
+    <button type="button" class="otf otf-dd" id="otSym" data-otmenu="sym"><span class="otf-l">${L("Инструмент")}</span><span class="otf-v">${S.symbol.name}</span>${caret}</button>
+    ${pend ? `<div class="ot-q" id="otQuote"></div>` : ""}
+    <div class="${G ? "seg " : ""}ot-side ${OT.side}${pend ? "" : " px"}" id="otSide">
+      <button type="button" data-otside="sell" class="${buy ? "" : "on"}"><span>${L("Продать")}</span>${pend ? "" : `<b class="mono" id="otBid">${chartPx(S.price.bid)}</b>`}</button>
+      <button type="button" data-otside="buy" class="${buy ? "on" : ""}"><span>${L("Купить")}</span>${pend ? "" : `<b class="mono" id="otAsk">${chartPx(S.price.ask)}</b>`}</button>
     </div>
-    <div class="field"><label>${L("Объём (Лоты) —")} ${fmt(S.symbol.minLot,2)}…${fmt(S.symbol.maxLot,2)}${L(", шаг")} ${fmt(S.symbol.lotStep,2)}</label>
-      <input id="tk-vol" inputmode="decimal" value="${fmt(v,2)}"></div>
-    ${t.mode==="market" ? `
-      <div class="seg" style="margin-bottom:12px">
-        <button data-tside="sell" class="${t.side==="sell"?"on":""}" style="color:var(--red-ink)">SELL <span id="tk-bid" class="mono">${pxfmt(S.price.bid)}</span></button>
-        <button data-tside="buy" class="${t.side==="buy"?"on":""}" style="color:var(--green-ink)">BUY <span id="tk-ask" class="mono">${pxfmt(S.price.ask)}</span></button>
-      </div>
-    ` : `
-      <div class="field"><label>${L("Тип")}</label>
-        <select id="tk-ptype">
-          ${["buy_limit","sell_limit","buy_stop","sell_stop"].map(x=>`<option value="${x}" ${t.ptype===x?"selected":""}>${x.replace("_"," ").toUpperCase()}</option>`).join("")}
-        </select>
-      </div>
-      <div class="field"><label>${L("Цена входа")}</label><input id="tk-price" inputmode="decimal" value="${pxfmt(t.ptype.includes("buy")? S.price.ask - 3 : S.price.bid + 3)}"></div>
-    `}
-    <div class="grid2">
-      <div class="field"><label>${L("Stop Loss (цена)")}</label><input id="tk-sl" inputmode="decimal" placeholder="—"></div>
-      <div class="field"><label>${L("Take Profit (цена)")}</label><input id="tk-tp" inputmode="decimal" placeholder="—"></div>
-    </div>
-    <div class="card" id="tk-calc"></div>
-    <button class="btn dark" id="tk-go">${L("Разместить")}</button>
-    <button class="btn ghost" data-close>${L("Отмена")}</button>
-  `);
-  modalEl.querySelectorAll("[data-tmode]").forEach(b=> b.onclick = ()=>{ ticketState.mode = b.dataset.tmode; drawTicket(); });
-  modalEl.querySelectorAll("[data-tside]").forEach(b=> b.onclick = ()=>{ ticketState.side = b.dataset.tside; drawTicket(); });
-  const pt = document.getElementById("tk-ptype");
-  if(pt) pt.onchange = ()=>{ ticketState.ptype = pt.value; drawTicket(); };
-  const recalc = ()=>{
-    const vol = parseFloat((document.getElementById("tk-vol").value||"").replace(/[\s,]/g,""));
-    const err = validateLot(vol);
-    const cal = document.getElementById("tk-calc");
-    if(err){ cal.innerHTML = `<span class="neg">⚠ ${err}</span>`; return; }
-    const px = ticketState.mode==="market" ? (ticketState.side==="buy"?S.price.ask:S.price.bid)
-              : parseFloat((document.getElementById("tk-price").value||"").replace(/[\s,]/g,""));
-    const comm = commissionFor(vol, px||S.price.mid);
-    const reqM = (vol*S.symbol.contractSize*(px||S.price.mid))/S.symbol.leverage;
-    cal.innerHTML = `
-      <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(vol,2)} ${L("лот")}</span></div>
-      <div class="row"><span class="k">${L("Комиссия / сторона")}</span><span class="v mono">${money(comm)}</span></div>
-      <div class="row"><span class="k">${L("Комиссия туда-обратно")}</span><span class="v mono">${money(comm*2)}</span></div>
-      <div class="row"><span class="k">${L("Требуемая маржа")}</span><span class="v mono">${money(reqM)}</span></div>`;
+    <div class="ot-day" id="otDay"></div>
+    <div class="otf" id="otVolF"><span class="otf-l">${L("Количество (Лоты)")}</span><input class="otf-i mono" id="otVol" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="${OT.volTxt}"><button type="button" class="ot-dd" data-otwheel aria-label="${L("Выбрать объём колесом")}">${caret}</button></div>
+    <div class="ot-err" id="otVolE"></div><div class="ot-note" id="otMargin"></div>
+    ${pend ? otNum("otEnt", L("Цена входа"), "decimal", "ent") + `<div class="ot-err" id="otEntE"></div><div class="ot-note" id="otDist"></div>` : ""}
+    ${t === "stop" || t === "stoplimit" ? `<button type="button" class="otf otf-dd" id="otTrig" data-otmenu="trig"><span class="otf-l">${L("Триггер")}</span><span class="otf-v" id="otTrigV">${L(trig)}</span>${caret}</button>` : ""}
+    ${t === "stoplimit" ? otNum("otLim", L("Макс. проскальзывание (пункты)"), "numeric", "lim") + `<div class="ot-err" id="otLimE"></div>` : ""}
+    <div class="ot-opts">
+      ${pend ? "" : otOpt("range", L("Макс. проскальзывание"), otNum("otRange", L("Пункты"), "numeric", "range") + `<div class="ot-err" id="otRangeE"></div>`)}
+      ${otOpt("tp1", L(OT.tpSeen ? "Тейк-профит 1" : "Тейк-профит"), otLevel("tp1"))}
+      <div class="ot-coll${OT.tpSeen ? " open" : ""}" id="otTp2W"><div class="ot-in">${otOpt("tp2", L("Тейк-профит 2"), otLevel("tp2"))}</div></div>
+      ${otOpt("sl", L("Стоп-лосс"), otLevel("sl"))}
+    </div>`;
+}
+// the entry a pending order starts at: 100 points on its side of the market — a buy limit below, a buy stop above
+function otDefEntry(){
+  const buy = OT.side === "buy", cur = buy ? S.price.ask : S.price.bid, below = OT.type === "limit" ? buy : !buy;
+  return roundTo(cur + (below ? -100 : 100) * pipSz(), S.symbol.digits);
+}
+function otHalf(vol){
+  const st = S.symbol.lotStep;
+  return Math.max(S.symbol.minLot, roundTo(Math.floor(vol / 2 / st + 1e-9) * st, 2));
+}
+/* everything the ticket shows, from OT and the market: the errors (cTrader's wording), the notes, the margin */
+function otCalc(){
+  const sym = S.symbol, pip = pipSz(), d = sym.digits, buy = OT.side === "buy", dir = buy ? 1 : -1, t = OT.type;
+  const bid = S.price.bid, ask = S.price.ask, cur = buy ? ask : bid, E = {}, N = {};
+  const vol = numIn(OT.volTxt), ve = validateLot(vol);
+  if(ve) E.vol = ve;
+  let ent = cur;
+  if(t !== "market"){
+    if(!OT.entryUser) OT.entry = otDefEntry();                     // untouched, it keeps its 100 points from the moving market (stays valid); typed or stepped, it holds
+    ent = OT.entry;
+    const nm = L(t === "limit" ? "лимитного ордера" : t === "stop" ? "стоп ордера" : "стоп-лимит ордера"), cp = chartPx(cur);
+    if(!(ent > 0)) E.ent = L("Укажите цену входа");
+    else if(t === "limit" ? (buy ? ent >= ask : ent <= bid) : (buy ? ent <= ask : ent >= bid))
+      E.ent = t === "limit"
+        ? L(buy ? "Цена входа {0} на покупку должна быть ниже текущей цены покупки ({1})" : "Цена входа {0} на продажу должна быть выше текущей цены продажи ({1})", nm, cp)
+        : L(buy ? "Цена входа {0} на покупку должна быть выше текущей цены покупки ({1})" : "Цена входа {0} на продажу должна быть ниже текущей цены продажи ({1})", nm, cp);
+    if(t === "stoplimit" && !(OT.lim >= 0)) E.lim = L("Укажите число пунктов");
+  }else if(OT.rangeOn && !(OT.range >= 0)) E.range = L("Укажите число пунктов");
+  const ok = ent > 0;
+  // the levels in points from the entry (a market order's from the market — filled, they are set from its fill) or a price
+  const lv = (o, s) => {
+    if(o.mode === "pips") o.price = ok && o.pips >= 1 ? roundTo(ent + dir * s * o.pips * pip, d) : null;
+    else o.pips = ok && o.price > 0 ? Math.round((o.price - ent) * dir * s / pip) : null;
   };
-  ["tk-vol","tk-price"].forEach(id=>{ const e = document.getElementById(id); if(e) e.oninput = recalc; });
-  recalc();
-  modalEl._live = ()=>{
-    const b = document.getElementById("tk-bid"), a = document.getElementById("tk-ask");
-    if(b) b.textContent = pxfmt(S.price.bid);
-    if(a) a.textContent = pxfmt(S.price.ask);
+  lv(OT.tp1, 1); lv(OT.tp2, 1); lv(OT.sl, -1);
+  const tp1 = OT.tp1.on, tp2 = OT.tpSeen && OT.tp2.on, both = tp1 && tp2, split = vol >= 2 * sym.minLot - 1e-9;
+  let v1 = null;
+  if(both){
+    if(OT.tp1.vol == null) OT.tp1.vol = otHalf(vol);
+    v1 = OT.tp1.vol;
+    if(!split) E.tp2 = L("Для двух тейк-профитов нужен объём от {0} лота", fmt(2 * sym.minLot, 2));
+    else if(validateLot(v1) || v1 > vol - sym.minLot + 1e-9) E.tp1v = L("Объём тейк-профита 1: от {0} до {1} лота", fmt(sym.minLot, 2), fmt(vol - sym.minLot, 2));
+  }
+  const tpBad = o => o.pips >= 1 ? null : L(buy ? "Тейк-профит должен быть выше цены входа ({0})" : "Тейк-профит должен быть ниже цены входа ({0})", ok ? chartPx(ent) : "—");
+  if(tp1){ const e = tpBad(OT.tp1); if(e) E.tp1 = e; }
+  if(tp2 && !E.tp2){ const e = tpBad(OT.tp2); if(e) E.tp2 = e; else if(both && !E.tp1 && OT.tp2.pips <= OT.tp1.pips) E.tp2 = L("Тейк-профит 2 должен быть дальше тейк-профита 1"); }
+  if(OT.sl.on){
+    const o = OT.sl;
+    if(!(o.pips >= 1)) E.sl = L(buy ? "Стоп-лосс должен быть ниже цены входа ({0})" : "Стоп-лосс должен быть выше цены входа ({0})", ok ? chartPx(ent) : "—");
+    else if(t === "market" && (buy ? o.price >= bid : o.price <= ask))      // it would close the position on the next tick
+      E.sl = L(buy ? "Стоп-лосс должен быть ниже текущей цены продажи ({0})" : "Стоп-лосс должен быть выше текущей цены покупки ({0})", chartPx(buy ? bid : ask));
+  }
+  // what each level makes / loses: its share of the balance and the gross amount (cTrader)
+  const bal = S.account.balance, cs = sym.contractSize;
+  const note = (pips, v, win) => {
+    if(ve || !(pips >= 1) || !(v > 0)) return "";
+    const amt = pips * pip * v * cs, pct = bal > 0 ? amt / bal * 100 : 0;
+    return L(win ? "Баланс: ~ {0}%   Валовая прибыль: ~ {1}" : "Баланс: ~ -{0}%   Валовой убыток: ~ -{1}", fmt(pct, 2), money(amt));
   };
-  document.getElementById("tk-go").onclick = ()=>{
-    const vol = parseFloat((document.getElementById("tk-vol").value||"").replace(/[\s,]/g,""));
-    const sl = parseFloat((document.getElementById("tk-sl").value||"").replace(/[\s,]/g,""));
-    const tp = parseFloat((document.getElementById("tk-tp").value||"").replace(/[\s,]/g,""));
-    const opts = {}; if(isFinite(sl)) opts.sl = sl; if(isFinite(tp)) opts.tp = tp;
-    if(ticketState.mode === "market"){
-      const p = openPosition(ticketState.side, vol, opts);
-      if(p){ S.ui.lot = roundTo(vol,2); closeModal(); render(); }
-    }else{
-      const price = parseFloat((document.getElementById("tk-price").value||"").replace(/[\s,]/g,""));
-      if(!isFinite(price)){ toast("r", L("Укажите Entry Price")); return; }
-      const o = addPending({ type: ticketState.ptype, volume: vol, price: roundTo(price,S.symbol.digits), sl:opts.sl, tp:opts.tp });
-      if(o){ closeModal(); render(); }
-    }
-  };
+  const vt1 = both ? v1 : vol, vt2 = both ? roundTo(vol - v1, 2) : vol;
+  if(tp1) N.tp1 = (both && !ve ? L("Закроет {0}", lotsTxt(vt1)) + "   " : "") + note(OT.tp1.pips, vt1, true);
+  if(tp2) N.tp2 = (both && !ve ? L("Закроет {0}", lotsTxt(vt2)) + "   " : "") + note(OT.tp2.pips, vt2, true);
+  if(OT.sl.on) N.sl = note(OT.sl.pips, vol, false);
+  const margin = ve ? "" : L(buy ? "Маржа для покупки: ~ {0}" : "Маржа для продажи: ~ {0}", money(vol * cs * (ok ? ent : cur) / sym.leverage));
+  const dist = t !== "market" && ok ? L("Расстояние: {0}", otPts((ent - cur) / pip)) : "";
+  return { E, N, vol, ent, v1, margin, dist, split, closed: t === "market" && marketClosed(), ok: Object.keys(E).length === 0 };
+}
+/* writes what changed (every live update, every keystroke); a field under the user's typing is never overwritten */
+function otSync(){
+  if(!OT || !modalEl || !document.getElementById("otBody")) return;
+  const R = otCalc(), t = OT.type, buy = OT.side === "buy", $ = id => document.getElementById(id);
+  const inp = (id, v) => { const e = $(id); if(e && document.activeElement !== e && e.value !== v) e.value = v; };
+  const bad = (id, on) => { const f = $(id); if(f && f.classList.contains("bad") !== !!on) f.classList.toggle("bad", !!on); };
+  const msg = (id, m) => { const e = $(id); if(!e) return; m = m || ""; if(e.textContent !== m) e.textContent = m; if(e.classList.contains("on") !== !!m) e.classList.toggle("on", !!m); };
+  setTxt("otBid", chartPx(S.price.bid)); setTxt("otAsk", chartPx(S.price.ask));
+  setTxt("otQuote", L("Продажа: {0}; покупка: {1}", chartPx(S.price.bid), chartPx(S.price.ask)));
+  const h = ovHeadData();
+  setTxt("otDay", L("Изм.: {0} ({1}); Выс.: {2}; Низ.: {3}", h.pips, h.pct, h.high, h.low));
+  bad("otVolF", R.E.vol); msg("otVolE", R.E.vol); setTxt("otMargin", R.margin);
+  if(t !== "market"){ inp("otEnt", R.ent > 0 ? pxIn(R.ent) : ""); bad("otEntF", R.E.ent); msg("otEntE", R.E.ent); setTxt("otDist", R.dist); }
+  if(t === "stoplimit"){ inp("otLim", OT.lim >= 0 ? String(OT.lim) : ""); bad("otLimF", R.E.lim); msg("otLimE", R.E.lim); }
+  if(t === "market"){
+    inp("otRange", OT.range >= 0 ? String(OT.range) : ""); bad("otRangeF", R.E.range); msg("otRangeE", R.E.range);
+    const c = $("otClosed"); if(c && c.hidden === R.closed) c.hidden = !R.closed;
+  }
+  for(const k of ["tp1", "tp2", "sl"]){
+    const o = OT[k];
+    inp("ot_" + k + "p", o.pips == null ? "" : String(o.pips)); inp("ot_" + k + "x", o.price == null ? "" : pxIn(o.price));
+    bad("otF_" + k + "p", R.E[k] && o.mode === "pips"); bad("otF_" + k + "x", R.E[k] && o.mode !== "pips");
+    msg("otE_" + k, R.E[k]); setTxt("otN_" + k, R.N[k] || "");
+  }
+  inp("ot_tp1v", OT.tp1.vol == null ? "" : fmt(OT.tp1.vol, 2)); bad("otF_tp1v", R.E.tp1v); msg("otE_tp1v", R.E.tp1v);
+  setTxt("otL_tp1", L(OT.tpSeen ? "Тейк-профит 1" : "Тейк-профит"));
+  const r2 = modalEl.querySelector('[data-opt="tp2"]');
+  if(r2){ const dis = !R.split && !OT.tp2.on; if(r2.classList.contains("dis") !== dis) r2.classList.toggle("dis", dis); }
+  // the button: «Разместить ордер / КУПИТЬ ЛИМИТНЫЙ 0.77 Лоты XAUUSD», grey while something is wrong
+  const go = $("otGo"), dis = !R.ok || R.closed || tradingLocked();
+  if(go){ if(go.disabled !== dis) go.disabled = dis; if(go.classList.contains("sell") === buy) go.classList.toggle("sell", !buy); }
+  setTxt("otGoSub", `${t === "market" ? L(buy ? "КУПИТЬ" : "ПРОДАТЬ") : ordTypeName(OT.side + "_" + OT_PEND[t])} ${R.vol > 0 ? lotsTxt(R.vol) : OT.volTxt + " " + L("Лоты")} ${S.symbol.name}`);
+}
+function otBindBody(){
+  const M = modalEl, $ = id => document.getElementById(id);
+  M.querySelectorAll("[data-otside]").forEach(b => b.onclick = () => otSetSide(b.dataset.otside));
+  M.querySelectorAll("[data-otmenu]").forEach(b => b.onclick = () => b.dataset.otmenu === "sym" ? otMenuSym(b) : otMenuTrig(b));
+  const wb = M.querySelector("[data-otwheel]"); if(wb) wb.onclick = otWheel;
+  const vi = $("otVol");
+  vi.oninput = () => { OT.volTxt = vi.value; if(OT.tp2.on) OT.tp1.vol = null; otSync(); };
+  vi.onblur = () => { const v = numIn(vi.value); if(!validateLot(v)){ OT.volTxt = fmt(v, 2); vi.value = OT.volTxt; } otSync(); };
+  const ei = $("otEnt"); if(ei) ei.oninput = () => { OT.entry = numIn(ei.value); OT.entryUser = true; otSync(); };
+  const ni = (id, fn) => { const e = $(id); if(e) e.oninput = () => { fn(e.value); otSync(); }; };
+  ni("otLim", v => { OT.lim = v.trim() === "" ? NaN : Math.round(numIn(v)); });
+  ni("otRange", v => { OT.range = v.trim() === "" ? NaN : Math.round(numIn(v)); });
+  ni("ot_tp1v", v => { OT.tp1.vol = roundTo(numIn(v), 2); });
+  for(const k of ["tp1", "tp2", "sl"]){
+    ni("ot_" + k + "p", v => { const o = OT[k]; o.mode = "pips"; o.pips = v.trim() === "" ? NaN : Math.round(numIn(v)); });
+    ni("ot_" + k + "x", v => { const o = OT[k]; o.mode = "price"; o.price = numIn(v); });
+  }
+  M.querySelectorAll("#otBody input").forEach(e => e.addEventListener("keydown", ev => { if(ev.key === "Enter") e.blur(); }));
+  M.querySelectorAll("#otBody .ot-st").forEach(b => otHold(b, n => otStep(b.dataset.step, +b.dataset.d * n)));
+  M.querySelectorAll("[data-otck]").forEach(c => {
+    c.onclick = () => otToggle(c.dataset.otck);
+    c.onkeydown = e => { if(e.key === " " || e.key === "Enter"){ e.preventDefault(); otToggle(c.dataset.otck); } };
+  });
+}
+// − / +: a tap steps once; held, it repeats, and after a couple of seconds by ten
+function otHold(btn, fn){
+  let t1 = 0, t2 = 0, n = 0;
+  const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; };
+  btn.addEventListener("pointerdown", e => {
+    if(e.button > 0) return;
+    e.preventDefault();                                            // the field keeps its keyboard
+    stop(); n = 0; fn(1);
+    t1 = setTimeout(() => { t2 = setInterval(() => { n++; fn(n > 24 ? 10 : 1); }, 70); }, 380);
+  });
+  for(const ev of ["pointerup", "pointercancel", "pointerleave"]) btn.addEventListener(ev, stop);
+  btn.addEventListener("click", e => { if(e.detail === 0) fn(1); });  // the keyboard's Enter / Space
+}
+function otStep(k, d){
+  const put = (id, v) => { const e = document.getElementById(id); if(e) e.value = String(v); };
+  if(k === "ent"){ OT.entry = roundTo((OT.entry > 0 ? OT.entry : otDefEntry()) + d * pipSz(), S.symbol.digits); OT.entryUser = true; put("otEnt", pxIn(OT.entry)); }
+  else if(k === "lim"){ OT.lim = Math.max(0, Math.round((OT.lim >= 0 ? OT.lim : 0) + d)); put("otLim", OT.lim); }
+  else if(k === "range"){ OT.range = Math.max(0, Math.round((OT.range >= 0 ? OT.range : 0) + d)); put("otRange", OT.range); }
+  else if(k === "tp1v"){ const s = S.symbol; OT.tp1.vol = clamp(roundTo((OT.tp1.vol > 0 ? OT.tp1.vol : s.minLot) + d * s.lotStep, 2), s.minLot, s.maxLot); put("ot_tp1v", fmt(OT.tp1.vol, 2)); }
+  else { const lk = k.slice(0, -1), o = OT[lk]; if(!o) return; o.mode = "pips"; o.pips = Math.max(1, Math.round((o.pips >= 1 ? o.pips : 0) + d)); put("ot_" + lk + "p", o.pips); }
+  otSync();
+}
+function otSetType(k){
+  if(!OT || OT.type === k) return;
+  otMenuClose(true);
+  OT.type = k;
+  if(!OT.entryUser) OT.entry = null;                               // the new type's own default (below / above the market)
+  document.querySelectorAll("#otTypes [data-ottype]").forEach(b => { const on = b.dataset.ottype === k; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  const body = document.getElementById("otBody"), st = body.scrollTop;
+  body.innerHTML = otBody(); body.scrollTop = st;
+  glassDrops(modalEl);                                              // the type's drop flows; the side's keeps its place
+  otUl(true); otBindBody(); otSync();
+}
+function otSetSide(s){
+  if(!OT || OT.side === s) return;
+  OT.side = s;
+  if(!OT.entryUser) OT.entry = null;
+  const box = document.getElementById("otSide");
+  box.classList.toggle("buy", s === "buy"); box.classList.toggle("sell", s === "sell");
+  box.querySelectorAll("[data-otside]").forEach(b => b.classList.toggle("on", b.dataset.otside === s));
+  glassDrops(modalEl);
+  otSync();
+}
+// the page's underline slides under the chosen tab, which scrolls into view (cTrader)
+function otUl(anim){
+  const tabs = document.getElementById("otTypes"), on = tabs && tabs.querySelector("button.on"), ul = tabs && tabs.querySelector(".ot-ul");
+  if(!ul || !on) return;
+  if(!anim) ul.style.transition = "none";
+  tabs.style.setProperty("--ulx", on.offsetLeft + "px"); tabs.style.setProperty("--ulw", on.offsetWidth + "px");
+  if(!anim){ void ul.offsetWidth; ul.style.transition = ""; }
+  tabs.scrollTo({ left: Math.max(0, on.offsetLeft - (tabs.clientWidth - on.offsetWidth) / 2), behavior: anim ? "smooth" : "auto" });
+}
+function otToggle(k){
+  const row = modalEl && modalEl.querySelector(`[data-opt="${k}"]`);
+  if(!OT || !row || row.classList.contains("dis")) return;
+  let on;
+  if(k === "range") on = OT.rangeOn = !OT.rangeOn;
+  else on = OT[k].on = !OT[k].on;
+  row.classList.toggle("on", on);
+  row.querySelector(".ot-ck").setAttribute("aria-checked", on);
+  const sw = row.querySelector(".switch"); if(sw) sw.classList.toggle("on", on);
+  if(k === "tp1" && on && !OT.tpSeen){ OT.tpSeen = true; document.getElementById("otTp2W").classList.add("open"); }   // «Тейк-профит» becomes 1, and 2 appears (cTrader)
+  if(k === "tp1" || k === "tp2"){
+    if(OT.tp1.on && OT.tp2.on && OT.tp1.vol == null) OT.tp1.vol = otHalf(numIn(OT.volTxt));
+    const w = document.getElementById("otTp1vW"); if(w) w.classList.toggle("open", OT.tp1.on && OT.tp2.on);
+  }
+  otSync();
+  if(on) setTimeout(() => {                                        // what opened scrolls into view
+    const b = document.getElementById("otBody"); if(!b || !row.isConnected) return;
+    const r = row.getBoundingClientRect(), br = b.getBoundingClientRect();
+    if(r.bottom > br.bottom - 8) b.scrollBy({ top: Math.min(r.bottom - br.bottom + 12, r.top - br.top - 8), behavior: "smooth" });
+  }, 300);
+}
+// the ▼ of «Количество»: the lot drum, writing into the ticket
+function otWheel(){
+  if(!OT) return;
+  const v0 = numIn(OT.volTxt), put = v => { OT.volTxt = fmt(v, 2); if(OT.tp2.on) OT.tp1.vol = null; const i = document.getElementById("otVol"); if(i) i.value = OT.volTxt; otSync(); };
+  openLotWheel({ value: validateLot(v0) ? S.ui.lot : v0, keep: "[data-otwheel]", show: put, commit: put });
+}
+/* the ▼ menus (instrument, trigger): cTrader's dropdown under the field; with glass a glass menu grows out of it */
+function otMenu(anchor, items, cur, pick, foot){
+  otMenuClose(true);
+  const G = OT && OT.G;
+  const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
+  const pop = document.createElement("div"); pop.className = G ? "lg-pop ot-menu" : "ot-menu ot-mp"; pop.setAttribute("role", "menu");
+  pop.innerHTML = items.map(([v, t]) => `<button type="button" role="menuitemradio" aria-checked="${v === cur}" data-v="${v}" class="${v === cur ? "on" : ""}"><span>${t}</span>${v === cur ? OT_TICK : ""}</button>`).join("")
+    + (foot ? `<div class="ot-menu-foot">${foot}</div>` : "");
+  document.body.append(catcher, pop);
+  const a = anchor.getBoundingClientRect(), W = a.width, H = pop.offsetHeight, gap = G ? 8 : 2;
+  let top = a.bottom + gap; if(top + H > innerHeight - 8) top = Math.max(8, a.top - H - gap);
+  pop.style.left = a.left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
+  _otMenu = { pop, catcher, anchor, G };
+  if(G && glassOn("morph")) lgMorph(a, getComputedStyle(anchor).borderRadius, () => pop, 440, null, false, "otm", () => pop.classList.add("shown"));
+  else pop.classList.add("shown");
+  catcher.addEventListener("pointerdown", e => { e.preventDefault(); otMenuClose(false, true); });
+  pop.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { pick(b.dataset.v); otMenuClose(); });
+}
+function otMenuClose(now, outside){
+  const P = _otMenu; if(!P) return;
+  _otMenu = null;
+  if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
+  else P.catcher.remove();
+  const a = P.pop.getBoundingClientRect();
+  P.pop.remove();
+  if(now === true || !P.G || !glassOn("morph") || !P.anchor.isConnected){ lgStop("otm"); return; }
+  lgMorph(a, "22px", () => P.anchor, 380, null, false, "otm");     // it shrinks back into its field
+}
+const otMenuSym = a => otMenu(a, [[S.symbol.name, S.symbol.name]], S.symbol.name, () => {}, L("Доступно только XAUUSD"));
+const otMenuTrig = a => otMenu(a, OT_TRIG.map(([k, t]) => [k, L(t)]), OT.trig, v => { OT.trig = v; setTxt("otTrigV", L(OT_TRIG.find(x => x[0] === v)[1])); otSync(); });
+/* «Разместить ордер»: a market order goes through the execution pill like the quick trade; a pending one is placed */
+function otPlace(){
+  if(!OT || OT.busy) return;
+  const R = otCalc();
+  if(!R.ok || R.closed || guardLock()) return;
+  const t = OT.type, side = OT.side, buy = side === "buy", vol = roundTo(R.vol, 2), d = S.symbol.digits;
+  const tp1 = OT.tp1.on, tp2 = OT.tpSeen && OT.tp2.on, both = tp1 && tp2;
+  const main = both || !tp1 ? (tp2 ? OT.tp2 : null) : OT.tp1;       // the position's own TP: the last level
+  const lvl = o => o.mode === "pips" ? { pips: o.pips } : { price: roundTo(o.price, d) };
+  OT.busy = true;
+  if(S.ui.lot !== vol){ S.ui.lot = vol; save(); }
+  if(t === "market"){
+    const opts = { quiet: true, ref: buy ? S.price.ask : S.price.bid };
+    if(OT.rangeOn) opts.range = OT.range;
+    if(OT.sl.on){ const l = lvl(OT.sl); if(l.pips != null) opts.slPips = l.pips; else opts.sl = l.price; }
+    if(main){ const l = lvl(main); if(l.pips != null) opts.tpPips = l.pips; else opts.tp = l.price; }
+    if(both) opts.tp1 = Object.assign(lvl(OT.tp1), { volume: R.v1 });
+    closeModal();
+    execPill("run", vol);
+    setTimeout(() => {
+      const mirroring = XC.follower, p = openPosition(side, vol, opts);
+      if(p){ execPill("ok", vol); render(); }
+      else if(mirroring) execPill("sent", vol);
+      else execPill("hide");                                       // openPosition said why (margin, the range…)
+    }, EXEC_MS);
+    return;
+  }
+  const o = { type: side + "_" + OT_PEND[t], volume: vol, price: roundTo(R.ent, d), sl: OT.sl.on ? OT.sl.price : null, tp: main ? main.price : null };
+  if(t !== "limit") o.trig = OT.trig;
+  if(t === "stoplimit") o.lim = OT.lim;
+  if(both) o.tp1 = { price: OT.tp1.price, volume: R.v1 };
+  const mirroring = XC.follower, r = addPending(o);
+  if(r || mirroring){ closeModal(); render(); } else OT.busy = false;
 }
 
 /* ---------- position detail ---------- */
@@ -6690,6 +7226,7 @@ function openPosDetail(id){
         <div class="row"><span class="k">${L("Время открытия")}</span><span class="v mono">${fmtYMD(cur.openTime)} ${fmtHM(cur.openTime)}</span></div>
         <div class="row"><span class="k">${L("Длительность")}</span><span class="v mono" id="pd-dur">${fmtDur(S.simClock-cur.openTime)}</span></div>
         <div class="row"><span class="k">SL</span><span class="v mono">${cur.sl?pxfmt(cur.sl):"—"}</span></div>
+        ${cur.tp1 ? `<div class="row"><span class="k">TP1</span><span class="v mono">${pxfmt(cur.tp1.price)} · ${fmt(cur.tp1.volume,2)} ${L("лот")}</span></div>` : ""}
         <div class="row"><span class="k">TP</span><span class="v mono">${cur.tp?pxfmt(cur.tp):"—"}</span></div>
       </div>
       <div class="card pl-tbl">
@@ -6731,7 +7268,7 @@ function openOrderModify(id){
   const o = S.pendings.find(x=>x.id===id);
   if(!o) return;
   openSheet(`
-    <h2>${L("Изменить~modify")} ${o.type.replace("_"," ").toUpperCase()} #${o.id}</h2>
+    <h2>${L("Изменить~modify")} ${ordTypeName(o.type)} #${o.id}</h2>
     <div class="field"><label>${L("Цена входа")}</label><input id="mo-px" inputmode="decimal" value="${pxfmt(o.price)}"></div>
     <div class="grid2">
       <div class="field"><label>Stop Loss</label><input id="mo-sl" inputmode="decimal" value="${o.sl?pxfmt(o.sl):""}"></div>
@@ -6816,7 +7353,7 @@ function showNewsResult(r){
 }
 
 /* ---------- generic sheet ---------- */
-function openSheet(html, sheetCls){
+function openSheet(html, sheetCls, modalCls){
   const from = _morphFrom && _morphFrom.isConnected && performance.now() - _morphT < 450 && glassOn("morph") ? _morphFrom : null;
   _morphFrom = null;
   closeTFPop(true);
@@ -6824,20 +7361,46 @@ function openSheet(html, sheetCls){
   closeModal(true);
   document.querySelectorAll(".modal.closing").forEach(m => m.remove());
   modalEl = document.createElement("div");
-  modalEl.className = "modal" + (swap ? " swap" : "");
+  modalEl.className = "modal" + (swap ? " swap" : "") + (modalCls ? " " + modalCls : "");
   modalEl.innerHTML = `<div class="sheet ${sheetCls||""}"><button class="iconbtn close" data-close>✕</button>${html}</div>`;
   document.body.appendChild(modalEl);
   modalEl.addEventListener("click", e=>{ if(e.target === modalEl) closeModal(); });
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
   glassDrops(modalEl);                                            // Market / Pending, SELL / BUY flow on
   quickLens(modalEl);                                             // the lot sheet's quick chips
-  if(from && !swap){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }
+  scrollInd(modalEl.querySelector(".sheet"), modalEl);
+  if(from && !swap && !modalCls){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }   // a full-screen page slides in instead
+}
+/* a sheet's scroll indicator of its own — the browser's overlay bar ran past their rounded corners (user: «ползунок
+   вверх вниз, он выскакивает»): a thin bar inside the straight part of the edge, clear of the corners, shown while
+   it scrolls and fading after */
+function scrollInd(sc, host){
+  if(!sc || !host || sc._ind) return;
+  const bar = document.createElement("i"); bar.className = "sc-ind"; bar.setAttribute("aria-hidden", "true");
+  host.appendChild(bar); sc._ind = bar;
+  let raf = 0, t = 0;
+  const draw = () => {
+    raf = 0;
+    const sh = sc.scrollHeight, ch = sc.clientHeight;
+    if(!sc.isConnected || sh <= ch + 1){ bar.classList.remove("on"); return; }
+    const r = sc.getBoundingClientRect(), hr = host.getBoundingClientRect(), cs = getComputedStyle(sc);
+    const rt = parseFloat(cs.borderTopRightRadius) || 0, rb = parseFloat(cs.borderBottomRightRadius) || 0;
+    const top = r.top - hr.top + Math.max(6, rt + 2), bot = r.bottom - hr.top - Math.max(6, rb + 2), track = Math.max(24, bot - top);
+    const h = Math.max(28, track * ch / sh), y = top + (track - h) * clamp(sc.scrollTop / (sh - ch), 0, 1);
+    bar.style.height = h.toFixed(1) + "px";
+    bar.style.transform = "translate(" + (r.right - hr.left - 6).toFixed(1) + "px," + y.toFixed(1) + "px)";
+    bar.classList.add("on");
+    clearTimeout(t); t = setTimeout(() => bar.classList.remove("on"), 900);
+  };
+  sc.addEventListener("scroll", () => { if(!raf) raf = requestAnimationFrame(draw); }, { passive: true });
 }
 /* modalEl lets go at once (the app sees no sheet); the element slides down and is removed after */
 function closeModal(now){
   if(!modalEl) return;
   const m = modalEl;
   modalEl = null;
+  otMenuClose(true);
+  if(m.querySelector(".ot-sheet")) OT = null;
   if(now === true){ if(m.classList.contains("morph")) lgStop("sheet"); m.remove(); return; }
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
   if(m.classList.contains("morph")) morphClose(m);                 // it shrinks back into its button
@@ -8157,7 +8720,8 @@ function drawChart(){
       grp.push({ y: y(p.entry), ly: y(p.entry), price: p.entry, key: "p" + p.id, col, text: `${fmt(p.volume,2)} ${L("Лоты")}`,
                  icon: p.side === "buy" ? "up" : "down", filled: true, dash: "dashdot", dotX });
     }
-    if(p.tp && inView(p.tp)) grp.push({ y: y(p.tp), ly: y(p.tp), price: p.tp, key: "t" + p.id, col, text: L("ТП"), icon: "", filled: false, dash: "dash", dotX: null });
+    if(p.tp && inView(p.tp)) grp.push({ y: y(p.tp), ly: y(p.tp), price: p.tp, key: "t" + p.id, col, text: L(p.tp1 ? "ТП2" : "ТП"), icon: "", filled: false, dash: "dash", dotX: null });
+    if(p.tp1 && inView(p.tp1.price)) grp.push({ y: y(p.tp1.price), ly: y(p.tp1.price), price: p.tp1.price, key: "u" + p.id, col, text: L("ТП1"), icon: "", filled: false, dash: "dash", dotX: null });
     if(p.sl && inView(p.sl)) grp.push({ y: y(p.sl), ly: y(p.sl), price: p.sl, key: "s" + p.id, col, text: L("СЛ"), icon: "", filled: false, dash: "dash", dotX: null });
     for(const m of grp){ m.grp = grp; marks.push(m); }
   }
@@ -8165,7 +8729,7 @@ function drawChart(){
     if(o.symbol !== sym || !inView(o.price)) continue;
     const buy = o.type.includes("buy");
     marks.push({ y: y(o.price), ly: y(o.price), price: o.price, key: "o" + o.id, col: buy ? TC.up : TC.down,
-                 text: `${fmt(o.volume,2)} ${L("Лоты")}`, icon: (buy ? "buy-" : "sell-") + (o.type.includes("limit") ? "limit" : "stop"),
+                 text: `${fmt(o.volume,2)} ${L("Лоты")}`, icon: (buy ? "buy-" : "sell-") + (o.type.includes("stop") ? "stop" : "limit"),
                  filled: false, dash: "dashdot", dotX: null, grp: null });
   }
   // Pills sit ON their lines — the line runs through the middle of the pill. Only a position's own
