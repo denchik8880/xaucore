@@ -4,7 +4,7 @@
 <title>XAUCORE — DEMO XAUUSD Simulator</title>
 <meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
 <meta name="theme-color" content="#eff1f4">
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -234,34 +234,34 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
 :root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
-:root[data-glass="on"] .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"] .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color .22s ease}
-:root[data-glass="on"] .bottomnav button.near{color:var(--nav-on)}
-:root[data-glass="on"] .bottomnav.dragging button.on:not(.near){color:var(--ink2)}
-:root[data-glass="on"] .bottomnav .ic svg{width:24px;height:24px}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color .22s ease}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.near{color:var(--nav-on)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav.dragging button.on:not(.near){color:var(--ink2)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:24px;height:24px}
 /* the resting drop and the lens share one place and shape (--u, --sx, --sy on the bar) and CROSS-FADE by
    --lf, the lift: pressed, the lens rises out of the drop; released, it melts back into it (user: it turned
    grey in one jump — «нужно более плавнее, как с того видео») */
-:root[data-glass="on"] .nav-bub,:root[data-glass="on"] .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;
   transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform,opacity}
-:root[data-glass="on"] .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 62%),var(--nav-bub);
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 62%),var(--nav-bub);
   box-shadow:inset 0 1px 1px var(--nb-sheen)}
-:root[data-glass="on"] .nav-lens{z-index:2;opacity:var(--lf,0);background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 52%),var(--nav-lens);
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:2;opacity:var(--lf,0);background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 52%),var(--nav-lens);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
   box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .nav-lens.idle{visibility:hidden}
-:root[data-glass="on"] .nav-lens::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens.idle{visibility:hidden}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
-  :root[data-glass="on"] .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
-  :root[data-glass="on"] .nav-lens{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 .bottomnav .ic{line-height:0;position:relative}
 .bottomnav .ic svg{display:block}
@@ -305,9 +305,9 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
    timeframe pill bottom-left, and our round + / − zoom column above those pills */
 .chfs{position:absolute;left:16px;top:9px;z-index:5;width:46px;height:46px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
-.chzoom{position:absolute;left:16px;bottom:77px;z-index:5;display:flex;flex-direction:column;gap:8px}
+.chzoom{position:absolute;left:16px;bottom:calc(77px + var(--under,0px));z-index:5;display:flex;flex-direction:column;gap:8px}
 .chzoom button{position:relative;width:40px;height:40px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
-.chpills{position:absolute;left:16px;bottom:34px;z-index:5;display:flex;gap:9px;will-change:transform}
+.chpills{position:absolute;left:16px;bottom:calc(34px + var(--under,0px));z-index:5;display:flex;gap:9px;will-change:transform}
 .chpill{position:relative;display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;will-change:padding;border-radius:16px;color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 .chpill svg{display:block}
@@ -316,7 +316,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
    The wrapper holds its place and the step-aside drawChart gives it when a level pill needs that spot; the
    button itself keeps its fade / scale, so the two never fight over one transform. */
-.chlast-wrap{position:absolute;right:66px;bottom:34px;z-index:5;will-change:transform}
+.chlast-wrap{position:absolute;right:66px;bottom:calc(34px + var(--under,0px));z-index:5;will-change:transform}
 .chlast{position:relative;width:44px;height:31px;padding:0;border-radius:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;
   opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
 .chlast.on{opacity:1;transform:none;pointer-events:auto}
@@ -324,8 +324,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chfs,.chzoom button,.chpill,.chlast{background:var(--chart-btn);border:1px solid var(--chart-btn-edge)}
 .chfs:active,.chzoom button:active,.chlast.on:active{transform:scale(.92)}
 .chpill:active{filter:brightness(.92)}
-:root[data-glass="on"] .chlast.on{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
-:root[data-glass="on"] .chlast.pressing,:root[data-glass="on"] .chlast.jelly{transition:opacity .2s ease}          /* the press / jelly springs drive its transform */
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.on{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.pressing,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.jelly{transition:opacity .2s ease}          /* the press / jelly springs drive its transform */
 /* LIQUID GLASS, iOS-style (user 2026-09-18: in cTrader the chart shows through these buttons — «можно ли
    сделать больше жидкое стекло, что бы выглядело как в айфоне»): a thin tint over a lightly blurred,
    saturated view of the candles, a specular rim brightest at the top-left and bottom-right (::after, a 1 px
@@ -334,18 +334,18 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    displacement map in backdrop-filter); Safari keeps the blur. */
 /* a press (glassFrame) swells the drop, leans it toward the finger (--pdx/--pdy, --psx/--psy) and lights the
    glass where it is touched (--lx/--ly, --la) */
-:root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));filter:none}
-:root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill,:root[data-glass="on"] .chlast{isolation:isolate;border:0;
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));filter:none}
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);text-shadow:var(--lg-text-shadow)}
-:root[data-glass="on"] .chfs::before,:root[data-glass="on"] .chzoom button::before,:root[data-glass="on"] .chpill::before,:root[data-glass="on"] .chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
-:root[data-glass="on"] .chfs::after,:root[data-glass="on"] .chzoom button::after,:root[data-glass="on"] .chpill::after,:root[data-glass="on"] .chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
-  :root[data-glass="on"] .chfs,:root[data-glass="on"] .chzoom button,:root[data-glass="on"] .chpill,:root[data-glass="on"] .chlast{background:var(--chart-btn);-webkit-backdrop-filter:none;backdrop-filter:none;text-shadow:none}
+  :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{background:var(--chart-btn);-webkit-backdrop-filter:none;backdrop-filter:none;text-shadow:none}
 }
 
 /* forms / modal */
@@ -834,18 +834,18 @@ html:has(body.route-wallet){background:#0c0a08}
   --cap-glass:rgba(34,34,38,.6); --edge-fade:rgba(0,0,0,.86);
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"] .bignew::after,:root[data-glass="on"] .fabnew::after,:root[data-glass="on"] .toast::after,:root[data-glass="on"] .chartinfo::after,:root[data-glass="on"] .appbar .iconbtn::after,:root[data-glass="on"] .sub-lens::after,:root[data-glass="on"] .seg-lens::after,:root[data-glass="on"] .lw-lens::after,:root[data-glass="on"] .mq-lens::after,:root[data-glass="on"] .appbar .ttl::after,:root[data-glass="on"] .mini-tools button::after,:root[data-glass="on"] .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
-:root[data-glass="on"] .bignew::before,:root[data-glass="on"] .fabnew::before,:root[data-glass="on"] .toast::before,:root[data-glass="on"] .chartinfo::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::before,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::before,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
-:root[data-glass="on"] .bignew{isolation:isolate;filter:none;transition:none;
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{isolation:isolate;filter:none;transition:none;
   background:radial-gradient(110px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--bn-glass),var(--bn-glass));
   -webkit-backdrop-filter:blur(5px) saturate(1.8);backdrop-filter:blur(5px) saturate(1.8);text-shadow:var(--bn-text-shadow);
   box-shadow:0 0 0 .5px var(--lg-line),0 10px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translateX(-50%) translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"] .fabnew{isolation:isolate;filter:none;
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{isolation:isolate;filter:none;
   background:radial-gradient(80px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--fab-glass),var(--fab-glass));
   -webkit-backdrop-filter:blur(5px) saturate(1.8);backdrop-filter:blur(5px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
@@ -853,97 +853,161 @@ html:has(body.route-wallet){background:#0c0a08}
 /* 2. the Markets subtabs: a frosted bar the page scrolls under; the current tab sits on a drop that
    flows to the next one (its leading edge runs ahead, the trailing one catches up — dropFrame) */
 .sub-bub,.seg-bub,.sub-lens,.seg-lens,.lw-lens,.mq-lens{display:none}
-:root[data-glass="on"] .miniquick{position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-:root[data-glass="on"] .mq-lens{display:block;position:absolute;left:0;top:0;pointer-events:none;z-index:2;isolation:isolate;border-radius:11px;
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .miniquick{position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens{display:block;position:absolute;left:0;top:0;pointer-events:none;z-index:2;isolation:isolate;border-radius:11px;
   transform:translate(var(--qx,0px),var(--qy,0px)) scale(var(--qsx,1),var(--qsy,1));width:var(--qw,0px);height:var(--qh,0px);opacity:var(--qf,0);will-change:transform,width,height,opacity;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.06);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
   box-shadow:0 0 0 .5px var(--lg-line),0 5px 16px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .mq-lens.idle{visibility:hidden}
-:root[data-glass="on"] .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
-:root[data-glass="on"] .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens.idle{visibility:hidden}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
-:root[data-glass="on"] .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
-:root[data-glass="on"] .seg button{position:relative;z-index:1}
-:root[data-glass="on"] .seg button.on,:root[data-glass="on"] .seg.theme button.on{background:transparent;box-shadow:none}
-:root[data-glass="on"] .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button{position:relative;z-index:1}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.theme button.on{background:transparent;box-shadow:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
   box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
-:root[data-glass="on"] .seg.theme .seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 65%),var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.theme .seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 65%),var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
 /* while a drop FLOWS it lifts into a clear lens over the labels it passes (they swell and bend under it) and
    sinks back into the resting drop as it settles — --lf follows its speed (dropFrame). The lens has the drop's
    very shape and body transform and the two cross-fade fully, so there is never a second rim above and below
    (user: «сверху и снизу образовались лишние капли») */
-:root[data-glass="on"] .sub-lens,:root[data-glass="on"] .seg-lens{display:block;position:absolute;left:0;pointer-events:none;z-index:2;isolation:isolate;
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens{display:block;position:absolute;left:0;pointer-events:none;z-index:2;isolation:isolate;
   transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);opacity:var(--lf,0);will-change:transform,width,opacity;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.05);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
   box-shadow:0 0 0 .5px var(--lg-line),0 2px 8px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .sub-lens{top:6px;bottom:6px;border-radius:999px}
-:root[data-glass="on"] .seg-lens{top:3px;bottom:3px;border-radius:9px}
-:root[data-glass="on"] .sub-lens.idle,:root[data-glass="on"] .seg-lens.idle{visibility:hidden}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens{top:6px;bottom:6px;border-radius:999px}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens{top:3px;bottom:3px;border-radius:9px}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens.idle,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens.idle{visibility:hidden}
 /* 4. toasts: clear glass capsules that drop in with a bounce and shrink away */
-:root[data-glass="on"] .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
+:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
   -webkit-backdrop-filter:blur(6px) saturate(1.8);backdrop-filter:blur(6px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px rgba(255,255,255,.18)}
-:root[data-glass="on"] .toast.g{background:rgba(11,122,69,.7)}:root[data-glass="on"] .toast.r{background:rgba(192,42,34,.7)}:root[data-glass="on"] .toast.o{background:rgba(201,106,8,.7)}
+:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.g{background:rgba(11,122,69,.7)}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(192,42,34,.7)}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(201,106,8,.7)}
 @keyframes tinG{from{opacity:0;transform:translateY(-16px) scale(.84)}55%{opacity:1}to{transform:none}}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
-:root[data-glass="on"] .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .modal .sheet{animation:shInG .5s cubic-bezier(.25,.9,.3,1)}
-:root[data-glass="on"] .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG .5s cubic-bezier(.25,.9,.3,1)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
 @keyframes shInG{0%{transform:translateY(calc(100% + 40px))}66%{transform:translateY(-7px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
 /* 6. the top bars: frosted, the page scrolls under them */
 /* 6. the top bars are gone: «‹», the title and the subtabs FLOAT as glass capsules and the page scrolls
    under them (user 2026-09-18, Telegram with / without liquid glass); a soft fade keeps the very top calm */
-:root[data-glass="on"] .appbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:transparent;box-shadow:none;isolation:isolate;padding:8px 10px;min-height:56px}
-:root[data-glass="on"] .appbar::before,:root[data-glass="on"] .wl-topbar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:-12px;pointer-events:none;z-index:-1;
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:transparent;box-shadow:none;isolation:isolate;padding:8px 10px;min-height:56px}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:-12px;pointer-events:none;z-index:-1;
   background:linear-gradient(180deg,var(--edge-fade) 0%,var(--edge-fade) 30%,transparent 100%)}
-:root[data-glass="on"] .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
 /* the subtabs are dragged like the tab bar: they fit the capsule (no scrolling), a sideways drag is ours,
    a vertical one still scrolls the page */
-:root[data-glass="on"] .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color .2s ease}
-:root[data-glass="on"] .subtabs .cnt{margin-left:4px}
-:root[data-glass="on"] .subtabs button.near{color:var(--blue-ink)}
-:root[data-glass="on"] .subtabs.dragging button.on:not(.near){color:var(--ink3)}
-:root[data-glass="on"] .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
-:root[data-glass="on"] .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
-:root[data-glass="on"] .wl-search,:root[data-glass="on"] .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color .2s ease}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs .cnt{margin-left:4px}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--blue-ink)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* iOS 26 toolbars: the sheet's ✕ and the drum's Edit / Done are glass capsules too */
-:root[data-glass="on"] .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"] .lw-bar{background:transparent;height:auto;padding:10px 12px 4px}
-:root[data-glass="on"] .lw-bar button{border-radius:999px;padding:8px 18px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-bar{background:transparent;height:auto;padding:10px 12px 4px}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-bar button{border-radius:999px;padding:8px 18px;background:var(--cap-glass);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* the overview mini chart's ⛶ / м1: glass drops over the candles, like the Charts tab's */
-:root[data-glass="on"] .mini-tools button{position:relative;isolation:isolate;border:0;border-radius:999px;color:var(--ink);text-shadow:var(--lg-text-shadow);
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button{position:relative;isolation:isolate;border:0;border-radius:999px;color:var(--ink);text-shadow:var(--lg-text-shadow);
   background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"] .mini-tools button:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
-:root[data-glass="on"] .appbar .iconbtn{position:relative;isolation:isolate;width:40px;height:40px;flex:none;border-radius:50%;color:var(--ink);font-size:22px;
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn{position:relative;isolation:isolate;width:40px;height:40px;flex:none;border-radius:50%;color:var(--ink);font-size:22px;
   background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"] .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
-:root[data-glass="on"] .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
   border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 0 0 .5px var(--lg-line),0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 @keyframes lwInG{0%{transform:translateY(100%)}66%{transform:translateY(-6px)}100%{transform:none}}
 /* the chosen row sits under a glass drop that swells its digits, like an iOS picker's lens */
-:root[data-glass="on"] .lw-lens{display:block;position:absolute;left:8px;right:8px;top:89px;height:38px;border-radius:12px;pointer-events:none;isolation:isolate;
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens{display:block;position:absolute;left:8px;right:8px;top:89px;height:38px;border-radius:12px;pointer-events:none;isolation:isolate;
   background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,transparent 32%),rgba(255,255,255,.03);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* 8. the crosshair's OHLC readout on the chart: a small clear drop over the candles */
-:root[data-glass="on"] .chartinfo{isolation:isolate;background:var(--info-glass);-webkit-backdrop-filter:blur(5px) saturate(1.7);backdrop-filter:blur(5px) saturate(1.7);border-radius:12px;text-shadow:var(--lg-text-shadow);
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{isolation:isolate;background:var(--info-glass);-webkit-backdrop-filter:blur(5px) saturate(1.7);backdrop-filter:blur(5px) saturate(1.7);border-radius:12px;text-shadow:var(--lg-text-shadow);
   box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 @media (prefers-reduced-transparency:reduce){
-  :root[data-glass="on"] .subtabs,:root[data-glass="on"] .appbar,:root[data-glass="on"] .wl-topbar,:root[data-glass="on"] .sheet,:root[data-glass="on"] .lotwheel,:root[data-glass="on"] .toast,:root[data-glass="on"] .bignew,:root[data-glass="on"] .fabnew,:root[data-glass="on"] .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
 }
+/* «Настройки стекла»: one switch per feature */
+.lg-set{margin-top:8px}
+.lgf-list .sw-row{margin-top:0;padding:11px 2px;border-bottom:1px solid var(--line)}
+.lgf-list .sw-row:last-child{border-bottom:0}
+.lgf-list .sw-row .k{font-weight:500}
+/* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
+   a clearer pane, the cards and fields in it translucent too */
+:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,.6);--sheet-card:rgba(255,255,255,.52);--sheet-field:rgba(255,255,255,.66)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(28,28,31,.6);--sheet-card:rgba(255,255,255,.06);--sheet-field:rgba(0,0,0,.3)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:rgba(0,0,0,.2)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:rgba(0,0,0,.42)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing{background:transparent}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{-webkit-backdrop-filter:blur(26px) saturate(1.9);backdrop-filter:blur(26px) saturate(1.9)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .card{background:var(--sheet-card);box-shadow:0 0 0 .5px var(--lg-line)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet input,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet select{background:var(--sheet-field)}
+/* 2. a button morphs into its sheet / menu, iOS 26 (user: «Кнопка превращается в окно»): a glass ghost grows from
+   the button's place and shape to the sheet's, the sheet's content fades in on it; closing, it shrinks back */
+.lg-ghost{position:fixed;z-index:81;pointer-events:none;border-radius:28px;background:var(--sheet-glass,var(--card));
+  -webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.26),inset 0 1px 1px var(--lg-spec)}
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none;opacity:0}
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.shown .sheet{opacity:1;transition:opacity .16s ease}
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none;opacity:0;transition:opacity .1s ease}
+.lg-pop-catch{position:fixed;inset:0;z-index:89}
+.lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--sheet-glass,var(--card));
+  -webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);
+  box-shadow:0 0 0 .5px var(--lg-line),0 14px 40px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
+.lg-pop.shown{opacity:1;transition:opacity .14s ease}
+.lg-pop button{display:flex;justify-content:space-between;align-items:center;gap:14px;width:100%;padding:10px 12px;border-radius:14px;background:none;color:var(--ink);font-size:15px;text-align:left}
+.lg-pop button b{font-weight:600;color:var(--ink2)}
+.lg-pop button.on,.lg-pop button.on b{color:var(--blue-ink)}
+.lg-pop button:active{background:var(--press)}
+/* 3. the Charts tab's trade bar floats over the chart as a glass capsule — the candles run on under it (drawChart
+   keeps the auto range clear of it, chartTabHeight measures it); the time axis stays visible below it */
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart:not(.chart-full) .chtrade-wrap{position:fixed;left:50%;transform:translateX(-50%);width:min(504px,calc(100% - 16px));
+  bottom:calc(var(--nav-top) + 27px);padding:0;background:transparent;z-index:6}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade{height:52px;border-radius:26px;isolation:isolate;
+  -webkit-backdrop-filter:blur(12px) saturate(1.7);backdrop-filter:blur(12px) saturate(1.7);
+  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
+  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--red) 76%,transparent)}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--green) 76%,transparent)}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht-lot{top:6px;height:40px;border-radius:20px;padding-top:2px;background:var(--cap-glass);
+  -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec)}
+/* 4. switches, iOS 26: pressed, the knob swells into a clear lens (a drag moves it), let go it sets and wobbles */
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch .knob{transition:transform .34s cubic-bezier(.3,1.4,.5,1),width .26s cubic-bezier(.3,1.3,.5,1),height .26s ease,top .26s ease,left .26s cubic-bezier(.3,1.3,.5,1),background-color .18s ease,box-shadow .18s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob{top:-2px;left:-3px;width:41px;height:35px;border-radius:999px;background:rgba(255,255,255,.22);
+  -webkit-backdrop-filter:blur(1px) saturate(1.7) brightness(1.12);backdrop-filter:blur(1px) saturate(1.7) brightness(1.12);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.65),0 4px 12px rgba(0,0,0,.2),inset 0 1px 1px rgba(255,255,255,.8),inset 0 -1px 2px rgba(255,255,255,.35);
+  transform:translateX(var(--kx,0px));transition:transform .08s linear,width .22s cubic-bezier(.3,1.3,.5,1),height .22s ease,top .22s ease,left .22s cubic-bezier(.3,1.3,.5,1),background-color .16s ease,box-shadow .16s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.on.press .knob{transform:translateX(calc(18px + var(--kx,0px)))}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.pop .knob{animation:swPop .42s cubic-bezier(.3,1.4,.5,1)}
+@keyframes swPop{0%{scale:1.16 .86}45%{scale:.94 1.06}100%{scale:1 1}}
+/* the switch that turns glass off lives in the flat world after its tap — no lens there */
+/* 5. the execution pill drops in like the Dynamic Island: a dark glass capsule that grows out of a small one at
+   the top, overshoots a hair and settles; it shrinks back up when it goes */
+:root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(18,18,20,.74);color:#fff;border-radius:24px;transform-origin:50% 0;
+  -webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.16),0 10px 30px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.2);
+  transform:translate(-50%,-6px) scale(.34,.5);opacity:0;transition:transform .55s cubic-bezier(.3,1.32,.45,1),opacity .16s ease}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(44,44,48,.74);color:#fff}
+:root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill.on{transform:translate(-50%,0) scale(1);opacity:1}
 /* the «Жидкое стекло» switch in «Ещё» */
 .sw-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
 .sw-row .k{font-weight:600}
@@ -1541,7 +1605,21 @@ const I18N = {
 "Единица":["Unit","Одиниця","Unité","Birim"],
 "Важность ★":["Impact ★","Важливість ★","Impact ★","Etki ★"],
 "Фактическое (пусто = случайно)":["Actual (empty = random)","Фактичне (порожньо = випадково)","Réel (vide = aléatoire)","Gerçekleşen (boş = rastgele)"],
-"Выход через (сек)":["Release in (sec)","Вихід через (с)","Publication dans (s)","Yayın (sn sonra)"]
+"Выход через (сек)":["Release in (sec)","Вихід через (с)","Publication dans (s)","Yayın (sn sonra)"],
+"Настройки стекла":["Glass settings","Налаштування скла","Réglages du verre","Cam ayarları"],
+"Нижняя панель":["Tab bar","Нижня панель","Barre d’onglets","Alt çubuk"],
+"Подвкладки и кнопки выбора":["Sub-tabs and choice buttons","Підвкладки та кнопки вибору","Sous-onglets et boutons de choix","Alt sekmeler ve seçim düğmeleri"],
+"Верхние капсулы":["Top capsules","Верхні капсули","Capsules du haut","Üst kapsüller"],
+"Кнопки на графике":["Chart buttons","Кнопки на графіку","Boutons du graphique","Grafik düğmeleri"],
+"Торговая панель графика":["Chart trading bar","Торгова панель графіка","Barre de trading du graphique","Grafik işlem çubuğu"],
+"Кнопка «Новый ордер»":["“New Order” button","Кнопка «Новий ордер»","Bouton « Nouvel ordre »","“Yeni Emir” düğmesi"],
+"Окна снизу":["Bottom sheets","Вікна знизу","Fenêtres du bas","Alt pencereler"],
+"Кнопки перетекают в окна":["Buttons morph into windows","Кнопки перетікають у вікна","Les boutons se muent en fenêtres","Düğmeler pencereye dönüşür"],
+"Переключатели (вкл/выкл)":["On/off switches","Перемикачі (увімк/вимк)","Interrupteurs (on/off)","Açma/kapama anahtarları"],
+"Плашка исполнения":["Execution pill","Плашка виконання","Bulle d’exécution","İşlem bildirimi"],
+"Всплывающие сообщения":["Pop-up messages","Спливні повідомлення","Messages contextuels","Açılır mesajlar"],
+"Лоты и барабан":["Lots and the wheel","Лоти та барабан","Lots et roue","Lotlar ve çark"],
+"Преломление по краям":["Edge refraction","Заломлення по краях","Réfraction des bords","Kenar kırılması"]
 };
 function L(s, ...a){
   let t = s;
@@ -3444,7 +3522,7 @@ function rippleFade(R, now){
 function rippleDrop(P){ clearTimeout(P.timer); clearTimeout(P.upT); if(P.shown) rippleFade(P.shown, true); if(_rip === P) _rip = null; }
 document.addEventListener("pointerdown", e => {
   if(e.button > 0) return;
-  const el = e.target.closest && e.target.closest(glassOn() ? RIPPLE_SEL : RIPPLE_SEL_FLAT);
+  const el = e.target.closest && e.target.closest(RIPPLE_SEL + (glassOn("nav") ? "" : ", .bottomnav button") + (glassOn("drops") ? "" : ", .subtabs button"));
   if(_rip) rippleDrop(_rip);
   if(!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
   const inner = e.target.closest("button, a, input, select, textarea");
@@ -3499,6 +3577,109 @@ document.addEventListener("click", e => {                         // capture: be
   setTimeout(() => { if(!stays && leftScreen()) R.box.remove(); }, 0);
 }, true);
 let modalEl = null;
+/* iOS 26 switches (glassOn("switches")): pressed, the knob swells into a clear lens that a drag moves along the
+   track; let go past the middle it switches (one click, ours), a tap switches as ever; then it wobbles still */
+let _sw = null, _swSkip = 0;
+document.addEventListener("pointerdown", e => {
+  const sw = e.button > 0 ? null : e.target.closest && e.target.closest(".switch");
+  if(!sw || !glassOn("switches")) return;
+  _sw = { sw, id: e.pointerId, x0: e.clientX, on: sw.classList.contains("on"), kx: 0, moved: false };
+  sw.style.setProperty("--kx", "0px"); sw.classList.remove("pop"); sw.classList.add("press");
+}, { capture: true, passive: true });
+document.addEventListener("pointermove", e => {
+  const P = _sw; if(!P || e.pointerId !== P.id) return;
+  const dx = e.clientX - P.x0; if(Math.abs(dx) > 5) P.moved = true;
+  P.kx = clamp(dx, P.on ? -18 : 0, P.on ? 0 : 18);
+  P.sw.style.setProperty("--kx", P.kx.toFixed(1) + "px");
+}, { capture: true, passive: true });
+const swEnd = (e, go) => {
+  const P = _sw; if(!P || e.pointerId !== P.id) return;
+  _sw = null;
+  const sw = P.sw;
+  sw.classList.remove("press"); sw.style.setProperty("--kx", "0px");
+  void sw.offsetWidth; sw.classList.add("pop"); setTimeout(() => sw.classList.remove("pop"), 450);
+  if(P.moved){
+    _swSkip = performance.now();                                   // the browser's click after a drag is not a tap
+    const want = P.on ? P.kx > -9 : P.kx > 9;
+    if(go && want !== P.on) sw.click();
+  }
+};
+document.addEventListener("pointerup", e => swEnd(e, true), { capture: true, passive: true });
+document.addEventListener("pointercancel", e => swEnd(e, false), { capture: true, passive: true });
+document.addEventListener("click", e => {
+  if(e.isTrusted && performance.now() - _swSkip < 400 && e.target.closest && e.target.closest(".switch")){ e.stopImmediatePropagation(); e.preventDefault(); }
+}, true);
+// the button that opens a sheet morphs into it (glassOn("morph")): noted on its tap, used by openSheet
+const MORPH_SEL = '[data-act="newticket"], [data-act="lotpick"]';
+let _morphFrom = null, _morphT = 0;
+document.addEventListener("click", e => {
+  const el = e.target.closest && e.target.closest(MORPH_SEL);
+  if(el && glassOn("morph")){ _morphFrom = el; _morphT = performance.now(); }
+}, true);
+// a glass ghost from rect a (radius ra) to rect b (radius rb); b may be a function — the ghost then follows the
+// target's CURRENT box every frame (a sheet that fills in after it opens grows on). Ease: a small overshoot.
+function lgMorph(a, ra, b, rb, dur, done){
+  const g = document.createElement("div"); g.className = "lg-ghost";
+  document.body.appendChild(g);
+  const t0 = performance.now(), num = v => parseFloat(v) || 0, R0 = num(ra), R1 = num(rb);
+  const ease = t => { const c1 = 1.25, c3 = c1 + 1, u = t - 1; return 1 + c3 * u * u * u + c1 * u * u; };
+  const step = now => {
+    const t = Math.min(1, (now - t0) / dur), k = ease(t), B = typeof b === "function" ? b() : b;
+    const lerp = (p, q) => p + (q - p) * k;
+    g.style.left = lerp(a.left, B.left) + "px"; g.style.top = lerp(a.top, B.top) + "px";
+    g.style.width = Math.max(0, lerp(a.width, B.width)) + "px"; g.style.height = Math.max(0, lerp(a.height, B.height)) + "px";
+    g.style.borderRadius = Math.max(0, R0 + (R1 - R0) * Math.min(1, t * 1.4)) + "px";
+    if(t < 1) requestAnimationFrame(step);
+    else { if(done) done(); g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 110, fill: "forwards" }).onfinish = () => g.remove(); }
+  };
+  step(t0);
+  return g;
+}
+function morphOpen(from, m){
+  const sh = m.querySelector(".sheet"); if(!sh) return;
+  const a = from.getBoundingClientRect();
+  from.style.visibility = "hidden";
+  m._from = from;
+  lgMorph(a, getComputedStyle(from).borderRadius, () => sh.getBoundingClientRect(), getComputedStyle(sh).borderRadius, 420, () => { from.style.visibility = ""; });
+  setTimeout(() => m.classList.add("shown"), 230);
+}
+function morphClose(m){
+  const from = m._from, sh = m.querySelector(".sheet");
+  if(!from || !from.isConnected || !sh || !glassOn("morph")) return false;
+  const a = sh.getBoundingClientRect(), b = from.getBoundingClientRect();
+  from.style.visibility = "hidden";
+  lgMorph(a, getComputedStyle(sh).borderRadius, b, getComputedStyle(from).borderRadius, 300, () => { from.style.visibility = ""; });
+  return true;
+}
+// «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
+let _tfPop = null;
+function openTFPop(pill){
+  closeTFPop(true);
+  const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
+  const pop = document.createElement("div"); pop.className = "lg-pop"; pop.setAttribute("role", "menu");
+  pop.innerHTML = TF_ORDER.map(tf => `<button type="button" role="menuitem" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("");
+  document.body.append(catcher, pop);
+  const a = pill.getBoundingClientRect(), W = Math.min(220, innerWidth - 16), H = pop.offsetHeight;
+  const left = clamp(a.left, 8, innerWidth - W - 8);
+  let top = a.top - H - 10; if(top < 8) top = Math.min(innerHeight - H - 8, a.bottom + 10);
+  pop.style.left = left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
+  _tfPop = { pop, catcher, pill };
+  pill.style.visibility = "hidden";
+  lgMorph(a, getComputedStyle(pill).borderRadius, pop.getBoundingClientRect(), "22px", 380, () => { pill.style.visibility = ""; });
+  setTimeout(() => pop.classList.add("shown"), 200);
+  catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(); });
+  pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ const tf = b.dataset.tfpick; closeTFPop(); setChartTF(tf); });
+}
+function closeTFPop(now){
+  const P = _tfPop; if(!P) return;
+  _tfPop = null;
+  P.catcher.remove();
+  if(now === true || !P.pill.isConnected){ P.pop.remove(); P.pill.style.visibility = ""; return; }
+  const a = P.pop.getBoundingClientRect();
+  P.pop.remove();
+  P.pill.style.visibility = "hidden";
+  lgMorph(a, "22px", P.pill.getBoundingClientRect(), getComputedStyle(P.pill).borderRadius, 280, () => { P.pill.style.visibility = ""; });
+}
 
 function toast(kind, msg){
   const w = document.getElementById("toasts");
@@ -3506,8 +3687,8 @@ function toast(kind, msg){
   t.className = "toast " + (kind||"");
   t.textContent = msg;
   w.appendChild(t);
-  if(glassOn()) requestAnimationFrame(() => lgGlass(t, t.offsetWidth, t.offsetHeight, 0, 6));
-  setTimeout(()=>{ t.style.transition="opacity .3s, transform .3s"; t.style.opacity="0"; if(glassOn()) t.style.transform="translateY(-8px) scale(.9)"; setTimeout(()=>t.remove(),300); }, 3200);
+  if(glassOn("toasts")) requestAnimationFrame(() => lgGlass(t, t.offsetWidth, t.offsetHeight, 0, 6));
+  setTimeout(()=>{ t.style.transition="opacity .3s, transform .3s"; t.style.opacity="0"; if(glassOn("toasts")) t.style.transform="translateY(-8px) scale(.9)"; setTimeout(()=>t.remove(),300); }, 3200);
 }
 
 function nav(tab, subtab){
@@ -3535,7 +3716,47 @@ function applyTheme(t){
 }
 /* LIQUID GLASS mode («Ещё» → «Жидкое стекло», on by default): html[data-glass] gates every glass style; off,
    the app is its flat cTrader self — opaque chart buttons, the flat tab bar with its ripple, no drops or jelly. */
-function glassOn(){ return document.documentElement.dataset.glass !== "off"; }
+/* …and feature by feature («Ещё» → «Настройки стекла»; user 2026-09-19: «что бы человек сам мог выбирать, где оно
+   должно работать … по дефолту все включены»): html[data-lgoff] lists the features switched off (localStorage
+   xc_glass_off, per device); every glass CSS rule is :not([data-lgoff~="…"]) of its own, every JS path asks
+   glassOn(feature). Off, a feature is its flat self while the rest stays glass. */
+const LG_FEATS = [["nav", "Нижняя панель"], ["drops", "Подвкладки и кнопки выбора"], ["headers", "Верхние капсулы"],
+  ["chart", "Кнопки на графике"], ["tradebar", "Торговая панель графика"], ["newbtn", "Кнопка «Новый ордер»"],
+  ["sheets", "Окна снизу"], ["morph", "Кнопки перетекают в окна"], ["switches", "Переключатели (вкл/выкл)"],
+  ["xpill", "Плашка исполнения"], ["toasts", "Всплывающие сообщения"], ["lots", "Лоты и барабан"], ["refract", "Преломление по краям"]];
+function glassOn(f){
+  const d = document.documentElement.dataset;
+  if(d.glass === "off") return false;
+  return !f || !(" " + (d.lgoff || "") + " ").includes(" " + f + " ");
+}
+function setGlassFeat(f, on){
+  const d = document.documentElement.dataset, off = new Set((d.lgoff || "").split(" ").filter(Boolean));
+  if(on) off.delete(f); else off.add(f);
+  const v = [...off].join(" ");
+  if(v) d.lgoff = v; else delete d.lgoff;
+  try{ localStorage.setItem("xc_glass_off", v); }catch(e){}
+  render();
+}
+// the feature a glass element belongs to (its lens, its press)
+function lgFeat(el){
+  if(el.closest(".bottomnav")) return "nav";
+  if(el.matches(".chfs, .chzoom button, .chpill, .chlast, .mini-tools button, .chartinfo")) return "chart";
+  if(el.matches(".bignew, .fabnew")) return "newbtn";
+  if(el.matches(".toast")) return "toasts";
+  if(el.closest(".appbar")) return "headers";
+  if(el.closest(".sheet")) return "sheets";
+  if(el.matches(".mq-lens, .lw-lens")) return "lots";
+  if(el.matches(".sub-lens, .seg-lens")) return "drops";
+  return null;
+}
+function openGlassSheet(){
+  openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
+  modalEl.querySelectorAll("[data-lgf]").forEach(b => b.onclick = ()=>{
+    const on = !b.classList.contains("on");
+    b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
+    setGlassFeat(b.dataset.lgf, on);
+  });
+}
 function applyGlass(on){
   document.documentElement.dataset.glass = on ? "on" : "off";
   try{ localStorage.setItem("xc_glass", on ? "on" : "off"); }catch(e){}
@@ -4205,6 +4426,7 @@ function screenMore(){
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
       </div>
       <div class="sw-row"><span class="k">${L("💧 Жидкое стекло")}</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
+      ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
     </div>
     ${WALLET_SOON
       ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="soon-pill">${L("Скоро")}</span></div>`
@@ -4743,6 +4965,8 @@ function setChartTF(tf){
   render(); save();
 }
 function openChartTFSheet(){
+  const pill = glassOn("morph") && document.querySelector('.chpill[data-act="charttf"]');
+  if(pill) return openTFPop(pill);
   openSheet(`<h2>${L("Таймфрейм")}</h2><div class="tfsheet">${TF_ORDER.map(tf => `<button type="button" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("")}</div>`);
   modalEl.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ closeModal(); setChartTF(b.dataset.tfpick); });
 }
@@ -4946,7 +5170,7 @@ function navBubFrame(now){
   const idle = NB.lift < .01;
   if(lens._idle !== idle){
     lens._idle = idle; lens.classList.toggle("idle", idle);
-    if(!idle && !lens._lg && LG_LENS && glassOn()){ lens._lg = 1; lens.style.backdropFilter = "url(#" + lgFilterId(lens.offsetWidth, lens.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)"; }
+    if(!idle && !lens._lg && LG_LENS && glassOn("nav") && glassOn("refract")){ lens._lg = 1; lens.style.backdropFilter = "url(#" + lgFilterId(lens.offsetWidth, lens.offsetHeight) + ") blur(.5px) saturate(1.5) brightness(1.04)"; }
   }
   // the icons under the lens swell and take the accent colour (a CSS colour transition, no jump)
   const lifted = NB.lift > .3;
@@ -4967,7 +5191,7 @@ function navBubFrame(now){
 }
 function navBind(bar){
   if(!bar) return;
-  if(!glassOn()){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
+  if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   lgGlass(bar, bar.offsetWidth, bar.offsetHeight, 0, 18);                // the capsule bends what scrolls under its rim
   const uAt = x => { const r = bar.getBoundingClientRect(); return clamp((x - r.left) / (r.width / 5) - .5, 0, 4); };
   const end = (e, go) => {
@@ -5011,7 +5235,7 @@ function dropKey(bar){
   return "seg:" + (bar.id || ds[0] || bar.className);
 }
 function glassDrops(root){
-  if(!glassOn() || !root) return;
+  if(!glassOn("drops") || !root) return;
   root.querySelectorAll(".subtabs, .seg").forEach(bar => {
     const on = bar.querySelector(":scope > button.on");
     if(!on) return;
@@ -5069,7 +5293,7 @@ function subDragBind(bar){
   };
   bar.addEventListener("pointerdown", e => {
     const st = bar._st;
-    if(!glassOn() || e.button > 0 || !st) return;
+    if(!glassOn("drops") || e.button > 0 || !st) return;
     st.drag = { id: e.pointerId, x0: e.clientX, moved: false };
     try{ bar.setPointerCapture(e.pointerId); }catch(_){}
     bar.classList.add("dragging");
@@ -5092,7 +5316,7 @@ function subDragBind(bar){
 let _mqMem = null, _mqRaf = 0;
 const _mq = new Map();
 function quickLens(root){
-  if(!glassOn() || !root) return;
+  if(!glassOn("lots") || !root) return;
   root.querySelectorAll(".miniquick").forEach(box => {
     let lens = box.querySelector(":scope > .mq-lens");
     if(!lens){ lens = document.createElement("span"); lens.className = "mq-lens idle"; box.appendChild(lens); }
@@ -5127,7 +5351,7 @@ function quickLens(root){
       return c;
     };
     box.addEventListener("pointerdown", e => {
-      if(!glassOn() || e.button > 0) return;
+      if(!glassOn("lots") || e.button > 0) return;
       const s = _mq.get(box) || box._mqSt || st; box._mqSt = s;
       if(s.f < .05){ s.cur = null; s.p = s.pv = 0; }                  // a fresh press: it appears on the chip under the finger
       const c = aim(s, e.clientX, e.clientY, true); if(!c) return;
@@ -5285,6 +5509,7 @@ function bindScreen(){
   act("addinstr", ()=> toast("o", L("В DEMO-режиме доступен только XAUUSD")));
   act("search", ()=> toast("o", L("Поиск инструментов будет добавлен позже")));
   act("langpick", openLangSheet);
+  act("glassfeats", openGlassSheet);
   act("newticket", ()=> openTicket());
   act("gotocal", ()=> nav("calendar"));
   act("gotosettings", ()=> nav("settings"));
@@ -5597,7 +5822,7 @@ function openLotWheel(){
   const css = getComputedStyle(document.documentElement);
   const INK = css.getPropertyValue("--ink").trim() || "#111", BANDC = css.getPropertyValue("--lw-band").trim() || "#f1f1f3";
   const FONT = FS + "px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
-  const LENS_MAG = glassOn() ? 1.14 : 1;   // one font a frame — rows scale by transform
+  const LENS_MAG = glassOn("lots") ? 1.14 : 1;   // one font a frame — rows scale by transform
   const BX = 10, BY = MID - BH / 2, BW = W - 20;                       // the selection band
   ctx.font = FONT;
   const BASE = (ctx.measureText("0123456789").actualBoundingBoxAscent || FS * 0.71) / 2;   // baseline below a row's centre that centres its digits
@@ -5781,6 +6006,7 @@ function execPill(state, lot){
     _xpill.className = "xpill";
     _xpill.onclick = ()=>{ if(_xpill.dataset.go){ _xpill.classList.remove("on"); nav("positions"); } };
     document.body.appendChild(_xpill);
+    void _xpill.offsetWidth;                                        // its hidden state is laid out first, so the first show animates too
   }
   clearTimeout(_xpillT);
   if(state === "hide"){ _xpill.classList.remove("on"); return; }
@@ -5811,7 +6037,7 @@ function confirmMarket(side){
   openSheet(`
     <h2>${side==="buy"?L("КУПИТЬ (BUY)"):L("ПРОДАТЬ (SELL)")} XAUUSD</h2>
     <div class="card">
-      <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(v,2)} ${L("лот")} (${fmt(v*S.symbol.contractSize,0)} oz)</span></div>
+      <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(v,2)} ${L("лот")}</span></div>
       <div class="row"><span class="k">${L("Цена")}</span><span class="v mono" id="ck-px">${pxfmt(px)}</span></div>
       <div class="row"><span class="k">${L("Исполнение")}</span><span class="v">${L("Рыночное")}${S.trading.slippageOn?" "+L("(± проскальзывание)"):""}</span></div>
       <div class="row"><span class="k">${L("Комиссия (открытие)")}</span><span class="v mono">${money(comm)}</span></div>
@@ -5894,7 +6120,7 @@ function drawTicket(){
     const comm = commissionFor(vol, px||S.price.mid);
     const reqM = (vol*S.symbol.contractSize*(px||S.price.mid))/S.symbol.leverage;
     cal.innerHTML = `
-      <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(vol,2)} ${L("лот ·")} ${fmt(vol*S.symbol.contractSize,0)} oz</span></div>
+      <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(vol,2)} ${L("лот")}</span></div>
       <div class="row"><span class="k">${L("Комиссия / сторона")}</span><span class="v mono">${money(comm)}</span></div>
       <div class="row"><span class="k">${L("Комиссия туда-обратно")}</span><span class="v mono">${money(comm*2)}</span></div>
       <div class="row"><span class="k">${L("Требуемая маржа")}</span><span class="v mono">${money(reqM)}</span></div>`;
@@ -5934,7 +6160,7 @@ function openPosDetail(id){
     openSheet(`
       <h2>${L("Позиция #")}${cur.id} · ${cur.symbol} <span class="tag ${cur.side}">${cur.side.toUpperCase()} ${fmt(cur.volume,2)}</span></h2>
       <div class="card pl-tbl">
-        <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(cur.volume,2)} ${L("лот ·")} ${fmt(cur.volume*S.symbol.contractSize,0)} oz</span></div>
+        <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(cur.volume,2)} ${L("лот")}</span></div>
         <div class="row"><span class="k">${L("Вход~entry")}</span><span class="v mono">${pxfmt(cur.entry)}</span></div>
         <div class="row"><span class="k">${L("Текущая цена")}</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur))}</span></div>
         <div class="row"><span class="k">${L("Время открытия")}</span><span class="v mono">${fmtYMD(cur.openTime)} ${fmtHM(cur.openTime)}</span></div>
@@ -6067,6 +6293,9 @@ function showNewsResult(r){
 
 /* ---------- generic sheet ---------- */
 function openSheet(html, sheetCls){
+  const from = _morphFrom && _morphFrom.isConnected && performance.now() - _morphT < 450 && glassOn("morph") ? _morphFrom : null;
+  _morphFrom = null;
+  closeTFPop(true);
   const swap = !!modalEl || !!document.querySelector(".modal.closing");
   closeModal(true);
   document.querySelectorAll(".modal.closing").forEach(m => m.remove());
@@ -6078,6 +6307,7 @@ function openSheet(html, sheetCls){
   modalEl.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
   glassDrops(modalEl);                                            // Market / Pending, SELL / BUY flow on
   quickLens(modalEl);                                             // the lot sheet's quick chips
+  if(from && !swap){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }
 }
 /* modalEl lets go at once (the app sees no sheet); the element slides down and is removed after */
 function closeModal(now){
@@ -6086,6 +6316,7 @@ function closeModal(now){
   modalEl = null;
   if(now === true){ m.remove(); return; }
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
+  if(m.classList.contains("morph")) morphClose(m);                 // it shrinks back into its button
   m.classList.add("closing");
   setTimeout(() => m.remove(), 200);
 }
@@ -6552,9 +6783,15 @@ function chartGoLatest(){          // the «›|» button: glide back to the new
 }
 /* the Charts tab: the chart fills the screen between its top and the trade bar + tab bar */
 function chartTabHeight(c){
+  if(c && c.closest(".sub")) chart._underBar = 0;
   if(!c || S.ui.tab !== "chart" || c.closest(".sub")) return;
   const nav = document.querySelector(".bottomnav"), bar = document.querySelector(".chtrade-wrap");
-  const navH = _chartFull || !nav ? 0 : Math.max(0, (window.innerHeight || 640) - nav.getBoundingClientRect().top), barH = bar ? bar.offsetHeight : 0;   // the bar floats: its top edge, gap included
+  // the glass trade bar floats over the chart (its own layer): the canvas runs on under it; the on-chart buttons
+  // rise over it (--under) and drawChart keeps the auto range clear of it (chart._underBar)
+  const floatBar = !!bar && getComputedStyle(bar).position === "fixed";
+  chart._underBar = floatBar ? bar.offsetHeight + 12 : 0;
+  if(c.parentElement) c.parentElement.style.setProperty("--under", floatBar ? (bar.offsetHeight + 6) + "px" : "0px");
+  const navH = _chartFull || !nav ? 0 : Math.max(0, (window.innerHeight || 640) - nav.getBoundingClientRect().top), barH = bar && !floatBar ? bar.offsetHeight : 0;   // the bar floats: its top edge, gap included
   let top = 0;                                                    // offsetTop, not the rect: a screen sliding in is transformed
   for(let el = c.parentElement; el; el = el.offsetParent) top += el.offsetTop;
   const h = Math.max(220, Math.round((window.innerHeight || 640) - top - navH - barH));
@@ -6613,7 +6850,7 @@ function lgFilterId(w, h, scale){
   return id;
 }
 function lgGlass(el, w, h, scale, blur){
-  if(!LG_LENS || !el || !glassOn()) return;
+  if(!LG_LENS || !el || !glassOn("refract") || !glassOn(lgFeat(el))) return;
   blur = blur == null ? 1 : blur;
   const f = "url(#" + lgFilterId(w, h, scale) + ") blur(" + blur + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
@@ -6637,7 +6874,7 @@ function lgFit(el, w, h, scale, blur){
 const _jelly = new Map();
 let _jellyRaf = 0;
 function jellyFeed(el, v){
-  if(!el || !glassOn() || (Math.abs(v) < 1 && !_jelly.has(el))) return;
+  if(!el || !glassOn("chart") || (Math.abs(v) < 1 && !_jelly.has(el))) return;
   let st = _jelly.get(el);
   if(!st){ st = { j: 0, jv: 0, v: 0, vt: 0, dir: 1, t: 0 }; _jelly.set(el, st); el.classList.add("jelly"); }
   st.v = v; st.vt = performance.now(); if(Math.abs(v) > 1) st.dir = v < 0 ? -1 : 1;
@@ -6703,7 +6940,7 @@ function glassFrame(now){
 }
 document.addEventListener("pointerdown", e => {
   const b = e.button > 0 || !glassOn() ? null : e.target.closest && e.target.closest(GLASS_SEL);
-  if(!b) return;
+  if(!b || !glassOn(lgFeat(b))) return;
   const r = b.getBoundingClientRect();
   const g = b._gs || (b._gs = { p: 0, pv: 0, ox: 0, oy: 0, tx: 0, ty: 0, fx: .5, fy: .3, t: 0 });
   g.down = true; g.id = e.pointerId; g.r = r;
@@ -7082,6 +7319,7 @@ function drawChart(){
   // right-aligned 12 px from the edge, the plot running up to the top (the OHLC readout shows only
   // with the crosshair), a 21 px date / time axis at the foot, gridlines every ~33 px
   const padR = W < 420 ? 58 : 66, padB = 21, padT = 8, GRID_PX = 33;
+  const RB = S.ui.tab === "chart" && !_chartFull ? (chart._underBar || 0) : 0;   // px of the plot under the floating glass trade bar
   const infoEl = document.getElementById("chartInfo");
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
@@ -7137,7 +7375,7 @@ function drawChart(){
     const mLo = chart.vCenter - half, mHi = chart.vCenter + half;
     sc = { lo: mLo, hi: mHi, step: niceStep(mHi - mLo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24)) };
   }else{
-    sc = autoScale(dHi, dLo, H - padT - padB, GRID_PX);
+    sc = autoScale(dHi, dLo, H - padT - padB - RB, GRID_PX);
     // Ease the auto range toward its target over a few frames (τ ≈ 70 ms): a tall bar sliding
     // in, or a tick stretching the live one, then moves the candles and every position line in
     // a short glide instead of a one-frame jump. First draw, a timeframe switch or a long idle
@@ -7153,6 +7391,10 @@ function drawChart(){
       if(Math.max(Math.abs(tHi - sc.hi), Math.abs(tLo - sc.lo)) * pxPer > 0.5) chartDraw();   // keep gliding until settled
     }
     chart._easeRange = { hi: sc.hi, lo: sc.lo, t: now, key };
+    if(RB){                                                          // the band under the floating bar shows the prices below
+      sc.lo -= (sc.hi - sc.lo) * RB / Math.max(40, H - padT - padB - RB);
+      sc.step = niceStep(sc.hi - sc.lo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24));
+    }
   }
   chart._lastRange = { hi: sc.hi, lo: sc.lo };   // anchor for the next manual zoom
   chart._plotH = H - padT - padB;                // px the price range maps onto
@@ -7186,7 +7428,7 @@ function drawChart(){
   // labels in the ink colour right-aligned 12 px from the edge. The horizontal lines and the time
   // axis' vertical ones go out as a single stroke.
   const AXF = "13px system-ui,'Open Sans',sans-serif";
-  const yCount = H - padB - 7.5;                                  // the bar countdown, at the foot of the scale
+  const yCount = H - padB - 7.5 - RB;                                  // the bar countdown, at the foot of the scale
   ctx.fillStyle = TC.axis; ctx.font = AXF; ctx.textAlign = "right"; ctx.textBaseline = "middle";
   const gridFrom = Math.ceil(lo / sc.step) * sc.step;
   ctx.beginPath();
