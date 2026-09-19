@@ -1024,11 +1024,12 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
    its way; let go, it frosts back into the white pill in ~0.1 s) */
 .lgc{padding:4px 2px 14px;border-bottom:1px solid var(--line)}
 .lgc-k{font-weight:500;margin-bottom:2px}
-.lgs{position:relative;height:46px;margin:0 2px;touch-action:none;user-select:none;-webkit-user-select:none;outline:none;cursor:pointer;
-  --kx:calc(17px + var(--v,.5) * (100% - 34px))}
+/* it moves at the display's full rate (user: «повысьте фпс ползунку»): the knob by transform (--kxp, px), the fill by
+   clip-path (--fr), both written once a frame from JS — no layout while it moves */
+.lgs{position:relative;height:46px;margin:0 2px;touch-action:none;user-select:none;-webkit-user-select:none;outline:none;cursor:pointer}
 .lgs-track{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:rgba(120,120,128,.22);overflow:hidden}
 :root[data-theme="dark"] .lgs-track{background:rgba(120,120,128,.38)}
-.lgs-fill{position:absolute;left:0;top:0;bottom:0;width:var(--kx);border-radius:3px;background:var(--blue)}
+.lgs-fill{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:3px;background:var(--blue);clip-path:inset(0 var(--fr,50%) 0 0 round 3px)}
 /* appearing (video 3, played backwards at its end): the white pill clears in ~0.1 s and grows into the lens with a
    hair of give; fading: the lens shrinks back ~0.2 s still clear, and only at the very end turns white (.rel → .frost).
    The lens is always WHITE glass (user: «ползунок должен всегда белый быть независимо как заканчивается»): a white
@@ -1036,8 +1037,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 /* the DROP, one to one with the user's reference (iOS 26): about a fifth of the track long, 1.55 : 1, a ROUNDED
    RECTANGLE (corners ~38 % of its height) of thick clear glass — a bright hairline rim, the edges shading in
    (the glass's thickness), a soft shadow under it; the track shows through its middle, bent at its rim */
-.lgs-knob{position:absolute;top:50%;left:var(--kx);width:34px;height:22px;margin:-11px 0 0 -17px;border-radius:11px;background:#fff;pointer-events:none;
-  box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);transform:scale(var(--ksx,1),var(--ksy,1)) skewX(var(--kk,0deg));
+.lgs-knob{position:absolute;top:50%;left:0;width:34px;height:22px;margin:-11px 0 0 -17px;border-radius:11px;background:#fff;pointer-events:none;will-change:transform;
+  box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);transform:translateX(var(--kxp,0px)) scale(var(--ksx,1),var(--ksy,1)) skewX(var(--kk,0deg));
   transition:width .26s cubic-bezier(.3,1.15,.45,1),height .26s cubic-bezier(.3,1.15,.45,1),margin .26s cubic-bezier(.3,1.15,.45,1),border-radius .26s ease,background-color .1s ease,box-shadow .2s ease}
 /* its white is a background COLOUR (the thicker rim a gradient over it), so fading back to the white pill is one smooth colour change */
 .lgs.press .lgs-knob,.lgs.rel .lgs-knob{background-color:rgba(255,255,255,var(--lgsw,.1));background-image:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(255,255,255,.22) 100%)}
@@ -3932,12 +3933,11 @@ function openGlassSheet(){
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
     `<div class="lgs" role="slider" tabindex="0" aria-label="${L("Прозрачность стекла")}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${cv}" style="--v:${(cv / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
     `<div class="lgc-ends"><span>${L("Минимум")}</span><span>${L("Кристалл")}</span></div></div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
-  // the knob moves every frame; the glass (every surface on screen re-renders) follows ~7 times a second and exactly
-  // on release — applied every frame it cost the slider its frame rate (user: «повысьте фпс ползунку»)
-  let tm = 0, last = 0, want = cv;
-  const apply = () => { tm = 0; last = performance.now(); applyClarity(want); };
-  lgsBind(modalEl.querySelector(".lgs"), cv, v => { want = v; if(!tm) tm = setTimeout(apply, Math.max(0, 140 - (performance.now() - last))); },
-    v => { clearTimeout(tm); tm = 0; want = v; applyClarity(v, true); });
+  // the glass (every surface on screen re-renders) follows when the finger RESTS ~0.18 s and on release — never while
+  // it moves, so nothing heavy lands in the middle of a drag (user: «повысьте фпс ползунку»)
+  let tm = 0;
+  lgsBind(modalEl.querySelector(".lgs"), cv, v => { clearTimeout(tm); tm = setTimeout(() => { tm = 0; applyClarity(v); }, 180); },
+    v => { clearTimeout(tm); tm = 0; applyClarity(v, true); });
   modalEl.querySelectorAll("[data-lgf]").forEach(b => b.onclick = ()=>{
     const on = !b.classList.contains("on");
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
@@ -3950,13 +3950,23 @@ function openGlassSheet(){
    Arrows / Home / End work too. onInput(v) while it moves, onDone(v) when it is let go. */
 function lgsBind(el, v0, onInput, onDone){
   if(!el) return;
-  const knob = el.querySelector(".lgs-knob");
-  const set = v => { v = clamp(Math.round(v), 0, 100); if(v !== el._v){ el._v = v; el.style.setProperty("--v", (v / 100).toFixed(3)); el.setAttribute("aria-valuenow", v); } return v; };
+  const knob = el.querySelector(".lgs-knob"), fill = el.querySelector(".lgs-fill");
+  let R = el.getBoundingClientRect();                                // read once (and at each press) — never on a move
+  // the knob sits where the finger is, to the fraction of a pixel (it used to step by whole percents, ~2.7 px); the
+  // value itself is whole percents
+  const set = v => {
+    const vf = clamp(v, 0, 100), cx = 17 + vf / 100 * Math.max(0, R.width - 34);
+    knob.style.setProperty("--kxp", cx.toFixed(2) + "px");
+    fill.style.setProperty("--fr", Math.max(0, R.width - cx).toFixed(2) + "px");
+    const r = Math.round(vf); if(r !== el._v){ el._v = r; el.setAttribute("aria-valuenow", r); }
+    return r;
+  };
   set(v0);
-  const vAt = x => { const r = el.getBoundingClientRect(); return (x - r.left - 17) / Math.max(1, r.width - 34) * 100; };
+  const vAt = x => (x - R.left - 17) / Math.max(1, R.width - 34) * 100;
   const J = { j: 0, jv: 0, vel: 0, t: 0, raf: 0, lx: 0, lt: 0 };
   const jelly = now => {
     J.raf = 0;
+    if(P && P.x != null && P.x !== P.done){ P.done = P.x; const was = el._v, v = set(vAt(P.x)); if(v !== was) onInput(v); }   // one write a frame
     const dt = J.t ? Math.min(Math.max((now - J.t) / 1000, 0), 1 / 30) : 1 / 60; J.t = now;
     const target = P ? Math.min(Math.abs(J.vel) * .00035, .2) : 0;
     J.vel *= Math.exp(-dt / .06);                                   // no move → its speed dies away
@@ -3971,22 +3981,24 @@ function lgsBind(el, v0, onInput, onDone){
   let P = null;
   el.onpointerdown = e => {
     if(e.button > 0) return;
-    P = { id: e.pointerId };
+    P = { id: e.pointerId, x: e.clientX, done: null };
+    R = el.getBoundingClientRect();
     try{ el.setPointerCapture(e.pointerId); }catch(_){}
     clearTimeout(el._t1); clearTimeout(el._t2);
     el.classList.remove("frost", "rel"); el.classList.add("press");
     lgGlass(knob, 56, 36, 26, .3, true, true, undefined, 7);           // its own bend, only in a 7 px band at its rim (the track bends up / down along its ends, its middle stays true — the reference), the same at any clarity
     J.lx = e.clientX; J.lt = performance.now(); J.vel = 0;
-    onInput(set(vAt(e.clientX))); kick();
+    P.done = P.x; onInput(set(vAt(e.clientX))); kick();
   };
   el.onpointermove = e => {
     if(!P || e.pointerId !== P.id) return;
     const now = performance.now(), dt = Math.max(now - J.lt, 1);
     J.vel = J.vel * .5 + (e.clientX - J.lx) / dt * 1000 * .5; J.lx = e.clientX; J.lt = now;
-    const v = set(vAt(e.clientX)); onInput(v); kick();
+    P.x = e.clientX; kick();                                        // the frame loop moves it
   };
   const end = e => {
     if(!P || e.pointerId !== P.id) return;
+    if(P.x !== P.done) set(vAt(P.x));                                // where the finger left it
     P = null; kick();
     // it shrinks back still a clear lens and turns white only at the very end (video 3)
     el.classList.remove("press"); el.classList.add("rel");
