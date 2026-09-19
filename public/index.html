@@ -592,7 +592,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 /* markets watchlist ("Рынки" list -> tap XAUUSD -> existing terminal screen) */
 .wl-topbar{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:0;   /* same ground as the list below, no edge — like cTrader */
   display:flex;align-items:center;gap:10px;padding:14px 14px}
-.wl-logo{flex:0 0 auto;width:38px;height:38px;display:block}   /* the site's icon: user «логотип такой должен быть» */
+.wl-logo{flex:0 0 auto;width:38px;height:38px;display:block}   /* the site's icon, round: user «логотип такой должен быть», «должен быть круглый» */
 .wl-logo svg{width:100%;height:100%;display:block}
 .wl-search{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:9px;background:var(--line);
   color:var(--ink2);border-radius:999px;padding:11px 16px;font-size:15px;font-weight:400;text-align:left}
@@ -3744,7 +3744,7 @@ function screenMarketsList(){
   const w = watchStats();
   return `<div class="wl-topbar">
       <span class="wl-logo" aria-hidden="true">
-        <svg viewBox="0 0 40 40"><rect width="40" height="40" rx="7.5" fill="#111418"/><rect x=".5" y=".5" width="39" height="39" rx="7" fill="none" stroke="#fff" stroke-opacity=".1"/><text x="20" y="27.35" font-size="23.4" text-anchor="middle" fill="#f5820d" font-family="Arial,'Liberation Sans',Arimo,Helvetica,sans-serif" font-weight="bold">X</text></svg>
+        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#111418"/><circle cx="20" cy="20" r="19.5" fill="none" stroke="#fff" stroke-opacity=".1"/><text x="20" y="27.35" font-size="23.4" text-anchor="middle" fill="#f5820d" font-family="Arial,'Liberation Sans',Arimo,Helvetica,sans-serif" font-weight="bold">X</text></svg>
       </span>
       <button class="wl-search" data-act="search"><svg class="wl-search-ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${L("Поиск")}</button>
       <span class="ab-bal mono ${abBalCls()}" id="abBal">${money(S._acc ? S._acc.equity : S.account.balance)}</span>
