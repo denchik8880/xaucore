@@ -15,10 +15,10 @@
    Windows, Roboto on Android) for a native, lighter feel. Open Sans stays
    self-hosted as a deep fallback for devices without a clean system sans —
    no longer preloaded since it is rarely the active face. */
-@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
-@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/opensans-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
+@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
 :root{
   --bg:#eff1f4; --card:#ffffff; --ink:#1a1d21; --ink2:#5f6673; --ink3:#737b87;
   --line:#e8eaed; --green:#0aa85f; --green-bg:#e7f7ef; --red:#e5342b;
@@ -166,7 +166,7 @@ body.chart-full .bottomnav{display:none}
 .ctp{display:grid;grid-template-columns:24fr 23fr 23fr 24fr;column-gap:10px;row-gap:0;width:100%}
 .ctp-cap,.ctp-px{color:#fff;min-width:0}
 .ctp-cap{grid-row:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:54px;padding:0 4px;
-  font-weight:700;font-size:clamp(11px,3.5vw,15px);letter-spacing:.01em;white-space:nowrap}
+  font-weight:700;font-size:clamp(10.5px,3.35vw,15px);letter-spacing:0;white-space:nowrap}
 .ctp-cap.sell{grid-column:1;background:var(--red);border-radius:10px 8px 0 0}
 .ctp-cap.buy{grid-column:4;background:var(--green);border-radius:8px 10px 0 0}
 .ctp-cap::after{content:"";position:absolute;bottom:0;width:8px;height:8px;pointer-events:none}
@@ -271,7 +271,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .lrow{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
 .lrow .top{display:flex;justify-content:space-between;align-items:baseline}
 .lrow .sym{font-weight:600}
-.tag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
+.tag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;letter-spacing:.03em;display:inline-block;white-space:nowrap}
 .tag.buy{background:var(--green-bg);color:var(--green-ink)}
 .tag.sell{background:var(--red-bg);color:var(--red-ink)}
 .lrow .mid{display:flex;justify-content:space-between;color:var(--ink2);font-size:12.5px}
@@ -419,7 +419,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .tfsheet button.on,.tfsheet button.on b{color:var(--blue-ink)}
 /* lot picker sheet */
 .lotsheet{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-top:4px}
-.ls-step{height:52px;border-radius:12px;background:var(--line);font-size:22px;font-weight:600;color:var(--ink)}
+.ls-step{height:52px;border-radius:12px;background:var(--line);font-size:22px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center}   /* drawn − / + : a font puts them 3 px low */
 .ls-step:active{background:var(--press)}
 .ls-val{width:100%;min-width:0;height:52px;text-align:center;font-size:22px;font-weight:600;border:1px solid var(--edge);border-radius:12px;background:var(--field-bg);color:var(--ink)}
 .btn.ghost{background:var(--line);color:var(--ink)}
@@ -780,10 +780,14 @@ html:has(body.route-wallet){background:#0c0a08}
 .dom-grid{overflow-x:auto}
 .grid2{gap:8px}
 .grid2>*{min-width:0}
+.grid2.grid-sync{grid-template-columns:minmax(0,1fr) auto}
+.grid-sync .narrow{padding-left:20px;padding-right:20px;white-space:nowrap}
+.grid-sync .fit{padding-left:10px;padding-right:10px}
 .sheet{overflow-wrap:anywhere}
 .appbar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* a title too long for the bar drifts left and back instead of being cut off (runTitles) */
-.appbar .ttl .ttl-run{display:inline-flex;align-items:center;gap:6px;will-change:transform}
+.appbar .ttl .ttl-run{display:inline-block;text-box:trim-both cap alphabetic;will-change:transform}
+.appbar .ttl .ttl-run>span{margin-left:6px}
 .appbar .ttl.run{padding:0 12px 0 6px;margin-left:-6px;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 6px,#000 calc(100% - 12px),transparent 100%);
           mask-image:linear-gradient(90deg,transparent 0,#000 6px,#000 calc(100% - 12px),transparent 100%)}
@@ -3643,10 +3647,12 @@ function topBanner(){
 }
 
 /* ---------- app bar ---------- */
+// «‹» as a drawn chevron: its box is centred in the button (user: «не ровно текст (не по центру)»)
+const BACK_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="display:block"><path d="M15.2 5.3L8.7 12l6.5 6.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 function appbar(title, opts){
   opts = opts || {};
   return `<div class="appbar">
-    ${opts.back?`<button class="iconbtn" data-act="back">‹</button>`:``}
+    ${opts.back?`<button class="iconbtn" data-act="back" aria-label="${L("Назад")}">${BACK_ICON}</button>`:``}
     <div class="ttl"><span class="ttl-run">${title}${opts.caret?`<span style="color:var(--ink3)">▾</span>`:``}</span></div>
     <div class="sp"></div>
     ${opts.demo ? `<span class="badge-demo">DEMO • SYNTHETIC DATA</span>` : ``}
@@ -3720,7 +3726,11 @@ function screenMarketsList(){
   const w = watchStats();
   return `<div class="wl-topbar">
       <span class="wl-logo" aria-hidden="true">
-        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#e5342b"/><g fill="#fff"><rect x="10" y="22" width="5" height="8" rx="1.4"/><rect x="17.5" y="16" width="5" height="14" rx="1.4"/><rect x="25" y="11" width="5" height="19" rx="1.4"/></g></svg>
+        <svg viewBox="0 0 40 40"><defs><linearGradient id="xcGold" x1="6" y1="4" x2="34" y2="37" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe7a0"/><stop offset=".45" stop-color="#f3c341"/><stop offset="1" stop-color="#c48a12"/></linearGradient></defs>
+          <circle cx="20" cy="20" r="20" fill="url(#xcGold)"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#fff5d6" stroke-opacity=".55" stroke-width=".9"/>
+          <path d="M12.3 12.3L27.7 27.7" stroke="#1d1a14" stroke-width="4.6" stroke-linecap="round"/>
+          <path d="M12.3 27.7L27.7 12.3" stroke="url(#xcGold)" stroke-width="8.4" stroke-linecap="round"/>
+          <path d="M12.3 27.7L27.7 12.3" stroke="#1d1a14" stroke-width="4.6" stroke-linecap="round"/></svg>
       </span>
       <button class="wl-search" data-act="search"><svg class="wl-search-ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${L("Поиск")}</button>
       <span class="ab-bal mono ${abBalCls()}" id="abBal">${money(S._acc ? S._acc.equity : S.account.balance)}</span>
@@ -3748,7 +3758,7 @@ function screenMarketsList(){
         </div>
       </div>
     </div>
-    <button class="wl-addbtn" data-act="addinstr"><span aria-hidden="true">＋</span>${L("Добавить инструменты")}</button>
+    <button class="wl-addbtn" data-act="addinstr"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:block"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>${L("Добавить инструменты")}</button>
     <div class="hint" style="text-align:center;margin-top:16px">${L("Доступно только XAUUSD")}</div>
     ${fabNewMarkup()}
   </div>`;
@@ -4168,9 +4178,9 @@ function screenMore(){
     <div class="card">
       <div class="row"><span class="k">${L("Аккаунт")}</span><span class="v">${acct}</span></div>
       <div class="row"><span class="k">${L("Синхронизация")}</span><span class="v mono" id="xcSync">…</span></div>
-      <div class="grid2" style="margin-top:8px">
+      <div class="grid2 grid-sync" style="margin-top:8px">
         <button class="btn ghost fit" data-act="syncnow">${L("Синхронизировать сейчас")}</button>
-        <button class="btn ghost" data-act="logout">${XC.token?L("Выйти"):L("Войти")}</button>
+        <button class="btn ghost narrow" data-act="logout">${XC.token?L("Выйти"):L("Войти")}</button>
       </div>
     </div>
     <div class="card">
@@ -5485,9 +5495,9 @@ function openLotSheet(){
   openSheet(`
     <h2>${L("Объём (лоты)")}</h2>
     <div class="lotsheet">
-      <button class="ls-step" data-ls="-1" aria-label="${L("Меньше")}">−</button>
+      <button class="ls-step" data-ls="-1" aria-label="${L("Меньше")}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="display:block"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
       <input class="ls-val mono" id="lsInput" inputmode="decimal" value="${fmt(S.ui.lot,2)}">
-      <button class="ls-step" data-ls="1" aria-label="${L("Больше")}">+</button>
+      <button class="ls-step" data-ls="1" aria-label="${L("Больше")}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="display:block"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
     </div>
     <div class="loterr" id="lsErr"></div>
     <div class="miniquick">${quick.map(v=>`<button data-lsv="${v}">${fmt(v,2)}</button>`).join("")}<button data-lsv="max">MAX ${fmt(S.symbol.maxLot,0)}</button></div>
@@ -7987,7 +7997,7 @@ function screenAuth(msg, kind){
   const t = _authMode, reg = t === "register";
   const bad = kind === "err";
   app().innerHTML = `
-    <div class="appbar"><div class="ttl">cTrade Simulator</div><div class="sp"></div></div>
+    <div class="appbar"><div class="ttl"><span class="ttl-run">XAUCORE</span></div><div class="sp"></div></div>
     <div class="wrap" style="max-width:420px;margin:0 auto">
       <div class="card" style="text-align:center;padding:22px 16px">
         <div style="font-size:clamp(21px,7.2vw,26px);font-weight:700;letter-spacing:.01em;white-space:nowrap">cTrade Simulator</div>
