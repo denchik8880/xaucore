@@ -930,7 +930,7 @@ html:has(body.route-wallet){background:#0c0a08}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
-  box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 14px 38px rgba(0,0,0,calc(.2 * var(--shw,1))),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG .58s cubic-bezier(.22,.8,.28,1)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
 @keyframes shInG{0%{transform:translateY(calc(100% + 40px))}70%{transform:translateY(-3px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
@@ -1137,7 +1137,7 @@ body.amenu-open .wl-logo{opacity:0}
 /* with glass on: the same drawer as a pane of glass, its groups floating cards, and it flows out of the logo */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{width:min(86%,348px);height:calc(100% - 16px);max-height:none;margin:8px;border-radius:28px;
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
-  box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),inset 0 0 0 1px var(--sheet-rim),0 6px 22px rgba(0,0,0,calc(.14 * var(--shw,1))),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.062) 34%,rgba(255,255,255,.05))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-grp{margin:8px;padding:2px 0;border-top:0;border-radius:20px;background:var(--sheet-card);box-shadow:0 0 0 .5px var(--lg-line)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-it{width:calc(100% - 8px);margin:0 4px;border-radius:16px}
@@ -4311,8 +4311,8 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     return q;
   };
   const sOver = mkSvg("over", ["r2", "r"]);                         // only its hairline: a filled shadow shows through glass this clear
-  const md = el.closest(".modal");
   el.classList.add("lg-flowing");                                  // one layer, nothing inside it animating while it flies
+  el.style.setProperty("--shw", "0");                              // its shadow belongs to the window, not to the drop
   _lgFly++;
   let raf = 0, fin = false;
   const finish = () => {
@@ -4321,7 +4321,11 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     cancelAnimationFrame(raf);
     el.style.clipPath = ""; el.style.removeProperty("--fc");
     el.classList.remove("lg-flowing");
-    if(md) md.style.removeProperty("--mq");
+    if(opening){                                                   // the shadow arrives over a breath — dropped in one frame it read as grey spreading round the window
+      el.style.transition = "box-shadow .3s ease";
+      el.style.setProperty("--shw", "1");
+      setTimeout(() => { if(el.isConnected){ el.style.transition = ""; el.style.removeProperty("--shw"); } }, 340);
+    } else el.style.removeProperty("--shw");
     sOver.style.transition = "opacity .14s ease"; sOver.style.opacity = "0";   // it hands its edge over to the window
     setTimeout(() => sOver.remove(), 170);
     if(_lgFly) _lgFly--;
@@ -4346,10 +4350,10 @@ function lgFlow(el, a, ra, dur, opening, key, done){
                   r: Math.max(0, R0 + (R1 - R0) * kc) };
     const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height });
     el.style.clipPath = 'path("' + sh.clip + '")';
-    // the drop uncovers the window WITH its text — nothing is held back, so no blank shape grows first
-    const mc = opening ? clamp(k / .12, 0, 1) : clamp((k - .12) / .4, 0, 1);
+    // the drop uncovers the window WITH its text — nothing is held back, so no blank shape grows first, and on the
+    // way back the text goes only with the last of the shape (it used to leave first, which read as a fade)
+    const mc = opening ? clamp(k / .12, 0, 1) : clamp((k - .04) / .26, 0, 1);
     el.style.setProperty("--fc", mc.toFixed(3));
-    if(md) md.style.setProperty("--mq", Math.min(1, k).toFixed(3));   // the scrim comes up with it
     for(const p of sOver.querySelectorAll("path")) p.setAttribute("d", sh.clip);
     if(t < 1) raf = requestAnimationFrame(step);
     else finish();
@@ -4363,9 +4367,16 @@ function morphOpen(from, m){
   const a = from.getBoundingClientRect();
   m._from = from; m._fromSel = from.dataset.act ? '[data-act="' + from.dataset.act + '"]' : null;
   from.classList.add("lg-hid");
-  lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", () => from.classList.remove("lg-hid"));
+  const inside = !!from.closest(".modal");                         // a field inside the window itself must come back at once
+  if(!inside) m._hid = from;
+  lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", inside ? () => from.classList.remove("lg-hid") : null);
 }
 // closing, it lands on its button — the same one, or the one render() put in its place
+/* whatever the window was hiding behind it comes back */
+function morphShow(m){
+  if(m._hid) m._hid.classList.remove("lg-hid");
+  if(m._fromSel) document.querySelectorAll(m._fromSel).forEach(e => e.classList.remove("lg-hid"));
+}
 function morphClose(m){
   const from = m._from, sel = m._fromSel, sh = m.querySelector(".sheet");
   const shown = e => e.isConnected && e.getClientRects().length > 0;   // offsetParent is null for a fixed button («Новый ордер»)
@@ -4373,7 +4384,7 @@ function morphClose(m){
   const btn = cur();
   if(!sh || !glassOn("morph") || !btn){ lgStop("sheet"); return false; }   // no button to go back to: no drop to drain
   btn.classList.add("lg-hid");
-  lgFlow(sh, btn.getBoundingClientRect(), getComputedStyle(btn).borderRadius, 340, false, "sheet", () => { btn.classList.remove("lg-hid"); m.remove(); });
+  lgFlow(sh, btn.getBoundingClientRect(), getComputedStyle(btn).borderRadius, 340, false, "sheet", () => { morphShow(m); btn.classList.remove("lg-hid"); m.remove(); });
   return true;
 }
 // «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
@@ -7603,7 +7614,8 @@ function otToggle(k){
 // the ▼ of «Количество»: the lot drum, writing into the ticket
 function otWheel(){
   if(!OT) return;
-  const v0 = numIn(OT.volTxt), put = v => { OT.volTxt = fmt(v, 2); if(OT.tp2.on) OT.tp1.vol = null; const i = document.getElementById("otVol"); if(i) i.value = OT.volTxt; otSync(); };
+  const v0 = numIn(OT.volTxt), put = v => { if(!OT) return;   // the drum can settle after the ticket has gone
+    OT.volTxt = fmt(v, 2); if(OT.tp2.on) OT.tp1.vol = null; const i = document.getElementById("otVol"); if(i) i.value = OT.volTxt; otSync(); };
   const v = validateLot(v0) ? S.ui.lot : v0;
   if(glassOn("lots")) openLotWheel({ value: v, keep: "[data-otwheel]", show: put, commit: put });   // the drum is liquid glass's own
   else openLotList(document.getElementById("otVolF"), v, put);
@@ -7864,9 +7876,10 @@ function closeModal(now){
   if(m._closed){ const f = m._closed; m._closed = null; f(); }    // whatever the sheet turned on while it was open
   otMenuClose(true); closeLotList();
   if(m.querySelector(".ot-sheet")) OT = null;
-  if(now === true){ if(m.classList.contains("morph")) lgStop("sheet"); m.remove(); return; }
+  if(now === true){ if(m.classList.contains("morph")) lgStop("sheet"); morphShow(m); m.remove(); return; }
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
   if(m.classList.contains("morph") && morphClose(m)) return;       // the drop drains back into its button, sheet and all
+  morphShow(m);
   m.classList.add("closing");
   setTimeout(() => m.remove(), 200);
 }
