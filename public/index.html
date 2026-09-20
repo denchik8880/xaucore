@@ -8,9 +8,9 @@
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.95,b:1+lo*.4-hi*.96,s:1+lo*.15-hi*.72,sb:1+lo*.2-hi*.7,r:1-lo+hi*1.3,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.02};}
+function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.965,b:1+lo*.4-hi*.975,s:1+lo*.15-hi*.8,sb:1+lo*.2-hi*.78,r:1-lo+hi*1.45,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.012};}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1024,6 +1024,14 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
    its way; let go, it frosts back into the white pill in ~0.1 s) */
 .lgc{padding:4px 2px 14px;border-bottom:1px solid var(--line)}
 .lgc-k{font-weight:500;margin-bottom:2px}
+/* a row per theme (video 3): its title, its slider, the drop and the sun at the ends */
+.lgc-row{padding-top:6px}
+.lgc-row+.lgc-row{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
+.lgc-t{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.lgc-row.now .lgc-t{color:var(--ink)}
+.lgc-now{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;color:var(--blue-ink);background:color-mix(in srgb,var(--blue) 15%,transparent)}
+.lgc-ends span{display:inline-flex;align-items:center;gap:5px}
+.lgc-ends svg{opacity:.75}
 /* it moves at the display's full rate (user: «повысьте фпс ползунку»): the knob by transform (--kxp, px), the fill by
    clip-path (--fr), both written once a frame from JS — no layout while it moves */
 .lgs{position:relative;height:46px;margin:0 2px;touch-action:none;user-select:none;-webkit-user-select:none;outline:none;cursor:pointer}
@@ -4091,6 +4099,89 @@ document.addEventListener("click", e => {
 // beside a small one (user: «когда быстро тапнуть на таймфрейм, окно большое почему-то не успевает закрыться»).
 const _lgRun = {};
 const lgStop = key => _lgRun[key] ? _lgRun[key].stop() : null;
+/* THE DROP (iOS 26 / 27 — user 2026-09-20: «нужно открытие именно эффектом капли»): a window or a menu does not just
+   grow out of its button, it FLOWS out of it. The growing blob and the button's droplet hang on a neck that stretches
+   and thins as they pull apart; about halfway the neck snaps and the droplet is drawn in after it; the blob, stretched
+   along its way while it moves, settles into the window's shape without ever running past it. Blob + droplet + neck are
+   drawn as ONE clip-path on the glass ghost, so its body, its rim and what shows through all take the liquid shape. */
+const LG_NECK = .5;                                                // the neck is gone by here
+const _P = (x, y) => x.toFixed(2) + "," + y.toFixed(2);
+function lgRR(x, y, w, h, r){                                      // a rounded rect, as a path
+  r = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  const x2 = x + w, y2 = y + h, A = (ax, ay) => "A" + r.toFixed(2) + "," + r.toFixed(2) + " 0 0 1 " + _P(ax, ay);
+  return "M" + _P(x + r, y) + "L" + _P(x2 - r, y) + A(x2, y + r) + "L" + _P(x2, y2 - r) + A(x2 - r, y2)
+       + "L" + _P(x + r, y2) + A(x, y2 - r) + "L" + _P(x, y + r) + A(x + r, y) + "Z";
+}
+/* the blob while it flows: a TEARDROP — pinched by `taper` at the tail (the button it pours out of), its head pushed
+   out by `dome`, and exactly the window's rounded rectangle again once both reach 0, so it lands square */
+function lgBlobPath(x, y, w, h, r, vert, headLow, taper, dome){
+  if(!vert || (taper < .004 && dome < .4)) return lgRR(x, y, w, h, r);
+  const cx = x + w / 2, tw = Math.max(6, w * (1 - taper));
+  const R = Math.max(0, Math.min(r, Math.min(w, h) / 2)), rt = Math.max(0, Math.min(R, tw / 2));
+  const yH = y, yT = y + h;                                        // head edge, tail edge (head up; mirrored if it points down)
+  const my = v => headLow ? (2 * y + h - v) : v;
+  const P = (px, pv) => _P(px, my(pv));
+  const sw = headLow ? 0 : 1;                                      // the mirror turns the arcs around
+  const A = (px, pv, rr) => "A" + rr.toFixed(2) + "," + rr.toFixed(2) + " 0 0 " + sw + " " + P(px, pv);
+  return "M" + P(cx - w / 2 + R, yH)
+    + "C" + P(cx - w / 4, yH - dome) + " " + P(cx + w / 4, yH - dome) + " " + P(cx + w / 2 - R, yH)
+    + A(cx + w / 2, yH + R, R)
+    + "C" + P(cx + w / 2, yH + h * .5) + " " + P(cx + tw / 2, yH + h * .62) + " " + P(cx + tw / 2, yT - rt)
+    + A(cx + tw / 2 - rt, yT, rt)
+    + "L" + P(cx - tw / 2 + rt, yT)
+    + A(cx - tw / 2, yT - rt, rt)
+    + "C" + P(cx - tw / 2, yH + h * .62) + " " + P(cx - w / 2, yH + h * .5) + " " + P(cx - w / 2, yH + R)
+    + A(cx - w / 2 + R, yH, R) + "Z";
+}
+// the waisted neck between the blob's edge and the droplet's, along x or y
+function lgNeckPath(c1, e1, w1, c2, e2, w2, waist, vert){
+  const m1 = c1 + (c2 - c1) * .34, m2 = c1 + (c2 - c1) * .66, a1 = e1 + (e2 - e1) * .34, a2 = e1 + (e2 - e1) * .66;
+  const p = vert ? (c, e) => _P(c, e) : (c, e) => _P(e, c);
+  return "M" + p(c1 - w1 / 2, e1)
+    + "C" + p(m1 - waist / 2, a1) + " " + p(m2 - waist / 2, a2) + " " + p(c2 - w2 / 2, e2)
+    + "L" + p(c2 + w2 / 2, e2)
+    + "C" + p(m2 + waist / 2, a2) + " " + p(m1 + waist / 2, a1) + " " + p(c1 + w1 / 2, e1) + "Z";
+}
+/* the ghost's box and the shape inside it for this frame; clip null once it is simply the window's rounded rect
+   (its shadow comes back for the landing) */
+function lgDropShape(a, box, k, R0){
+  const nk = k < LG_NECK ? 1 - k / LG_NECK : 0;
+  const bcx = box.left + box.width / 2, bcy = box.top + box.height / 2;
+  const acx = a.left + a.width / 2, acy = a.top + a.height / 2;
+  const vert = Math.abs(bcy - acy) >= Math.abs(bcx - acx);
+  const sp = Math.sin(Math.PI * Math.min(1, Math.max(0, k))) * .07;          // stretched along its way, 7 % at most
+  const bw = Math.max(1, box.width * (vert ? 1 - sp : 1 + sp)), bh = Math.max(1, box.height * (vert ? 1 + sp : 1 - sp));
+  const B = { x: bcx - bw / 2, y: bcy - bh / 2, w: bw, h: bh, r: Math.min(box.r, Math.min(bw, bh) / 2) };
+  const live = nk > .012 && a.width > 2 && a.height > 2;
+  let D = null;
+  if(live){
+    const f = .3 + .7 * nk, dw = Math.max(1, a.width * f), dh = Math.max(1, a.height * f);
+    D = { x: acx - dw / 2, y: acy - dh / 2, w: dw, h: dh, r: Math.min(R0, Math.min(dw, dh) / 2) };
+  }
+  if(!D && sp < .004) return { x: box.left, y: box.top, w: box.width, h: box.height, clip: null };
+  // a teardrop while it moves: pinched at the end it came from, its head domed out (the dome needs room in the box)
+  const mv = Math.sin(Math.PI * Math.min(1, Math.max(0, k))), headLow = vert ? bcy > acy : bcx > acx;
+  const taper = .3 * mv, dome = vert ? Math.min(9, B.w * .05) * mv : 0;
+  const x0 = (D ? Math.min(B.x, D.x) : B.x) - (vert ? 0 : dome), y0 = (D ? Math.min(B.y, D.y) : B.y) - (vert ? dome : 0);
+  const x1 = (D ? Math.max(B.x + B.w, D.x + D.w) : B.x + B.w) + (vert ? 0 : dome), y1 = (D ? Math.max(B.y + B.h, D.y + D.h) : B.y + B.h) + (vert ? dome : 0);
+  let d = lgBlobPath(B.x - x0, B.y - y0, B.w, B.h, B.r, vert, headLow, taper, dome);
+  if(D){
+    d += lgRR(D.x - x0, D.y - y0, D.w, D.h, D.r);
+    // the neck: from the blob's near edge to the droplet's, a waist that thins as they pull apart
+    const bC = vert ? bcx : bcy, dC = vert ? acx : acy;
+    const bSize = vert ? B.w : B.h, dSize = vert ? D.w : D.h;
+    const bNear = vert ? (bcy < acy ? B.y + B.h : B.y) : (bcx < acx ? B.x + B.w : B.x);
+    const dNear = vert ? (bcy < acy ? D.y : D.y + D.h) : (bcx < acx ? D.x : D.x + D.w);
+    const span = Math.abs(dNear - bNear);
+    if(span > 1){
+      const w = Math.min(bSize, dSize) * .62 * Math.pow(nk, .7);
+      const waist = Math.max(1.2, w * (.5 + .35 * nk));
+      d += lgNeckPath(bC - (vert ? x0 : y0), bNear - (vert ? y0 : x0), Math.min(w, bSize * .9),
+                      dC - (vert ? x0 : y0), dNear - (vert ? y0 : x0), Math.min(w, dSize * .9), waist, vert);
+    }
+  }
+  return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0), clip: d };
+}
 function lgMorph(a, ra, to, dur, done, hide, key, near){
   const was = key && lgStop(key);
   if(was){ a = was; ra = was.r; }
@@ -4117,8 +4208,10 @@ function lgMorph(a, ra, to, dur, done, hide, key, near){
     box = { left: lerp(a.left, B.left), top: lerp(a.top, B.top), width: Math.max(0, lerp(a.width, B.width)), height: Math.max(0, lerp(a.height, B.height)),
             r: Math.max(0, R0 + (R1 - R0) * k) };
     if(k >= .9) nearNow();
-    g.style.left = box.left + "px"; g.style.top = box.top + "px"; g.style.width = box.width + "px"; g.style.height = box.height + "px";
+    const sh = lgDropShape(a, box, k, R0);                         // the liquid drop: blob + droplet + neck
+    g.style.left = sh.x + "px"; g.style.top = sh.y + "px"; g.style.width = sh.w + "px"; g.style.height = sh.h + "px";
     g.style.borderRadius = box.r + "px";
+    if(g._clip !== sh.clip){ g._clip = sh.clip; g.style.clipPath = sh.clip ? 'path("' + sh.clip + '")' : "none"; }
     if(t < 1) raf = requestAnimationFrame(step);
     else {
       land();
@@ -4246,15 +4339,29 @@ function lgFeat(el){
   if(el.closest(".switch")) return "switches";
   return null;
 }
+const LG_DROP_ICO = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3.5c3.4 4.2 6 7.2 6 10.1A6 6 0 0 1 6 13.6c0-2.9 2.6-5.9 6-10.1z" fill="currentColor"/></svg>`;
+const LG_SUN_ICO = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></g></svg>`;
 function openGlassSheet(){
-  const cv = Math.round(glassClarity());
+  // one slider per theme (user 2026-09-20, video 3): the one on screen changes the glass live, the other is kept for
+  // when that theme comes on
+  const cur = currentTheme();
+  const row = (th, ttl) => {
+    const v = Math.round(glassClarity(th));
+    return `<div class="lgc-row${th === cur ? " now" : ""}"><div class="lgc-t"><span>${L(ttl)}</span>${th === cur ? `<b class="lgc-now">${L("сейчас")}</b>` : ""}</div>` +
+      `<div class="lgs" data-lgth="${th}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
+      `<div class="lgc-ends"><span>${LG_DROP_ICO} ${L("Минимум")}</span><span>${L("Кристалл")} ${LG_SUN_ICO}</span></div></div>`;
+  };
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
-    `<div class="lgs" role="slider" tabindex="0" aria-label="${L("Прозрачность стекла")}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${cv}" style="--v:${(cv / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
-    `<div class="lgc-ends"><span>${L("Минимум")}</span><span>${L("Кристалл")}</span></div></div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
+    row("light", "Светлая тема") + row("dark", "Тёмная тема") + `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
   // the glass follows the finger LIVE (user: «ползунок и тема применяется когда отпустить палец» — it must change while
   // it moves): lgsBind calls this from its frame loop, once a frame at most and only when the whole percent changes,
   // in the same frame as the knob; saved on release
-  lgsBind(modalEl.querySelector(".lgs"), cv, v => applyClarity(v), v => applyClarity(v, true));
+  modalEl.querySelectorAll(".lgs[data-lgth]").forEach(el => {
+    const th = el.dataset.lgth, live = th === cur;
+    lgsBind(el, Math.round(glassClarity(th)),
+      v => { if(live) applyClarity(v); },
+      v => { if(live) applyClarity(v, true); else saveClarity(th, v); });
+  });
   modalEl.querySelectorAll("[data-lgf]").forEach(b => b.onclick = ()=>{
     const on = !b.classList.contains("on");
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
@@ -4353,9 +4460,8 @@ function setGlass(on){
 function setTheme(t){
   if(!S.ui) S.ui = {};
   S.ui.theme = (t === "dark") ? "dark" : "light";
-  applyTheme(S.ui.theme);
+  smoothSwap(() => { applyTheme(S.ui.theme); applyClarity(glassClarity()); render(); });   // the theme's own clarity comes with it
   save();
-  render();
   toast("", S.ui.theme === "dark" ? L("🌙 Тёмная тема") : L("☀️ Светлая тема"));
 }
 /* canvas can't read CSS vars directly — resolve them once per theme */
@@ -8007,7 +8113,18 @@ const LG_LENS = /(Chrome|Chromium)\/\d+/.test(navigator.userAgent) && !/CriOS|Fx
 const _lgIds = new Set(), _lgMaps = new Map(), _lgDms = [];
 let _lgDefs = null;
 // the clarity (the early script's lgq): read once here, changed by the slider (applyClarity)
-function glassClarity(){ try{ const v = parseFloat(localStorage.getItem("xc_glass_clear")); if(v >= 0 && v <= 100) return v; }catch(e){} return 85; }   // 85 by default (user: «еще больше кристализируем»)
+/* Each theme keeps its own clarity (user 2026-09-20, video 3: the light mode and the dark mode have a slider each) —
+   the light one shows more of the page through it, the dark one usually wants a little more body. 85 by default. */
+const clarityKey = th => "xc_glass_clear_" + (th || currentTheme());
+function glassClarity(th){
+  try{
+    let v = parseFloat(localStorage.getItem(clarityKey(th)));
+    if(!(v >= 0 && v <= 100)) v = parseFloat(localStorage.getItem("xc_glass_clear"));   // one saved before the split
+    if(v >= 0 && v <= 100) return v;
+  }catch(e){}
+  return 85;
+}
+function saveClarity(th, v){ try{ localStorage.setItem(clarityKey(th), String(Math.round(v))); }catch(e){} }
 let LGQ = lgq(glassClarity());
 // the displacement map of a w×h drop (its rim bends toward the core), drawn once per size
 // rim: a bend only in a narrow band at the rim (px), none inside — the slider's drop (its track shows through its middle
@@ -8094,7 +8211,7 @@ function applyClarity(v, keep){
   st.setProperty("--lgk", q.k.toFixed(3)); st.setProperty("--lgb", q.b.toFixed(3)); st.setProperty("--lgs", q.s.toFixed(3));
   st.setProperty("--lgsb", q.sb.toFixed(3)); st.setProperty("--lgn", q.n.toFixed(3));
   LGQ = q; lgScaleAll(); lgRefresh();
-  if(keep) try{ localStorage.setItem("xc_glass_clear", String(Math.round(v))); }catch(e){}
+  if(keep) saveClarity(null, v);                                   // under the theme on screen
 }
 /* a lens that changes size (the subtab drop, the lot lens) needs a map of ITS size: one built for another size
    leaves a strip past its edge that is shifted by half the scale — the cut, doubled labels (user: «теперь они
