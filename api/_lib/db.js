@@ -44,6 +44,17 @@ const SCHEMA = [
      key   TEXT PRIMARY KEY,
      value TEXT
    )`,
+  // one live password-reset code per address: only its hash is kept, and it
+  // dies on use, on expiry or after five wrong tries
+  `CREATE TABLE IF NOT EXISTS pw_resets(
+     email      TEXT PRIMARY KEY,
+     user_id    TEXT NOT NULL,
+     code_hash  TEXT NOT NULL,
+     salt       TEXT NOT NULL,
+     expires_at INTEGER NOT NULL,
+     sent_at    INTEGER NOT NULL,
+     tries      INTEGER NOT NULL DEFAULT 0
+   )`,
   `CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)`,
 ];
 

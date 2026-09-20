@@ -29,7 +29,7 @@ export const LOCK_KEY = "site_locked";
 export const STATIC_SKIP = /^\/(?:fonts\/|wallet-bg|favicon\.ico|manifest\.webmanifest|_vercel\/)/;
 
 /** The only API routes refused while the site is closed: new-session sign-in. */
-const API_BLOCK_WHEN_CLOSED = new Set(["/api/auth/login", "/api/auth/register"]);
+const API_BLOCK_WHEN_CLOSED = new Set(["/api/auth/login", "/api/auth/register", "/api/auth/forgot", "/api/auth/reset"]);
 
 // short in-process cache so the gate doesn't hit the DB on every request
 const TTL_MS = 5000;
