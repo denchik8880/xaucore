@@ -1129,6 +1129,8 @@ body.amenu-open .wl-logo{opacity:0}
 @keyframes amIn{from{transform:translateX(-100%)}to{transform:none}}
 .am-head{display:flex;align-items:center;gap:14px;padding:15px 18px 8px 14px}   /* its mark sits exactly where the bar's logo is, so the two hand over without a jump */
 .am-logo{flex:0 0 auto;width:42px;height:42px}
+.am-logo.ghost{background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.am-logo.ghost::after{display:none}                              /* the bar's own bubble stands here instead */
 .am-logo svg{display:block;width:100%;height:100%}
 .am-brand{font-size:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .am-acct{padding:0 18px 16px 70px;line-height:1.35}
@@ -4392,6 +4394,26 @@ function morphOpen(from, m){
   lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", inside ? () => from.classList.remove("lg-hid") : null);
 }
 // closing, it lands on its button — the same one, or the one render() put in its place
+/* the mark that a window grows out of can stay where it is, ABOVE the window, instead of being hidden and drawn
+   again inside it — nothing to swap, nothing to blink (user 2026-09-20) */
+function lgLift(el){
+  if(!el || el._lift) return;
+  const r = el.getBoundingClientRect();
+  const c = el.cloneNode(true);                                    // the bar's own stacking context would trap the
+  c.removeAttribute("data-act"); c.removeAttribute("id");          // real one under the window, so a twin stands in
+  const st = c.style;
+  st.position = "fixed"; st.left = r.left + "px"; st.top = r.top + "px";
+  st.width = r.width + "px"; st.height = r.height + "px"; st.margin = "0";
+  st.zIndex = "85"; st.pointerEvents = "none"; st.opacity = "1";
+  document.body.appendChild(c);
+  el.classList.add("lg-hid");                                      // one mark on screen, and it is the twin
+  el._lift = c;
+}
+function lgDrop(el){
+  if(!el || !el._lift) return;
+  el._lift.remove(); el._lift = null;
+  el.classList.remove("lg-hid");                                   // the same picture in the same place: no swap to see
+}
 /* the button comes back the way it went: a short fade, so it is never a hard pop */
 function lgShowBtn(el){
   if(!el || !el.classList.contains("lg-hid")) return;
@@ -4400,6 +4422,7 @@ function lgShowBtn(el){
 }
 /* whatever the window was hiding behind it comes back */
 function morphShow(m){
+  if(m._unlift){ const f = m._unlift; m._unlift = null; f(); }
   if(m._hid) lgShowBtn(m._hid);
   if(m._fromSel) document.querySelectorAll(m._fromSel).forEach(lgShowBtn);
 }
@@ -4409,11 +4432,12 @@ function morphClose(m){
   const cur = () => (from && shown(from)) ? from : (sel && [...document.querySelectorAll("#app " + sel)].find(shown)) || null;
   const btn = cur();
   if(!sh || !glassOn("morph") || !btn){ lgStop("sheet"); return false; }   // no button to go back to: no drop to drain
-  btn.classList.add("lg-hid");
+  const lifted = !!btn._lift;                                    // a twin stands above the window: nothing to hide
+  if(!lifted) btn.classList.add("lg-hid");
   // the drop keeps its body to the very last frame, where it IS the button's shape — and the button comes back in
   // that same frame. Nothing fades across the hand-over, so the mark never dims (user: «мерцание логотипа»)
   lgFlow(sh, lgRestRect(btn), getComputedStyle(btn).borderRadius, 340, false, "sheet",
-    () => { morphShow(m); m.remove(); }, () => btn.classList.remove("lg-hid"));
+    () => { morphShow(m); m.remove(); }, lifted ? null : () => btn.classList.remove("lg-hid"));
   return true;
 }
 // «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
@@ -4841,10 +4865,10 @@ const AM_IC = {
 const OWNER_TG = "XAUGOLDOFFICIAL";                                 // the owner's Telegram (user 2026-09-20)
 const AM_EXT = '<svg class="am-ext" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8.4 8.4M18 14.4V20H4V6h5.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const amRow = (act, ic, label, ext) => `<button type="button" class="am-it" data-amenu="${act}"><svg viewBox="0 0 24 24" aria-hidden="true">${AM_IC[ic]}</svg><span>${label}</span>${ext ? AM_EXT : ""}</button>`;
-function appMenuMarkup(){
+function appMenuMarkup(lift){
   const mail = XC.email || "", nick = mail ? mail.split("@")[0] : "";
   return `<div class="am-head">
-      <span class="am-logo" aria-hidden="true">${xcLogoSVG()}</span>
+      <span class="am-logo${lift ? " ghost" : ""}" aria-hidden="true">${lift ? "" : xcLogoSVG()}</span>
       <span class="am-brand">XAUCORE</span>
     </div>
     <div class="am-acct">${mail ? `<b>${mail}</b><span>${nick}</span>` : `<span>${L("Не выполнен вход")}</span>`}</div>
@@ -4862,10 +4886,14 @@ function appMenuMarkup(){
     </div>`;
 }
 function openAppMenu(){
+  if(modalEl && modalEl.classList.contains("amodal")){ closeModal(); return; }   // the mark closes it as well
   const from = document.querySelector('.wl-logo[data-act="appmenu"]');
-  openSheet(appMenuMarkup(), "am-sheet", "amodal");
-  document.body.classList.add("amenu-open");                      // the mark under the drawer stays hidden
-  modalEl._closed = () => document.body.classList.remove("amenu-open");
+  const lift = !!from && glassOn("morph") && glassOn("sheets");    // with the flow on, the mark stays above the drawer
+  openSheet(appMenuMarkup(lift), "am-sheet", "amodal");
+  if(!lift){                                                      // no flow: the drawer covers it, so just hide it
+    document.body.classList.add("amenu-open");
+    modalEl._closed = () => document.body.classList.remove("amenu-open");
+  }
   const funds = kind => { closeModal(true); acctFundsModal(kind); };   // (not `money` — that is the formatter)
   const acts = {
     deposit:  () => funds("deposit"),
@@ -4881,7 +4909,13 @@ function openAppMenu(){
     }
   };
   modalEl.querySelectorAll("[data-amenu]").forEach(b => b.onclick = () => acts[b.dataset.amenu]());
-  if(from && glassOn("morph") && glassOn("sheets")){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }   // it flows out of the logo
+  if(lift){                                                       // the drawer flows out from UNDER the mark
+    modalEl.classList.add("morph"); morphOpen(from, modalEl);
+    from.classList.remove("lg-hid"); modalEl._hid = null;
+    lgLift(from); modalEl._unlift = () => lgDrop(from);
+    const twin = from._lift;                                      // the mark still closes what it opened
+    if(twin){ twin.style.pointerEvents = "auto"; twin.onclick = () => closeModal(); }
+  }
 }
 /* «Пополнить счёт» / «Снять средства» — DEMO money straight into the trading account (the broker wallet is a
    separate thing and still «Скоро»). Withdrawal is capped by what is actually free, so an open position's margin
