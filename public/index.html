@@ -1069,8 +1069,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
    a clearer pane, the cards and fields in it translucent too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.66 * var(--lgs,1)))}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(28,28,31,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.06 * var(--lgs,1)));--sheet-field:rgba(0,0,0,calc(.3 * var(--lgs,1)))}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:rgba(0,0,0,.2)}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:rgba(0,0,0,.42)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:transparent}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing{background:transparent}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{-webkit-backdrop-filter:blur(calc(26px * var(--lgsb,1))) saturate(1.9);backdrop-filter:blur(calc(26px * var(--lgsb,1))) saturate(1.9)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .card{background:var(--sheet-card);box-shadow:0 0 0 .5px var(--lg-line)}
@@ -1093,8 +1092,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet>*,:root[data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop.flow>*{opacity:var(--mc,1)}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.morph{background:rgba(0,0,0,calc(.2 * var(--mq,1)))}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.morph{background:rgba(0,0,0,calc(.42 * var(--mq,1)))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.morph{background:transparent}
 /* sheets flat (their glass switched off): the ghost is the flat sheet too, so it lands without a change of colour */
 :root[data-lgoff~="sheets"] .lg-ghost{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 /* under a flying ghost the button is see-through, not visibility:hidden — a hidden button takes no tap, and a quick
@@ -4244,7 +4242,8 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     cancelAnimationFrame(raf);
     el.style.clipPath = ""; el.style.removeProperty("--mc");
     if(md) md.style.removeProperty("--mq");
-    sOver.remove();
+    sOver.style.transition = "opacity .14s ease"; sOver.style.opacity = "0";   // it hands its edge over to the window
+    setTimeout(() => sOver.remove(), 170);
     if(_lgFly) _lgFly--;
     if(_lgRun[key] === run) delete _lgRun[key];
     fin0();
