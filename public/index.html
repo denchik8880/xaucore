@@ -4819,6 +4819,7 @@ const AM_IC = {
   info: '<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 10.6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.6" r="1.05" fill="currentColor"/>',
   mail: '<path d="M3.4 6.4h17.2v11.2H3.4z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.8 7l8.2 6 8.2-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
 };
+const OWNER_TG = "XAUGOLDOFFICIAL";                                 // the owner's Telegram (user 2026-09-20)
 const AM_EXT = '<svg class="am-ext" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8.4 8.4M18 14.4V20H4V6h5.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const amRow = (act, ic, label, ext) => `<button type="button" class="am-it" data-amenu="${act}"><svg viewBox="0 0 24 24" aria-hidden="true">${AM_IC[ic]}</svg><span>${label}</span>${ext ? AM_EXT : ""}</button>`;
 function appMenuMarkup(){
@@ -4838,7 +4839,7 @@ function appMenuMarkup(){
     </div>
     <div class="am-grp">
       ${amRow("about", "info", L("О приложении"))}
-      ${amRow("owner", "mail", L("Написать владельцу"))}
+      ${amRow("owner", "mail", L("Написать владельцу"), true)}
     </div>`;
 }
 function openAppMenu(){
@@ -4853,7 +4854,12 @@ function openAppMenu(){
     neworder: () => { closeModal(true); openTicket(); },
     instr:    () => toast("o", L("Пока доступно XAUUSD")),
     about:    () => toast("o", L("Скоро")),
-    owner:    () => toast("o", L("Скоро"))
+    owner:    () => {                                             // straight into Telegram — the app itself if it is installed
+      const url = "https://t.me/" + OWNER_TG;
+      const w = window.open(url, "_blank", "noopener");
+      if(!w) location.href = url;
+      closeModal();
+    }
   };
   modalEl.querySelectorAll("[data-amenu]").forEach(b => b.onclick = () => acts[b.dataset.amenu]());
   if(from && glassOn("morph") && glassOn("sheets")){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }   // it flows out of the logo
