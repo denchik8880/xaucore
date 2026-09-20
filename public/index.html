@@ -1298,6 +1298,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag button{transition:transform .2s cubic-bezier(.3,1.3,.5,1),color .2s ease}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag.dragging button.near{transform:scale(1.1);color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag.dragging button.on:not(.near){color:var(--ink3)}
+/* the cross-fade the glass switch runs through (smoothSwap) */
+::view-transition-old(root),::view-transition-new(root){animation-duration:.4s;animation-timing-function:cubic-bezier(.35,0,.2,1)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
@@ -2499,25 +2501,57 @@ function aggregateFrom(m1, sec){
   return out;
 }
 
-/* ---------------- economic calendar (synthetic) ---------------- */
+/* ---------------- economic calendar (synthetic) ----------------
+   ONE event a day, at 15:30 game time, always in this order (user 2026-09-20): NFP → CPI → PPI → FOMC →
+   FED Press Conference, then round again. Days the market is closed are skipped, and the day's event goes off
+   by itself when its time comes (checkEvents) — with its own news candle. */
+const NEWS_CYCLE = [
+  { name:"NFP (Non-Farm Payrolls)", unit:"K", prev:180,  fc:190 },
+  { name:"CPI y/y",                 unit:"%", prev:3.0,  fc:2.9 },
+  { name:"PPI m/m",                 unit:"%", prev:0.2,  fc:0.3 },
+  { name:"FOMC Rate Decision",      unit:"%", prev:4.50, fc:4.50 },
+  { name:"FED Press Conference",    unit:"",  prev:0,    fc:0 }
+];
+const NEWS_AT = [15, 30];                                          // game time, as the calendar prints it
+function marketClosedAt(t){
+  if(S.market.forceOpen) return false;
+  const d = new Date(t), wd = d.getUTCDay(), h = d.getUTCHours();
+  return wd === 6 || (wd === 0 && h < 21) || (wd === 5 && h >= 21);
+}
+// the next 15:30 after the given moment, on a day the market trades
+function newsSlotAfter(from){
+  const d = new Date(from);
+  let t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), NEWS_AT[0], NEWS_AT[1], 0, 0).getTime();
+  if(t <= from) t += 86400000;
+  for(let i = 0; i < 8 && marketClosedAt(t); i++) t += 86400000;
+  return t;
+}
+// keep the next few days queued — one a day, in the cycle's order
+function scheduleNews(keep){
+  keep = keep || 5;
+  // an older state (or an older build) may still hold events at other hours or with other names — anything that has
+  // not fired yet and is not on the 15:30 ladder goes, so the queue is always the cycle
+  S.events = S.events.filter(e => e.released || e.manual ||
+    (NEWS_CYCLE.some(c => c.name === e.name) && new Date(e.time).getHours() === NEWS_AT[0] && new Date(e.time).getMinutes() === NEWS_AT[1]));
+  let last = S.simClock, n = 0;
+  for(const e of S.events){
+    if(e.manual || e.released) continue;
+    n++; if(e.time > last) last = e.time;
+  }
+  while(n < keep){
+    const i = ((S.newsIdx || 0) % NEWS_CYCLE.length + NEWS_CYCLE.length) % NEWS_CYCLE.length, d = NEWS_CYCLE[i];
+    S.newsIdx = i + 1;
+    last = newsSlotAfter(last);
+    S.events.push({ id: S.seq.evt++, name: d.name, unit: d.unit, previous: d.prev, forecast: d.fc,
+                    actual: null, impact: 3, time: last, released: false, manual: false });
+    n++;
+  }
+  if(S.events.length > 30) S.events.splice(0, S.events.length - 30);
+}
 function buildDefaultEvents(){
   S.events = [];
-  const base = S.simClock;
-  const defs = [
-    { name:"NFP (Non-Farm Payrolls)", unit:"K", prev:165, fc:180, impact:3, mins:35 },
-    { name:"CPI y/y", unit:"%", prev:3.1, fc:3.0, impact:3, mins:80 },
-    { name:"FOMC Rate Decision", unit:"%", prev:4.50, fc:4.50, impact:3, mins:130 },
-    { name:"Interest Rate Statement", unit:"", prev:0, fc:0, impact:2, mins:190 },
-    { name:"GDP q/q", unit:"%", prev:2.1, fc:2.4, impact:2, mins:250 },
-    { name:"Unemployment Rate", unit:"%", prev:4.1, fc:4.1, impact:2, mins:320 }
-  ];
-  for(const d of defs){
-    S.events.push({
-      id: S.seq.evt++, name:d.name, unit:d.unit,
-      previous:d.prev, forecast:d.fc, actual:null,
-      impact:d.impact, time: base + d.mins*60000, released:false, manual:false
-    });
-  }
+  S.newsIdx = 0;
+  scheduleNews(5);
 }
 function nameToNewsType(name){
   if(/NFP|Payroll/i.test(name)) return "NFP";
@@ -3248,6 +3282,7 @@ function generateScenario(type){
   const impulses = 2 + Math.floor(Math.random()*5);
   const sc = {
     type, duration: cfg.duration, R, cp, mainDir, twoWay, fakeout, reversal, impulses,
+    oneCandle: type !== "FOMC",                        // one news candle for all of them; only FOMC runs over several
     hiOff, loOff,
     noiseBase: clamp(R / cfg.duration / 26, 0.03, 3.0),
     pullStrength: 0.18,
@@ -3852,24 +3887,12 @@ function synthActual(e){                                                // a pri
 function checkEvents(){
   for(const e of S.events){
     if(e.released || e.time > S.simClock) continue;
-    e.released = true;
     if(e.actual == null && e.unit) e.actual = synthActual(e);
+    // the day's event releases itself at its time — the scenario runs and prints its news candle
+    if(!e.manual && !S.news.active && !marketClosed()) releaseEvent(e);
+    else e.released = true;                                       // a hand-made one still waits for «Выпустить»
   }
-  const pending = S.events.filter(e=>!e.released);
-  if(pending.length <= 1){
-    const defs = [
-      { name:"NFP (Non-Farm Payrolls)", unit:"K", prev:180, fc:190, mins: 30 },
-      { name:"CPI y/y",                  unit:"%", prev:3.0, fc:2.9, mins: 75 },
-      { name:"PPI m/m",                  unit:"%", prev:0.2, fc:0.3, mins:120 },
-      { name:"FOMC Rate Decision",       unit:"%", prev:4.50,fc:4.50,mins:175 },
-      { name:"FED Press Conference",     unit:"",  prev:0,  fc:0,   mins:200 }
-    ];
-    for(const d of defs){
-      S.events.push({ id:S.seq.evt++, name:d.name, unit:d.unit, previous:d.prev, forecast:d.fc,
-        actual:null, impact:3, time:S.simClock + d.mins*60000, released:false, manual:false });
-    }
-    if(S.events.length > 30) S.events.splice(0, S.events.length - 30);
-  }
+  scheduleNews(5);
 }
 function addManualEvent(o){
   S.events.push({
@@ -4192,9 +4215,8 @@ function setGlassFeat(f, on){
   const d = document.documentElement.dataset, off = new Set((d.lgoff || "").split(" ").filter(Boolean));
   if(on) off.delete(f); else off.add(f);
   const v = [...off].join(" ");
-  if(v) d.lgoff = v; else delete d.lgoff;
   try{ localStorage.setItem("xc_glass_off", v); }catch(e){}
-  render();
+  smoothSwap(() => { if(v) d.lgoff = v; else delete d.lgoff; render(); });
 }
 // the feature a glass element belongs to (its lens, its press)
 function lgFeat(el){
@@ -4297,6 +4319,13 @@ function lgsBind(el, v0, onInput, onDone){
     e.preventDefault(); onDone(set(v));
   };
 }
+/* the switch to / from liquid glass re-draws every surface at once — a view transition cross-fades the whole screen
+   instead of snapping it (user 2026-09-20: «должно плавно все переходить между ячейками, а не рывком») */
+function smoothSwap(fn){
+  const d = document;
+  if(!d.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches){ fn(); return; }
+  try{ d.startViewTransition(fn); }catch(e){ fn(); }
+}
 function applyGlass(on){
   document.documentElement.dataset.glass = on ? "on" : "off";
   try{ localStorage.setItem("xc_glass", on ? "on" : "off"); }catch(e){}
@@ -4304,9 +4333,8 @@ function applyGlass(on){
 function setGlass(on){
   if(!S.ui) S.ui = {};
   S.ui.glass = !!on;
-  applyGlass(S.ui.glass);
+  smoothSwap(() => { applyGlass(S.ui.glass); render(); });
   save();
-  render();
   toast("", S.ui.glass ? L("💧 Жидкое стекло включено") : L("Жидкое стекло выключено"));
 }
 function setTheme(t){
@@ -5246,17 +5274,17 @@ function historyStats(){
 
 /* ---------- CALENDAR ---------- */
 function screenCalendar(){
-  const evs = [...S.events].sort((a,b)=>a.time-b.time);
+  // what is coming, and the last few that already came out (the log behind them is long and of no use here)
+  const all = [...S.events].sort((a,b)=>a.time-b.time), past = all.filter(e=>e.released), next = all.filter(e=>!e.released);
+  const evs = [...past.slice(-5), ...next];
   return appbar(L("Экономический календарь"),{back:true}) + `<div class="wrap">
     <div class="card">
-    </div>
-    <div class="card">
       ${evs.map(e=>{
-        const mins = Math.round((e.time-S.simClock)/60000);
+        const mins = Math.max(0, Math.round((e.time-S.simClock)/60000)), left = mins < 60 ? mins + " " + L("мин") : Math.floor(mins/60) + " " + L("ч") + " " + (mins%60) + " " + L("мин");
         return `<div class="evt">
           <div>
             <div class="nm">${e.name} <span class="impact">${"★".repeat(e.impact)}</span> ${e.manual?'<span class="impact" style="background:var(--press);color:var(--ink2)">${L("вручную")}</span>':''}</div>
-            <small>${e.released ? `${L("Вышло ·")} ${evWhen(e.time)}` : `${evWhen(e.time)} ${L("· через")} ${mins} ${L("мин")}`}</small><br>
+            <small>${e.released ? `${L("Вышло ·")} ${evWhen(e.time)}` : `${evWhen(e.time)} ${L("· через")} ${left}`}</small><br>
             <small>${L("Предыдущее")} ${fmt(e.previous,e.unit==="K"?0:2)}${e.unit} · ${L("Прогноз")} ${fmt(e.forecast,e.unit==="K"?0:2)}${e.unit}
             ${e.actual!=null?` · <b>${L("Фактическое")} ${fmt(e.actual,e.unit==="K"?0:2)}${e.unit}</b>`:""}</small>
           </div>
