@@ -1078,10 +1078,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 /* 2. a button morphs into its sheet / menu, iOS 26 (user: «Кнопка превращается в окно»): a glass ghost grows from
    the button's place and shape to the sheet's, the sheet's content fades in on it; closing, it shrinks back */
 .lg-drim{position:fixed;pointer-events:none;overflow:visible}
-.lg-drim.under{z-index:80}
 .lg-drim.over{z-index:82}
 .lg-drim path{fill:none}
-.lg-drim .s{fill:var(--lg-drop-shadow);stroke:none;filter:blur(6px)}                      /* the drop's own shadow */
 .lg-drim .r{stroke:var(--lg-drop-rim);stroke-width:1}                                     /* the light edge of the glass */
 .lg-drim .r2{stroke:var(--lg-drop-line);stroke-width:1}                                   /* and the contour, so it reads on a light theme */
 /* a drop of glass is read by a HAIRLINE edge and its shadow — a bright outline made it look drawn on
@@ -4236,7 +4234,7 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     document.body.appendChild(q);
     return q;
   };
-  const sUnder = mkSvg("under", ["s"]), sOver = mkSvg("over", ["r2", "r"]);   // its shadow under it, its hairline over
+  const sOver = mkSvg("over", ["r2", "r"]);                         // only its hairline: a filled shadow shows through glass this clear
   const md = el.closest(".modal");
   _lgFly++;
   let raf = 0, fin = false;
@@ -4246,7 +4244,7 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     cancelAnimationFrame(raf);
     el.style.clipPath = ""; el.style.removeProperty("--mc");
     if(md) md.style.removeProperty("--mq");
-    sUnder.remove(); sOver.remove();
+    sOver.remove();
     if(_lgFly) _lgFly--;
     if(_lgRun[key] === run) delete _lgRun[key];
     fin0();
@@ -4273,8 +4271,7 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     const mc = opening ? clamp(k / .12, 0, 1) : clamp((k - .12) / .4, 0, 1);
     el.style.setProperty("--mc", mc.toFixed(3));
     if(md) md.style.setProperty("--mq", Math.min(1, k).toFixed(3));   // the scrim comes up with it
-    for(const q of [sUnder, sOver]) for(const p of q.querySelectorAll("path")) p.setAttribute("d", sh.clip);
-    sUnder.style.opacity = (.25 + .75 * kc).toFixed(2);
+    for(const p of sOver.querySelectorAll("path")) p.setAttribute("d", sh.clip);
     if(t < 1) raf = requestAnimationFrame(step);
     else finish();
   };
