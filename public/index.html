@@ -1081,11 +1081,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet input,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet select{background:var(--sheet-field)}
 /* 2. a button morphs into its sheet / menu, iOS 26 (user: «Кнопка превращается в окно»): a glass ghost grows from
    the button's place and shape to the sheet's, the sheet's content fades in on it; closing, it shrinks back */
-.lg-drim{position:fixed;pointer-events:none;overflow:visible}
-.lg-drim.over{z-index:82}
-.lg-drim path{fill:none}
-.lg-drim .r{stroke:var(--lg-drop-rim);stroke-width:1}                                     /* the light edge of the glass */
-.lg-drim .r2{stroke:var(--lg-drop-line);stroke-width:1}                                   /* and the contour, so it reads on a light theme */
+/* the drop wears no outline at all: any hairline over the window read as a pencil line drawn on it
+   (user 2026-09-20: «что за обводка … удалите её везде»). The shape is told by the glass and by what it uncovers. */
 /* a drop of glass is read by a HAIRLINE edge and its shadow — a bright outline made it look drawn on
    (user: «слишком белое выделяется, это же стекло») */
 :root{--lg-drop-shadow:rgba(16,24,40,.28);--lg-drop-rim:rgba(255,255,255,.7);--lg-drop-line:rgba(16,24,40,.2);--lg-fly:255,255,255}
@@ -1104,7 +1101,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-lgoff~="sheets"] .lg-ghost{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 /* under a flying ghost the button is see-through, not visibility:hidden — a hidden button takes no tap, and a quick
    second tap on «м1» fell through to the chart */
-.lg-hid{opacity:0!important;transition:opacity .13s ease}
+.lg-hid{opacity:0!important}                                     /* it goes the instant the drop is born — a fading ghost under a growing drop is a second logo */
 /* the mark the drawer grew out of stays hidden while it is open — through clear glass it showed as a second,
    blurred logo beside the drawer's own (user screenshot) */
 body.amenu-open .wl-logo{opacity:0}
@@ -1121,11 +1118,11 @@ body.amenu-open .wl-logo{opacity:0}
 .amodal.closing .sheet{transform:translateX(-100%);transition:transform .2s cubic-bezier(.4,0,1,1)}
 .am-sheet>.close{display:none}
 @keyframes amIn{from{transform:translateX(-100%)}to{transform:none}}
-.am-head{display:flex;align-items:center;gap:14px;padding:20px 18px 8px}
-.am-logo{flex:0 0 auto;width:44px;height:44px}
+.am-head{display:flex;align-items:center;gap:14px;padding:15px 18px 8px 14px}   /* its mark sits exactly where the bar's logo is, so the two hand over without a jump */
+.am-logo{flex:0 0 auto;width:42px;height:42px}
 .am-logo svg{display:block;width:100%;height:100%}
 .am-brand{font-size:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.am-acct{padding:0 18px 16px 76px;line-height:1.35}
+.am-acct{padding:0 18px 16px 70px;line-height:1.35}
 .am-acct b{display:block;font-size:14.5px;font-weight:400;color:var(--ink);overflow-wrap:anywhere}
 .am-acct span{display:block;font-size:14.5px;color:var(--ink2)}
 .am-grp{border-top:1px solid var(--line);padding:6px 0}
@@ -1141,7 +1138,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.062) 34%,rgba(255,255,255,.05))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-grp{margin:8px;padding:2px 0;border-top:0;border-radius:20px;background:var(--sheet-card);box-shadow:0 0 0 .5px var(--lg-line)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-it{width:calc(100% - 8px);margin:0 4px;border-radius:16px}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding-bottom:10px}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-head{padding:3px 18px 8px 4px}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding:0 14px 10px 60px}
 .lg-pop-catch{position:fixed;inset:0;z-index:89}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--pop-glass,var(--sheet-glass,var(--card)));
   -webkit-backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
@@ -4302,15 +4300,6 @@ function lgFlow(el, a, ra, dur, opening, key, done){
   const sw = Math.min(a.width, R.width), shh = Math.min(a.height, R.height);
   const src = { left: clamp(a.left, R.left, R.right - sw), top: clamp(a.top, R.top, R.bottom - shh), width: sw, height: shh };
   src.right = src.left + src.width; src.bottom = src.top + src.height;
-  const NS = "http://www.w3.org/2000/svg";
-  const mkSvg = (cls, parts) => {
-    const q = document.createElementNS(NS, "svg"); q.setAttribute("class", "lg-drim " + cls); q.setAttribute("aria-hidden", "true"); q.setAttribute("preserveAspectRatio", "none");
-    for(const p of parts){ const w = document.createElementNS(NS, "path"); w.setAttribute("class", p); q.appendChild(w); }
-    q.style.left = R.left + "px"; q.style.top = R.top + "px"; q.style.width = R.width + "px"; q.style.height = R.height + "px";
-    document.body.appendChild(q);
-    return q;
-  };
-  const sOver = mkSvg("over", ["r2", "r"]);                         // only its hairline: a filled shadow shows through glass this clear
   el.classList.add("lg-flowing");                                  // one layer, nothing inside it animating while it flies
   el.style.setProperty("--shw", "0");                              // its shadow belongs to the window, not to the drop
   _lgFly++;
@@ -4319,15 +4308,13 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     if(fin) return;
     fin = true;
     cancelAnimationFrame(raf);
-    el.style.clipPath = ""; el.style.removeProperty("--fc");
+    el.style.clipPath = ""; el.style.removeProperty("--fc"); el.style.removeProperty("opacity");
     el.classList.remove("lg-flowing");
     if(opening){                                                   // the shadow arrives over a breath — dropped in one frame it read as grey spreading round the window
       el.style.transition = "box-shadow .3s ease";
       el.style.setProperty("--shw", "1");
       setTimeout(() => { if(el.isConnected){ el.style.transition = ""; el.style.removeProperty("--shw"); } }, 340);
     } else el.style.removeProperty("--shw");
-    sOver.style.transition = "opacity .14s ease"; sOver.style.opacity = "0";   // it hands its edge over to the window
-    setTimeout(() => sOver.remove(), 170);
     if(_lgFly) _lgFly--;
     if(_lgRun[key] === run) delete _lgRun[key];
     fin0();
@@ -4344,17 +4331,22 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     let k;
     if(opening){ const u = t * dur / 1000, e = Math.exp(-Z * W * u); k = Math.max(0, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); }
     else k = Math.pow(1 - t, 2.2);
-    const kc = Math.min(1, k), lerp = (p, q) => p + (q - p) * k;
-    const box = { left: lerp(src.left, R.left), top: lerp(src.top, R.top),
-                  width: Math.max(1, lerp(src.width, R.width)), height: Math.max(1, lerp(src.height, R.height)),
+    const kc = Math.min(1, k), lerp = (p, q, e) => p + (q - p) * e;
+    // a drop swells sideways first and only then pours along its long way — growing both at once made a tall
+    // window look like it was unrolling out of a corner (user: «чтобы оно от какого-то угла работало»)
+    const slowW = (R.width - src.width) >= (R.height - src.height);
+    const kfast = Math.pow(k, .6), kslow = Math.pow(k, 1.35);
+    const kw = slowW ? kslow : kfast, kh = slowW ? kfast : kslow;
+    const box = { left: lerp(src.left, R.left, kw), top: lerp(src.top, R.top, kh),
+                  width: Math.max(1, lerp(src.width, R.width, kw)), height: Math.max(1, lerp(src.height, R.height, kh)),
                   r: Math.max(0, R0 + (R1 - R0) * kc) };
     const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height });
     el.style.clipPath = 'path("' + sh.clip + '")';
     // the drop uncovers the window WITH its text — nothing is held back, so no blank shape grows first, and on the
     // way back the text goes only with the last of the shape (it used to leave first, which read as a fade)
-    const mc = opening ? clamp(k / .12, 0, 1) : clamp((k - .04) / .26, 0, 1);
+    const mc = opening ? 1 : clamp((k - .04) / .26, 0, 1);   // opening it shows its content from the first frame — the drop is born ON the button, in its shape
     el.style.setProperty("--fc", mc.toFixed(3));
-    for(const p of sOver.querySelectorAll("path")) p.setAttribute("d", sh.clip);
+    if(!opening) el.style.opacity = Math.min(1, k / .22).toFixed(3);   // the last of it melts instead of sitting on the button as a box
     if(t < 1) raf = requestAnimationFrame(step);
     else finish();
   };
@@ -4372,10 +4364,17 @@ function morphOpen(from, m){
   lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", inside ? () => from.classList.remove("lg-hid") : null);
 }
 // closing, it lands on its button — the same one, or the one render() put in its place
+/* the button comes back the way it went: a short fade, so it is never a hard pop */
+function lgShowBtn(el){
+  if(!el || !el.classList.contains("lg-hid")) return;
+  el.style.transition = "opacity .2s ease";
+  el.classList.remove("lg-hid");
+  setTimeout(() => { if(el.isConnected) el.style.transition = ""; }, 240);
+}
 /* whatever the window was hiding behind it comes back */
 function morphShow(m){
-  if(m._hid) m._hid.classList.remove("lg-hid");
-  if(m._fromSel) document.querySelectorAll(m._fromSel).forEach(e => e.classList.remove("lg-hid"));
+  if(m._hid) lgShowBtn(m._hid);
+  if(m._fromSel) document.querySelectorAll(m._fromSel).forEach(lgShowBtn);
 }
 function morphClose(m){
   const from = m._from, sel = m._fromSel, sh = m.querySelector(".sheet");
@@ -4384,7 +4383,8 @@ function morphClose(m){
   const btn = cur();
   if(!sh || !glassOn("morph") || !btn){ lgStop("sheet"); return false; }   // no button to go back to: no drop to drain
   btn.classList.add("lg-hid");
-  lgFlow(sh, btn.getBoundingClientRect(), getComputedStyle(btn).borderRadius, 340, false, "sheet", () => { morphShow(m); btn.classList.remove("lg-hid"); m.remove(); });
+  lgFlow(sh, btn.getBoundingClientRect(), getComputedStyle(btn).borderRadius, 340, false, "sheet", () => { morphShow(m); lgShowBtn(btn); m.remove(); });
+  setTimeout(() => { if(document.body.contains(btn)) lgShowBtn(btn); }, 250);   // it is already there as the last of the drop melts into it
   return true;
 }
 // «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
