@@ -8,7 +8,7 @@
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.965,b:1+lo*.4-hi*.975,s:1+lo*.15-hi*.8,sb:1+lo*.2-hi*.78,r:1-lo+hi*1.45,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.012};}
+function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.978,b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.87,sb:1+lo*.2-hi*.86,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
@@ -45,7 +45,7 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-w1:rgba(0,0,0,.07); --ripple-w2:rgba(0,0,0,.03); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
-  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,.12); --lg-shadow:rgba(16,24,40,.14); --lg-spec:rgba(255,255,255,.95);
+  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc(.12 + .16 * (1 - var(--lgk,1)))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.78); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
@@ -68,8 +68,8 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
   --nav-glass:rgba(28,28,30,calc(.74 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.13); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
-  --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,.1); --lg-shadow:rgba(0,0,0,.55); --lg-spec:rgba(255,255,255,.3);
-  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,.66); --lg-rim2:rgba(255,255,255,.3); --lg-glow:rgba(255,255,255,.14); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
+  --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc(.1 + .2 * (1 - var(--lgk,1)))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
+  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc(.66 + .3 * (1 - var(--lgk,1)))); --lg-rim2:rgba(255,255,255,calc(.3 + .35 * (1 - var(--lgk,1)))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* The whole page is ONE normal document scroll on <html> — no nested scroll containers.
@@ -84,7 +84,7 @@ body{max-width:520px;margin:0 auto;min-height:100vh;position:relative;background
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
 input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
 img,canvas,svg,video{max-width:100%}
-.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.mono{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1,"ss01" 1,"cv01" 1;letter-spacing:-.012em;font-synthesis-weight:none}
 #app{padding-bottom:calc(var(--nav-top) + 26px);overflow-x:clip;max-width:100%}
 #app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 78px)}   /* the floating «Новый ордер» must not cover the last card */
 /* the Charts tab fills the screen (chart height is fitted in chartTabHeight); ⛶ hides the tab bar too */
@@ -1075,6 +1075,16 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet input,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet select{background:var(--sheet-field)}
 /* 2. a button morphs into its sheet / menu, iOS 26 (user: «Кнопка превращается в окно»): a glass ghost grows from
    the button's place and shape to the sheet's, the sheet's content fades in on it; closing, it shrinks back */
+.lg-drim{position:fixed;pointer-events:none;overflow:visible}
+.lg-drim.under{z-index:80}
+.lg-drim.over{z-index:82}
+.lg-drim path{fill:none}
+.lg-drim .s{fill:var(--lg-drop-shadow);stroke:none;filter:blur(9px)}                      /* the drop's shadow */
+.lg-drim .g{stroke:var(--lg-spec);stroke-width:3.4;opacity:.55;filter:blur(2.6px)}        /* the light along its edge */
+.lg-drim .r{stroke:var(--lg-rim);stroke-width:1.5}                                        /* the hairline itself */
+.lg-drim .r2{stroke:var(--lg-line);stroke-width:1.2}                                 /* a dark hairline: on a light theme the white rim alone vanishes */
+:root{--lg-drop-shadow:rgba(16,24,40,.3)}
+:root[data-theme="dark"]{--lg-drop-shadow:rgba(0,0,0,.5)}
 .lg-ghost{position:fixed;z-index:81;pointer-events:none;border-radius:28px;background:var(--sheet-glass,var(--card));
   -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.26),inset 0 1px 1px var(--lg-spec)}
@@ -1085,7 +1095,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-lgoff~="sheets"] .lg-ghost{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 /* under a flying ghost the button is see-through, not visibility:hidden — a hidden button takes no tap, and a quick
    second tap on «м1» fell through to the chart */
-.lg-hid{opacity:0!important}
+.lg-hid{opacity:0!important;transition:opacity .13s ease}
 .lg-pop-catch{position:fixed;inset:0;z-index:89}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--sheet-glass,var(--card));
   -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);
@@ -1196,7 +1206,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .ot-q+.ot-side{margin-top:0}
 .ot-side button{flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px;border:1px solid transparent;border-radius:4px;background:var(--ot-idle);font-size:14px;font-weight:500;text-transform:uppercase;transition:background-color .15s ease,border-color .15s ease}
 .ot-side.px button{min-height:66px}
-.ot-side button b{font-size:20px;font-weight:500;line-height:1.2}
+.ot-side button b{font-size:20px;font-weight:600;line-height:1.2;letter-spacing:-.02em}
 .sheet .ot-side button[data-otside="sell"]{color:var(--red-ink)}
 .sheet .ot-side button[data-otside="buy"]{color:var(--green-ink)}
 .ot-side button.on{background:none}
@@ -1263,7 +1273,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .ot-g .ot-q+.ot-side{margin-top:0}
 .ot-g .ot-side button{min-height:44px;border:0;border-radius:9px;font-size:15px;font-weight:600;text-transform:none}
 .ot-g .ot-side.px button{min-height:58px}
-.ot-g .ot-side button b{font-size:18px;font-weight:600}
+.ot-g .ot-side button b{font-size:18.5px;font-weight:600;letter-spacing:-.02em}
 .ot-g .ot-side button:not(.on){background:none;box-shadow:none}
 .ot-g .ot-side.buy button.on{background:color-mix(in srgb,var(--green) 22%,transparent);box-shadow:none}
 .ot-g .ot-side.sell button.on{background:color-mix(in srgb,var(--red) 22%,transparent);box-shadow:none}
@@ -4114,23 +4124,25 @@ function lgRR(x, y, w, h, r){                                      // a rounded 
 }
 /* the blob while it flows: a TEARDROP — pinched by `taper` at the tail (the button it pours out of), its head pushed
    out by `dome`, and exactly the window's rounded rectangle again once both reach 0, so it lands square */
-function lgBlobPath(x, y, w, h, r, vert, headLow, taper, dome){
+function lgBlobPath(x, y, w, h, r, vert, headLow, taper, dome, rh){
   if(!vert || (taper < .004 && dome < .4)) return lgRR(x, y, w, h, r);
   const cx = x + w / 2, tw = Math.max(6, w * (1 - taper));
-  const R = Math.max(0, Math.min(r, Math.min(w, h) / 2)), rt = Math.max(0, Math.min(R, tw / 2));
+  const R = Math.max(0, Math.min(rh == null ? r : rh, w / 2 - Math.max(5, dome), h / 2)), rt = Math.max(0, Math.min(R * .75, tw / 2));
   const yH = y, yT = y + h;                                        // head edge, tail edge (head up; mirrored if it points down)
   const my = v => headLow ? (2 * y + h - v) : v;
   const P = (px, pv) => _P(px, my(pv));
   const sw = headLow ? 0 : 1;                                      // the mirror turns the arcs around
   const A = (px, pv, rr) => "A" + rr.toFixed(2) + "," + rr.toFixed(2) + " 0 0 " + sw + " " + P(px, pv);
+  const hx = (cx - w / 2 + R + cx) / 2;                            // between the corner and the top
   return "M" + P(cx - w / 2 + R, yH)
-    + "C" + P(cx - w / 4, yH - dome) + " " + P(cx + w / 4, yH - dome) + " " + P(cx + w / 2 - R, yH)
+    + "C" + P(hx, yH) + " " + P(cx - w * .13, yH - dome) + " " + P(cx, yH - dome)
+    + "C" + P(cx + w * .13, yH - dome) + " " + P(2 * cx - hx, yH) + " " + P(cx + w / 2 - R, yH)
     + A(cx + w / 2, yH + R, R)
-    + "C" + P(cx + w / 2, yH + h * .5) + " " + P(cx + tw / 2, yH + h * .62) + " " + P(cx + tw / 2, yT - rt)
+    + "C" + P(cx + w / 2, yH + h * .62) + " " + P(cx + tw / 2, yH + h * .78) + " " + P(cx + tw / 2, yT - rt)
     + A(cx + tw / 2 - rt, yT, rt)
     + "L" + P(cx - tw / 2 + rt, yT)
     + A(cx - tw / 2, yT - rt, rt)
-    + "C" + P(cx - tw / 2, yH + h * .62) + " " + P(cx - w / 2, yH + h * .5) + " " + P(cx - w / 2, yH + R)
+    + "C" + P(cx - tw / 2, yH + h * .78) + " " + P(cx - w / 2, yH + h * .62) + " " + P(cx - w / 2, yH + R)
     + A(cx - w / 2 + R, yH, R) + "Z";
 }
 // the waisted neck between the blob's edge and the droplet's, along x or y
@@ -4157,14 +4169,21 @@ function lgDropShape(a, box, k, R0){
   if(live){
     const f = .3 + .7 * nk, dw = Math.max(1, a.width * f), dh = Math.max(1, a.height * f);
     D = { x: acx - dw / 2, y: acy - dh / 2, w: dw, h: dh, r: Math.min(R0, Math.min(dw, dh) / 2) };
+    // while the drop still covers it there is nothing to draw: two outlines crossing inside one body read as seams.
+    // It appears the moment they part — with the neck already at full width, so nothing pops.
+    const sep = vert ? (bcy < acy ? D.y - (B.y + B.h) : B.y - (D.y + D.h))
+                     : (bcx < acx ? D.x - (B.x + B.w) : B.x - (D.x + D.w));
+    if(sep < 1) D = null;
   }
   if(!D && sp < .004) return { x: box.left, y: box.top, w: box.width, h: box.height, clip: null };
   // a teardrop while it moves: pinched at the end it came from, its head domed out (the dome needs room in the box)
   const mv = Math.sin(Math.PI * Math.min(1, Math.max(0, k))), headLow = vert ? bcy > acy : bcx > acx;
-  const taper = .3 * mv, dome = vert ? Math.min(9, B.w * .05) * mv : 0;
+  const taper = .42 * mv, dome = vert ? Math.min(14, B.w * .085) * mv : 0;
+  // its head rounds up into a heavy dome while it flies and relaxes into the window's own corners as it lands
+  const rHead = Math.min(Math.min(B.w, B.h) / 2, B.r + (Math.min(B.w, B.h) * .5 - B.r) * mv * .7);
   const x0 = (D ? Math.min(B.x, D.x) : B.x) - (vert ? 0 : dome), y0 = (D ? Math.min(B.y, D.y) : B.y) - (vert ? dome : 0);
   const x1 = (D ? Math.max(B.x + B.w, D.x + D.w) : B.x + B.w) + (vert ? 0 : dome), y1 = (D ? Math.max(B.y + B.h, D.y + D.h) : B.y + B.h) + (vert ? dome : 0);
-  let d = lgBlobPath(B.x - x0, B.y - y0, B.w, B.h, B.r, vert, headLow, taper, dome);
+  let d = lgBlobPath(B.x - x0, B.y - y0, B.w, B.h, B.r, vert, headLow, taper, dome, rHead);
   if(D){
     d += lgRR(D.x - x0, D.y - y0, D.w, D.h, D.r);
     // the neck: from the blob's near edge to the droplet's, a waist that thins as they pull apart
@@ -4186,14 +4205,23 @@ function lgMorph(a, ra, to, dur, done, hide, key, near){
   const was = key && lgStop(key);
   if(was){ a = was; ra = was.r; }
   const g = document.createElement("div"); g.className = "lg-ghost";
+  const NS = "http://www.w3.org/2000/svg";
+  const mkSvg = (cls, parts) => {
+    const el = document.createElementNS(NS, "svg"); el.setAttribute("class", "lg-drim " + cls); el.setAttribute("aria-hidden", "true");
+    for(const p of parts){ const q = document.createElementNS(NS, "path"); q.setAttribute("class", p); el.appendChild(q); }
+    document.body.appendChild(el);
+    return el;
+  };
+  const sUnder = mkSvg("under", ["s"]), sOver = mkSvg("over", ["g", "r", "r2"]);   // shadow under, rim over
   document.body.appendChild(g);
   const t0 = performance.now(), num = v => parseFloat(v) || 0, R0 = Math.min(num(ra), a.height / 2);
   const Z = .9, W = 4.8 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);   // settles within dur
   const ease = t => { if(t >= 1) return 1; const u = t * dur / 1000, e = Math.exp(-Z * W * u); return Math.min(1, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); };
   const nearNow = () => { const n = near; near = null; if(n) n(); };
   let hid = null, B = a, R1 = R0, raf = 0, box = { left: a.left, top: a.top, width: a.width, height: a.height, r: R0 };
+  const wipe = () => { g.remove(); sUnder.remove(); sOver.remove(); };
   const land = () => { nearNow(); if(hide && hid) hid.classList.remove("lg-hid"); const d = done; done = null; if(d) d(); };
-  const run = { stop(){ cancelAnimationFrame(raf); land(); g.remove(); if(_lgRun[key] === run) delete _lgRun[key]; return box; } };
+  const run = { stop(){ cancelAnimationFrame(raf); land(); wipe(); if(_lgRun[key] === run) delete _lgRun[key]; return box; } };
   if(key) _lgRun[key] = run;
   const step = now => {
     const t = Math.min(1, (now - t0) / dur), k = ease(t), el = to();
@@ -4212,10 +4240,20 @@ function lgMorph(a, ra, to, dur, done, hide, key, near){
     g.style.left = sh.x + "px"; g.style.top = sh.y + "px"; g.style.width = sh.w + "px"; g.style.height = sh.h + "px";
     g.style.borderRadius = box.r + "px";
     if(g._clip !== sh.clip){ g._clip = sh.clip; g.style.clipPath = sh.clip ? 'path("' + sh.clip + '")' : "none"; }
+    // its edge: the same outline, drawn as a rim with a glow over it and a soft shadow under it
+    const d = sh.clip || lgRR(0, 0, sh.w, sh.h, box.r);
+    for(const el of [sUnder, sOver]){
+      el.style.left = sh.x + "px"; el.style.top = sh.y + "px"; el.style.width = sh.w + "px"; el.style.height = sh.h + "px";
+      el.setAttribute("viewBox", "0 0 " + sh.w.toFixed(1) + " " + sh.h.toFixed(1));
+      for(const p of el.querySelectorAll("path")) p.setAttribute("d", d);
+    }
     if(t < 1) raf = requestAnimationFrame(step);
     else {
       land();
-      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: "ease-out", fill: "forwards" }).onfinish = () => { g.remove(); if(_lgRun[key] === run) delete _lgRun[key]; };
+      // the hand-over: the window is already there, the drop's glass melts into it over a few frames (no pop, no wait)
+      const fade = [{ opacity: 1 }, { opacity: 0 }], opt = { duration: 150, easing: "ease-out", fill: "forwards" };
+      sUnder.animate(fade, opt); sOver.animate(fade, opt);
+      g.animate(fade, opt).onfinish = () => { wipe(); if(_lgRun[key] === run) delete _lgRun[key]; };
     }
   };
   step(t0);
@@ -4444,7 +4482,10 @@ function lgsBind(el, v0, onInput, onDone){
 function smoothSwap(fn){
   const d = document;
   if(!d.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches){ fn(); return; }
-  try{ d.startViewTransition(fn); }catch(e){ fn(); }
+  try{
+    const vt = d.startViewTransition(fn);
+    for(const p of ["finished", "ready", "updateCallbackDone"]) if(vt && vt[p] && vt[p].catch) vt[p].catch(() => {});
+  }catch(e){ fn(); }
 }
 function applyGlass(on){
   document.documentElement.dataset.glass = on ? "on" : "off";
