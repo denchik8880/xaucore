@@ -895,7 +895,8 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
   box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line);
+  -webkit-backdrop-filter:blur(calc(9px * var(--lgsb,1))) saturate(1.5);backdrop-filter:blur(calc(9px * var(--lgsb,1))) saturate(1.5)}
 /* the labels lie over the lens: under it, its bend drew bits of them along its rim (user: stray letters above «Рыночный») */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button{position:relative;z-index:3}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.theme button.on{background:transparent;box-shadow:none}
@@ -1090,9 +1091,12 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .lg-ghost{position:fixed;z-index:81;pointer-events:none;border-radius:28px;background:var(--sheet-glass,var(--card));
   -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 16px 48px rgba(0,0,0,.26),inset 0 1px 1px var(--lg-spec)}
-:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none;opacity:0}
-:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.shown .sheet{opacity:1}   /* the drop is already its shape — a fade would show two panes at once */
-:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none;opacity:0;transition:opacity .1s ease}
+/* the window IS the drop: it shows from the first frame, clipped to the growing shape, and only its content fades in */
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none}
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet>*,:root[data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop.flow>*{opacity:var(--mc,1)}
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.morph{background:rgba(0,0,0,calc(.2 * var(--mq,1)))}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.morph{background:rgba(0,0,0,calc(.42 * var(--mq,1)))}
 /* sheets flat (their glass switched off): the ghost is the flat sheet too, so it lands without a change of colour */
 :root[data-lgoff~="sheets"] .lg-ghost{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 /* under a flying ghost the button is see-through, not visibility:hidden — a hidden button takes no tap, and a quick
@@ -1102,7 +1106,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--sheet-glass,var(--card));
   -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),0 14px 40px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
-.lg-pop.shown{opacity:1;transition:opacity .14s ease}
+.lg-pop.shown{opacity:1}
+.lg-pop>*{opacity:var(--mc,1)}
 .lg-pop button{display:flex;justify-content:space-between;align-items:center;gap:14px;width:100%;padding:10px 12px;border-radius:14px;background:none;color:var(--ink);font-size:15px;text-align:left}
 .lg-pop button b{font-weight:600;color:var(--ink2)}
 .lg-pop button.on,.lg-pop button.on b{color:var(--blue-ink)}
@@ -1224,7 +1229,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .ot-opt.dis>.ot-ck{opacity:.42;cursor:default}
 .ot-more,.ot-coll{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
 .ot-opt.on>.ot-more,.ot-coll.open{grid-template-rows:1fr}
-.ot-in{min-height:0;overflow:hidden;opacity:0;transition:opacity .16s ease}
+.ot-in{min-height:0;overflow:hidden;padding:0 8px;margin:0 -8px;opacity:0;transition:opacity .16s ease}   /* the rims of the fields are not cut at the sides */
 .ot-opt.on>.ot-more>.ot-in,.ot-coll.open>.ot-in{opacity:1;transition:opacity .26s ease .05s}
 .ot-more>.ot-in::after{content:"";display:block;height:10px}
 .ot-more .otf:first-child{margin-top:8px}
@@ -4158,7 +4163,7 @@ function lgNeckPath(c1, e1, w1, c2, e2, w2, waist, vert){
 }
 /* the ghost's box and the shape inside it for this frame; clip null once it is simply the window's rounded rect
    (its shadow comes back for the landing) */
-function lgDropShape(a, box, k, R0){
+function lgDropShape(a, box, k, R0, org){
   const nk = k < LG_NECK ? 1 - k / LG_NECK : 0;
   const bcx = box.left + box.width / 2, bcy = box.top + box.height / 2;
   const acx = a.left + a.width / 2, acy = a.top + a.height / 2;
@@ -4177,14 +4182,15 @@ function lgDropShape(a, box, k, R0){
                      : (bcx < acx ? D.x - (B.x + B.w) : B.x - (D.x + D.w));
     if(sep < 1) D = null;
   }
-  if(!D && sp < .004) return { x: box.left, y: box.top, w: box.width, h: box.height, clip: null };
+  if(!D && sp < .004 && !org) return { x: box.left, y: box.top, w: box.width, h: box.height, clip: null };
   // a teardrop while it moves: pinched at the end it came from, its head domed out (the dome needs room in the box)
   const mv = Math.sin(Math.PI * Math.min(1, Math.max(0, k))), headLow = vert ? bcy > acy : bcx > acx;
   const taper = .42 * mv, dome = vert ? Math.min(14, B.w * .085) * mv : 0;
   // its head rounds up into a heavy dome while it flies and relaxes into the window's own corners as it lands
   const rHead = Math.min(Math.min(B.w, B.h) / 2, B.r + (Math.min(B.w, B.h) * .5 - B.r) * mv * .7);
-  const x0 = (D ? Math.min(B.x, D.x) : B.x) - (vert ? 0 : dome), y0 = (D ? Math.min(B.y, D.y) : B.y) - (vert ? dome : 0);
-  const x1 = (D ? Math.max(B.x + B.w, D.x + D.w) : B.x + B.w) + (vert ? 0 : dome), y1 = (D ? Math.max(B.y + B.h, D.y + D.h) : B.y + B.h) + (vert ? dome : 0);
+  let x0 = (D ? Math.min(B.x, D.x) : B.x) - (vert ? 0 : dome), y0 = (D ? Math.min(B.y, D.y) : B.y) - (vert ? dome : 0);
+  let x1 = (D ? Math.max(B.x + B.w, D.x + D.w) : B.x + B.w) + (vert ? 0 : dome), y1 = (D ? Math.max(B.y + B.h, D.y + D.h) : B.y + B.h) + (vert ? dome : 0);
+  if(org){ x0 = org.x; y0 = org.y; x1 = org.x + org.w; y1 = org.y + org.h; }   // drawn in the window's own coordinates
   let d = lgBlobPath(B.x - x0, B.y - y0, B.w, B.h, B.r, vert, headLow, taper, dome, rHead);
   if(D){
     d += lgRR(D.x - x0, D.y - y0, D.w, D.h, D.r);
@@ -4203,88 +4209,95 @@ function lgDropShape(a, box, k, R0){
   }
   return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0), clip: d };
 }
-function lgMorph(a, ra, to, dur, done, hide, key, near){
-  const was = key && lgStop(key);
-  if(was){ a = was; ra = was.r; }
-  _lgFly++;
-  const g = document.createElement("div"); g.className = "lg-ghost";
+/* THE FLOW — the reference the user sent (iOS's own context menu, video 4): the window does not fly in as a separate
+   drop and get swapped at the end. It sits where it belongs, at its own size, and is CLIPPED to a liquid drop that
+   grows out of its button's shape into its own. One pane of glass the whole way, so its blur — and everything behind
+   it — comes up in step with the drop instead of snapping on at the end, its content fades in as it lands, and there
+   is no hand-over to flicker. Closing, the drop drains back into the button.
+   An element cannot paint outside its own box, so a button that lies outside the window (a menu under its field)
+   starts the drop at the edge nearest to it. */
+function lgFlow(el, a, ra, dur, opening, key, done){
+  lgStop(key);
+  const fin0 = () => { if(done) done(); };
+  if(!el || !el.isConnected || !a || !glassOn("morph")){ fin0(); return null; }
+  const R = el.getBoundingClientRect();
+  if(!(R.width > 1 && R.height > 1)){ fin0(); return null; }
+  const num = v => parseFloat(v) || 0;
+  const R0 = Math.min(num(ra), a.height / 2), R1 = Math.min(num(getComputedStyle(el).borderRadius), R.height / 2);
+  // where the drop is born: the button, pulled inside the window's box
+  const sw = Math.min(a.width, R.width), shh = Math.min(a.height, R.height);
+  const src = { left: clamp(a.left, R.left, R.right - sw), top: clamp(a.top, R.top, R.bottom - shh), width: sw, height: shh };
+  src.right = src.left + src.width; src.bottom = src.top + src.height;
   const NS = "http://www.w3.org/2000/svg";
   const mkSvg = (cls, parts) => {
-    const el = document.createElementNS(NS, "svg"); el.setAttribute("class", "lg-drim " + cls); el.setAttribute("aria-hidden", "true"); el.setAttribute("preserveAspectRatio", "none");
-    for(const p of parts){ const q = document.createElementNS(NS, "path"); q.setAttribute("class", p); el.appendChild(q); }
-    document.body.appendChild(el);
-    return el;
+    const q = document.createElementNS(NS, "svg"); q.setAttribute("class", "lg-drim " + cls); q.setAttribute("aria-hidden", "true"); q.setAttribute("preserveAspectRatio", "none");
+    for(const p of parts){ const w = document.createElementNS(NS, "path"); w.setAttribute("class", p); q.appendChild(w); }
+    q.style.left = R.left + "px"; q.style.top = R.top + "px"; q.style.width = R.width + "px"; q.style.height = R.height + "px";
+    document.body.appendChild(q);
+    return q;
   };
-  const sUnder = mkSvg("under", ["s"]), sOver = mkSvg("over", ["r2", "r"]);       // shadow under, hairline over
-  document.body.appendChild(g);
-  const t0 = performance.now(), num = v => parseFloat(v) || 0, R0 = Math.min(num(ra), a.height / 2);
-  // it leaves fast and is THERE by the end — the old spring spent its last third travelling a couple of per cent,
-  // which read as a hang before the window appeared (user 2026-09-20)
-  const EK = 1 - Math.pow(1 - .86, 3.2);
-  const ease = t => t >= .86 ? 1 : (1 - Math.pow(1 - t, 3.2)) / EK;
-  const nearNow = () => { const n = near; near = null; if(n) n(); };
-  let hid = null, B = a, R1 = R0, raf = 0, box = { left: a.left, top: a.top, width: a.width, height: a.height, r: R0 };
-  let wiped = false;
-  const wipe = () => { if(wiped) return; wiped = true; g.remove(); sUnder.remove(); sOver.remove(); if(_lgFly) _lgFly--; };
-  setTimeout(wipe, dur + 1500);                                    // a flight that never lands must not hold the figures
-  const land = () => { nearNow(); if(hide && hid) hid.classList.remove("lg-hid"); const d = done; done = null; if(d) d(); };
-  const run = { stop(){ cancelAnimationFrame(raf); land(); wipe(); if(_lgRun[key] === run) delete _lgRun[key]; return box; } };
+  const sUnder = mkSvg("under", ["s"]), sOver = mkSvg("over", ["r2", "r"]);   // its shadow under it, its hairline over
+  const md = el.closest(".modal");
+  _lgFly++;
+  let raf = 0, fin = false;
+  const finish = () => {
+    if(fin) return;
+    fin = true;
+    cancelAnimationFrame(raf);
+    el.style.clipPath = ""; el.style.removeProperty("--mc");
+    if(md) md.style.removeProperty("--mq");
+    sUnder.remove(); sOver.remove();
+    if(_lgFly) _lgFly--;
+    if(_lgRun[key] === run) delete _lgRun[key];
+    fin0();
+  };
+  const run = { stop: finish };
   if(key) _lgRun[key] = run;
+  setTimeout(finish, dur + 900);                                   // a flow that never lands must not hold the figures
+  // opening: a spring with a little overshoot — past its own box the clip simply shows all of the window, and the
+  // dip on the way back is the jelly of a landing drop. Closing: it drains away, quick at the end.
+  const Z = .72, W = 5.2 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);
+  const t0 = performance.now();
   const step = now => {
-    const t = Math.min(1, (now - t0) / dur), k = ease(t), el = to();
-    if(el && el.isConnected){
-      B = el.getBoundingClientRect();
-      if(el !== hid){
-        if(hide){ if(hid) hid.classList.remove("lg-hid"); el.classList.add("lg-hid"); }
-        hid = el; R1 = Math.min(num(getComputedStyle(el).borderRadius), B.height / 2);
-      }
-    }
-    const lerp = (p, q) => p + (q - p) * k;
-    box = { left: lerp(a.left, B.left), top: lerp(a.top, B.top), width: Math.max(0, lerp(a.width, B.width)), height: Math.max(0, lerp(a.height, B.height)),
-            r: Math.max(0, R0 + (R1 - R0) * k) };
-    const sh = lgDropShape(a, box, k, R0);                         // the liquid drop: blob + droplet + neck
-    g.style.left = sh.x + "px"; g.style.top = sh.y + "px"; g.style.width = sh.w + "px"; g.style.height = sh.h + "px";
-    g.style.borderRadius = box.r + "px";
-    if(g._clip !== sh.clip){ g._clip = sh.clip; g.style.clipPath = sh.clip ? 'path("' + sh.clip + '")' : "none"; }
-    // a drop has a BODY: while it flies it frosts a little and takes a touch of tint, both melting away exactly as it
-    // lands, so it becomes the window's own glass without a step
-    const mvB = Math.sin(Math.PI * Math.min(1, Math.max(0, k)));
-    const fb = Math.round(mvB * 10) / 2, fa = Math.round(mvB * 13) / 100;
-    if(g._fb !== fb){ g._fb = fb; g.style.backdropFilter = g.style.webkitBackdropFilter = fb > .2 ? "blur(" + fb + "px) saturate(1.7) brightness(1.04)" : ""; }
-    if(g._fa !== fa){ g._fa = fa; g.style.backgroundColor = fa > .01 ? "rgba(var(--lg-fly)," + fa + ")" : ""; }
-    // its edge: the same outline as a hairline, with a soft shadow under it
-    const d = sh.clip || lgRR(0, 0, sh.w, sh.h, box.r);
-    for(const el of [sUnder, sOver]){
-      el.style.left = sh.x + "px"; el.style.top = sh.y + "px"; el.style.width = sh.w + "px"; el.style.height = sh.h + "px";
-      for(const p of el.querySelectorAll("path")) p.setAttribute("d", d);
-    }
-    sUnder.style.opacity = (.35 + .65 * mvB).toFixed(2);            // the shadow hands over to the window's own
-    if(k < 1) raf = requestAnimationFrame(step);                   // it is there — nothing left to creep through
-    else {
-      // the hand-over in ONE frame: the window appears exactly where the drop is and the drop goes with it, so there
-      // is never a moment with two sheets of glass on top of each other (user: «мерцает когда почти появилось»)
-      land();
-      wipe();
-      if(_lgRun[key] === run) delete _lgRun[key];
-    }
+    const t = Math.min(1, (now - t0) / dur);
+    let k;
+    if(opening){ const u = t * dur / 1000, e = Math.exp(-Z * W * u); k = Math.max(0, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); }
+    else k = Math.pow(1 - t, 2.2);
+    const kc = Math.min(1, k), lerp = (p, q) => p + (q - p) * k;
+    const box = { left: lerp(src.left, R.left), top: lerp(src.top, R.top),
+                  width: Math.max(1, lerp(src.width, R.width)), height: Math.max(1, lerp(src.height, R.height)),
+                  r: Math.max(0, R0 + (R1 - R0) * kc) };
+    const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height });
+    el.style.clipPath = 'path("' + sh.clip + '")';
+    // its content comes up through the glass as it lands (and leaves first when it closes)
+    const mc = opening ? clamp((k - .32) / .52, 0, 1) : clamp((k - .45) / .45, 0, 1);
+    el.style.setProperty("--mc", mc.toFixed(3));
+    if(md) md.style.setProperty("--mq", Math.min(1, k).toFixed(3));   // the scrim comes up with it
+    for(const q of [sUnder, sOver]) for(const p of q.querySelectorAll("path")) p.setAttribute("d", sh.clip);
+    sUnder.style.opacity = (.25 + .75 * kc).toFixed(2);
+    if(t < 1) raf = requestAnimationFrame(step);
+    else finish();
   };
   step(t0);
-  return g;
+  raf = requestAnimationFrame(step);
+  return run;
 }
 function morphOpen(from, m){
   const sh = m.querySelector(".sheet"); if(!sh) return;
   const a = from.getBoundingClientRect();
   m._from = from; m._fromSel = from.dataset.act ? '[data-act="' + from.dataset.act + '"]' : null;
-  lgMorph(a, getComputedStyle(from).borderRadius, () => sh, 430, () => from.classList.remove("lg-hid"), false, "sheet", () => m.classList.add("shown"));
   from.classList.add("lg-hid");
+  lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", () => from.classList.remove("lg-hid"));
 }
 // closing, it lands on its button — the same one, or the one render() put in its place
 function morphClose(m){
   const from = m._from, sel = m._fromSel, sh = m.querySelector(".sheet");
   const shown = e => e.isConnected && e.getClientRects().length > 0;   // offsetParent is null for a fixed button («Новый ордер»)
   const cur = () => (from && shown(from)) ? from : (sel && [...document.querySelectorAll("#app " + sel)].find(shown)) || null;
-  if(!sh || !glassOn("morph") || !cur()){ lgStop("sheet"); return false; }   // no button to go back to: no ghost left growing
-  lgMorph(sh.getBoundingClientRect(), getComputedStyle(sh).borderRadius, cur, 360, null, true, "sheet");
+  const btn = cur();
+  if(!sh || !glassOn("morph") || !btn){ lgStop("sheet"); return false; }   // no button to go back to: no drop to drain
+  btn.classList.add("lg-hid");
+  lgFlow(sh, btn.getBoundingClientRect(), getComputedStyle(btn).borderRadius, 340, false, "sheet", () => { btn.classList.remove("lg-hid"); m.remove(); });
   return true;
 }
 // «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
@@ -4301,8 +4314,9 @@ function openTFPop(pill){
   let top = a.top - H - 10; if(top < 8) top = Math.min(innerHeight - H - 8, a.bottom + 10);
   pop.style.left = left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
   _tfPop = { pop, catcher, pill };
-  lgMorph(a, getComputedStyle(pill).borderRadius, () => pop, 390, () => pill.classList.remove("lg-hid"), false, "tf", () => pop.classList.add("shown"));
+  pop.classList.add("shown");
   pill.classList.add("lg-hid");
+  lgFlow(pop, a, getComputedStyle(pill).borderRadius, 400, true, "tf", () => pill.classList.remove("lg-hid"));
   // a tap beside the menu only closes it: the catcher stays for that tap's click, so nothing beneath is pressed
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(false, true); });
   pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ setChartTF(b.dataset.tfpick); closeTFPop(); });
@@ -4312,11 +4326,10 @@ function closeTFPop(now, outside){
   _tfPop = null;
   if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
   else P.catcher.remove();
-  const a = P.pop.getBoundingClientRect();
-  P.pop.remove();
   P.pill.classList.remove("lg-hid");
-  if(now === true || !tfPill()){ lgStop("tf"); return; }
-  lgMorph(a, "22px", tfPill, 340, null, true, "tf");              // onto the pill as it is NOW (after the new timeframe)
+  const pill = tfPill();
+  if(now === true || !pill || !glassOn("morph")){ lgStop("tf"); P.pop.remove(); return; }
+  lgFlow(P.pop, pill.getBoundingClientRect(), "22px", 300, false, "tf", () => P.pop.remove());   // it drains into the pill
 }
 
 function toast(kind, msg){
@@ -7428,8 +7441,8 @@ function otMenu(anchor, items, cur, pick, foot){
   let top = a.bottom + gap; if(top + H > innerHeight - 8) top = Math.max(8, a.top - H - gap);
   pop.style.left = a.left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
   _otMenu = { pop, catcher, anchor, G };
-  if(G && glassOn("morph")) lgMorph(a, getComputedStyle(anchor).borderRadius, () => pop, 380, null, false, "otm", () => pop.classList.add("shown"));
-  else pop.classList.add("shown");
+  pop.classList.add("shown");
+  if(G) lgFlow(pop, a, getComputedStyle(anchor).borderRadius, 380, true, "otm");
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); otMenuClose(false, true); });
   pop.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { pick(b.dataset.v); otMenuClose(); });
 }
@@ -7438,10 +7451,8 @@ function otMenuClose(now, outside){
   _otMenu = null;
   if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
   else P.catcher.remove();
-  const a = P.pop.getBoundingClientRect();
-  P.pop.remove();
-  if(now === true || !P.G || !glassOn("morph") || !P.anchor.isConnected){ lgStop("otm"); return; }
-  lgMorph(a, "22px", () => P.anchor, 330, null, false, "otm");     // it shrinks back into its field
+  if(now === true || !P.G || !glassOn("morph") || !P.anchor.isConnected){ lgStop("otm"); P.pop.remove(); return; }
+  lgFlow(P.pop, P.anchor.getBoundingClientRect(), "22px", 290, false, "otm", () => P.pop.remove());   // it drains back into its field
 }
 const otMenuSym = a => otMenu(a, [[S.symbol.name, S.symbol.name]], S.symbol.name, () => {}, L("Доступно только XAUUSD"));
 const otMenuTrig = a => otMenu(a, OT_TRIG.map(([k, t]) => [k, L(t)]), OT.trig, v => { OT.trig = v; setTxt("otTrigV", L(OT_TRIG.find(x => x[0] === v)[1])); otSync(); });
@@ -7674,7 +7685,7 @@ function closeModal(now){
   if(m.querySelector(".ot-sheet")) OT = null;
   if(now === true){ if(m.classList.contains("morph")) lgStop("sheet"); m.remove(); return; }
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
-  if(m.classList.contains("morph")) morphClose(m);                 // it shrinks back into its button
+  if(m.classList.contains("morph") && morphClose(m)) return;       // the drop drains back into its button, sheet and all
   m.classList.add("closing");
   setTimeout(() => m.remove(), 200);
 }
