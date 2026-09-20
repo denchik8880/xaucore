@@ -4269,8 +4269,8 @@ function lgFlow(el, a, ra, dur, opening, key, done){
                   r: Math.max(0, R0 + (R1 - R0) * kc) };
     const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height });
     el.style.clipPath = 'path("' + sh.clip + '")';
-    // its content comes up through the glass as it lands (and leaves first when it closes)
-    const mc = opening ? clamp((k - .32) / .52, 0, 1) : clamp((k - .45) / .45, 0, 1);
+    // the drop uncovers the window WITH its text — nothing is held back, so no blank shape grows first
+    const mc = opening ? clamp(k / .12, 0, 1) : clamp((k - .12) / .4, 0, 1);
     el.style.setProperty("--mc", mc.toFixed(3));
     if(md) md.style.setProperty("--mq", Math.min(1, k).toFixed(3));   // the scrim comes up with it
     for(const q of [sUnder, sOver]) for(const p of q.querySelectorAll("path")) p.setAttribute("d", sh.clip);
