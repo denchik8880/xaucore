@@ -621,7 +621,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-topbar{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:0;   /* same ground as the list below, no edge — like cTrader */
   display:flex;align-items:center;gap:10px;padding:14px 14px}
 .wl-logo{flex:0 0 auto;width:42px;height:42px;display:block;padding:0;border:0;border-radius:50%;background:none}   /* the site's icon, round (user «логотип такой должен быть»); it opens the app drawer */
-.wl-logo:active{transform:scale(.92)}
+.wl-logo:active{opacity:.75}                                     /* never scale it: the drop is born on the rect measured at the press, and a scaled rect lands the glass a hair off the mark */
 .wl-logo svg{width:100%;height:100%;display:block}
 .wl-search{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:9px;background:var(--line);
   color:var(--ink2);border-radius:999px;padding:11px 16px;font-size:15px;font-weight:400;text-align:left}
@@ -1094,7 +1094,6 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .lg-flowing *,.lg-flowing *::before,.lg-flowing *::after{transition:none!important;animation:none!important;will-change:auto!important}
 /* the window IS the drop: it shows from the first frame, clipped to the growing shape, and only its content fades in */
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none}
-:root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet>*,:root[data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop.flow>*{opacity:var(--fc,1)}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.morph{background:transparent}
 /* sheets flat (their glass switched off): the ghost is the flat sheet too, so it lands without a change of colour */
@@ -1145,7 +1144,6 @@ body.amenu-open .wl-logo{opacity:0}
   -webkit-backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
   box-shadow:0 0 0 .5px var(--lg-line),0 10px 28px rgba(0,0,0,calc(.2 * var(--shw,1))),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
 .lg-pop.shown{opacity:1}
-.lg-pop>*{opacity:var(--fc,1)}
 .lg-pop button{display:flex;justify-content:space-between;align-items:center;gap:14px;width:100%;padding:10px 12px;border-radius:14px;background:none;color:var(--ink);font-size:15px;text-align:left}
 .lg-pop button b{font-weight:600;color:var(--ink2)}
 .lg-pop button.on,.lg-pop button.on b{color:var(--blue-ink)}
@@ -4308,7 +4306,7 @@ function lgFlow(el, a, ra, dur, opening, key, done){
     if(fin) return;
     fin = true;
     cancelAnimationFrame(raf);
-    el.style.clipPath = ""; el.style.removeProperty("--fc"); el.style.removeProperty("opacity");
+    el.style.clipPath = ""; el.style.removeProperty("opacity");
     el.classList.remove("lg-flowing");
     if(opening){                                                   // the shadow arrives over a breath — dropped in one frame it read as grey spreading round the window
       el.style.transition = "box-shadow .3s ease";
@@ -4342,11 +4340,9 @@ function lgFlow(el, a, ra, dur, opening, key, done){
                   r: Math.max(0, R0 + (R1 - R0) * kc) };
     const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height });
     el.style.clipPath = 'path("' + sh.clip + '")';
-    // the drop uncovers the window WITH its text — nothing is held back, so no blank shape grows first, and on the
-    // way back the text goes only with the last of the shape (it used to leave first, which read as a fade)
-    const mc = opening ? 1 : clamp((k - .04) / .26, 0, 1);   // opening it shows its content from the first frame — the drop is born ON the button, in its shape
-    el.style.setProperty("--fc", mc.toFixed(3));
-    if(!opening) el.style.opacity = Math.min(1, k / .22).toFixed(3);   // the last of it melts instead of sitting on the button as a box
+    // nothing is ever held back: the window shows its content from the first frame, and going back it melts as one
+    // piece — glass and text together — instead of leaving a pane with no writing on it (the grey plate)
+    if(!opening) el.style.opacity = Math.min(1, k / .35).toFixed(3);
     if(t < 1) raf = requestAnimationFrame(step);
     else finish();
   };
