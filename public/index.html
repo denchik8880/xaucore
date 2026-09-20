@@ -863,7 +863,7 @@ html:has(body.route-wallet){background:#0c0a08}
   --cap-glass:rgba(34,34,38,calc(.6 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86); --pop-glass:rgba(30,30,34,calc(.16 + .55 * var(--lgs,1)));
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
@@ -950,6 +950,16 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
+/* the mark is a BUBBLE when the mode is on (user: «сделайте наш логотип бульбашкой»): the solid disc behind the X
+   goes, the X floats in a ball of glass that bends the list under it and swells under the finger — and the drawer
+   flows straight out of that ball. Flat, it is cTrader's solid round mark exactly as before. */
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo{position:relative;isolation:isolate;border-radius:50%;
+  background:radial-gradient(42px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
+  box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
+:root[data-glass="on"] .wl-logo svg circle,:root[data-glass="on"] .am-logo svg circle{display:none}   /* the ball IS the disc now */
+:root[data-glass="on"] .wl-logo:active{opacity:1}                /* the press is the swell, not a dim */
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
 /* iOS 26 toolbars: the sheet's ✕ and the drum's Edit / Done are glass capsules too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
@@ -4363,9 +4373,18 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
   raf = requestAnimationFrame(step);
   return run;
 }
+/* the rect an element occupies when nothing is pressing it — the glass press scales and nudges it, and the drop
+   must be born on the mark as it rests (user: «логотип съезжает») */
+function lgRestRect(el){
+  const t = el.style.transform;
+  el.style.transform = "none";
+  const r = el.getBoundingClientRect();
+  if(t) el.style.transform = t; else el.style.removeProperty("transform");
+  return r;
+}
 function morphOpen(from, m){
   const sh = m.querySelector(".sheet"); if(!sh) return;
-  const a = from.getBoundingClientRect();
+  const a = lgRestRect(from);
   m._from = from; m._fromSel = from.dataset.act ? '[data-act="' + from.dataset.act + '"]' : null;
   from.classList.add("lg-hid");
   const inside = !!from.closest(".modal");                         // a field inside the window itself must come back at once
@@ -4393,7 +4412,7 @@ function morphClose(m){
   btn.classList.add("lg-hid");
   // the drop keeps its body to the very last frame, where it IS the button's shape — and the button comes back in
   // that same frame. Nothing fades across the hand-over, so the mark never dims (user: «мерцание логотипа»)
-  lgFlow(sh, btn.getBoundingClientRect(), getComputedStyle(btn).borderRadius, 340, false, "sheet",
+  lgFlow(sh, lgRestRect(btn), getComputedStyle(btn).borderRadius, 340, false, "sheet",
     () => { morphShow(m); m.remove(); }, () => btn.classList.remove("lg-hid"));
   return true;
 }
@@ -4694,7 +4713,7 @@ function render(){
     glassDrops(app());
     quickLens(app());
     document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 26, .6));   // «Новый ордер»: crystal — bent hard at the rim
-    document.querySelectorAll("#app .appbar .iconbtn, #app .mini-tools button").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // «‹», the mini chart's ⛶ / м1: glass drops
+    document.querySelectorAll("#app .appbar .iconbtn, #app .mini-tools button, #app .wl-logo").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // «‹», the mini chart's ⛶ / м1: glass drops
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -8541,7 +8560,7 @@ function jellyFrame(now){
    BUTTONS ONLY: the tab bar, the trade bar and the menus never swell or glow — in the tab bar only its drop moves
    (user: «это создано только для маленьких кнопок … плашка не должна вообще дергатся»).
    One rAF loop for everything still moving; clicks are untouched. */
-const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close";   // buttons only: the bars and menus hold still (user)
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close, .wl-logo";   // buttons only: the bars and menus hold still (user)
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
 function glassAim(g, x, y){
@@ -9919,6 +9938,10 @@ function syncBadge(){
   el.style.color = XC.follower ? "var(--orange-ink)" : (XC.online ? "var(--green-ink)" : "var(--ink3)");
 }
 
+/* Before the account exists there is no liquid glass: the sign-in screen is plain, whatever this device has saved
+   (user: «перед входом уберите везде жидкое стекло … там по дефолту нельзя»). The saved choice is untouched —
+   normalizeState() puts it back the moment the account is in. */
+function authPlain(){ document.documentElement.dataset.glass = "off"; }
 /* ---------- auth screen ----------
    Account required — guest mode was removed. A new visitor lands on
    "Регистрация" because they must create an account before they can sign in. */
@@ -9927,11 +9950,11 @@ function screenAuth(msg, kind){
   if(_authMode === "reset") return screenReset(msg, kind);
   const t = _authMode, reg = t === "register";
   const bad = kind === "err";
+  authPlain();
   app().innerHTML = `
-    <div class="appbar"><div class="ttl"><span class="ttl-run">XAUCORE</span></div><div class="sp"></div></div>
-    <div class="wrap" style="max-width:420px;margin:0 auto">
-      <div class="card" style="text-align:center;padding:22px 16px">
-        <div style="font-size:clamp(21px,7.2vw,26px);font-weight:700;letter-spacing:.01em;white-space:nowrap">cTrade Simulator</div>
+    <div class="wrap" style="max-width:420px;margin:0 auto;padding-top:26px">
+      <div class="card" style="text-align:center;padding:26px 16px">
+        <div style="font-size:clamp(24px,8vw,30px);font-weight:700;letter-spacing:.09em;white-space:nowrap">XAUCORE</div>
       </div>
       <div class="card">
         <div class="seg" style="margin-bottom:14px">
@@ -9984,11 +10007,12 @@ function screenAuth(msg, kind){
 let _rs = { step: "ask", email: "" };
 function screenReset(msg, kind){
   const code = _rs.step === "code", bad = kind === "err";
+  authPlain();
   app().innerHTML = `
-    <div class="appbar"><div class="ttl"><span class="ttl-run">XAUCORE</span></div><div class="sp"></div></div>
-    <div class="wrap" style="max-width:420px;margin:0 auto">
-      <div class="card" style="text-align:center;padding:22px 16px">
-        <div style="font-size:clamp(21px,7.2vw,26px);font-weight:700;letter-spacing:.01em;white-space:nowrap">${L("Восстановление пароля")}</div>
+    <div class="wrap" style="max-width:420px;margin:0 auto;padding-top:26px">
+      <div class="card" style="text-align:center;padding:26px 16px">
+        <div style="font-size:clamp(24px,8vw,30px);font-weight:700;letter-spacing:.09em;white-space:nowrap">XAUCORE</div>
+        <div style="margin-top:6px;font-size:15px;color:var(--ink2)">${L("Восстановление пароля")}</div>
       </div>
       <div class="card">
         ${msg?`<div class="hint" style="color:${bad?'var(--red-ink)':'var(--green-ink)'};font-weight:600;margin-bottom:8px">${msg}</div>`:""}
