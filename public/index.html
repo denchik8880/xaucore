@@ -2505,53 +2505,66 @@ function aggregateFrom(m1, sec){
    ONE event a day, at 15:30 game time, always in this order (user 2026-09-20): NFP → CPI → PPI → FOMC →
    FED Press Conference, then round again. Days the market is closed are skipped, and the day's event goes off
    by itself when its time comes (checkEvents) — with its own news candle. */
+/* One news day after another, in this order. FOMC keeps its own hour — the rate decision at 21:00 and ITS press
+   conference half an hour later, the same day (user 2026-09-20); everything else comes out at 15:30. */
 const NEWS_CYCLE = [
-  { name:"NFP (Non-Farm Payrolls)", unit:"K", prev:180,  fc:190 },
-  { name:"CPI y/y",                 unit:"%", prev:3.0,  fc:2.9 },
-  { name:"PPI m/m",                 unit:"%", prev:0.2,  fc:0.3 },
-  { name:"FOMC Rate Decision",      unit:"%", prev:4.50, fc:4.50 },
-  { name:"FED Press Conference",    unit:"",  prev:0,    fc:0 }
+  [{ name:"NFP (Non-Farm Payrolls)", unit:"K", prev:180,  fc:190,  at:[15, 30] }],
+  [{ name:"CPI y/y",                 unit:"%", prev:3.0,  fc:2.9,  at:[15, 30] }],
+  [{ name:"PPI m/m",                 unit:"%", prev:0.2,  fc:0.3,  at:[15, 30] }],
+  [{ name:"FOMC Rate Decision",      unit:"%", prev:4.50, fc:4.50, at:[21, 0] },
+   { name:"FED Press Conference",    unit:"",  prev:0,    fc:0,    at:[21, 30] }]
 ];
-const NEWS_AT = [15, 30];                                          // game time, as the calendar prints it
+const NEWS_SLOTS = {};                                             // name → its hour and minute
+for(const day of NEWS_CYCLE) for(const e of day) NEWS_SLOTS[e.name] = e.at;
 function marketClosedAt(t){
   if(S.market.forceOpen) return false;
   const d = new Date(t), wd = d.getUTCDay(), h = d.getUTCHours();
   return wd === 6 || (wd === 0 && h < 21) || (wd === 5 && h >= 21);
 }
-// the next 15:30 after the given moment, on a day the market trades
-function newsSlotAfter(from){
-  const d = new Date(from);
-  let t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), NEWS_AT[0], NEWS_AT[1], 0, 0).getTime();
-  if(t <= from) t += 86400000;
-  for(let i = 0; i < 8 && marketClosedAt(t); i++) t += 86400000;
+const atOn = (t, at) => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), at[0], at[1], 0, 0).getTime(); };
+const dayStart = t => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+// the first day from minDay on that trades at every hour this day's events need (the press conference too)
+function newsDayAfter(minDay, day){
+  let t = atOn(minDay, day[0].at);
+  if(t <= S.simClock) t += 86400000;                               // never in the past
+  for(let i = 0; i < 9; i++){
+    if(!day.some(e => marketClosedAt(atOn(t, e.at)))) break;        // the whole day has to trade, the press conference too
+    t += 86400000;
+  }
   return t;
 }
-// keep the next few days queued — one a day, in the cycle's order
+// keep the next few events queued — one day after another, in the cycle's order
 function scheduleNews(keep){
-  keep = keep || 5;
-  // an older state (or an older build) may still hold events at other hours or with other names — anything that has
-  // not fired yet and is not on the 15:30 ladder goes, so the queue is always the cycle
-  S.events = S.events.filter(e => e.released || e.manual ||
-    (NEWS_CYCLE.some(c => c.name === e.name) && new Date(e.time).getHours() === NEWS_AT[0] && new Date(e.time).getMinutes() === NEWS_AT[1]));
-  let last = S.simClock, n = 0;
+  keep = keep || 6;
+  // an older state (or an older build) may still hold events at other hours or with other names: if a single one of
+  // them is off its slot the whole queue is rebuilt from the cycle, so it never ends up mixed (two CPIs in a row)
+  const onSlot = e => { const at = NEWS_SLOTS[e.name], d = new Date(e.time); return !!at && d.getHours() === at[0] && d.getMinutes() === at[1]; };
+  if(S.events.some(e => !e.released && !e.manual && !onSlot(e))) S.events = S.events.filter(e => e.released || e.manual);
+  // each news day takes a calendar day of its own — the next one starts the day after the last one queued
+  let minDay = dayStart(S.simClock), n = 0;
   for(const e of S.events){
     if(e.manual || e.released) continue;
-    n++; if(e.time > last) last = e.time;
+    n++;
+    const nd = dayStart(e.time) + 86400000;
+    if(nd > minDay) minDay = nd;
   }
   while(n < keep){
-    const i = ((S.newsIdx || 0) % NEWS_CYCLE.length + NEWS_CYCLE.length) % NEWS_CYCLE.length, d = NEWS_CYCLE[i];
+    const i = ((S.newsIdx || 0) % NEWS_CYCLE.length + NEWS_CYCLE.length) % NEWS_CYCLE.length, day = NEWS_CYCLE[i];
     S.newsIdx = i + 1;
-    last = newsSlotAfter(last);
-    S.events.push({ id: S.seq.evt++, name: d.name, unit: d.unit, previous: d.prev, forecast: d.fc,
-                    actual: null, impact: 3, time: last, released: false, manual: false });
-    n++;
+    const t0 = newsDayAfter(minDay, day);
+    for(const d of day){
+      S.events.push({ id: S.seq.evt++, name: d.name, unit: d.unit, previous: d.prev, forecast: d.fc,
+                      actual: null, impact: 3, time: atOn(t0, d.at), released: false, manual: false });
+      n++;
+    }
+    minDay = dayStart(t0) + 86400000;
   }
   if(S.events.length > 30) S.events.splice(0, S.events.length - 30);
 }
 function buildDefaultEvents(){
   S.events = [];
   S.newsIdx = 0;
-  scheduleNews(5);
+  scheduleNews(6);
 }
 function nameToNewsType(name){
   if(/NFP|Payroll/i.test(name)) return "NFP";
@@ -3892,7 +3905,7 @@ function checkEvents(){
     if(!e.manual && !S.news.active && !marketClosed()) releaseEvent(e);
     else e.released = true;                                       // a hand-made one still waits for «Выпустить»
   }
-  scheduleNews(5);
+  scheduleNews(6);
 }
 function addManualEvent(o){
   S.events.push({
