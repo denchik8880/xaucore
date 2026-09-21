@@ -365,6 +365,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
     linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(calc(1px * var(--lgb,1))) saturate(1.35) brightness(1.03);backdrop-filter:blur(calc(1px * var(--lgb,1))) saturate(1.35) brightness(1.03)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-rim,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-shade{display:block;position:absolute;left:-10px;top:-10px;width:calc(100% + 100px);height:calc(100% + 20px);overflow:visible;pointer-events:none}
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo.flux .chp-goo{-webkit-backdrop-filter:none;backdrop-filter:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-rim{z-index:1}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-shade{z-index:-2}
 /* the shadow is blurred and offset INSIDE the svg and the drop's own shape is masked out of it: glass this clear
@@ -422,7 +423,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
 /* dragged away, the scrim goes with it — the room behind comes back as the sheet leaves, not after it */
 .modal.shd{background:color-mix(in srgb,var(--scrim),transparent calc((1 - var(--shd,1)) * 100%))}
-.modal.shd .sheet{animation:none!important}
+/* the entry animation is stopped ON THE ELEMENT, once and for ever — taking it away again would replay it */
 .sheet{position:relative;background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
 /* a sheet slides up over a scrim that fades in, and slides back down as it closes — like cTrader's
    Android sheets and our lot wheel (it used to pop in and vanish in one frame). One that replaces an open
@@ -4426,15 +4427,15 @@ function lgNeckPath(c1, e1, w1, c2, e2, w2, waist, vert){
 }
 /* the ghost's box and the shape inside it for this frame; clip null once it is simply the window's rounded rect
    (its shadow comes back for the landing) */
-function lgDropShape(a, box, k, R0, org){
+function lgDropShape(a, box, k, R0, org, plain){
   const nk = k < LG_NECK ? 1 - k / LG_NECK : 0;
   const bcx = box.left + box.width / 2, bcy = box.top + box.height / 2;
   const acx = a.left + a.width / 2, acy = a.top + a.height / 2;
   const vert = Math.abs(bcy - acy) >= Math.abs(bcx - acx);
-  const sp = Math.sin(Math.PI * Math.min(1, Math.max(0, k))) * .07;          // stretched along its way, 7 % at most
+  const sp = plain ? 0 : Math.sin(Math.PI * Math.min(1, Math.max(0, k))) * .07;   // stretched along its way, 7 % at most
   const bw = Math.max(1, box.width * (vert ? 1 - sp : 1 + sp)), bh = Math.max(1, box.height * (vert ? 1 + sp : 1 - sp));
   const B = { x: bcx - bw / 2, y: bcy - bh / 2, w: bw, h: bh, r: Math.min(box.r, Math.min(bw, bh) / 2) };
-  const live = nk > .012 && a.width > 2 && a.height > 2;
+  const live = !plain && nk > .012 && a.width > 2 && a.height > 2;
   let D = null;
   if(live){
     const f = .3 + .7 * nk, dw = Math.max(1, a.width * f), dh = Math.max(1, a.height * f);
@@ -4447,7 +4448,7 @@ function lgDropShape(a, box, k, R0, org){
   }
   if(!D && sp < .004 && !org) return { x: box.left, y: box.top, w: box.width, h: box.height, clip: null };
   // a teardrop while it moves: pinched at the end it came from, its head domed out (the dome needs room in the box)
-  const mv = Math.sin(Math.PI * Math.min(1, Math.max(0, k))), headLow = vert ? bcy > acy : bcx > acx;
+  const mv = plain ? 0 : Math.sin(Math.PI * Math.min(1, Math.max(0, k))), headLow = vert ? bcy > acy : bcx > acx;
   const taper = .42 * mv, dome = vert ? Math.min(14, B.w * .085) * mv : 0;
   // its head rounds up into a heavy dome while it flies and relaxes into the window's own corners as it lands
   const rHead = Math.min(Math.min(B.w, B.h) / 2, B.r + (Math.min(B.w, B.h) * .5 - B.r) * mv * .7);
@@ -4583,6 +4584,9 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
   const sw = Math.min(a.width, R.width), shh = Math.min(a.height, R.height);
   const src = { left: clamp(a.left, R.left, R.right - sw), top: clamp(a.top, R.top, R.bottom - shh), width: sw, height: shh };
   src.right = src.left + src.width; src.bottom = src.top + src.height;
+  // a pane that fills most of the screen opens as one clean shape: a drop with a head, a neck and a taper reads
+  // as a window being assembled out of pieces at that size (user 2026-09-21)
+  const big = R.width * R.height > (innerWidth || 400) * (innerHeight || 800) * .4;
   let soonDone = false;
   const soonNow = () => { if(soonDone) return; soonDone = true; if(soon) soon(); };   // the button is back BEFORE the last frame of the drop, never after it
   el.classList.add("lg-flowing");                                  // one layer, nothing inside it animating while it flies
@@ -4617,7 +4621,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     // closing it does not bolt off its mark: it gathers itself — a 7 % swell — and pours back, landing soft
     else k = k0 * ((1 - t * t * (3 - 2 * t)) + .07 * (t < .22 ? Math.sin(Math.PI * t / .22) : 0));
     run.k = k;                                                     // so whatever interrupts this knows where it was
-    if(opening){ const c = clamp((k - .06) / .5, 0, 1); el.style.setProperty("--lgcr", (c * c * (3 - 2 * c)).toFixed(3)); }
+    if(opening && !big){ const c = clamp((k - .06) / .5, 0, 1); el.style.setProperty("--lgcr", (c * c * (3 - 2 * c)).toFixed(3)); }
     const kc = Math.min(1, k), lerp = (p, q, e) => p + (q - p) * e;
     el.style.setProperty("--lgfb", (.4 + .6 * kc * kc).toFixed(3));   // the glass thickens as it forms: cheap while it flies, full when it lands
     // a drop swells sideways first and only then pours along its long way — growing both at once made a tall
@@ -4629,7 +4633,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
                   width: Math.max(1, lerp(src.width, R.width, kw)), height: Math.max(1, lerp(src.height, R.height, kh)),
                   r: Math.max(0, R0 + (R1 - R0) * kc) };
     if(!opening && k <= .06) soonNow();                            // one frame of overlap instead of one frame of gap
-    const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height });
+    const sh = lgDropShape(src, box, kc, R0, { x: R.left, y: R.top, w: R.width, h: R.height }, big);
     el.style.clipPath = 'path("' + sh.clip + '")';
     // nothing is ever held back: the window shows its content from the first frame, and going back it melts as one
     // piece — glass and text together — instead of leaving a pane with no writing on it (the grey plate)
@@ -4736,7 +4740,7 @@ function openTFPop(pill){
   _tfPop = { pop, catcher, pill };
   pop.classList.add("shown");
   pill.classList.add("lg-hid");
-  lgFlow(pop, a, getComputedStyle(pill).borderRadius, 400, true, "tf", () => pill.classList.remove("lg-hid"));
+  lgFlow(pop, a, getComputedStyle(pill).borderRadius, 400, true, "tf");   // the pill stays hidden: the menu IS the pill while it is open
   // a tap beside the menu only closes it: the catcher stays for that tap's click, so nothing beneath is pressed
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(false, true); });
   pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ setChartTF(b.dataset.tfpick); closeTFPop(); });
@@ -4746,8 +4750,8 @@ function closeTFPop(now, outside){
   _tfPop = null;
   if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
   else P.catcher.remove();
-  P.pill.classList.remove("lg-hid");
   const pill = tfPill();
+  lgShowBtn(P.pill); if(pill !== P.pill) lgShowBtn(pill);          // it comes back the way every other button does
   if(now === true || !pill || !glassOn("morph")){ lgStop("tf"); P.pop.remove(); return; }
   lgFlow(P.pop, pill.getBoundingClientRect(), "22px", 300, false, "tf", () => P.pop.remove());   // it drains into the pill
 }
@@ -6481,6 +6485,8 @@ function pmDraw(row){
   if(PM.joined && !was){ PM.sv -= 120 + Math.min(Math.abs(PM.v), 600) * .15; PM.v *= .85; PM.bv += 95; }          // they touch: «XAUUSD» takes the blow, the drop bulges
   if(!PM.joined && was){ PM.sv -= PM.sx * 22 + 40; PM.bv -= 50; }                  // the neck snaps: «XAUUSD» recoils home
   PM.gap = gap;
+  const moving = !!(PM.drag || Math.abs(PM.v) > .5 || Math.abs(PM.sv) > .5 || Math.abs(PM.b) > .05);
+  if(row.classList.contains("flux") !== moving) row.classList.toggle("flux", moving);
   const d = pmPath(s0, s1, t0, t1, h, PM.joined, gap, brk, PM.b);
   row.querySelector(".chp-goo").style.setProperty("--gp", 'path("' + d + '")');
   for(const p of row.querySelectorAll(".chp-rim .h, .chp-rim .r, .chp-rim .c, .chp-shade path")) p.setAttribute("d", d);   // the mask hole and both shadows share it
@@ -8464,6 +8470,7 @@ function sheetDrag(m){
   sh.addEventListener("pointerdown", e => {
     if(e.button > 0 || (e.target.closest && e.target.closest(NOPE))) return;
     if(!horiz && (sh.scrollTop > 4 || e.clientY - sh.getBoundingClientRect().top > 64)) return;   // its head only
+    sh.style.animationName = "none";                              // it has appeared; it must never appear again
     const S2 = SHD;
     if(S2.sh !== sh){ shdClear(); S2.sh = sh; S2.m = m; S2.h = horiz; S2.o = 0; S2.v = 0; }       // else: seize the spring mid-flight
     S2.size = Math.max(1, horiz ? sh.offsetWidth : sh.offsetHeight);
@@ -8580,9 +8587,10 @@ function closeModal(now){
     }
   }
   if(m.classList.contains("morph") && morphClose(m)) return;       // the drop drains back into its button, sheet and all
+  m.classList.remove("morph");                                    // no button left to drain into: it slides out like any other
   morphShow(m);
   m.classList.add("closing");
-  setTimeout(() => m.remove(), 200);
+  setTimeout(() => m.remove(), 260);
 }
 
 /* In-app confirmation sheet. NEVER use window.confirm() for this — in Telegram's
