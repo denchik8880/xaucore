@@ -10,7 +10,7 @@
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
 function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.978,b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,6 +46,10 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
   --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc(.12 + .16 * (1 - var(--lgk,1)))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
+  /* the depth tokens exist even with the mode OFF: a few rules that only ever show in glass are not gated by the
+     attribute, and an undefined custom property makes the whole box-shadow invalid, not just that one layer */
+  --lg-body:inset 0 0 0 0 transparent; --lg-lift1:0 0 0 0 transparent; --lg-lift2:0 0 0 0 transparent; --lg-lift3:0 0 0 0 transparent;
+  --lg-rimd:transparent; --lg-spot:transparent; --lg-foot:transparent; --lgd:1; --lgh:1; --lgsh:1;
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.78); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
@@ -248,7 +252,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 8px 28px var(--nav-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -266,10 +270,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:2;opacity:var(--lf,0);background:rgba(255,255,255,.025);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
-  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens.idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 28%,var(--lg-rimd) 50%,transparent 72%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
   :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -374,11 +378,11 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
-  box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);text-shadow:var(--lg-text-shadow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);text-shadow:var(--lg-text-shadow)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
+  background:radial-gradient(58% 46% at var(--lit-x,30%) var(--lit-y,14%),var(--lg-spot) 0%,transparent 72%),linear-gradient(180deg,var(--lg-sheen) 0%,transparent 48%,var(--lg-foot) 100%)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 36%,transparent 64%,var(--lg-rim2) 100%);
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 28%,var(--lg-rimd) 50%,transparent 72%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
   :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{background:var(--chart-btn);-webkit-backdrop-filter:none;backdrop-filter:none;text-shadow:none}
@@ -880,6 +884,28 @@ html:has(body.route-wallet){background:#0c0a08}
   --toast-glass:rgba(22,24,28,calc(.6 * max(.75, var(--lgs,1)))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55); --lgsat:calc(1 + .42 * var(--lgs,1));
   --cap-glass:rgba(255,255,255,calc(.62 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92); --pop-glass:rgba(255,255,255,calc(.12 + .5 * var(--lgs,1)));
+  /* THE THREE DIALS (Настройки стекла writes them; 1 = as designed). Everything below is expressed through them,
+     so one slider changes the whole system and nothing has to be re-authored. */
+  --lgd:1; --lgh:1; --lgsh:1;
+  /* ONE DISTANT LIGHT for the whole screen: its direction (the rim's gradient angle) and where its specular
+     falls. litFrame springs these; a distant source means every pane agrees, and one write a frame repaints
+     only the thin rims that ask for it. */
+  --lit-a:151deg; --lit-x:30%; --lit-y:14%;
+  /* THE BODY: glass is not a tinted rectangle, it is a slab with a thickness. Top lip lit, bottom lip lit from
+     underneath, a wall between them, and the shadow that wall casts into the pane — which is what the eye reads
+     as depth. The last line deepens under a finger (--pk, set by the press loop). */
+  --lg-rimd:rgba(16,24,40,calc(.17 * var(--lgd,1)));
+  --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
+    inset 0 0 11px -4px rgba(16,24,40,calc(.17 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(16,24,40,calc(.45 * var(--lgd,1))),
+    inset 0 -12px 18px -15px rgba(16,24,40,calc(.34 * var(--lgd,1))),
+    inset 0 5px 11px -7px rgba(16,24,40,calc(.45 * var(--pk,0)));
+  /* IT SITS ABOVE THE PAGE: a tight contact shadow where it nearly touches and a wide ambient one. The pair is
+     what separates a floating surface from a printed one; three heights for three kinds of thing. */
+  --lg-lift1:0 1px 2px rgba(16,24,40,calc(.085 * var(--lgsh,1))),0 8px 20px -6px rgba(16,24,40,calc(.16 * var(--lgsh,1)));
+  --lg-lift2:0 1.5px 3px rgba(16,24,40,calc(.09 * var(--lgsh,1))),0 16px 34px -8px rgba(16,24,40,calc(.20 * var(--lgsh,1)));
+  --lg-lift3:0 2px 5px rgba(16,24,40,calc(.09 * var(--lgsh,1))),0 28px 62px -14px rgba(16,24,40,calc(.26 * var(--lgsh,1)));
+  --lg-spot:rgba(255,255,255,calc(.42 * var(--lgh,1))); --lg-foot:rgba(16,24,40,calc(.055 * var(--lgd,1)));
 }
 :root[data-theme="dark"][data-glass="on"]{
   --bar-glass:rgba(12,12,12,calc(.58 * var(--lgk,1))); --bg-glass:rgba(0,0,0,calc(.52 * var(--lgk,1))); --sheet-glass:rgba(26,26,28,calc(.82 * var(--lgs,1)));
@@ -887,14 +913,25 @@ html:has(body.route-wallet){background:#0c0a08}
   --toast-glass:rgba(52,52,56,calc(.58 * max(.75, var(--lgs,1)))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.16); --lgsat:calc(1 + .42 * var(--lgs,1));
   --cap-glass:rgba(34,34,38,calc(.6 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86); --pop-glass:rgba(30,30,34,calc(.16 + .55 * var(--lgs,1)));
+  --lg-rimd:rgba(0,0,0,calc(.34 * var(--lgd,1)));
+  --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
+    inset 0 0 0 .7px rgba(255,255,255,calc(.10 * var(--lgh,1))),
+    inset 0 0 12px -5px rgba(0,0,0,calc(.5 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(0,0,0,calc(.62 * var(--lgd,1))),
+    inset 0 -12px 18px -15px rgba(0,0,0,calc(.46 * var(--lgd,1))),
+    inset 0 5px 11px -7px rgba(0,0,0,calc(.55 * var(--pk,0)));
+  --lg-lift1:0 1px 2px rgba(0,0,0,calc(.34 * var(--lgsh,1))),0 8px 20px -6px rgba(0,0,0,calc(.46 * var(--lgsh,1)));
+  --lg-lift2:0 1.5px 3px rgba(0,0,0,calc(.36 * var(--lgsh,1))),0 16px 34px -8px rgba(0,0,0,calc(.52 * var(--lgsh,1)));
+  --lg-lift3:0 2px 5px rgba(0,0,0,calc(.36 * var(--lgsh,1))),0 28px 62px -14px rgba(0,0,0,calc(.58 * var(--lgsh,1)));
+  --lg-spot:rgba(255,255,255,calc(.20 * var(--lgh,1))); --lg-foot:rgba(0,0,0,calc(.20 * var(--lgd,1)));
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::before,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::before,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%)}
+  background:radial-gradient(58% 46% at var(--lit-x,30%) var(--lit-y,14%),var(--lg-spot) 0%,transparent 72%),linear-gradient(180deg,var(--lg-sheen) 0%,transparent 48%,var(--lg-foot) 100%)}
 /* CRYSTAL (user video 2, «максимально чистое кристальное … сама кнопка должна быть такой же чистой»): no frost, a
    whisper of tint (--lgn: the clarity slider — dense at its least, all but gone at crystal), the view behind
    bent hard at the rim with colour fringes (lgGlass, scale 26 × the clarity), a bright hairline edge; the label
@@ -904,7 +941,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{isolation:isolate;filter:none;transition:none;color:var(--crys-ink);text-shadow:var(--crys-halo);--fab-bg:var(--crys-hole);
   background:linear-gradient(180deg,rgba(255,255,255,.14) 0%,transparent 46%),rgba(var(--crys),var(--lgn,.08));
   -webkit-backdrop-filter:blur(.6px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.6px) saturate(1.5) brightness(1.04);
-  box-shadow:0 0 0 .5px var(--lg-line),0 10px 26px var(--nav-shadow),inset 0 1.5px 1px rgba(255,255,255,.75),inset 0 -1.5px 2px rgba(255,255,255,.3),inset 0 0 0 1px rgba(255,255,255,.1)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),inset 0 1.5px 1px rgba(255,255,255,.75),inset 0 -1.5px 2px rgba(255,255,255,.3),inset 0 0 0 1px rgba(255,255,255,.1)}
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{transform:translateX(-50%) translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
@@ -916,11 +953,11 @@ html:has(body.route-wallet){background:#0c0a08}
   transform:translate(var(--qx,0px),var(--qy,0px)) scale(var(--qsx,1),var(--qsy,1));width:var(--qw,0px);height:var(--qh,0px);opacity:var(--qf,0);will-change:transform,width,height,opacity;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.06);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
-  box-shadow:0 0 0 .5px var(--lg-line),0 5px 16px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens.idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
-  box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-body);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line);
   -webkit-backdrop-filter:blur(calc(10px + 8px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 8px * var(--lgsb,1))) saturate(var(--lgsat,1.4))}
@@ -931,7 +968,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.theme button.on{background:transparent;box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub{display:block;position:absolute;top:3px;bottom:3px;left:0;border-radius:9px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--seg-bub);
   -webkit-backdrop-filter:blur(calc(6px + 6px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(6px + 6px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
-  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
+  box-shadow:0 1px 4px var(--lg-shadow),0 0 0 .5px var(--lg-line),var(--lg-body);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.theme .seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 65%),var(--blue);box-shadow:0 2px 10px rgba(47,123,246,.4),inset 0 1px 1px rgba(255,255,255,.4)}
 /* while a drop FLOWS it lifts into a clear lens over the labels it passes (they swell and bend under it) and
    sinks back into the resting drop as it settles — --lf follows its speed (dropFrame). The lens has the drop's
@@ -941,7 +978,7 @@ html:has(body.route-wallet){background:#0c0a08}
   transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);opacity:var(--lf,0);will-change:transform,width,opacity;
   background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.05);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.05);
-  box-shadow:0 0 0 .5px var(--lg-line),0 2px 8px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens{top:6px;bottom:6px;border-radius:999px;background:rgba(255,255,255,.025)}
 /* the lens pokes out of the capsule (it is taller than it, as in the video): the glass subtabs fit without scrolling */
 :root[data-glass="on"]:not([data-lgoff~="headers"]):not([data-lgoff~="drops"]) .subtabs{overflow:visible}
@@ -950,13 +987,13 @@ html:has(body.route-wallet){background:#0c0a08}
 /* 4. toasts: clear glass capsules that drop in with a bounce and shrink away */
 :root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
   -webkit-backdrop-filter:blur(calc(6px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(6px * var(--lgsb,1))) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--nav-shadow),inset 0 1px 1px rgba(255,255,255,.18)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),inset 0 1px 1px rgba(255,255,255,.18)}
 :root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.g{background:rgba(11,122,69,calc(.7 * max(.75, var(--lgs,1))))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(192,42,34,calc(.7 * max(.75, var(--lgs,1))))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(201,106,8,calc(.7 * max(.75, var(--lgs,1))))}
 @keyframes tinG{from{opacity:0;transform:translateY(-16px) scale(.84)}55%{opacity:1}to{transform:none}}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
-  box-shadow:inset 0 0 0 1px var(--sheet-rim),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG .58s cubic-bezier(.22,.8,.28,1)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
 @keyframes shInG{0%{transform:translateY(calc(100% + 40px))}70%{transform:translateY(-3px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
@@ -966,7 +1003,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:transparent;box-shadow:none;isolation:isolate;padding:8px 10px;min-height:56px}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:-12px;pointer-events:none;z-index:-1;
   background:linear-gradient(180deg,var(--edge-fade) 0%,var(--edge-fade) 30%,transparent 100%)}
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
 /* the subtabs are dragged like the tab bar: they fit the capsule (no scrolling), a sideways drag is ours,
    a vertical one still scrolls the page */
@@ -974,7 +1011,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs .cnt{margin-left:4px}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--blue-ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
 /* the mark is a BUBBLE when the mode is on (user: «сделайте наш логотип бульбашкой»): the solid disc behind the X
    goes, the X floats in a ball of glass that bends the list under it and swells under the finger — and the drawer
@@ -982,51 +1019,57 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo{position:relative;isolation:isolate;border-radius:50%;
   background:radial-gradient(42px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"] .wl-logo svg circle,:root[data-glass="on"] .am-logo svg circle{display:none}   /* the ball IS the disc now */
 :root[data-glass="on"] .wl-logo:active{opacity:1}                /* the press is the swell, not a dim */
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 /* iOS 26 toolbars: the sheet's ✕ and the drum's Edit / Done are glass capsules too */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-bar{background:transparent;height:auto;padding:10px 12px 4px}
-:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-bar button{border-radius:999px;padding:8px 18px;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),0 6px 18px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-bar button{border-radius:999px;padding:8px 18px;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 /* the overview mini chart's ⛶ / м1: glass drops over the candles, like the Charts tab's */
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button{position:relative;isolation:isolate;border:0;border-radius:999px;color:var(--ink);text-shadow:var(--lg-text-shadow);
   background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn{position:relative;isolation:isolate;width:40px;height:40px;flex:none;border-radius:50%;color:var(--ink);font-size:22px;
   background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 12px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
-  border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 -10px 32px rgba(0,0,0,.18),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 -10px 32px rgba(0,0,0,.18),var(--lg-body)}
 @keyframes lwInG{0%{transform:translateY(100%)}70%{transform:translateY(-3px)}100%{transform:none}}
 /* the chosen row sits under a glass drop that swells its digits, like an iOS picker's lens */
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens{display:block;position:absolute;left:8px;right:8px;top:89px;height:38px;border-radius:12px;pointer-events:none;isolation:isolate;
   background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,transparent 32%),rgba(255,255,255,.03);
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 /* 8. the crosshair's OHLC readout on the chart: a small clear drop over the candles */
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{isolation:isolate;background:var(--info-glass);-webkit-backdrop-filter:blur(calc(5px * var(--lgb,1))) saturate(1.7);backdrop-filter:blur(calc(5px * var(--lgb,1))) saturate(1.7);border-radius:12px;text-shadow:var(--lg-text-shadow);
-  box-shadow:0 0 0 .5px var(--lg-line),0 4px 14px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 @media (prefers-reduced-transparency:reduce){
   :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
 }
+/* pressed, what is written on the glass does not ride the shell one to one: it lags a hair behind it, the way a
+   thing seen through a moving pane does. --pcx/--pcy, a fraction of the shell's own lean (glassFrame) */
+:root[data-glass="on"] .pressing>svg,:root[data-glass="on"] .pressing>span,:root[data-glass="on"] .pressing>b{transform:translate(var(--pcx,0px),var(--pcy,0px))}
 /* the PRESS, one to one with the user's video 1 (glassFrame): the glass fills with a milky light from the finger
    that frosts what is on it (buttons only) */
-.lg-milk{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;opacity:var(--mk,0);
+/* THE MILK LIVES UNDER THE LABEL. At z-index 2 it sat over it and, having a backdrop-filter of its own inside a
+   backdrop root, it frosted the very text it covered — that is the «раздвоенный / нечитаемый» text. A negative
+   z-index inside the pane's own stacking context puts it above the tint and below every glyph (user 2026-09-21). */
+.lg-milk{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:var(--mk,0);
   background:radial-gradient(var(--mr,80px) circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,var(--mc)) 0%,rgba(255,255,255,calc(var(--mc) * .6)) 45%,rgba(255,255,255,0) 100%);
   -webkit-backdrop-filter:blur(var(--mb,1.5px));backdrop-filter:blur(var(--mb,1.5px));
   -webkit-mask:radial-gradient(var(--mr,80px) circle at var(--mx,50%) var(--my,50%),#000 45%,transparent 100%);mask:radial-gradient(var(--mr,80px) circle at var(--mx,50%) var(--my,50%),#000 45%,transparent 100%)}
-:root{--mc:.9}
-:root[data-theme="dark"]{--mc:.5}
+:root{--mc:calc(.74 * var(--lgh,1))}
+:root[data-theme="dark"]{--mc:calc(.42 * var(--lgh,1))}
 /* the tab bar OPENS into a card (user: «про 9 секунду … можно ее раскрывать и там что бы еще какая-то информация была
    написана» — video 1, 9–12 s: the bar grows up into a big glass card with a grabber and shrinks back). Swipe the
    bar up; a tap beside it, the grabber or a swipe down closes it. It holds the account at a glance, live. */
@@ -1035,13 +1078,13 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 20px);max-width:500px;z-index:89;
   box-sizing:border-box;padding:8px 18px 14px;border-radius:31px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
   background:color-mix(in srgb,var(--nav-glass),var(--sheet-glass,var(--card)) calc(var(--ncp,1) * 100%));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
-  box-shadow:0 16px 48px rgba(0,0,0,.28),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
+  box-shadow:var(--lg-lift3),var(--lg-body);opacity:0}
 .nav-card.shown{opacity:1}
 .nav-card>*{opacity:var(--ncc,1);transform:translateY(calc((1 - var(--ncc,1)) * 10px))}   /* its content rises into place as it grows */
 /* the card opens with a swipe up from the middle of the bar — no handle shows it (user: «убери язычок … пусть люди
    сами думают как открыть») */
 .nav-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 .nav-card .grab{display:block;width:40px;height:5px;margin:0 auto 12px;padding:0;border:0;border-radius:3px;background:var(--ink3);opacity:.55}
 .nav-card .nc-sym{display:flex;justify-content:space-between;align-items:baseline;font-size:17px;font-weight:600}
@@ -1125,7 +1168,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-theme="dark"]{--lg-drop-shadow:rgba(0,0,0,.45);--lg-drop-rim:rgba(255,255,255,.17);--lg-drop-line:rgba(255,255,255,.05);--lg-fly:26,26,30}
 .lg-ghost{position:fixed;z-index:81;pointer-events:none;border-radius:28px;background:var(--sheet-glass,var(--card));
   -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);
-  box-shadow:0 16px 48px rgba(0,0,0,.26),inset 0 1px 1px var(--lg-spec)}
+  box-shadow:var(--lg-lift3),inset 0 1px 1px var(--lg-spec)}
 .lg-flowing{will-change:clip-path}
 .lg-flowing *,.lg-flowing *::before,.lg-flowing *::after{transition:none!important;animation:none!important;will-change:auto!important}
 /* the window IS the drop: it shows from the first frame, clipped to the growing shape, and only its content fades in */
@@ -1185,7 +1228,7 @@ body.amenu-open .wl-logo{opacity:0}
 /* with glass on: the same drawer as a pane of glass, its groups floating cards, and it flows out of the logo */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{width:min(86%,348px);height:calc(100% - 16px);max-height:none;margin:8px;border-radius:28px;
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
-  box-shadow:inset 0 0 0 1px var(--sheet-rim),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.062) 34%,rgba(255,255,255,.05))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-grp{margin:8px;padding:2px 0;border-top:0;border-radius:20px;background:var(--sheet-card);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-it{width:calc(100% - 8px);margin:0 4px;border-radius:16px}
@@ -1194,7 +1237,7 @@ body.amenu-open .wl-logo{opacity:0}
 .lg-pop-catch{position:fixed;inset:0;z-index:89}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--pop-glass,var(--sheet-glass,var(--card)));
   -webkit-backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
-  box-shadow:0 3px 12px rgba(0,0,0,calc(.09 * var(--shw,1))),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);opacity:0}
+  box-shadow:0 3px 12px rgba(0,0,0,calc(.09 * var(--shw,1))),var(--lg-body);opacity:0}
 .lg-pop.shown{opacity:1}
 .lg-pop button{display:flex;justify-content:space-between;align-items:center;gap:14px;width:100%;padding:10px 12px;border-radius:14px;background:none;color:var(--ink);font-size:15px;text-align:left}
 .lg-pop button b{font-weight:600;color:var(--ink2)}
@@ -1206,9 +1249,9 @@ body.amenu-open .wl-logo{opacity:0}
   bottom:calc(var(--nav-top) + 27px);padding:0;background:transparent;z-index:6}
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade{height:52px;border-radius:26px;isolation:isolate;
   -webkit-backdrop-filter:blur(calc(12px * var(--lgb,1))) saturate(1.7);backdrop-filter:blur(calc(12px * var(--lgb,1))) saturate(1.7);
-  box-shadow:0 0 0 .5px var(--lg-line),0 8px 24px var(--lg-shadow),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow)}
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
-  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 34%,transparent 66%,var(--lg-rim2) 100%);
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--red) 76%,transparent)}
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--green) 76%,transparent)}
@@ -1360,7 +1403,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .otf-v,.ot-g .otf-i{height:56px;padding-top:16px;line-height:40px}
 .ot-g .otf:focus-within{border-color:transparent;box-shadow:0 0 0 1.5px var(--blue)}
 .ot-g .otf.bad,.ot-g .otf.bad:focus-within{box-shadow:0 0 0 1.5px var(--red-ink)}
-.ot-g .ot-st{width:36px;height:36px;margin-left:6px;background:var(--cap-glass);box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec),inset 0 -1px 2px var(--lg-glow);transition:transform .12s ease}
+.ot-g .ot-st{width:36px;height:36px;margin-left:6px;background:var(--cap-glass);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-body);transition:transform .12s ease}
 .ot-g .ot-st:active{background:var(--cap-glass);transform:scale(.88)}
 .ot-g .ot-caret{margin-right:12px}
 .ot-g .ot-note,.ot-g .ot-err{margin-left:14px;margin-right:14px}
@@ -2014,6 +2057,13 @@ const I18N = {
 "Кнопка «Новый ордер»":["“New Order” button","Кнопка «Новий ордер»","Bouton « Nouvel ordre »","“Yeni Emir” düğmesi"],
 "Окна снизу":["Bottom sheets","Вікна знизу","Fenêtres du bas","Alt pencereler"],
 "Кнопки перетекают в окна":["Buttons morph into windows","Кнопки перетікають у вікна","Les boutons se muent en fenêtres","Düğmeler pencereye dönüşür"],
+"Объём и свет":["Depth and light","Об'єм і світло","Volume et lumière","Hacim ve ışık"],
+"Глубина":["Depth","Глибина","Profondeur","Derinlik"],
+"Преломление":["Refraction","Заломлення","Réfraction","Kırılma"],
+"Блик":["Highlight","Відблиск","Reflet","Parlama"],
+"Тень":["Shadow","Тінь","Ombre","Gölge"],
+"Свет от наклона":["Light follows tilt","Світло за нахилом","La lumière suit l’inclinaison","Işık eğime uysun"],
+"Датчик наклона недоступен":["The tilt sensor is not available","Датчик нахилу недоступний","Le capteur d’inclinaison n’est pas disponible","Eğim sensörü kullanılamıyor"],
 "Прозрачность стекла":["Glass clarity","Прозорість скла","Transparence du verre","Cam şeffaflığı"],
 "Минимум":["Minimal","Мінімум","Minimal","Minimum"],
 "Кристалл":["Crystal","Кришталь","Cristal","Kristal"],
@@ -4624,8 +4674,17 @@ function openGlassSheet(){
       `<div class="lgs" data-lgth="${th}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
       `<div class="lgc-ends"><span>${LG_DROP_ICO} ${L("Минимум")}</span><span>${L("Кристалл")} ${LG_SUN_ICO}</span></div></div>`;
   };
+  const dial = (k, ttl) => {
+    const v = Math.round(clamp(LG_UI[k] * 50, 0, 100));
+    return `<div class="lgc-row"><div class="lgc-t"><span>${L(ttl)}</span></div>` +
+      `<div class="lgs" data-lgui="${k}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div></div>`;
+  };
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
-    row("light", "Светлая тема") + row("dark", "Тёмная тема") + `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
+    row("light", "Светлая тема") + row("dark", "Тёмная тема") +
+    `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
+    dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("shadow", "Тень") +
+    `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
+    `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
   // the glass follows the finger LIVE (user: «ползунок и тема применяется когда отпустить палец» — it must change while
   // it moves): lgsBind calls this from its frame loop, once a frame at most and only when the whole percent changes,
   // in the same frame as the knob; saved on release
@@ -4635,6 +4694,24 @@ function openGlassSheet(){
       v => { if(live) applyClarity(v); },
       v => { if(live) applyClarity(v, true); else saveClarity(th, v); });
   });
+  modalEl.querySelectorAll(".lgs[data-lgui]").forEach(el => {
+    const k = el.dataset.lgui, hard = k === "refract";
+    lgsBind(el, Math.round(clamp(LG_UI[k] * 50, 0, 100)),
+      v => { LG_UI[k] = v / 50; lgUiApply(hard); },
+      v => { LG_UI[k] = v / 50; lgUiApply(hard); lgUiSave(); });
+  });
+  const tl = modalEl.querySelector("[data-lgtilt]");
+  if(tl) tl.onclick = () => {
+    const on = !tl.classList.contains("on");
+    tl.classList.toggle("on", on); tl.setAttribute("aria-checked", on);
+    swAfter(tl, () => {
+      if(!on){ LG_UI.tilt = false; lgUiSave(); litHome(); return; }
+      tiltStart().then(ok => {                                      // iOS may refuse: put the switch back
+        LG_UI.tilt = !!ok; lgUiSave();
+        if(!ok){ tl.classList.remove("on"); tl.setAttribute("aria-checked", "false"); toast("o", L("Датчик наклона недоступен")); }
+      });
+    });
+  };
   modalEl.querySelectorAll("[data-lgf]").forEach(b => b.onclick = ()=>{
     const on = !b.classList.contains("on");
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
@@ -8596,7 +8673,7 @@ function lgMap(w, h, rad, rim){
   const key = w + "x" + h + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
   if(_lgMaps.has(key)) return _lgMaps.get(key);
   // a capsule / circle (r = half the short side) unless a corner radius is given (the slider's rounded-rectangle drop)
-  const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = rim || Math.min(r, 16);
+  const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = rim || Math.min(r, Math.max(12, r * .92));
   const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
   const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
@@ -8606,7 +8683,10 @@ function lgMap(w, h, rad, rim){
     let m = 0;
     if(dist > 0){
       const t = edge < BAND ? 1 - Math.max(edge, 0) / BAND : 0;
-      m = Math.min(1, t * t + (rim ? 0 : .3 * Math.min(dist / r, 1)));
+      // the wall of a rounded glass edge: gentle where the face turns over, running away in the last fraction of
+      // a millimetre. That last stretch is what squeezes what is behind real glass into a bright ring.
+      const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;
+      m = Math.min(1, wall + (rim ? 0 : .3 * Math.min(dist / r, 1)));
       dx /= dist; dy /= dist;
     }
     const i = (y * w + x) * 4;
@@ -8619,7 +8699,7 @@ function lgMap(w, h, rad, rim){
 }
 // its bend right now: the clarity scales it (0 at the least glass, ×2.3 crystal); with colour fringes the three
 // channels bend a little apart (blue most, like a real lens)
-const lgDmScale = dm => (dm._fixed ? dm._s : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)).toFixed(1);
+const lgDmScale = dm => ((dm._fixed ? dm._s : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
 function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
@@ -8659,7 +8739,8 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim){
   blur = blur == null ? 1 : blur;
   el._lga = [w, h, scale, blur, force, fixed, rad, rim]; _lgEls.add(el);
   const bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
-  const f = "url(#" + lgFilterId(w, h, scale, false, fixed, rad, rim) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+  const ch = LG_UI.chroma && blur <= 2 && w * h <= 16000;          // dispersion costs three maps: small, clear pieces only
+  const f = "url(#" + lgFilterId(w, h, scale, ch, fixed, rad, rim) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
@@ -8669,6 +8750,113 @@ function lgRefresh(){
     lgGlass(el, ...el._lga);
   }
 }
+/* THE DIALS. The clarity slider says how much glass; these say what KIND of glass — how thick it reads, how hard
+   it bends, how bright its light, how far it floats off the page. 50 on each slider is the design, 100 is twice
+   it. Depth / highlight / shadow are pure CSS (they only feed custom properties), so moving them costs nothing
+   per frame; refraction re-scales the displacement maps, which is the one that has to be re-applied. */
+const LG_UI = { depth: 1, light: 1, shadow: 1, refract: 1, chroma: false, tilt: false };
+const LG_LOW = ((navigator.hardwareConcurrency || 8) <= 4) || ((navigator.deviceMemory || 4) <= 2);
+const LG_SOFT = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+function lgUiApply(hard){
+  const st = document.documentElement.style;
+  st.setProperty("--lgd", LG_UI.depth.toFixed(2));
+  st.setProperty("--lgh", LG_UI.light.toFixed(2));
+  st.setProperty("--lgsh", LG_UI.shadow.toFixed(2));
+  LG_UI.chroma = !LG_LOW && LG_UI.refract >= 1.4;                  // dispersion at the rim: the top of the slider only
+  if(hard){ lgScaleAll(); lgRefresh(); }
+  if(!LG_UI.light) litHome();
+}
+function lgUiSave(){
+  try{ localStorage.setItem("xc_lg_ui", JSON.stringify({ d: LG_UI.depth, l: LG_UI.light, s: LG_UI.shadow, r: LG_UI.refract, t: LG_UI.tilt })); }catch(e){}
+}
+function lgUiLoad(){
+  try{
+    const j = JSON.parse(localStorage.getItem("xc_lg_ui") || "null");
+    if(j){
+      const num = (v, d) => (typeof v === "number" && v >= 0 && v <= 2) ? v : d;
+      LG_UI.depth = num(j.d, 1); LG_UI.light = num(j.l, 1); LG_UI.shadow = num(j.s, 1); LG_UI.refract = num(j.r, 1);
+      LG_UI.tilt = !!j.t;
+    }
+  }catch(e){}
+  lgUiApply(false);
+  if(LG_UI.tilt) tiltStart();
+}
+/* ONE DISTANT LIGHT for the whole screen. A light far away means every pane agrees on where it is, which is both
+   physically right and cheap: one pair of custom properties on <html>, and only the thin rims and the speculars
+   that ask for them repaint. It springs (never a jump), it follows the finger while the finger is down, it rests
+   where the device is tilted, and it returns to its corner when nothing is happening. */
+const LIT = { a: 135, x: 30, y: 14, ta: 135, tx: 30, ty: 14, va: 0, vx: 0, vy: 0, wa: 135, wx: 30, wy: 14, hx: 30, hy: 14, raf: 0, t: 0 };
+const litWrite = () => {
+  const st = document.documentElement.style;
+  if(Math.abs(LIT.a - LIT.wa) > .4){ LIT.wa = LIT.a; st.setProperty("--lit-a", LIT.a.toFixed(1) + "deg"); }
+  if(Math.abs(LIT.x - LIT.wx) > .7){ LIT.wx = LIT.x; st.setProperty("--lit-x", LIT.x.toFixed(1) + "%"); }
+  if(Math.abs(LIT.y - LIT.wy) > .7){ LIT.wy = LIT.y; st.setProperty("--lit-y", LIT.y.toFixed(1) + "%"); }
+};
+function litTo(x, y){                                              // where the light should be, in % of the screen
+  LIT.tx = clamp(x, -25, 125); LIT.ty = clamp(y, -25, 125);
+  const dx = LIT.tx - 50, dy = LIT.ty - 50;
+  let a = Math.atan2(-dx, dy) * 180 / Math.PI;                     // the rim is brightest on the side the light is on
+  while(a - LIT.a > 180) a -= 360;                                 // always the short way round, never a spin
+  while(LIT.a - a > 180) a += 360;
+  LIT.ta = a;
+  if(LG_SOFT || LG_LOW){ LIT.a = a; LIT.x = LIT.tx; LIT.y = LIT.ty; litWrite(); return; }
+  if(!LIT.raf) LIT.raf = requestAnimationFrame(litFrame);
+}
+function litHome(){ litTo(LIT.hx, LIT.hy); }
+function litFrame(now){
+  LIT.raf = 0;
+  const dt = LIT.t ? Math.min(Math.max((now - LIT.t) / 1000, 0), 1 / 30) : 1 / 60;
+  LIT.t = now;
+  const sp = (v, p, to, K, Z) => v + (-K * (p - to) - 2 * Math.sqrt(K) * Z * v) * dt;
+  LIT.va = sp(LIT.va, LIT.a, LIT.ta, 110, .9); LIT.a += LIT.va * dt;
+  LIT.vx = sp(LIT.vx, LIT.x, LIT.tx, 140, .95); LIT.x += LIT.vx * dt;
+  LIT.vy = sp(LIT.vy, LIT.y, LIT.ty, 140, .95); LIT.y += LIT.vy * dt;
+  litWrite();
+  const still = Math.abs(LIT.a - LIT.ta) < .15 && Math.abs(LIT.va) < 2
+    && Math.abs(LIT.x - LIT.tx) < .25 && Math.abs(LIT.vx) < 2 && Math.abs(LIT.y - LIT.ty) < .25 && Math.abs(LIT.vy) < 2;
+  if(still){ LIT.a = LIT.ta; LIT.x = LIT.tx; LIT.y = LIT.ty; LIT.va = LIT.vx = LIT.vy = 0; LIT.t = 0; litWrite(); return; }
+  LIT.raf = requestAnimationFrame(litFrame);
+}
+let _litIdle = 0;
+function litFinger(e){
+  if(!LG_UI.light || !glassOn() || !LG_LENS) return;
+  litTo(e.clientX / (innerWidth || 1) * 100, e.clientY / (innerHeight || 1) * 100);
+  clearTimeout(_litIdle); _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000);   // then it drifts back to where the device is held
+}
+document.addEventListener("pointerdown", litFinger, { passive: true, capture: true });
+document.addEventListener("pointermove", litFinger, { passive: true, capture: true });
+/* the device's own tilt sets where the light RESTS — the finger only borrows it for a moment. iOS needs a gesture
+   to allow the sensor, so it is a switch in «Настройки стекла»; Android grants it and it just works. */
+let _tiltOn = false;
+function tiltHandler(e){
+  if(!LG_UI.tilt || !glassOn()) return;
+  const g = clamp(e.gamma || 0, -40, 40), b = clamp((e.beta || 0) - 45, -40, 40);
+  LIT.hx = 50 - g * 1.1; LIT.hy = 16 - b * .55;
+  if(!_litIdle) litHome();
+}
+function tiltStart(){
+  if(_tiltOn) return Promise.resolve(true);
+  const DO = window.DeviceOrientationEvent;
+  if(!DO) return Promise.resolve(false);
+  const go = () => { window.addEventListener("deviceorientation", tiltHandler, { passive: true }); _tiltOn = true; return true; };
+  if(typeof DO.requestPermission === "function") return DO.requestPermission().then(r => r === "granted" ? go() : false).catch(() => false);
+  return Promise.resolve(go());
+}
+lgUiLoad();
+/* A LENS BUILT FOR ANOTHER SIZE IS THE ONE WAY THIS SYSTEM CAN DOUBLE A LABEL: past the edge of its map the bend
+   keeps the last value, so a strip of whatever is behind is dragged half the scale sideways and letters come out
+   twice (user §8). Sizes only drift when the screen does, so one pass after a resize is enough. */
+let _lgRz = 0;
+function lgReflow(){
+  for(const el of _lgEls){
+    const a = el._lga;
+    if(!el.isConnected || !a) continue;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    if(w > 0 && h > 0 && (Math.abs(a[0] - w) > 4 || Math.abs(a[1] - h) > 4)) lgGlass(el, w, h, a[2], a[3], a[4], a[5], a[6], a[7]);
+  }
+}
+addEventListener("resize", () => { clearTimeout(_lgRz); _lgRz = setTimeout(lgReflow, 180); }, { passive: true });
+addEventListener("orientationchange", () => { clearTimeout(_lgRz); _lgRz = setTimeout(lgReflow, 320); }, { passive: true });
 function applyClarity(v, keep){
   const q = lgq(v), st = document.documentElement.style;
   st.setProperty("--lgk", q.k.toFixed(3)); st.setProperty("--lgb", q.b.toFixed(3)); st.setProperty("--lgs", q.s.toFixed(3));
@@ -8762,6 +8950,9 @@ function glassFrame(now){
     b.style.setProperty("--psx", (sc * (1 + g.St * (ax - ay / 3))).toFixed(4));            // stretched the way it is pulled
     b.style.setProperty("--psy", (sc * (1 + g.St * (ay - ax / 3))).toFixed(4));
     b.style.setProperty("--pdx", g.ox.toFixed(2) + "px"); b.style.setProperty("--pdy", g.oy.toFixed(2) + "px");
+    b.style.setProperty("--pk", g.p.toFixed(3));                                           // the core shadow deepens under the finger
+    b.style.setProperty("--pcx", (g.ox * -.22).toFixed(2) + "px");                         // and the label lags the shell, as through a moving pane
+    b.style.setProperty("--pcy", (g.oy * -.22).toFixed(2) + "px");
     const m = glassMilk(b, g.m > .005);
     if(m){
       m.style.setProperty("--mk", g.m.toFixed(3));
@@ -8769,7 +8960,7 @@ function glassFrame(now){
       m.style.setProperty("--mr", g.R + "px"); m.style.setProperty("--mb", g.mb + "px");
     }
     if(!dn && Math.abs(g.p) < .002 && Math.abs(g.pv) < .02 && Math.abs(g.ox) < .05 && Math.abs(g.oy) < .05 && Math.abs(g.vx) < .3 && Math.abs(g.vy) < .3 && g.m < .01){
-      for(const p of ["--psx", "--psy", "--pdx", "--pdy"]) b.style.removeProperty(p);
+      for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--pk", "--pcx", "--pcy"]) b.style.removeProperty(p);
       glassMilk(b, false);
       g.p = g.pv = g.ox = g.oy = g.vx = g.vy = g.m = 0; g.t = 0;
       b.classList.remove("pressing");
