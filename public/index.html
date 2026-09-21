@@ -76,6 +76,26 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc(.66 + .3 * (1 - var(--lgk,1)))); --lg-rim2:rgba(255,255,255,calc(.3 + .35 * (1 - var(--lgk,1)))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* ===================== THE MOTION SYSTEM =====================================================================
+   One vocabulary for everything that moves. Five characters, matching the spring presets in MO (below): what is
+   done here in CSS and what is integrated per frame in JS agree, so a thing does not change personality when it
+   crosses from one to the other.
+     1 micro  — a press, a toggle, an icon: it answers at once and barely overshoots
+     2 std    — a panel, a card, a popup, a change of state
+     3 fluid  — glass: morphing, resizing, moving. Softer, more mass
+     4 large  — a screen, a full modal, navigation: little bounce, long inertia
+     5 exit   — anything leaving: it goes without ceremony
+   --mo is the one dial. Reduce Motion turns it down, it never turns it off. */
+:root{
+  --mo:1;
+  --mo-e1:cubic-bezier(.24,.88,.32,1.06); --mo-e2:cubic-bezier(.22,.84,.26,1.02);
+  --mo-e3:cubic-bezier(.26,.9,.22,1);     --mo-e4:cubic-bezier(.2,.8,.16,1);
+  --mo-e5:cubic-bezier(.4,0,.72,.32);
+  --mo-t1:calc(130ms * var(--mo,1)); --mo-t2:calc(240ms * var(--mo,1)); --mo-t3:calc(360ms * var(--mo,1));
+  --mo-t4:calc(480ms * var(--mo,1)); --mo-t5:calc(170ms * var(--mo,1));
+  --mo-micro:var(--mo-t1) var(--mo-e1); --mo-std:var(--mo-t2) var(--mo-e2); --mo-fluid:var(--mo-t3) var(--mo-e3);
+  --mo-large:var(--mo-t4) var(--mo-e4); --mo-exit:var(--mo-t5) var(--mo-e5);
+}
 /* no drawn ring anywhere: a tap on a glass button cancels the browser's own focus handling, so Chrome decided the
    focus was «visible» and drew its blue outline round whatever had just opened a pane (user 2026-09-21: «удали
    обводку, которая везде появляется, она не нужна нигде») */
@@ -210,14 +230,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .ctp-dir.dn{border-bottom:0;border-top:7px solid currentColor}
 /* a trade tap, cTrader-style: the tapped side greys out for a moment while the order
    fills, and a pill drops in at the top — «Исполнение…», then «ордер исполнен ✓» */
-.ctp-cap,.ctp-px,.cht{transition:background-color .12s ease,color .12s ease}
+.ctp-cap,.ctp-px,.cht{transition:background-color var(--mo-micro),color var(--mo-micro)}
 .ctp-cap.exec,.ctp-px.exec,.cht.exec{background:var(--exec-bg);color:rgba(255,255,255,.5)}
 .ctp-cap.sell.exec::after{background:radial-gradient(circle at 100% 0,transparent 7.5px,var(--exec-bg) 8px)}
 .ctp-cap.buy.exec::after{background:radial-gradient(circle at 0 0,transparent 7.5px,var(--exec-bg) 8px)}
 .xpill{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:130;width:min(492px,calc(100% - 20px));
   display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;background:#2a2a2e;color:#fff;
   font-size:14.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.28);
-  transform:translate(-50%,-160%);opacity:0;pointer-events:none;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .2s}
+  transform:translate(-50%,-160%);opacity:0;pointer-events:none;transition:transform var(--mo-std),opacity var(--mo-std)}
 :root[data-theme="dark"] .xpill{background:#e9e7ec;color:#1f1f23}
 .xpill.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 .xpill svg{flex:0 0 18px;width:18px;height:18px}
@@ -256,7 +276,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color .22s ease}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.near{color:var(--nav-on)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav.dragging button.on:not(.near){color:var(--ink2)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:24px;height:24px}
@@ -356,14 +376,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    button itself keeps its fade / scale, so the two never fight over one transform. */
 .chlast-wrap{position:absolute;right:66px;bottom:calc(34px + var(--under,0px));z-index:5;will-change:transform}
 .chlast{position:relative;width:44px;height:31px;padding:0;border-radius:16px;color:var(--ink);display:flex;align-items:center;justify-content:center;
-  opacity:0;transform:scale(.85);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+  opacity:0;transform:scale(.85);pointer-events:none;transition:opacity var(--mo-std),transform var(--mo-std)}
 .chlast.on{opacity:1;transform:none;pointer-events:auto}
 /* liquid glass off: cTrader's opaque buttons, pressed in a little */
 .chfs,.chzoom button,.chpill,.chlast{background:var(--chart-btn);border:1px solid var(--chart-btn-edge)}
-.chfs:active,.chzoom button:active,.chlast.on:active{transform:scale(.92)}
+.chfs:active,.chzoom button:active,.chlast.on:active{transform:scale(.93) translateY(.5px);transition:transform var(--mo-micro)}
 .chpill:active{filter:brightness(.92)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.on{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
-:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.pressing,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.jelly{transition:opacity .2s ease}          /* the press / jelly springs drive its transform */
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.pressing,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast.jelly{transition:opacity var(--mo-std)}          /* the press / jelly springs drive its transform */
 /* LIQUID GLASS, iOS-style (user 2026-09-18: in cTrader the chart shows through these buttons — «можно ли
    сделать больше жидкое стекло, что бы выглядело как в айфоне»): a thin tint over a lightly blurred,
    saturated view of the candles, a specular rim brightest at the top-left and bottom-right (::after, a 1 px
@@ -390,17 +410,20 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 
 /* forms / modal */
 .modal{position:fixed;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:flex-end;justify-content:center}
+/* dragged away, the scrim goes with it — the room behind comes back as the sheet leaves, not after it */
+.modal.shd{background:color-mix(in srgb,var(--scrim),transparent calc((1 - var(--shd,1)) * 100%))}
+.modal.shd .sheet{animation:none!important}
 .sheet{position:relative;background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;padding:16px 14px 26px}
 /* a sheet slides up over a scrim that fades in, and slides back down as it closes — like cTrader's
    Android sheets and our lot wheel (it used to pop in and vanish in one frame). One that replaces an open
    sheet (the ticket redrawn, a confirmation) appears in place. transform / opacity only: the compositor
    moves it, nothing is laid out again. */
-.modal{animation:mdIn .22s ease}
-.modal .sheet{animation:lwIn .26s cubic-bezier(.2,.8,.2,1)}
+.modal{animation:mdIn var(--mo-t2) var(--mo-e2)}
+.modal .sheet{animation:lwIn var(--mo-t3) var(--mo-e3)}
 @keyframes mdIn{from{background-color:transparent}}
 .modal.swap,.modal.swap .sheet,.modal.closing,.modal.closing .sheet{animation:none}
-.modal.closing{pointer-events:none;background-color:transparent;transition:background-color .18s ease}
-.modal.closing .sheet{transform:translateY(100%);transition:transform .18s ease-in}
+.modal.closing{pointer-events:none;background-color:transparent;transition:background-color var(--mo-std)}
+.modal.closing .sheet{transform:translateY(100%);transition:transform var(--mo-std)}
 .sheet h2{margin:2px 0 14px;font-size:17px;padding-right:40px}
 /* ✕ belongs to the sheet (it sat at the screen's top-right — .sheet was not positioned — and hung there
    while the sheet slid away, user video 2026-09-18) */
@@ -416,7 +439,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-theme="dark"] .seg{background:#141414;box-shadow:inset 0 0 0 1px var(--line)}
 :root[data-theme="dark"] .seg button.on{background:#3a3a3c;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.6)}
 /* «Тема оформления»: the theme in use is a blue segment with a ✓, unmistakable in either theme */
-.seg.theme button{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;font-size:14px;transition:background-color .2s ease,color .2s ease}
+.seg.theme button{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;font-size:14px;transition:background-color var(--mo-std),color var(--mo-std)}
 .seg.theme button.on,:root[data-theme="dark"] .seg.theme button.on{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(47,123,246,.35)}
 .seg.theme .ck{display:none;font-weight:700}
 .seg.theme button.on .ck{display:inline}
@@ -494,7 +517,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .soon-pill{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--orange-ink);background:var(--orange-bg);
   border-radius:999px;padding:3px 10px;white-space:nowrap}
 .toast-wrap{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:100;width:min(492px,calc(100% - 20px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.toast{background:var(--invert);color:var(--invert-ink);border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin .25s ease}
+.toast{background:var(--invert);color:var(--invert-ink);border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:tin var(--mo-t3) var(--mo-e3)}
 .toast.g{background:#0b7a45}.toast.r{background:#c02a22}.toast.o{background:#c96a08}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .dom-grid{display:grid;grid-template-columns:1fr 88px 1fr;font-size:12px;font-variant-numeric:tabular-nums}
@@ -506,9 +529,9 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .dom-bar.b{right:0;background:var(--green)}
 .dom-bar.a{left:0;background:var(--red)}
 /* live book: a size that just changed flashes for a moment */
-.dom-bid.up,.dom-ask.up{animation:domUp .5s ease-out}
-.dom-bid.dn,.dom-ask.dn{animation:domDn .5s ease-out}
-.dom-bid.nw,.dom-ask.nw{animation:domNw .7s ease-out}
+.dom-bid.up,.dom-ask.up{animation:domUp var(--mo-t4) var(--mo-e4)}
+.dom-bid.dn,.dom-ask.dn{animation:domDn var(--mo-t4) var(--mo-e4)}
+.dom-bid.nw,.dom-ask.nw{animation:domNw var(--mo-t4) var(--mo-e4)}
 @keyframes domUp{from{background:rgba(10,168,95,.26)}to{background:transparent}}
 @keyframes domDn{from{background:rgba(229,52,43,.22)}to{background:transparent}}
 @keyframes domNw{from{background:rgba(47,123,246,.18)}to{background:transparent}}
@@ -522,7 +545,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .ovc-title{font-size:20px;line-height:26px;font-weight:700;color:var(--ink)}
 .ovc-more{display:block;margin:4px 0 0 auto;padding:8px 0;border:0;background:none;color:var(--blue-ink);font-size:16.5px;line-height:20px;font-weight:700}
 .sent-bar{display:flex;gap:2px;height:8px;margin-top:13px}
-.sent-bar span{flex:50 1 0;border-radius:2px;transition:flex-grow .6s ease}
+.sent-bar span{flex:50 1 0;border-radius:2px;transition:flex-grow var(--mo-large)}
 .sent-bar .s{background:var(--red)}
 .sent-bar .b{background:var(--green)}
 .sent-l{display:flex;justify-content:space-between;margin-top:2px;padding-bottom:1px;font-size:14.5px;line-height:17px;font-variant-numeric:tabular-nums}
@@ -574,22 +597,22 @@ body.trade-locked [data-act="domsell"],body.trade-locked [data-act="dombuy"],
 body.trade-locked [data-act="newticket"],body.trade-locked [data-act="lotpick"],body.trade-locked [data-act="lotwheel"]{opacity:.5;pointer-events:none}
 /* Markets «Количество» wheel — cTrader's (iOS) picker: a flat sheet under a hairline, the
    «Edit · Done» bar a shade off the drum; the drum itself is a canvas (openLotWheel) */
-.lotwheel{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;z-index:150;background:var(--lw-bg);border-top:1px solid var(--lw-edge);padding-bottom:env(safe-area-inset-bottom);animation:lwIn .24s cubic-bezier(.2,.8,.2,1)}
-.lotwheel.out{transition:transform .18s ease-in;transform:translateY(100%)}
+.lotwheel{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;z-index:150;background:var(--lw-bg);border-top:1px solid var(--lw-edge);padding-bottom:env(safe-area-inset-bottom);animation:lwIn var(--mo-t2) var(--mo-e2)}
+.lotwheel.out{transition:transform var(--mo-std);transform:translateY(100%)}
 @keyframes lwIn{from{transform:translateY(100%)}to{transform:none}}
 /* touch ripple (RIPPLE_SEL): a grey cell with a circle spreading from the finger, fading on release */
 /* only the pressed cell lights up — no circle spreading from the finger (user 2026-09-18: «касания убери
    именно в том месте где касаемся пальцем, они не нужны»); the cell takes the strength the circle added */
-.ripple{position:fixed;z-index:200;overflow:hidden;pointer-events:none;background:transparent;transition:background-color .1s ease,opacity .28s ease}
+.ripple{position:fixed;z-index:200;overflow:hidden;pointer-events:none;background:transparent;transition:background-color var(--mo-micro),opacity var(--mo-fluid)}
 .ripple.on{background:var(--ripple)}
 .ripple.out{opacity:0}
 /* the list rows (the XAUUSD row, positions, orders, «Ещё», sheet lists) press like cTrader's (user 2026-09-19,
    video: «в cTrade есть касания когда заходим в золото»): a soft light spreads from the finger over the row in
    ~0.2 s — brightest where the finger is — and the row lights up with it; then it opens */
-.ripple.wave{transition:background-color .22s ease-out,opacity .28s ease}
+.ripple.wave{transition:background-color var(--mo-std),opacity var(--mo-fluid)}
 .ripple .rw{position:absolute;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) scale(.04);opacity:.9;
   background:radial-gradient(circle closest-side,var(--ripple-w1) 0%,var(--ripple-w2) 62%,transparent 100%);
-  transition:transform .2s cubic-bezier(.25,.7,.35,1),opacity .2s ease}
+  transition:transform var(--mo-std),opacity var(--mo-std)}
 .ripple.on .rw{transform:translate(-50%,-50%) scale(1);opacity:1}
 .lw-bar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 8px;background:var(--lw-bar)}
 .lw-bar button{background:none;border:0;padding:10px 12px;font-size:17px;color:var(--ink)}
@@ -777,7 +800,7 @@ html:has(body.route-wallet){background:#0c0a08}
 .wbtn{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 12px;border-radius:999px;
   font-weight:600;font-size:13px;letter-spacing:.03em;white-space:nowrap;min-width:0;
   border:1px solid var(--wg2);color:var(--wg);background:rgba(227,184,119,.04);
-  transition:background .14s,transform .06s}
+  transition:background var(--mo-micro),transform var(--mo-micro)}
 .wbtn .wbtn-ic{font-size:15px}
 .wbtn:hover{background:rgba(227,184,119,.1)}
 .wbtn:active{transform:translateY(1px)}
@@ -869,13 +892,18 @@ html:has(body.route-wallet){background:#0c0a08}
 .btn,.tbtn,.menu-item,.wl-row,.seg button,.tfbar button,.miniquick button,
 .pill-toggle button,.tps-presets button,.news-btns button,.iconbtn,.lotctl button,
 .chartzoom button,.bignew{
-  transition:transform .13s cubic-bezier(.2,.7,.3,1),filter .13s ease,background-color .13s ease,color .13s ease;
+  transition:transform var(--mo-micro),filter var(--mo-micro),background-color var(--mo-micro),color var(--mo-micro);
 }
+/* A PRESS IS NOT A SCALE. Pressed, a surface goes down as well as in, and it answers on the way down far faster
+   than it comes back — that asymmetry is most of what separates a physical control from a web button. The
+   numbers are small on purpose: the eye reads the SPEED, not the distance. */
 .btn:active,.tbtn:active,.seg button:active,
 .tfbar button:active,.miniquick button:active,.pill-toggle button:active,
-.tps-presets button:active,.news-btns button:active,.lotctl button:active{transform:scale(.97)}
-.iconbtn:active,.chartzoom button:active{transform:scale(.9)}
-.bignew:active{transform:translateX(-50%) scale(.985)}
+.tps-presets button:active,.news-btns button:active,.lotctl button:active{transform:scale(.982) translateY(.7px);transition:transform var(--mo-micro)}
+.iconbtn:active,.chartzoom button:active{transform:scale(.93) translateY(.5px);transition:transform var(--mo-micro)}
+.bignew:active{transform:translateX(-50%) scale(.985) translateY(.6px);transition:transform var(--mo-micro)}
+.menu-item:active,.wl-row:active{transform:scale(.993) translateY(.4px);transition:transform var(--mo-micro)}
+.menu-item,.wl-row{transition:transform var(--mo-std),background-color var(--mo-std)}
 /* ---- LIQUID GLASS everywhere else it fits (user 2026-09-18: «первые 8 пунктов отличны») — all gated on
    html[data-glass=on]; off, every one of these keeps its flat cTrader look ---- */
 :root[data-glass="on"]{
@@ -985,7 +1013,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens{top:3px;bottom:3px;border-radius:9px}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens.idle,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens.idle{visibility:hidden}
 /* 4. toasts: clear glass capsules that drop in with a bounce and shrink away */
-:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG .52s cubic-bezier(.22,1.25,.36,1);
+:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast{position:relative;isolation:isolate;border-radius:18px;background:var(--toast-glass);text-shadow:0 1px 2px rgba(0,0,0,.35);animation:tinG var(--mo-t4) var(--mo-e4);
   -webkit-backdrop-filter:blur(calc(6px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(6px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),inset 0 1px 1px rgba(255,255,255,.18)}
 :root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.g{background:rgba(11,122,69,calc(.7 * max(.75, var(--lgs,1))))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(192,42,34,calc(.7 * max(.75, var(--lgs,1))))}:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(201,106,8,calc(.7 * max(.75, var(--lgs,1))))}
@@ -994,7 +1022,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
   background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
   box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG .58s cubic-bezier(.22,.8,.28,1)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG var(--mo-t4) var(--mo-e4)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
 @keyframes shInG{0%{transform:translateY(calc(100% + 40px))}70%{transform:translateY(-3px)}100%{transform:none}}   /* rises, overshoots a hair, settles — a drop landing */
 /* 6. the top bars: frosted, the page scrolls under them */
@@ -1007,7 +1035,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
 /* the subtabs are dragged like the tab bar: they fit the capsule (no scrolling), a sideways drag is ours,
    a vertical one still scrolls the page */
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color .2s ease}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color var(--mo-std)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs .cnt{margin-left:4px}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--blue-ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
@@ -1043,7 +1071,7 @@ html:has(body.route-wallet){background:#0c0a08}
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
-:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);border-top:0;animation:lwInG .5s cubic-bezier(.25,.9,.3,1);
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);border-top:0;animation:lwInG var(--mo-t4) var(--mo-e4);
   border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 -10px 32px rgba(0,0,0,.18),var(--lg-body)}
 @keyframes lwInG{0%{transform:translateY(100%)}70%{transform:translateY(-3px)}100%{transform:none}}
 /* the chosen row sits under a glass drop that swells its digits, like an iOS picker's lens */
@@ -1131,11 +1159,11 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
    (the glass's thickness), a soft shadow under it; the track shows through its middle, bent at its rim */
 .lgs-knob{position:absolute;top:50%;left:0;width:34px;height:22px;margin:-11px 0 0 -17px;border-radius:11px;background:#fff;pointer-events:none;will-change:transform;
   box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);transform:translateX(var(--kxp,0px)) scale(var(--ksx,1),var(--ksy,1)) skewX(var(--kk,0deg));
-  transition:width .26s cubic-bezier(.3,1.15,.45,1),height .26s cubic-bezier(.3,1.15,.45,1),margin .26s cubic-bezier(.3,1.15,.45,1),border-radius .26s ease,background-color .1s ease,box-shadow .2s ease}
+  transition:width var(--mo-fluid),height var(--mo-fluid),margin var(--mo-fluid),border-radius var(--mo-fluid),background-color var(--mo-micro),box-shadow var(--mo-std)}
 /* its white is a background COLOUR (the thicker rim a gradient over it), so fading back to the white pill is one smooth colour change */
 .lgs.press .lgs-knob,.lgs.rel .lgs-knob{background-color:rgba(255,255,255,var(--lgsw,.1));background-image:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(255,255,255,.22) 100%)}
 :root[data-theme="dark"] .lgs{--lgsw:.58}
-.lgs.rel .lgs-knob{transition:width .22s cubic-bezier(.35,0,.25,1),height .22s cubic-bezier(.35,0,.25,1),margin .22s cubic-bezier(.35,0,.25,1),border-radius .22s ease,background-color .09s ease,box-shadow .2s ease}
+.lgs.rel .lgs-knob{transition:width var(--mo-std),height var(--mo-std),margin var(--mo-std),border-radius var(--mo-std),background-color var(--mo-micro),box-shadow var(--mo-std)}
 .lgs.rel.frost .lgs-knob{background-color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06)}
 .lgs.press .lgs-knob{width:56px;height:36px;margin:-18px 0 0 -28px;border-radius:14px;
   -webkit-backdrop-filter:blur(.3px) saturate(1.6) brightness(1.06);backdrop-filter:blur(.3px) saturate(1.6) brightness(1.06);
@@ -1188,7 +1216,7 @@ body.amenu-open .wl-logo{opacity:0}
 .af-bal b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
 .af-quick{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px}
 .af-quick button{flex:1 1 auto;min-width:66px;border:0;border-radius:10px;padding:10px 4px;background:var(--sheet-card,var(--line));color:var(--ink2);font-weight:600;font-size:12.5px}
-.af-quick button:active{transform:scale(.97)}
+.af-quick button:active{transform:scale(.982) translateY(.7px);transition:transform var(--mo-micro)}
 /* «О приложении»: a long read, so it is set like one — a clear column, headings that break it up, the lead-in of
    each point in the ink colour, and the legal note sitting apart at the foot */
 .about-doc{font-size:15px;line-height:1.56;color:var(--ink2);-webkit-hyphens:auto;hyphens:auto}
@@ -1206,8 +1234,8 @@ body.amenu-open .wl-logo{opacity:0}
 /* ---- the app drawer behind the logo (cTrader's own, one to one) ---- */
 .modal.amodal{align-items:stretch;justify-content:flex-start}
 .amodal .sheet.am-sheet{width:84%;max-width:348px;height:100%;max-height:none;margin:0;padding:0;border-radius:0;
-  background:var(--card);box-shadow:0 0 40px rgba(0,0,0,.35);overflow-y:auto;animation:amIn .24s cubic-bezier(.2,.8,.2,1)}
-.amodal.closing .sheet{transform:translateX(-100%);transition:transform .2s cubic-bezier(.4,0,1,1)}
+  background:var(--card);box-shadow:0 0 40px rgba(0,0,0,.35);overflow-y:auto;animation:amIn var(--mo-t2) var(--mo-e2)}
+.amodal.closing .sheet{transform:translateX(-100%);transition:transform var(--mo-std)}
 .am-sheet>.close{display:none}
 @keyframes amIn{from{transform:translateX(-100%)}to{transform:none}}
 .am-head{display:flex;align-items:center;gap:14px;padding:15px 18px 8px 14px}   /* its mark sits exactly where the bar's logo is, so the two hand over without a jump */
@@ -1262,17 +1290,16 @@ body.amenu-open .wl-logo{opacity:0}
    glass lens almost as wide as the track and 1.4× as tall, hanging ~12 % past its end; the track shows through it,
    bent at the rim. Switched, the lens slides ~25 % of the track while the track recolours under it (grey ⇄ green),
    then it frosts milky-white and shrinks back into the knob — about 0.3 s in all. switchPress / switchRelease. */
-:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle]{width:62px;height:28px;overflow:visible;transition:background-color .26s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle]{width:62px;height:28px;overflow:visible;transition:background-color var(--mo-fluid)}
 :root[data-glass="on"]:not([data-lgoff~="switches"]) .switch .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle] .knob{top:2px;left:2px;width:37px;height:24px;border-radius:999px;background:#fff;
   box-shadow:0 1px 3px rgba(0,0,0,.2),0 0 0 .5px rgba(0,0,0,.05);transform:translateX(0);
-  transition:left .2s cubic-bezier(.3,1.18,.5,1),top .17s cubic-bezier(.3,1.18,.5,1),width .2s cubic-bezier(.3,1.18,.5,1),height .17s cubic-bezier(.3,1.18,.5,1),
-    transform .22s cubic-bezier(.3,1.1,.5,1),background-color .1s ease,box-shadow .16s ease}
+  transition:left var(--mo-std),top var(--mo-std),width var(--mo-std),height var(--mo-std),transform var(--mo-std),background-color var(--mo-micro),box-shadow var(--mo-std)}
 :root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.on .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle].on .knob{transform:translateX(21px)}
 :root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle].press .knob{top:-5.5px;left:-7px;width:60px;height:39px;background:rgba(255,255,255,.07);transform:translateX(var(--kx,0px));
   -webkit-backdrop-filter:blur(.4px) saturate(1.7) brightness(1.06);backdrop-filter:blur(.4px) saturate(1.7) brightness(1.06);
   box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 5px 14px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.72),inset 0 2px 2px rgba(255,255,255,.65),inset 0 -2px 5px rgba(0,0,0,.09)}
 :root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.on.press .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle].on.press .knob{transform:translateX(calc(16px + var(--kx,0px)))}
-:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press.slid .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle].press.slid .knob{transition:left .2s cubic-bezier(.3,1.18,.5,1),top .17s ease,width .2s ease,height .17s ease,transform .2s cubic-bezier(.35,1.1,.5,1),background-color .1s ease,box-shadow .16s ease}
+:root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.press.slid .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle].press.slid .knob{transition:left var(--mo-std),top var(--mo-std),width var(--mo-std),height var(--mo-std),transform var(--mo-std),background-color var(--mo-micro),box-shadow var(--mo-std)}
 :root[data-glass="on"]:not([data-lgoff~="switches"]) .switch.frost .knob,:root:not([data-lgoff~="switches"]) .switch[data-glass-toggle].frost .knob{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(5px) saturate(1.4);backdrop-filter:blur(5px) saturate(1.4);transition-duration:.17s,.15s,.17s,.15s,.2s,.08s,.15s}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob,:root[data-theme="dark"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle].press .knob{box-shadow:0 0 0 .5px rgba(255,255,255,.22),0 5px 14px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.2)}
 /* 5. the execution pill drops in like the Dynamic Island: a dark glass capsule that grows out of a small one at
@@ -1280,14 +1307,14 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(18,18,20,calc(.74 * max(.75, var(--lgs,1))));color:#fff;border-radius:24px;transform-origin:50% 0;
   -webkit-backdrop-filter:blur(calc(18px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgsb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px rgba(255,255,255,.16),0 10px 30px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.2);
-  transform:translate(-50%,-6px) scale(.34,.5);opacity:0;transition:transform .55s cubic-bezier(.3,1.32,.45,1),opacity .16s ease}
+  transform:translate(-50%,-6px) scale(.34,.5);opacity:0;transition:transform var(--mo-large),opacity var(--mo-std)}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(44,44,48,calc(.74 * max(.75, var(--lgs,1))));color:#fff}
 :root[data-glass="on"]:not([data-lgoff~="xpill"]) .xpill.on{transform:translate(-50%,0) scale(1);opacity:1}
 /* the «Жидкое стекло» switch in «Ещё» */
 .sw-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
 .sw-row .k{font-weight:600}
-.switch{position:relative;flex:none;width:51px;height:31px;border-radius:999px;background:var(--line);transition:background-color .2s ease;padding:0}
-.switch .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.06);transition:transform .28s cubic-bezier(.3,1.35,.5,1)}
+.switch{position:relative;flex:none;width:51px;height:31px;border-radius:999px;background:var(--line);transition:background-color var(--mo-std);padding:0}
+.switch .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.06);transition:transform var(--mo-fluid)}
 .switch.on{background:var(--green)}
 .switch.on .knob{transform:translateX(20px)}
 :root[data-theme="dark"] .switch{background:#39393d}
@@ -1298,8 +1325,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"]{--sc-ind:rgba(255,255,255,.4)}
 .sheet{scrollbar-width:none}
 .sheet::-webkit-scrollbar{display:none}
-.sc-ind{position:absolute;left:0;top:0;width:3px;height:40px;border-radius:2px;background:var(--sc-ind);opacity:0;pointer-events:none;z-index:6;transition:opacity .4s ease}
-.sc-ind.on{opacity:1;transition:opacity .08s ease}
+.sc-ind{position:absolute;left:0;top:0;width:3px;height:40px;border-radius:2px;background:var(--sc-ind);opacity:0;pointer-events:none;z-index:6;transition:opacity var(--mo-large)}
+.sc-ind.on{opacity:1;transition:opacity var(--mo-micro)}
 /* ---- «Разместить ордер» (openTicket): cTrader's page without liquid glass, a tall glass sheet with it ---- */
 :root{--ot-edge:#c3c7cd;--ot-idle:#eceef1}
 :root[data-theme="dark"]{--ot-edge:#4d4d52;--ot-idle:#323236}
@@ -1310,7 +1337,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 16px 20px;scrollbar-width:none}
 .ot-body::-webkit-scrollbar{display:none}
 .ot-foot{flex:none;padding:8px 16px calc(10px + env(safe-area-inset-bottom))}
-.ot-go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;min-height:56px;padding:6px 10px;border:0;border-radius:4px;color:#fff;background-color:var(--green);transition:background-color .2s ease,color .2s ease,transform .12s ease}
+.ot-go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;min-height:56px;padding:6px 10px;border:0;border-radius:4px;color:#fff;background-color:var(--green);transition:background-color var(--mo-std),color var(--mo-std),transform var(--mo-micro)}
 .ot-go b{font-size:16px;font-weight:500}
 .ot-go span{font-size:13.5px;opacity:.95}
 .ot-go.sell{background-color:var(--red)}
@@ -1342,7 +1369,7 @@ body.amenu-open .wl-logo{opacity:0}
 /* Продать / Купить: the chosen side framed in its colour, the other a grey block (cTrader) */
 .ot-side{display:flex;gap:10px;margin-top:16px}
 .ot-q+.ot-side{margin-top:0}
-.ot-side button{flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px;border:1px solid transparent;border-radius:4px;background:var(--ot-idle);font-size:14px;font-weight:500;text-transform:uppercase;transition:background-color .15s ease,border-color .15s ease}
+.ot-side button{flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 4px;border:1px solid transparent;border-radius:4px;background:var(--ot-idle);font-size:14px;font-weight:500;text-transform:uppercase;transition:background-color var(--mo-micro),border-color var(--mo-micro)}
 .ot-side.px button{min-height:66px}
 .ot-side button b{font-size:20px;font-weight:600;line-height:1.2;letter-spacing:-.02em}
 .sheet .ot-side button[data-otside="sell"]{color:var(--red-ink)}
@@ -1353,19 +1380,19 @@ body.amenu-open .wl-logo{opacity:0}
 /* the options: check boxes (with glass, iOS switches) that open their fields under them */
 .ot-opts{margin-top:8px}
 .ot-ck{display:flex;align-items:center;gap:14px;min-height:56px;font-size:16px;color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;-webkit-tap-highlight-color:transparent}
-.ot-box{position:relative;flex:none;width:18px;height:18px;border:2px solid var(--ink2);border-radius:2px;transition:background-color .12s ease,border-color .12s ease}
+.ot-box{position:relative;flex:none;width:18px;height:18px;border:2px solid var(--ink2);border-radius:2px;transition:background-color var(--mo-micro),border-color var(--mo-micro)}
 .ot-opt.on>.ot-ck .ot-box{background:var(--blue);border-color:var(--blue)}
 .ot-opt.on>.ot-ck .ot-box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ot-ck:focus-visible .ot-box,.ot-ck:focus-visible .switch{outline:2px solid var(--blue);outline-offset:3px}
 .ot-opt.dis>.ot-ck{opacity:.42;cursor:default}
-.ot-more,.ot-coll{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
+.ot-more,.ot-coll{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--mo-fluid)}
 .ot-opt.on>.ot-more,.ot-coll.open{grid-template-rows:1fr}
-.ot-in{min-height:0;overflow:hidden;padding:0 8px;margin:0 -8px;opacity:0;transition:opacity .16s ease}   /* the rims of the fields are not cut at the sides */
-.ot-opt.on>.ot-more>.ot-in,.ot-coll.open>.ot-in{opacity:1;transition:opacity .26s ease .05s}
+.ot-in{min-height:0;overflow:hidden;padding:0 8px;margin:0 -8px;opacity:0;transition:opacity var(--mo-std)}   /* the rims of the fields are not cut at the sides */
+.ot-opt.on>.ot-more>.ot-in,.ot-coll.open>.ot-in{opacity:1;transition:opacity var(--mo-fluid) calc(50ms * var(--mo}
 .ot-more>.ot-in::after{content:"";display:block;height:10px}
 .ot-more .otf:first-child{margin-top:8px}
 /* the ▼ menus: cTrader's dropdown under its field */
-.ot-mp{position:fixed;z-index:90;padding:8px 0;border-radius:4px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn .15s ease-out}
+.ot-mp{position:fixed;z-index:90;padding:8px 0;border-radius:4px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn var(--mo-t1) var(--mo-e1)}
 @keyframes otMn{from{opacity:0;transform:scaleY(.8)}to{opacity:1;transform:none}}
 .ot-mp button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16px;text-align:left}
 .ot-mp button.on{color:var(--blue-ink)}
@@ -1374,9 +1401,9 @@ body.amenu-open .wl-logo{opacity:0}
 .lg-pop.ot-menu .ot-menu-foot{padding:8px 12px 4px;border-top-color:var(--lg-line)}
 /* without glass: cTrader's full-screen page, sliding in from the right; «‹» goes back */
 .modal.opage{background:transparent;align-items:stretch}
-.modal.opage .sheet.ot-sheet{height:100%;max-height:none;border-radius:0;box-shadow:none;animation:otIn .28s cubic-bezier(.2,.8,.2,1)}
+.modal.opage .sheet.ot-sheet{height:100%;max-height:none;border-radius:0;box-shadow:none;animation:otIn var(--mo-t3) var(--mo-e3)}
 @keyframes otIn{from{transform:translateX(100%)}to{transform:none}}
-.modal.opage.closing .sheet{transform:translateX(100%);transition:transform .2s cubic-bezier(.4,0,1,1)}
+.modal.opage.closing .sheet{transform:translateX(100%);transition:transform var(--mo-std)}
 .ot-p>.close{display:none}
 .ot-p .ot-top{min-height:56px;padding:calc(4px + env(safe-area-inset-top)) 12px 4px 4px}
 .sheet.ot-p .ot-top h2{font-size:20px;font-weight:500}
@@ -1384,9 +1411,9 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-back:active{background:var(--press)}
 .ot-tabs{position:relative;flex:none;display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
 .ot-tabs::-webkit-scrollbar{display:none}
-.ot-tabs button{flex:none;height:48px;padding:0 16px;border:0;background:none;color:var(--ink2);font-size:14px;font-weight:500;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;transition:color .2s ease}
+.ot-tabs button{flex:none;height:48px;padding:0 16px;border:0;background:none;color:var(--ink2);font-size:14px;font-weight:500;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;transition:color var(--mo-std)}
 .ot-tabs button.on{color:var(--blue-ink)}
-.ot-ul{position:absolute;left:0;bottom:0;width:var(--ulw,0px);height:3px;border-radius:3px 3px 0 0;background:var(--blue);transform:translateX(var(--ulx,0px));transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1)}
+.ot-ul{position:absolute;left:0;bottom:0;width:var(--ulw,0px);height:3px;border-radius:3px 3px 0 0;background:var(--blue);transform:translateX(var(--ulx,0px));transition:transform var(--mo-fluid),width var(--mo-fluid)}
 .ot-p .ot-body{padding:4px 16px 24px}
 .ot-p .ot-foot{padding:0}
 .ot-p .ot-go{border-radius:0;min-height:58px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
@@ -1398,12 +1425,12 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .ot-types{flex:none;margin:2px 16px 6px}
 .ot-g .ot-types button{flex:1 1 auto;padding:9px 3px;white-space:nowrap;font-size:13px}
 .ot-g .ot-body{padding:4px 16px 16px}
-.ot-g .otf{margin-top:10px;min-height:56px;padding:0 6px 0 14px;border:0;border-radius:16px;background:var(--sheet-field,var(--field-bg));box-shadow:0 0 0 .5px var(--lg-line);transition:box-shadow .15s ease}
+.ot-g .otf{margin-top:10px;min-height:56px;padding:0 6px 0 14px;border:0;border-radius:16px;background:var(--sheet-field,var(--field-bg));box-shadow:0 0 0 .5px var(--lg-line);transition:box-shadow var(--mo-micro)}
 .ot-g .otf-l{top:8px;left:14px;padding:0;background:none;font-size:11.5px;line-height:14px}
 .ot-g .otf-v,.ot-g .otf-i{height:56px;padding-top:16px;line-height:40px}
 .ot-g .otf:focus-within{border-color:transparent;box-shadow:0 0 0 1.5px var(--blue)}
 .ot-g .otf.bad,.ot-g .otf.bad:focus-within{box-shadow:0 0 0 1.5px var(--red-ink)}
-.ot-g .ot-st{width:36px;height:36px;margin-left:6px;background:var(--cap-glass);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-body);transition:transform .12s ease}
+.ot-g .ot-st{width:36px;height:36px;margin-left:6px;background:var(--cap-glass);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-body);transition:transform var(--mo-micro)}
 .ot-g .ot-st:active{background:var(--cap-glass);transform:scale(.88)}
 .ot-g .ot-caret{margin-right:12px}
 .ot-g .ot-note,.ot-g .ot-err{margin-left:14px;margin-right:14px}
@@ -1416,7 +1443,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .ot-side.buy button.on{background:color-mix(in srgb,var(--green) 22%,transparent);box-shadow:none}
 .ot-g .ot-side.sell button.on{background:color-mix(in srgb,var(--red) 22%,transparent);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side button.on{background:transparent}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side .seg-bub{transition:background-color .25s ease}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side .seg-bub{transition:background-color var(--mo-fluid)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy .seg-bub{background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),color-mix(in srgb,var(--green) 24%,transparent)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell .seg-bub{background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),color-mix(in srgb,var(--red) 24%,transparent)}
 .ot-g .ot-opts{margin-top:14px;padding:0 14px;border-radius:18px;background:var(--sheet-card,var(--card));box-shadow:0 0 0 .5px var(--lg-line)}
@@ -1428,36 +1455,44 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .ot-go{border-radius:28px;background-image:linear-gradient(180deg,rgba(255,255,255,.26),transparent 62%);box-shadow:0 8px 22px color-mix(in srgb,var(--green) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go.sell{box-shadow:0 8px 22px color-mix(in srgb,var(--red) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go:disabled{background-color:var(--cap-glass);background-image:none;box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);color:var(--ink3)}
-.ot-g .ot-go:not(:disabled):active{transform:scale(.98)}
+.ot-g .ot-go:not(:disabled):active{transform:scale(.986) translateY(.8px);transition:transform var(--mo-micro)}
 /* the lot list without liquid glass — cTrader's Android dropdown under «Количество», one to one with its screenshot:
    it starts OVER the field, at the middle of its number (no gap, no padding — the lit row sits right at its top), the
    field's width, 52 px rows, down to the screen's foot; a thin bar only while it scrolls (scrollInd). The current
    volume is lit and on top; a tap picks, a tap beside closes (the drum is liquid glass's own) */
 .lot-list{position:fixed;z-index:90;display:flex;flex-direction:column;overflow:hidden;border-radius:2px;background:var(--card);
-  box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn .15s ease-out}
+  box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn var(--mo-t1) var(--mo-e1)}
 .ll-in{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
 .ll-in::-webkit-scrollbar{display:none}
 .lot-list .sc-ind{background:var(--blue);width:2.5px}
 .lot-list.up{transform-origin:50% 100%}
-.lot-list.out{opacity:0;transition:opacity .1s ease}
+.lot-list.out{opacity:0;transition:opacity var(--mo-micro)}
 :root[data-theme="dark"] .lot-list{background:#1f2023;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .lot-list button{display:block;width:100%;min-height:52px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16.5px;text-align:left;font-variant-numeric:tabular-nums}
 .lot-list button.on{background:#e6e8ec}
 :root[data-theme="dark"] .lot-list button.on{background:#454850}
 .lot-list button:active{background:rgba(127,127,127,.26)}
 .ll-open .ot-caret,.ll-open .ctp-caret{transform:rotate(180deg)}
-.ot-caret,.ctp-caret{transition:transform .15s ease}
+.ot-caret,.ctp-caret{transition:transform var(--mo-micro)}
 /* the order-type tabs with glass: the tab bar's drop — pressed it lifts into a clear lens taller than the capsule that
    follows the finger (a soft spring, a rubber band past the ends); the tab under it swells */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag{touch-action:pan-y;user-select:none;-webkit-user-select:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag .seg-lens{background:rgba(255,255,255,.025)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag button{transition:transform .2s cubic-bezier(.3,1.3,.5,1),color .2s ease}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag button{transition:transform var(--mo-std),color var(--mo-std)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag.dragging button.near{transform:scale(1.1);color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag.dragging button.on:not(.near){color:var(--ink3)}
 /* the cross-fade the glass switch runs through (smoothSwap) */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.4s;animation-timing-function:cubic-bezier(.35,0,.2,1)}
+/* REDUCE MOTION. The old rule set every duration in the app to .01 ms, which did not calm the interface down —
+   it deleted it: on a phone with the setting on, every transition SNAPPED, and that is most of what read as
+   «дёшево» (user 2026-09-21, and the shadow / button hand-overs we chased for days). Now motion is scaled down,
+   not switched off: shorter, straighter, with the decorative loops and the parallax stopped outright. */
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  :root{--mo:.62}
+  :root,:root *{--mo-e1:cubic-bezier(.3,.85,.4,1);--mo-e2:cubic-bezier(.3,.85,.4,1);--mo-e3:cubic-bezier(.3,.85,.4,1);--mo-e4:cubic-bezier(.3,.85,.4,1)}
+  .appbar .ttl.run .ttl-run{animation:none}
+  .dom-cell,.dom-row td{animation:none!important}
+  .badge-demo,.soon-pill{animation:none!important}
 }
 </style>
 
@@ -4407,6 +4442,75 @@ function lgDropShape(a, box, k, R0, org){
    is no hand-over to flicker. Closing, the drop drains back into the button.
    An element cannot paint outside its own box, so a button that lies outside the window (a menu under its field)
    starts the drop at the edge nearest to it. */
+/* ===================== MO — the one engine ===================================================================
+   Five characters of spring, three siblings, and a single requestAnimationFrame for every one of them.
+   A: micro   press / toggle / icon        — fast, light, all but no overshoot
+      pop     the same thing coming back   — the wobble a small released object has
+      jelly   deformation, not travel      — stretch and squash that outlives the move
+   B: std     panel / card / popup / state
+   C: fluid   glass: morph, size, position — softer, more mass
+      lit     the light over the glass     — slower still, it must never look driven
+   D: large   screen / full modal / nav    — barely bounces, carries a long way
+   E: drag    released from a finger       — seeded with the finger's own velocity
+   Everything is a spring on (K, ζ): retargeting mid-flight keeps position AND velocity, so every animation in the
+   app is interruptible by construction — a gesture can seize one at any frame and it continues from where it is.
+   Reduce Motion stiffens and damps every preset instead of removing it (MO.tune). */
+const MO = {
+  raw: {
+    micro: { k: 640, z: .62 }, pop: { k: 320, z: .26 }, jelly: { k: 330, z: .22 },
+    std:   { k: 340, z: .68 }, fluid: { k: 215, z: .58 }, lit: { k: 130, z: .9 },
+    large: { k: 145, z: .88 }, drag:  { k: 250, z: .8 },
+    grab:  { k: 900, z: .9 },                                    // while a finger holds it: stiff, it must not lag
+    follow:{ k: 430, z: .62 },                                   // steered by a finger, allowed to lag a step
+    lead:  { k: 540, z: .52 }, trail: { k: 240, z: .55 }         // the two edges of a drop that flows: one leads, one catches up
+  },
+  P: {}, soft: false
+};
+MO.tune = () => {
+  MO.soft = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  for(const n in MO.raw){
+    const p = MO.raw[n];
+    MO.P[n] = MO.soft ? { k: p.k * 1.35, z: Math.min(1, p.z + .3) } : { k: p.k, z: p.z };
+  }
+  // under a finger the same character, stiffened: derived here so no frame ever allocates
+  const st = (p, m) => ({ k: p.k * m, z: Math.min(1, p.z + .1) });
+  MO.P.leadDrag = st(MO.P.lead, .96); MO.P.trailDrag = st(MO.P.trail, 1.25);
+};
+MO.tune();
+try{ matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", MO.tune); }catch(e){}
+/* WHAT THE SCREEN CAN ACTUALLY DO. requestAnimationFrame already fires at the panel's rate, so a 120 Hz phone
+   gets 120 steps a second for free — but only if nothing in the app assumes sixty. The one place that did was
+   the very first frame of every loop, which had no previous timestamp and guessed 1/60; on a 120 Hz screen that
+   first step was twice as long as it should be, which is a visible kick at the start of a movement. Measured
+   once, a few frames in, and every loop takes its first dt from here. */
+MO.hz = 60; MO.dt0 = 1 / 60;
+(function(){
+  let n = 0, t0 = 0;
+  const probe = t => {
+    if(!t0){ t0 = t; }
+    else if(++n >= 14){
+      const hz = 1000 / ((t - t0) / n);
+      MO.hz = hz > 200 ? 240 : hz > 100 ? 120 : hz > 80 ? 90 : 60;
+      MO.dt0 = 1 / MO.hz;
+      return;
+    }
+    requestAnimationFrame(probe);
+  };
+  requestAnimationFrame(probe);
+})();
+// one integration step of a preset. v is the velocity, x where it is now, to where it wants to be
+MO.sp = (v, x, to, p, dt) => v + (-p.k * (x - to) - 2 * Math.sqrt(p.k) * p.z * v) * dt;
+// ONE rAF for every spring in the app. Each loop keeps its own state and its own dt; this only owns the frame,
+// so seven concurrent loops became one callback, one batch of reads and one batch of writes.
+let _moA = [], _moB = [], _moRaf = 0;
+function moAdd(fn){ if(_moA.indexOf(fn) < 0) _moA.push(fn); if(!_moRaf) _moRaf = requestAnimationFrame(moFrame); }
+function moFrame(now){
+  const list = _moA; _moA = _moB; _moB = list;                     // two buffers, swapped: a frame allocates nothing
+  _moA.length = 0;
+  _moRaf = 0;                                                      // cleared BEFORE the callbacks run: one of them
+  for(let i = 0; i < list.length; i++){ try{ list[i](now); }catch(e){ console.error(e); } }   // re-adds itself and schedules
+  if(_moA.length && !_moRaf) _moRaf = requestAnimationFrame(moFrame);   // the next frame — never schedule it twice,
+}                                                                  // or every frame doubles the number of frames
 /* a short ease-out ramp driven by rAF. CSS transitions are killed system-wide by "reduce motion" (and by Android's
    animator scale), and these two hand-overs — a window's shadow coming up, a button coming back — must stay soft on
    every phone, or they snap and read as a flicker (user 2026-09-20). */
@@ -4599,10 +4703,39 @@ function toast(kind, msg){
   t.textContent = msg;
   w.appendChild(t);
   if(glassOn("toasts")) requestAnimationFrame(() => lgGlass(t, t.offsetWidth, t.offsetHeight, 0, 6));
-  setTimeout(()=>{ t.style.transition="opacity .3s, transform .3s"; t.style.opacity="0"; if(glassOn("toasts")) t.style.transform="translateY(-8px) scale(.9)"; setTimeout(()=>t.remove(),300); }, 3200);
+  setTimeout(()=>{ t.style.transition="opacity var(--mo-exit), transform var(--mo-std)"; t.style.opacity="0"; if(glassOn("toasts")) t.style.transform="translateY(-8px) scale(.9)"; setTimeout(()=>t.remove(),300); }, 3200);
 }
 
+/* A SCREEN ARRIVES FROM SOMEWHERE. Tapping a tab to the right brings the next screen in from the right and the
+   other way round: the interface has a left and a right, and the move says which way you went. The bar and the
+   tab strip hold still, as they do on iOS — only what changed actually travels. */
+const NAV_ORDER = ["markets", "chart", "positions", "orders", "more"];
+let _navDir = 0;
+function navEnter(dir){
+  const el = app().querySelector(":scope > .wrap, :scope > .chartbox");
+  if(!el) return;
+  let x = dir * (MO.soft ? 12 : 26), v = 0, o = 0, t0 = 0;
+  el.style.willChange = "transform,opacity";
+  el.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+  el.style.opacity = "0";
+  const step = now => {
+    if(!el.isConnected){ return; }
+    const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+    v = MO.sp(v, x, 0, MO.P.large, dt); x += v * dt;
+    o = Math.min(1, o + dt / (MO.soft ? .1 : .17));
+    if(Math.abs(x) < .15 && Math.abs(v) < 2 && o >= 1){
+      el.style.removeProperty("transform"); el.style.removeProperty("opacity"); el.style.removeProperty("will-change");
+      return;
+    }
+    el.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+    el.style.opacity = (o * o * (3 - 2 * o)).toFixed(3);
+    moAdd(step);
+  };
+  moAdd(step);
+}
 function nav(tab, subtab){
+  const a = NAV_ORDER.indexOf(S.ui.tab), b = NAV_ORDER.indexOf(tab);
+  _navDir = (a >= 0 && b >= 0 && a !== b) ? (b > a ? 1 : -1) : 0;
   S.ui.tab = tab;
   if(subtab) S.ui.subtab = subtab;
   closeModal();
@@ -4741,10 +4874,10 @@ function lgsBind(el, v0, onInput, onDone){
   const jelly = now => {
     J.raf = 0;
     if(P && P.x != null && P.x !== P.done){ P.done = P.x; const was = el._v, v = set(vAt(P.x)); if(v !== was) onInput(v); }   // one write a frame
-    const dt = J.t ? Math.min(Math.max((now - J.t) / 1000, 0), 1 / 30) : 1 / 60; J.t = now;
+    const dt = J.t ? Math.min(Math.max((now - J.t) / 1000, 0), 1 / 30) : MO.dt0; J.t = now;
     const target = P ? Math.min(Math.abs(J.vel) * .00035, .2) : 0;
     J.vel *= Math.exp(-dt / .06);                                   // no move → its speed dies away
-    J.jv += (-420 * (J.j - target) - 2 * Math.sqrt(420) * .22 * J.jv) * dt; J.j += J.jv * dt;
+    J.jv = MO.sp(J.jv, J.j, target, MO.P.jelly, dt); J.j += J.jv * dt;
     if(Math.abs(J.vel) > 30) J.dir = J.vel > 0 ? 1 : -1;
     knob.style.setProperty("--ksx", (1 + J.j).toFixed(4)); knob.style.setProperty("--ksy", (1 - J.j * .55).toFixed(4));
     knob.style.setProperty("--kk", ((J.dir || 1) * J.j * 38).toFixed(2) + "deg");   // it leans with its speed, its top a step behind (video 3)
@@ -4834,7 +4967,7 @@ function themeSwitchWire(root){
   const step = now => {
     if(!sw.isConnected) return;
     const dt = Math.min(Math.max((now - t0) / 1000, 0), 1 / 30); t0 = now;
-    v += (-250 * (x - to) - 2 * Math.sqrt(250) * .6 * v) * dt; x += v * dt;
+    v = MO.sp(v, x, to, MO.P.std, dt); x += v * dt;
     if(Math.abs(x - to) < .002 && Math.abs(v) < .02){ sw.style.removeProperty("--thk"); return; }
     sw.style.setProperty("--thk", clamp(x, -.1, 1.1).toFixed(4));
     requestAnimationFrame(step);
@@ -4922,6 +5055,7 @@ function render(){
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(t === "dom") drawDOMCanvasMaybe();
   runTitles();
+  if(_navDir){ const d = _navDir; _navDir = 0; navEnter(d); }     // last, so every measurement above saw the screen at rest
 }
 
 /* A title longer than the room the bar leaves it (the DEMO badge takes most of a
@@ -6235,14 +6369,14 @@ function pmFrame(now){
   const row = pmRow();
   const target = S.ui.chMerge ? -PM_D : 0;
   if(!row || !glassOn("chart")){ PM.x = target; PM.v = 0; PM.j = PM.jv = 0; PM.sx = PM.sv = PM.sj = PM.sjv = PM.b = PM.bv = 0; return; }
-  const dt = PM.t ? Math.min(Math.max((now - PM.t) / 1000, 0), 1 / 30) : 1 / 60;
+  const dt = PM.t ? Math.min(Math.max((now - PM.t) / 1000, 0), 1 / 30) : MO.dt0;
   PM.t = now;
   if(!PM.drag || !PM.drag.on){
-    PM.v += (-300 * (PM.x - target) - 2 * Math.sqrt(300) * .34 * PM.v) * dt;    // home with a wobble
+    PM.v = MO.sp(PM.v, PM.x, target, MO.P.fluid, dt);                           // home with a wobble
     PM.x = clamp(PM.x + PM.v * dt, -PM_D - 7, 16);                           // a flick never runs it over «›»
   }
   const jt = Math.min(Math.abs(PM.v) * .0011, .28);                          // stretched along its way by its speed
-  PM.jv += (-380 * (PM.j - jt) - 2 * Math.sqrt(380) * .22 * PM.jv) * dt; PM.j += PM.jv * dt;
+  PM.jv = MO.sp(PM.jv, PM.j, jt, MO.P.jelly, dt); PM.j += PM.jv * dt;
   // «XAUUSD», a soft spring: leans toward «м1» closer than 8 px (home is 9 apart: at rest it stands straight); joined,
   // the finger pulling «м1» away drags it along by the neck (up to 6 px) and «м1» pushed on in shoves it back; let go,
   // nothing holds it — so the neck always snaps on the way home
@@ -6250,10 +6384,10 @@ function pmFrame(now){
   let st = 0;
   if(PM.joined){ if(g > 0 && dragging) st = Math.min(6, g * .6); else if(PM.x < -PM_D) st = (PM.x + PM_D) * .5; }
   else if(g > 0 && g < 8) st = (8 - g) * .45;
-  PM.sv += (-320 * (PM.sx - st) - 2 * Math.sqrt(320) * .23 * PM.sv) * dt; PM.sx = clamp(PM.sx + PM.sv * dt, -6, 7);
+  PM.sv = MO.sp(PM.sv, PM.sx, st, MO.P.fluid, dt); PM.sx = clamp(PM.sx + PM.sv * dt, -6, 7);
   const sjt = Math.min(Math.abs(PM.sv) * .0012, .12);
-  PM.sjv += (-380 * (PM.sj - sjt) - 2 * Math.sqrt(380) * .22 * PM.sjv) * dt; PM.sj += PM.sjv * dt;
-  PM.bv += (-420 * PM.b - 2 * Math.sqrt(420) * .2 * PM.bv) * dt; PM.b = clamp(PM.b + PM.bv * dt, -4, 6);   // the bulge settles with a wobble
+  PM.sjv = MO.sp(PM.sjv, PM.sj, sjt, MO.P.jelly, dt); PM.sj += PM.sjv * dt;
+  PM.bv = MO.sp(PM.bv, PM.b, 0, MO.P.jelly, dt); PM.b = clamp(PM.b + PM.bv * dt, -4, 6);   // the bulge settles with a wobble
   pmDraw(row);
   const still = !PM.drag && Math.abs(PM.x - target) < .05 && Math.abs(PM.v) < .5 && Math.abs(PM.j) < .002 && Math.abs(PM.jv) < .02
     && Math.abs(PM.sx - st) < .05 && Math.abs(PM.sv) < .5 && Math.abs(PM.sj) < .002 && Math.abs(PM.sjv) < .02 && Math.abs(PM.b) < .03 && Math.abs(PM.bv) < .3;
@@ -6266,9 +6400,9 @@ function pmFrame(now){
     if(chart._zones) chart._zones.pmX = PM.x;
     return;
   }
-  PM.raf = requestAnimationFrame(pmFrame);
+  PM.raf = 1; moAdd(pmFrame);
 }
-const pmKick = () => { if(!PM.raf){ PM.t = 0; PM.raf = requestAnimationFrame(pmFrame); } };
+const pmKick = () => { if(!PM.raf){ PM.t = 0; PM.raf = 1; moAdd(pmFrame); } };
 // a new chart (render): take the state over; a merged row draws its drop at once
 function pmSetup(){
   const row = pmRow(); if(!row) return;
@@ -6521,13 +6655,12 @@ function navBubFrame(now){
   NB.raf = 0;
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
   if(!lens){ NB.u = NB.target; NB.vel = 0; NB.lift = 0; return; }
-  const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : 1 / 60;
+  const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : MO.dt0;
   NB.t = now;
   const target = NB.drag ? NB.drag.u : NB.target;
   // one to one with the user's video (WhatsApp, iOS 26): under the finger a SOFT spring — the lens lags a step
   // behind and sways when the finger stops; let go, it overshoots a hair onto the tab
-  const K = NB.drag ? 420 : 320, C = 2 * Math.sqrt(K) * (NB.drag ? .62 : .6);
-  NB.vel += (-K * (NB.u - target) - C * NB.vel) * dt;
+  NB.vel = MO.sp(NB.vel, NB.u, target, NB.drag ? MO.P.follow : MO.P.std, dt);
   NB.u = clamp(NB.u + NB.vel * dt, -0.3, 4.3);
   // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
   const lt = NB.drag ? 1 : 0;
@@ -6608,9 +6741,9 @@ function navCardRun(C){
   let t = 0;
   const q = LGQ, b0 = 18 * q.b, b1 = 24 * Math.max(.9, q.sb);
   const frame = now => {
-    const dt = t ? Math.min(Math.max((now - t) / 1000, 0), 1 / 30) : 1 / 60; t = now;
-    const to = C.open ? C.H : C.h0, K = C.open ? 170 : 210;
-    C.v += (-K * (C.h - to) - 2 * Math.sqrt(K) * .86 * C.v) * dt; C.h += C.v * dt;
+    const dt = t ? Math.min(Math.max((now - t) / 1000, 0), 1 / 30) : MO.dt0; t = now;
+    const to = C.open ? C.H : C.h0;
+    C.v = MO.sp(C.v, C.h, to, MO.P.large, dt); C.h += C.v * dt;
     const p = clamp((C.h - C.h0) / Math.max(1, C.H - C.h0), 0, 1.05);
     C.card.style.height = C.h.toFixed(1) + "px";
     C.card.style.setProperty("--ncp", Math.min(1, p).toFixed(3));
@@ -6871,11 +7004,11 @@ function mqFrame(now){
   _mqRaf = 0;
   for(const [box, s] of _mq){
     if(!box.isConnected){ _mq.delete(box); continue; }
-    const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : 1 / 60;
+    const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : MO.dt0;
     s.t = now;
     // it never travels over a gap: aim() puts it straight on the new chip; here only the landing wobble plays
     // out — an underdamped spring (K 420, ζ .3) from the squash back to still
-    s.pv = (s.pv || 0) + (-420 * (s.p || 0) - 2 * Math.sqrt(420) * .22 * (s.pv || 0)) * dt;
+    s.pv = MO.sp(s.pv || 0, s.p || 0, 0, MO.P.jelly, dt);
     s.p = (s.p || 0) + s.pv * dt;
     s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
     if(_mqMem) _mqMem.f = s.f;
@@ -6906,21 +7039,21 @@ function dropFrame(now){
   _dropRaf = 0;
   for(const [bub, st] of _drops){
     if(!bub.isConnected){ _drops.delete(bub); continue; }
-    const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
+    const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : MO.dt0;
     st.t = now;
     const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
     const dr = !!st.drag;                                           // under the finger: a soft spring that lags and stretches (the video); let go: the flowing drop
-    const Kf = dr ? 520 : 540, Ks = dr ? 300 : 240, Cf = 2 * Math.sqrt(Kf) * (dr ? .62 : .52), Cs = 2 * Math.sqrt(Ks) * (dr ? .62 : .55);   // a bounce on landing
-    const Kl = right ? Ks : Kf, Cl = right ? Cs : Cf, Kr = right ? Kf : Ks, Cr = right ? Cf : Cs;
-    st.vl += (-Kl * (st.l - st.tl) - Cl * st.vl) * dt; st.l += st.vl * dt;
-    st.vr += (-Kr * (st.r - st.tr) - Cr * st.vr) * dt; st.r += st.vr * dt;
+    const Pf = dr ? MO.P.leadDrag : MO.P.lead, Ps = dr ? MO.P.trailDrag : MO.P.trail;   // a bounce on landing
+    const Pl = right ? Ps : Pf, Pr = right ? Pf : Ps;
+    st.vl = MO.sp(st.vl, st.l, st.tl, Pl, dt); st.l += st.vl * dt;
+    st.vr = MO.sp(st.vr, st.r, st.tr, Pr, dt); st.r += st.vr * dt;
     if(st.r - st.l < 8) st.r = st.l + 8;
     // the lens rides the speed: up fast while the drop flows, melting back as it lands
     const flf = st.drag ? 1 : Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
     st.lf += (flf - st.lf) * (1 - Math.exp(-dt / (flf > st.lf ? .05 : .16)));
     // the jelly: squashed by its speed, an underdamped spring (K 260, ζ .3) — it wobbles a couple of times after it stops
     const jt = Math.min((Math.abs(st.vl) + Math.abs(st.vr)) / 3200, .14);
-    st.jv += (-260 * (st.j - jt) - 2 * Math.sqrt(260) * .22 * st.jv) * dt; st.j += st.jv * dt;
+    st.jv = MO.sp(st.jv, st.j, jt, MO.P.jelly, dt); st.j += st.jv * dt;
     const done = !st.drag && Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01 && Math.abs(st.j) < .003 && Math.abs(st.jv) < .05;
     if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; st.j = st.jv = 0; }
     _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv };
@@ -8108,6 +8241,90 @@ function showNewsResult(r){
 }
 
 /* ---------- generic sheet ---------- */
+/* ===================== A SHEET YOU CAN THROW AWAY =============================================================
+   Until now a window could only be closed by a button: the animation was a canned duration with a beginning and
+   an end, and the finger had nothing to do with it. Now the gesture OWNS the progress — the sheet goes exactly
+   where the finger takes it, and what happens on release is decided by the speed it was let go at, not by a
+   threshold in pixels alone. Grab it again mid-flight and it carries on from where it is, with its velocity:
+   every one of these is a spring being retargeted, never an animation being restarted.
+   A bottom sheet is dragged by its head (the top 64 px), so it can never fight the scrolling inside it; the
+   drawer is dragged anywhere, because it only scrolls the other way. */
+const SHD = { m: null, sh: null, h: false, o: 0, v: 0, size: 1, drag: null, raf: 0, t: 0 };
+function shdPut(){
+  const S2 = SHD; if(!S2.sh) return;
+  const o = S2.o;
+  S2.sh.style.transform = S2.h ? "translate3d(" + (-o).toFixed(1) + "px,0,0)" : "translate3d(0," + o.toFixed(1) + "px,0)";
+  S2.m.style.setProperty("--shd", (1 - Math.min(1, Math.abs(o) / S2.size)).toFixed(3));
+}
+function shdFrame(now){
+  const S2 = SHD; S2.raf = 0;
+  if(!S2.sh || !S2.sh.isConnected){ S2.sh = null; return; }
+  const dt = S2.t ? Math.min(Math.max((now - S2.t) / 1000, 0), 1 / 30) : MO.dt0; S2.t = now;
+  if(S2.go){                                                       // thrown out: keep going, then it is gone
+    S2.v += 2600 * dt; S2.o += S2.v * dt;
+    shdPut();
+    if(S2.o >= S2.size + 20){ const m = S2.m; shdClear(); if(modalEl === m) closeModal(true); else m.remove(); return; }
+    S2.raf = 1; moAdd(shdFrame); return;
+  }
+  S2.v = MO.sp(S2.v, S2.o, 0, MO.P.drag, dt); S2.o += S2.v * dt;
+  shdPut();
+  if(Math.abs(S2.o) < .3 && Math.abs(S2.v) < 6){ S2.o = 0; S2.v = 0; shdPut(); shdClear(); return; }
+  S2.raf = 1; moAdd(shdFrame);
+}
+function shdClear(){
+  const S2 = SHD;
+  if(S2.sh){ S2.sh.style.removeProperty("transform"); S2.sh.style.removeProperty("will-change"); }
+  if(S2.m){ S2.m.classList.remove("shd"); S2.m.style.removeProperty("--shd"); }
+  S2.sh = null; S2.m = null; S2.drag = null; S2.go = false; S2.o = 0; S2.v = 0; S2.t = 0;
+}
+function sheetDrag(m){
+  const sh = m.querySelector(".sheet"); if(!sh) return;
+  const horiz = m.classList.contains("amodal");
+  let d = null;
+  const NOPE = ".lgs, .lotwheel, .lw-wrap, input, textarea, select, canvas, .ot-vol, .ctp-lot, .seg, [data-lgui], [data-lgth]";
+  sh.addEventListener("pointerdown", e => {
+    if(e.button > 0 || (e.target.closest && e.target.closest(NOPE))) return;
+    if(!horiz && (sh.scrollTop > 4 || e.clientY - sh.getBoundingClientRect().top > 64)) return;   // its head only
+    const S2 = SHD;
+    if(S2.sh !== sh){ shdClear(); S2.sh = sh; S2.m = m; S2.h = horiz; S2.o = 0; S2.v = 0; }       // else: seize the spring mid-flight
+    S2.size = Math.max(1, horiz ? sh.offsetWidth : sh.offsetHeight);
+    d = { x: e.clientX, y: e.clientY, o0: S2.o, on: false, lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0 };
+    S2.drag = d; S2.go = false;
+    sh.style.willChange = "transform";
+    m.classList.add("shd");
+  }, { passive: true });
+  const move = e => {
+    if(!d) return;
+    const S2 = SHD, dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if(!d.on){
+      if(Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+      const ok = horiz ? (Math.abs(dx) > Math.abs(dy) * 1.4 && dx < 0) : (Math.abs(dy) > Math.abs(dx) * 1.2 && dy > 0);
+      if(!ok){ d = null; SHD.drag = null; return; }
+      d.on = true;
+    }
+    let o = d.o0 + (horiz ? -dx : dy);
+    if(o < 0) o *= .32;                                            // pushed the wrong way it goes rubbery, not nowhere
+    const now = performance.now(), ms = now - d.lt;
+    if(ms > 8){ d.v = ((horiz ? -(e.clientX - d.lx) : e.clientY - d.ly) / ms) * 1000; d.lx = e.clientX; d.ly = e.clientY; d.lt = now; }
+    S2.o = o; S2.v = d.v;
+    shdPut();
+    if(e.cancelable) e.preventDefault();
+  };
+  sh.addEventListener("pointermove", move, { passive: false });
+  const up = () => {
+    if(!d) return;
+    const S2 = SHD, was = d.on; d = null; S2.drag = null;
+    if(!was){ shdClear(); return; }
+    // thrown, or pulled past a third of itself: it leaves. Otherwise it springs home from where it is, at the
+    // speed it was let go at — the release is a continuation, not a new animation
+    S2.go = S2.v > 620 || (S2.o > S2.size * .32 && S2.v > -180);
+    if(S2.go) S2.v = Math.max(S2.v, 420);
+    S2.t = 0;
+    if(!S2.raf){ S2.raf = 1; moAdd(shdFrame); }
+  };
+  sh.addEventListener("pointerup", up, { passive: true });
+  sh.addEventListener("pointercancel", up, { passive: true });
+}
 function openSheet(html, sheetCls, modalCls){
   const from = _morphFrom && _morphFrom.isConnected && performance.now() - _morphT < 450 && glassOn("morph") ? _morphFrom : null;
   _morphFrom = null;
@@ -8124,6 +8341,7 @@ function openSheet(html, sheetCls, modalCls){
   glassDrops(modalEl);                                            // Market / Pending, SELL / BUY flow on
   quickLens(modalEl);                                             // the lot sheet's quick chips
   scrollInd(modalEl.querySelector(".sheet"), modalEl);
+  sheetDrag(modalEl);                                             // the finger owns the way out
   if(from && !swap && !modalCls){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }   // a full-screen page (and the drawer, which morphs itself) opens its own way
 }
 /* a sheet's scroll indicator of its own — the browser's overlay bar ran past their rounded corners (user: «ползунок
@@ -8799,23 +9017,22 @@ function litTo(x, y){                                              // where the 
   while(a - LIT.a > 180) a -= 360;                                 // always the short way round, never a spin
   while(LIT.a - a > 180) a += 360;
   LIT.ta = a;
-  if(LG_SOFT || LG_LOW){ LIT.a = a; LIT.x = LIT.tx; LIT.y = LIT.ty; litWrite(); return; }
-  if(!LIT.raf) LIT.raf = requestAnimationFrame(litFrame);
+  if(LG_LOW){ LIT.a = a; LIT.x = LIT.tx; LIT.y = LIT.ty; litWrite(); return; }
+  if(!LIT.raf){ LIT.raf = 1; moAdd(litFrame); }
 }
 function litHome(){ litTo(LIT.hx, LIT.hy); }
 function litFrame(now){
   LIT.raf = 0;
-  const dt = LIT.t ? Math.min(Math.max((now - LIT.t) / 1000, 0), 1 / 30) : 1 / 60;
+  const dt = LIT.t ? Math.min(Math.max((now - LIT.t) / 1000, 0), 1 / 30) : MO.dt0;
   LIT.t = now;
-  const sp = (v, p, to, K, Z) => v + (-K * (p - to) - 2 * Math.sqrt(K) * Z * v) * dt;
-  LIT.va = sp(LIT.va, LIT.a, LIT.ta, 110, .9); LIT.a += LIT.va * dt;
-  LIT.vx = sp(LIT.vx, LIT.x, LIT.tx, 140, .95); LIT.x += LIT.vx * dt;
-  LIT.vy = sp(LIT.vy, LIT.y, LIT.ty, 140, .95); LIT.y += LIT.vy * dt;
+  LIT.va = MO.sp(LIT.va, LIT.a, LIT.ta, MO.P.lit, dt); LIT.a += LIT.va * dt;
+  LIT.vx = MO.sp(LIT.vx, LIT.x, LIT.tx, MO.P.lit, dt); LIT.x += LIT.vx * dt;
+  LIT.vy = MO.sp(LIT.vy, LIT.y, LIT.ty, MO.P.lit, dt); LIT.y += LIT.vy * dt;
   litWrite();
   const still = Math.abs(LIT.a - LIT.ta) < .15 && Math.abs(LIT.va) < 2
     && Math.abs(LIT.x - LIT.tx) < .25 && Math.abs(LIT.vx) < 2 && Math.abs(LIT.y - LIT.ty) < .25 && Math.abs(LIT.vy) < 2;
   if(still){ LIT.a = LIT.ta; LIT.x = LIT.tx; LIT.y = LIT.ty; LIT.va = LIT.vx = LIT.vy = 0; LIT.t = 0; litWrite(); return; }
-  LIT.raf = requestAnimationFrame(litFrame);
+  LIT.raf = 1; moAdd(litFrame);
 }
 let _litIdle = 0;
 function litFinger(e){
@@ -8887,17 +9104,17 @@ function jellyFeed(el, v){
   let st = _jelly.get(el);
   if(!st){ st = { j: 0, jv: 0, v: 0, vt: 0, dir: 1, t: 0 }; _jelly.set(el, st); el.classList.add("jelly"); }
   st.v = v; st.vt = performance.now(); if(Math.abs(v) > 1) st.dir = v < 0 ? -1 : 1;
-  if(!_jellyRaf) _jellyRaf = requestAnimationFrame(jellyFrame);
+  if(!_jellyRaf){ _jellyRaf = 1; moAdd(jellyFrame); }
 }
 function jellyFrame(now){
   _jellyRaf = 0;
   for(const [el, st] of _jelly){
     if(!el.isConnected){ _jelly.delete(el); continue; }
-    const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : 1 / 60;
+    const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : MO.dt0;
     st.t = now;
     const v = now - st.vt < 70 ? st.v : 0;                         // no feed → the drop has stopped
     const target = Math.min(Math.abs(v) * .0009, .14);
-    st.jv += (-240 * (st.j - target) - 2 * Math.sqrt(240) * .19 * st.jv) * dt;
+    st.jv = MO.sp(st.jv, st.j, target, MO.P.jelly, dt);
     st.j += st.jv * dt;
     el.style.setProperty("--jsx", (1 + st.j).toFixed(4));
     el.style.setProperty("--jsy", (1 - st.j * .6).toFixed(4));
@@ -8908,7 +9125,7 @@ function jellyFrame(now){
       _jelly.delete(el);
     }
   }
-  if(_jelly.size) _jellyRaf = requestAnimationFrame(jellyFrame);
+  if(_jelly.size){ _jellyRaf = 1; moAdd(jellyFrame); }
 }
 /* THE PRESS, one to one with the user's video 1 («такие взаимодействия с кнопками, что бы были 1 в 1»), measured
    frame by frame: pressed, the glass swells (a round button ~17 %, a bar ~5 %) in ~0.1 s and fills with a milky light
@@ -8927,7 +9144,7 @@ function glassAim(g, x, y){
   g.tx = clamp((x - cx) * .06, -3, 3) + rb(x - g.x0, g.Lx);
   g.ty = clamp((y - cy) * .06, -3, 3) + rb(y - g.y0, g.Ly);
 }
-function glassKick(){ if(!_glassRaf) _glassRaf = requestAnimationFrame(glassFrame); }
+function glassKick(){ if(!_glassRaf){ _glassRaf = 1; moAdd(glassFrame); } }
 function glassMilk(b, on){
   let m = b._milk;
   if(on && !(m && m.isConnected)){ m = b._milk = document.createElement("i"); m.className = "lg-milk"; m.setAttribute("aria-hidden", "true"); b.appendChild(m); }
@@ -8939,12 +9156,13 @@ function glassFrame(now){
   for(const b of _glass){
     const g = b._gs;
     if(!b.isConnected || !g){ _glass.delete(b); continue; }
-    const dt = g.t ? Math.min(Math.max((now - g.t) / 1000, 0), 1 / 30) : 1 / 60;
+    const dt = g.t ? Math.min(Math.max((now - g.t) / 1000, 0), 1 / 30) : MO.dt0;
     g.t = now;
-    const dn = g.down, sp = (x, v, to, K, Z) => v + (-K * (x - to) - 2 * Math.sqrt(K) * Z * v) * dt;
-    g.pv = sp(g.p, g.pv, dn ? 1 : 0, dn ? 620 : 300, dn ? .62 : .22); g.p += g.pv * dt;         // swell: quick in, a wobble out
-    g.vx = sp(g.ox, g.vx, dn ? g.tx : 0, dn ? 900 : 260, dn ? .9 : .24); g.ox += g.vx * dt;     // the rubber band, home with a wobble
-    g.vy = sp(g.oy, g.vy, dn ? g.ty : 0, dn ? 900 : 260, dn ? .9 : .24); g.oy += g.vy * dt;
+    const dn = g.down;
+    const Pp = dn ? MO.P.micro : MO.P.pop, Pb = dn ? MO.P.grab : MO.P.drag;
+    g.pv = MO.sp(g.pv, g.p, dn ? 1 : 0, Pp, dt); g.p += g.pv * dt;                              // swell: quick in, a wobble out
+    g.vx = MO.sp(g.vx, g.ox, dn ? g.tx : 0, Pb, dt); g.ox += g.vx * dt;                         // the rubber band, home with a wobble
+    g.vy = MO.sp(g.vy, g.oy, dn ? g.ty : 0, Pb, dt); g.oy += g.vy * dt;
     g.m += ((dn ? 1 : 0) - g.m) * (1 - Math.exp(-dt / (dn ? .05 : .13)));                        // the milk: in 0.05 s, out 0.13 s
     const sc = 1 + g.S * g.p, ax = Math.min(Math.abs(g.ox) / g.Lx, 1.2), ay = Math.min(Math.abs(g.oy) / g.Ly, 1.2);
     b.style.setProperty("--psx", (sc * (1 + g.St * (ax - ay / 3))).toFixed(4));            // stretched the way it is pulled
@@ -8968,7 +9186,7 @@ function glassFrame(now){
       _glass.delete(b);
     }
   }
-  if(_glass.size) _glassRaf = requestAnimationFrame(glassFrame);
+  if(_glass.size){ _glassRaf = 1; moAdd(glassFrame); }
 }
 // how each kind of glass takes a press: swell S, rubber band Lx / Ly, the light's reach R and frost mb,
 // its resting lens (scale rs, blur)
@@ -9684,7 +9902,7 @@ function drawChart(){
   const spring = (st, target, lo, hi, eps) => {
     const dt = Math.min(Math.max((pNow - st.t) / 1000, 0), EASE_DT / 1000);
     st.t = pNow;
-    st.vel += (-300 * (st.v - target) - 2 * Math.sqrt(300) * 0.48 * st.vel) * dt;
+    st.vel = MO.sp(st.vel, st.v, target, MO.P.fluid, dt);
     st.v = clamp(st.v + st.vel * dt, lo, hi);
     if(Math.abs(st.v - target) < eps && Math.abs(st.vel) < eps * 8){ st.v = target; st.vel = 0; } else pSettling = true;
     return st.v;
