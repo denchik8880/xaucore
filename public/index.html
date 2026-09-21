@@ -75,7 +75,10 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* an app is not a document: holding a finger on a title used to raise the system's blue selection block over it
+   (user screenshot 2026-09-21). Only what you actually type in can be selected. */
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text}
 /* ===================== THE MOTION SYSTEM =====================================================================
    One vocabulary for everything that moves. Five characters, matching the spring presets in MO (below): what is
    done here in CSS and what is integrated per frame in JS agree, so a thing does not change personality when it
@@ -344,6 +347,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chzoom{position:absolute;left:16px;bottom:calc(77px + var(--under,0px));z-index:5;display:flex;flex-direction:column;gap:8px}
 .chzoom button{position:relative;width:40px;height:40px;padding:0;border-radius:50%;color:var(--ink);display:flex;align-items:center;justify-content:center}
 .chpills{position:absolute;left:16px;bottom:calc(34px + var(--under,0px));z-index:5;display:flex;gap:9px;will-change:transform}
+.chpill[data-act="charttf"]{transform:translateY(var(--pmy,0px))}
 .chpill{position:relative;display:flex;align-items:center;gap:10px;height:31px;padding:0 14px;will-change:padding;border-radius:16px;color:var(--ink);font-size:14px;font-weight:400;line-height:1;white-space:nowrap}
 .chpill.sym{padding:0 12px 0 16px}
 /* «м1» and «XAUUSD ›» as ONE drop (user video 4: a capsule flows into a circle and parts from it with a neck that
@@ -394,7 +398,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    glass where it is touched (--lx/--ly, --la) */
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill{transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg));filter:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill.sym{transform:translateX(var(--pms,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
-:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill[data-act="charttf"]{transform:translateX(var(--pmx,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill[data-act="charttf"]{transform:translateX(var(--pmx,0px)) translateY(var(--pmy,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{isolation:isolate;border:0;
   background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
@@ -1020,7 +1024,7 @@ html:has(body.route-wallet){background:#0c0a08}
 @keyframes tinG{from{opacity:0;transform:translateY(-16px) scale(.84)}55%{opacity:1}to{transform:none}}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
-  background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
+  background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(22px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));
   box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG var(--mo-t4) var(--mo-e4)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
@@ -1102,9 +1106,12 @@ html:has(body.route-wallet){background:#0c0a08}
    that frosts what is on it (buttons only) */
 /* the surfaces that answer with light need a stacking context of their own, so the light sits over their body and
    under their label — and it is gentler on them than on a button that swells */
-:root[data-glass="on"] .cht,:root[data-glass="on"] .cht-lot,:root[data-glass="on"] .am-it,:root[data-glass="on"] .lg-pop button,
-:root[data-glass="on"] .seg button,:root[data-glass="on"] .bottomnav button,:root[data-glass="on"] .af-quick button,
-:root[data-glass="on"] .sheet .btn,:root[data-glass="on"] .lang-row,:root[data-glass="on"] .subtabs button{position:relative;isolation:isolate}
+:root[data-glass="on"] .cht,:root[data-glass="on"] .am-it,:root[data-glass="on"] .lg-pop button,
+:root[data-glass="on"] .bottomnav button,:root[data-glass="on"] .af-quick button,
+:root[data-glass="on"] .sheet .btn,:root[data-glass="on"] .lang-row{position:relative;isolation:isolate}
+/* these are already positioned — giving them position:relative tore «Лоты» out of the middle of the bar and
+   dropped it below it (user screenshot 2026-09-21). They only ever needed the stacking context. */
+:root[data-glass="on"] .cht-lot,:root[data-glass="on"] .seg button,:root[data-glass="on"] .subtabs button{isolation:isolate}
 .cht .lg-milk,.cht-lot .lg-milk,.am-it .lg-milk,.lg-pop button .lg-milk,.seg button .lg-milk,
 .bottomnav button .lg-milk,.subtabs button .lg-milk{--mc:calc(.24 * var(--lgh,1))}
 /* THE MILK LIVES UNDER THE LABEL. At z-index 2 it sat over it and, having a backdrop-filter of its own inside a
@@ -1201,7 +1208,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.12 * var(--lgs,1))),rgba(255,255,255,calc(.075 * var(--lgs,1))) 40%,rgba(255,255,255,calc(.06 * var(--lgs,1))))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:transparent}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing{background:transparent}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{-webkit-backdrop-filter:blur(calc(26px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(26px * var(--lgsb,1))) saturate(var(--lgsat,1.4))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{-webkit-backdrop-filter:blur(calc(26px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(26px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .card{background:var(--sheet-card);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet input,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet select{background:var(--sheet-field)}
 /* 2. a button morphs into its sheet / menu, iOS 26 (user: «Кнопка превращается в окно»): a glass ghost grows from
@@ -1213,10 +1220,11 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root{--lg-drop-shadow:rgba(16,24,40,.28);--lg-drop-rim:rgba(255,255,255,.7);--lg-drop-line:rgba(16,24,40,.2);--lg-fly:255,255,255}
 :root[data-theme="dark"]{--lg-drop-shadow:rgba(0,0,0,.45);--lg-drop-rim:rgba(255,255,255,.17);--lg-drop-line:rgba(255,255,255,.05);--lg-fly:26,26,30}
 .lg-ghost{position:fixed;z-index:81;pointer-events:none;border-radius:28px;background:var(--sheet-glass,var(--card));
-  -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(1.8);
+  -webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1) * var(--lgfb,1))) saturate(1.8);backdrop-filter:blur(calc(24px * var(--lgsb,1) * var(--lgfb,1))) saturate(1.8);
   box-shadow:var(--lg-lift3),inset 0 1px 1px var(--lg-spec)}
 .lg-flowing{will-change:clip-path}
 .lg-flowing *,.lg-flowing *::before,.lg-flowing *::after{transition:none!important;animation:none!important;will-change:auto!important}
+.lg-flowing *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}   /* inside a backdrop root they filter nothing anyway — but they are still computed */
 /* the window IS the drop: it shows from the first frame, clipped to the growing shape, and only its content fades in */
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph .sheet{animation:none}
 :root[data-glass="on"]:not([data-lgoff~="morph"]) .modal.morph.closing .sheet{transform:none}
@@ -1251,7 +1259,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:rgba(24,24,27,.9);--sheet-card:rgba(255,255,255,.1)}
 /* ---- the app drawer behind the logo (cTrader's own, one to one) ---- */
 .modal.amodal{align-items:stretch;justify-content:flex-start}
-.amodal .sheet.am-sheet{width:84%;max-width:348px;height:100%;max-height:none;margin:0;padding:0;border-radius:0;
+.amodal .sheet.am-sheet{animation:none!important;width:84%;max-width:348px;height:100%;max-height:none;margin:0;padding:0;border-radius:0;
   background:var(--card);box-shadow:0 0 40px rgba(0,0,0,.35);overflow-y:auto;animation:amIn var(--mo-t2) var(--mo-e2)}
 .amodal.closing .sheet{transform:translateX(-100%);transition:transform var(--mo-std)}
 .am-sheet>.close{display:none}
@@ -1282,7 +1290,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding:0 14px 10px 60px}
 .lg-pop-catch{position:fixed;inset:0;z-index:89}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--pop-glass,var(--sheet-glass,var(--card)));
-  -webkit-backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 16px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
+  -webkit-backdrop-filter:blur(calc((10px + 16px * var(--lgsb,1)) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc((10px + 16px * var(--lgsb,1)) * var(--lgfb,1))) saturate(var(--lgsat,1.4));
   box-shadow:0 3px 12px rgba(0,0,0,calc(.09 * var(--shw,1))),var(--lg-body);opacity:0}
 .lg-pop.shown{opacity:1}
 .lg-pop button{display:flex;justify-content:space-between;align-items:center;gap:14px;width:100%;padding:10px 12px;border-radius:14px;background:none;color:var(--ink);font-size:15px;text-align:left}
@@ -4576,7 +4584,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     fin = true;
     cancelAnimationFrame(raf);
     soonNow();
-    el.style.clipPath = ""; el.style.removeProperty("opacity"); el.style.removeProperty("--lgcr");
+    el.style.clipPath = ""; el.style.removeProperty("opacity"); el.style.removeProperty("--lgcr"); el.style.removeProperty("--lgfb");
     el.classList.remove("lg-flowing");
     if(opening) lgRamp(300, e => el.style.setProperty("--shw", e.toFixed(3)), () => el.style.removeProperty("--shw"));   // the shadow arrives over a breath — in one frame it reads as grey spreading round the window
     else el.style.removeProperty("--shw");
@@ -4599,6 +4607,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     else k = k0 * ((1 - t * t * (3 - 2 * t)) + .07 * (t < .22 ? Math.sin(Math.PI * t / .22) : 0));
     run.k = k;                                                     // so whatever interrupts this knows where it was
     if(opening){ const c = clamp((k - .06) / .5, 0, 1); el.style.setProperty("--lgcr", (c * c * (3 - 2 * c)).toFixed(3)); }
+    el.style.setProperty("--lgfb", (.4 + .6 * kc * kc).toFixed(3));   // the glass thickens as it forms: cheap while it flies, full when it lands
     const kc = Math.min(1, k), lerp = (p, q, e) => p + (q - p) * e;
     // a drop swells sideways first and only then pours along its long way — growing both at once made a tall
     // window look like it was unrolling out of a corner (user: «чтобы оно от какого-то угла работало»)
@@ -4741,6 +4750,26 @@ function toast(kind, msg){
   setTimeout(()=>{ t.style.transition="opacity var(--mo-exit), transform var(--mo-std)"; t.style.opacity="0"; if(glassOn("toasts")) t.style.transform="translateY(-8px) scale(.9)"; setTimeout(()=>t.remove(),300); }, 3200);
 }
 
+/* something that cannot be pressed still answers the finger — a short shake on the spot, the same spring as every
+   other deformation, so a dead row reads as «no» instead of just doing nothing (user 2026-09-21) */
+function moNudge(el){
+  if(!el || el._nudge) return;
+  el._nudge = 1;
+  let x = 0, v = MO.soft ? 150 : 250, t0 = 0;
+  const step = now => {
+    if(!el.isConnected){ el._nudge = 0; return; }
+    const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+    v = MO.sp(v, x, 0, MO.P.jelly, dt); x += v * dt;
+    if(Math.abs(x) < .12 && Math.abs(v) < 6){ el.style.removeProperty("transform"); el._nudge = 0; return; }
+    el.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+    moAdd(step);
+  };
+  moAdd(step);
+}
+document.addEventListener("pointerdown", e => {
+  const d = e.target.closest && e.target.closest('[aria-disabled="true"], .menu-item.soon, .soon-pill, [disabled]');
+  if(d) moNudge(d.closest(".menu-item, .sw-row, .row, button") || d);
+}, { passive: true, capture: true });
 /* A SCREEN ARRIVES FROM SOMEWHERE. Tapping a tab to the right brings the next screen in from the right and the
    other way round: the interface has a left and a right, and the move says which way you went. The bar and the
    tab strip hold still, as they do on iOS — only what changed actually travels. */
@@ -5258,15 +5287,42 @@ function appMenuMarkup(lift){
       ${amRow("owner", "mail", L("Написать владельцу"), true)}
     </div>`;
 }
+/* THE DRAWER COMES IN FROM ITS EDGE (user 2026-09-21: «полностью измените анимацию логотипа, нужно другая, которая
+   вообще не касается его»). Every version that grew the panel out of the mark had to do something TO the mark —
+   lift a twin of it, hide the real one, melt its edge — and every one of those left something to go wrong. It is a
+   panel: it lives off the left edge and it slides on, on the same spring a screen uses. The mark is not touched,
+   not copied and not animated; it is simply covered, and only once the panel is actually over it. */
+function amEnter(m){
+  const sh = m.querySelector(".am-sheet"); if(!sh) return;
+  const W = Math.max(1, sh.offsetWidth || 320);
+  let x = -W, v = 0, t0 = 0, hid = false;
+  sh.style.willChange = "transform";
+  const put = () => {
+    sh.style.transform = "translate3d(" + x.toFixed(1) + "px,0,0)";
+    m.style.setProperty("--shd", (1 - Math.min(1, -x / W)).toFixed(3));
+    if(!hid && x > -W * .82){ hid = true; document.body.classList.add("amenu-open"); }   // covered: now the mark may go
+  };
+  put();
+  m.classList.add("shd");
+  const step = now => {
+    if(!sh.isConnected) return;
+    const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+    v = MO.sp(v, x, 0, MO.P.large, dt); x += v * dt;
+    if(x > -.4 && Math.abs(v) < 8){
+      x = 0; put();
+      sh.style.removeProperty("transform"); sh.style.removeProperty("will-change");
+      m.classList.remove("shd"); m.style.removeProperty("--shd");
+      return;
+    }
+    put(); moAdd(step);
+  };
+  moAdd(step);
+}
 function openAppMenu(){
   if(modalEl && modalEl.classList.contains("amodal")){ closeModal(); return; }   // the mark closes it as well
-  const from = document.querySelector('.wl-logo[data-act="appmenu"]');
-  const lift = !!from && glassOn("morph") && glassOn("sheets");    // with the flow on, the mark stays above the drawer
-  openSheet(appMenuMarkup(lift), "am-sheet", "amodal");
-  if(!lift){                                                      // no flow: the drawer covers it, so just hide it
-    document.body.classList.add("amenu-open");
-    modalEl._closed = () => document.body.classList.remove("amenu-open");
-  }
+  openSheet(appMenuMarkup(false), "am-sheet", "amodal");
+  modalEl._closed = () => document.body.classList.remove("amenu-open");
+  amEnter(modalEl);
   const funds = kind => { closeModal(true); acctFundsModal(kind); };   // (not `money` — that is the formatter)
   const acts = {
     deposit:  () => funds("deposit"),
@@ -5282,15 +5338,6 @@ function openAppMenu(){
     }
   };
   modalEl.querySelectorAll("[data-amenu]").forEach(b => b.onclick = () => acts[b.dataset.amenu]());
-  if(lift){                                                       // the drawer flows out from UNDER the mark
-    modalEl.classList.add("morph"); morphOpen(from, modalEl);
-    from.classList.remove("lg-hid"); modalEl._hid = null;
-    lgLift(from);
-    const twin = from._lift;                                      // the mark still closes what it opened
-    if(twin){ twin.classList.add("lg-melt"); modalEl._melt = twin; }   // one material while the window grows out of it
-    modalEl._unlift = () => lgDrop(from, twin);                   // this drawer puts back ITS twin, not a newer one
-    if(twin){ twin.style.pointerEvents = "auto"; twin.onclick = () => closeModal(); }
-  }
 }
 /* «О приложении»: one document per language (prose does not survive being cut into I18N keys). Mini-format —
    "## " a heading, "! " the note at the foot, anything else a paragraph; "**…**" is a bold lead-in. */
@@ -6435,6 +6482,10 @@ function pmFrame(now){
   PM.t = now;
   if(!PM.drag || !PM.drag.on){
     PM.v = MO.sp(PM.v, PM.x, target, MO.P.fluid, dt);                           // home with a wobble
+    // SURFACE TENSION: inside the last few pixels two drops stop being pulled and start pulling each other, so
+    // the join happens by itself and is felt as a snap rather than as an arrival (user: «соединение … лучше»)
+    if(target < 0 && PM.gap > 0 && PM.gap < 15) PM.v -= (15 - PM.gap) * 30 * dt;
+    else if(target === 0 && PM.gap >= 0 && PM.gap < 7) PM.v += (7 - PM.gap) * 26 * dt;
     PM.x = clamp(PM.x + PM.v * dt, -PM_D - 7, 16);                           // a flick never runs it over «›»
   }
   const jt = Math.min(Math.abs(PM.v) * .0011, .28);                          // stretched along its way by its speed
@@ -6493,6 +6544,20 @@ document.addEventListener("pointerdown", e => {
 document.addEventListener("pointermove", e => {
   const d = PM.drag; if(!d || e.pointerId !== d.id) return;
   const dx = e.clientX - d.x0, dy = e.clientY - d.y0;
+  // UP IS UP. A vertical pull on «м1» runs the timeframes like a drum: the pill follows the finger on a short
+  // rubber band, its label showing the one it would land on, and the list moves the way the finger does.
+  if(!d.on && !d.vy && d.pill.dataset.act === "charttf" && Math.abs(dy) > 9 && Math.abs(dy) > Math.abs(dx) * 1.3){
+    d.vy = true; d.tf0 = Math.max(0, TF_ORDER.indexOf(S.ui.chartTF)); d.tfi = d.tf0;
+    d.pill.style.willChange = "transform";
+    glassCancel(d.pill);
+  }
+  if(d.vy){
+    const i = clamp(d.tf0 + Math.round(-dy / 40), 0, TF_ORDER.length - 1);
+    if(i !== d.tfi){ d.tfi = i; d.pill.textContent = L(MINI_TF_LABEL[TF_ORDER[i]] || TF_ORDER[i]); }
+    d.pill.style.setProperty("--pmy", (14 * Math.tanh(dy / 30)).toFixed(1) + "px");
+    _pmSkip = performance.now();
+    return;
+  }
   if(!d.on){
     if(Math.abs(dx) < 7 || Math.abs(dx) < Math.abs(dy)){ if(Math.abs(dy) > 12) PM.drag = null; return; }
     d.on = true;
@@ -6511,6 +6576,22 @@ document.addEventListener("pointermove", e => {
 const pmUp = e => {
   const d = PM.drag; if(!d || e.pointerId !== d.id) return;
   PM.drag = null;
+  if(d.vy){                                                                // the drum: it lands on the one it shows
+    _pmSkip = performance.now();
+    const pill = d.pill, tf = TF_ORDER[d.tfi];
+    let y = parseFloat(pill.style.getPropertyValue("--pmy")) || 0, v = 0, t0 = 0;
+    const step = now => {                                                  // whatever is left of the pull springs out of it
+      if(!pill.isConnected) return;
+      const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+      v = MO.sp(v, y, 0, MO.P.pop, dt); y += v * dt;
+      if(Math.abs(y) < .15 && Math.abs(v) < 4){ pill.style.removeProperty("--pmy"); pill.style.removeProperty("will-change"); return; }
+      pill.style.setProperty("--pmy", y.toFixed(2) + "px"); moAdd(step);
+    };
+    moAdd(step);
+    if(tf && tf !== S.ui.chartTF) setChartTF(tf);
+    else pill.textContent = L(MINI_TF_LABEL[S.ui.chartTF] || S.ui.chartTF);
+    return;
+  }
   if(!d.on) return;
   _pmSkip = performance.now();                                             // the pill's click after a drag is not a tap
   const was = !!S.ui.chMerge;
@@ -7017,8 +7098,12 @@ function quickLens(root){
         const hop = s.cur && s.cur.isConnected && s.f > .05;
         const dx = c.offsetLeft - (s.cur ? s.cur.offsetLeft : c.offsetLeft), dy = c.offsetTop - (s.cur ? s.cur.offsetTop : c.offsetTop);
         s.cur = c;
-        s.tx = s.x = c.offsetLeft - 3; s.ty = s.y = c.offsetTop - 3; s.tw = s.w = c.offsetWidth + 6; s.th = s.h = c.offsetHeight + 6;
-        if(hop){ s.p = 1; s.pv = 0; s.jx = Math.abs(dx) >= Math.abs(dy); }   // it lands on the new number like a drop
+        s.tx = c.offsetLeft - 3; s.ty = c.offsetTop - 3; s.tw = c.offsetWidth + 6; s.th = c.offsetHeight + 6;
+        // it TRAVELS to the new number instead of being put on it — the same thing the drop under the tabs does,
+        // leading edge first and the trailing one catching up (user 2026-09-21). Only a lens appearing from
+        // nothing starts where it lands.
+        if(!hop){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; s.vx = s.vy = s.vw = s.vh = 0; }
+        else { s.p = 1; s.pv = 0; s.jx = Math.abs(dx) >= Math.abs(dy); }
       }
       return c;
     };
@@ -7051,7 +7136,7 @@ function quickLens(root){
     box.addEventListener("click", e => { if(!box._mqSelf && performance.now() - (box._mqPick || 0) < 450){ e.stopPropagation(); e.preventDefault(); } }, true);
   });
 }
-function mqKick(){ if(!_mqRaf) _mqRaf = requestAnimationFrame(mqFrame); }
+function mqKick(){ if(!_mqRaf){ _mqRaf = 1; moAdd(mqFrame); } }
 function mqApply(s){
   const l = s.lens, p = s.p || 0, jx = s.jx !== false;
   l.style.setProperty("--qx", s.x.toFixed(1) + "px"); l.style.setProperty("--qy", s.y.toFixed(1) + "px");
@@ -7068,18 +7153,30 @@ function mqFrame(now){
     if(!box.isConnected){ _mq.delete(box); continue; }
     const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : MO.dt0;
     s.t = now;
-    // it never travels over a gap: aim() puts it straight on the new chip; here only the landing wobble plays
-    // out — an underdamped spring (K 420, ζ .3) from the squash back to still
+    // it flows to the number it is going to: the edge that leads is stiffer than the one that follows, so the
+    // lens stretches on its way and gathers itself again when it lands — one drop, not a lamp being switched
+    const l = s.x, r = s.x + s.w, tl = s.tx, tr = s.tx + s.tw, right = (tl + tr) > (l + r);
+    let vl = s.vl || 0, vr = s.vr || 0;
+    vl = MO.sp(vl, l, tl, right ? MO.P.trail : MO.P.lead, dt);
+    vr = MO.sp(vr, r, tr, right ? MO.P.lead : MO.P.trail, dt);
+    let nl = l + vl * dt, nr = r + vr * dt;
+    if(nr - nl < 10){ const c = (nl + nr) / 2; nl = c - 5; nr = c + 5; }
+    s.vl = vl; s.vr = vr; s.x = nl; s.w = nr - nl;
+    s.vy = MO.sp(s.vy || 0, s.y, s.ty, MO.P.fluid, dt); s.y += s.vy * dt;
+    s.vh = MO.sp(s.vh || 0, s.h, s.th, MO.P.fluid, dt); s.h += s.vh * dt;
     s.pv = MO.sp(s.pv || 0, s.p || 0, 0, MO.P.jelly, dt);
     s.p = (s.p || 0) + s.pv * dt;
     s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
     if(_mqMem) _mqMem.f = s.f;
     mqApply(s);
-    const still = Math.abs(s.p || 0) < .004 && Math.abs(s.pv || 0) < .05;
+    const home = Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25 && Math.abs(s.y - s.ty) < .25 && Math.abs(s.h - s.th) < .25
+      && Math.abs(s.vl || 0) < 4 && Math.abs(s.vr || 0) < 4 && Math.abs(s.vy || 0) < 4 && Math.abs(s.vh || 0) < 4;
+    if(home){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; s.vl = s.vr = s.vy = s.vh = 0; }
+    const still = home && Math.abs(s.p || 0) < .004 && Math.abs(s.pv || 0) < .05;
     if(still && s.drag && s.f > .99){ s.p = s.pv = 0; mqApply(s); _mq.delete(box); continue; }   // held still: nothing to animate
     if(!s.drag && s.f < .01 && still){ s.f = 0; s.p = s.pv = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
   }
-  if(_mq.size) _mqRaf = requestAnimationFrame(mqFrame);
+  if(_mq.size){ _mqRaf = 1; moAdd(mqFrame); }
 }
 function dropApply(bub, st){
   const el = st.bar || bub;                                        // on the bar: the drop and its lens both read them
@@ -8439,6 +8536,29 @@ function closeModal(now){
   if(m.querySelector(".ot-sheet")) OT = null;
   if(now === true){ if(m.classList.contains("morph")) lgStop("sheet"); morphShow(m); m.remove(); return; }
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
+  if(m.classList.contains("amodal")){                             // a panel goes back to its edge, at the speed it has
+    const sh = m.querySelector(".am-sheet");
+    if(sh){
+      const W = Math.max(1, sh.offsetWidth || 320);
+      let x = SHD.sh === sh ? -SHD.o : 0, v = SHD.sh === sh ? -SHD.v : 0;
+      shdClear();
+      document.body.classList.remove("amenu-open");
+      sh.style.willChange = "transform";
+      m.classList.add("shd");
+      let t0 = 0;
+      const step = now => {
+        if(!sh.isConnected) return;
+        const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+        v = MO.sp(v, x, -W - 12, MO.P.large, dt); x += v * dt;
+        if(x <= -W){ m.remove(); return; }
+        sh.style.transform = "translate3d(" + x.toFixed(1) + "px,0,0)";
+        m.style.setProperty("--shd", (1 - Math.min(1, -x / W)).toFixed(3));
+        moAdd(step);
+      };
+      moAdd(step);
+      return;
+    }
+  }
   if(m.classList.contains("morph") && morphClose(m)) return;       // the drop drains back into its button, sheet and all
   morphShow(m);
   m.classList.add("closing");
