@@ -10,7 +10,7 @@
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
 function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.978,b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,12 +45,12 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-w1:rgba(0,0,0,.07); --ripple-w2:rgba(0,0,0,.03); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
-  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc(.12 + .16 * (1 - var(--lgk,1)))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
+  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .16 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
   /* the depth tokens exist even with the mode OFF: a few rules that only ever show in glass are not gated by the
      attribute, and an undefined custom property makes the whole box-shadow invalid, not just that one layer */
   --lg-body:inset 0 0 0 0 transparent; --lg-lift1:0 0 0 0 transparent; --lg-lift2:0 0 0 0 transparent; --lg-lift3:0 0 0 0 transparent;
-  --lg-rimd:transparent; --lg-spot:transparent; --lg-foot:transparent; --lgd:1; --lgh:1; --lgsh:1;
-  --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,1); --lg-rim2:rgba(255,255,255,.78); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
+  --lg-rimd:transparent; --lg-spot:transparent; --lg-foot:transparent; --lgd:1; --lgh:1; --lgsh:1; --lgln:1; --lgdk:1;
+  --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
   --nav-glass:rgba(255,255,255,calc(.72 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.075); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
@@ -72,8 +72,8 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
   --nav-glass:rgba(28,28,30,calc(.74 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.13); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
-  --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc(.1 + .2 * (1 - var(--lgk,1)))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
-  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc(.66 + .3 * (1 - var(--lgk,1)))); --lg-rim2:rgba(255,255,255,calc(.3 + .35 * (1 - var(--lgk,1)))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
+  --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
+  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 /* ===================== THE MOTION SYSTEM =====================================================================
@@ -922,18 +922,18 @@ html:has(body.route-wallet){background:#0c0a08}
   /* THE BODY: glass is not a tinted rectangle, it is a slab with a thickness. Top lip lit, bottom lip lit from
      underneath, a wall between them, and the shadow that wall casts into the pane — which is what the eye reads
      as depth. The last line deepens under a finger (--pk, set by the press loop). */
-  --lg-rimd:rgba(16,24,40,calc(.17 * var(--lgd,1)));
+  --lg-rimd:rgba(16,24,40,calc(.17 * var(--lgdk,1)));
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
     inset 0 0 11px -4px rgba(16,24,40,calc(.17 * var(--lgd,1))),
-    inset 0 7px 13px -9px rgba(16,24,40,calc(.45 * var(--lgd,1))),
-    inset 0 -12px 18px -15px rgba(16,24,40,calc(.34 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(16,24,40,calc(.45 * var(--lgdk,1))),
+    inset 0 -12px 18px -15px rgba(16,24,40,calc(.34 * var(--lgdk,1))),
     inset 0 5px 11px -7px rgba(16,24,40,calc(.45 * var(--pk,0)));
   /* IT SITS ABOVE THE PAGE: a tight contact shadow where it nearly touches and a wide ambient one. The pair is
      what separates a floating surface from a printed one; three heights for three kinds of thing. */
   --lg-lift1:0 1px 2px rgba(16,24,40,calc(.085 * var(--lgsh,1))),0 8px 20px -6px rgba(16,24,40,calc(.16 * var(--lgsh,1)));
   --lg-lift2:0 1.5px 3px rgba(16,24,40,calc(.09 * var(--lgsh,1))),0 16px 34px -8px rgba(16,24,40,calc(.20 * var(--lgsh,1)));
   --lg-lift3:0 2px 5px rgba(16,24,40,calc(.09 * var(--lgsh,1))),0 28px 62px -14px rgba(16,24,40,calc(.26 * var(--lgsh,1)));
-  --lg-spot:rgba(255,255,255,calc(.42 * var(--lgh,1))); --lg-foot:rgba(16,24,40,calc(.055 * var(--lgd,1)));
+  --lg-spot:rgba(255,255,255,calc(.42 * var(--lgh,1))); --lg-foot:rgba(16,24,40,calc(.055 * var(--lgdk,1)));
 }
 :root[data-theme="dark"][data-glass="on"]{
   --bar-glass:rgba(12,12,12,calc(.58 * var(--lgk,1))); --bg-glass:rgba(0,0,0,calc(.52 * var(--lgk,1))); --sheet-glass:rgba(26,26,28,calc(.82 * var(--lgs,1)));
@@ -941,17 +941,17 @@ html:has(body.route-wallet){background:#0c0a08}
   --toast-glass:rgba(52,52,56,calc(.58 * max(.75, var(--lgs,1)))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.16); --lgsat:calc(1 + .42 * var(--lgs,1));
   --cap-glass:rgba(34,34,38,calc(.6 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86); --pop-glass:rgba(30,30,34,calc(.16 + .55 * var(--lgs,1)));
-  --lg-rimd:rgba(0,0,0,calc(.34 * var(--lgd,1)));
+  --lg-rimd:rgba(0,0,0,calc(.34 * var(--lgdk,1)));
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
     inset 0 0 0 .7px rgba(255,255,255,calc(.10 * var(--lgh,1))),
     inset 0 0 12px -5px rgba(0,0,0,calc(.5 * var(--lgd,1))),
-    inset 0 7px 13px -9px rgba(0,0,0,calc(.62 * var(--lgd,1))),
-    inset 0 -12px 18px -15px rgba(0,0,0,calc(.46 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(0,0,0,calc(.62 * var(--lgdk,1))),
+    inset 0 -12px 18px -15px rgba(0,0,0,calc(.46 * var(--lgdk,1))),
     inset 0 5px 11px -7px rgba(0,0,0,calc(.55 * var(--pk,0)));
   --lg-lift1:0 1px 2px rgba(0,0,0,calc(.34 * var(--lgsh,1))),0 8px 20px -6px rgba(0,0,0,calc(.46 * var(--lgsh,1)));
   --lg-lift2:0 1.5px 3px rgba(0,0,0,calc(.36 * var(--lgsh,1))),0 16px 34px -8px rgba(0,0,0,calc(.52 * var(--lgsh,1)));
   --lg-lift3:0 2px 5px rgba(0,0,0,calc(.36 * var(--lgsh,1))),0 28px 62px -14px rgba(0,0,0,calc(.58 * var(--lgsh,1)));
-  --lg-spot:rgba(255,255,255,calc(.20 * var(--lgh,1))); --lg-foot:rgba(0,0,0,calc(.20 * var(--lgd,1)));
+  --lg-spot:rgba(255,255,255,calc(.20 * var(--lgh,1))); --lg-foot:rgba(0,0,0,calc(.20 * var(--lgdk,1)));
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
@@ -1051,6 +1051,17 @@ html:has(body.route-wallet){background:#0c0a08}
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"] .wl-logo svg circle,:root[data-glass="on"] .am-logo svg circle{display:none}   /* the ball IS the disc now */
 :root[data-glass="on"] .wl-logo:active{opacity:1}                /* the press is the swell, not a dim */
+/* WHILE THE WINDOW IS GROWING OUT OF IT, the mark is not a separate object sitting on the glass: it loses its own
+   hairline and its own shadow, so the bubble and the drop coming out from under it are one material. Keeping them
+   made the first frames read as a RING drawn round the logo — which is the «логотип просто получает контур»
+   the user filmed. The X never changes. (user 2026-09-21) */
+:root[data-glass="on"] .wl-logo{transition:box-shadow var(--mo-std)}
+:root[data-glass="on"] .wl-logo::after{transition:opacity var(--mo-std)}
+:root[data-glass="on"] .wl-logo.lg-melt{box-shadow:var(--lg-body)}
+:root[data-glass="on"] .wl-logo.lg-melt::after{opacity:0}
+/* the window's own content is uncovered BY the drop, and over its first third it also comes up out of the glass —
+   tied to the morph's progress, never a fade of its own, and scoped to .lg-flowing so it cannot outlive the flow */
+:root[data-glass="on"]:not([data-lgoff~="morph"]) .lg-flowing>*{opacity:var(--lgcr,1)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal{background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 /* iOS 26 toolbars: the sheet's ✕ and the drum's Edit / Done are glass capsules too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close{width:36px;height:36px;border-radius:50%;color:var(--ink);background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgsb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
@@ -1089,6 +1100,13 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"] .pressing>svg,:root[data-glass="on"] .pressing>span,:root[data-glass="on"] .pressing>b{transform:translate(var(--pcx,0px),var(--pcy,0px))}
 /* the PRESS, one to one with the user's video 1 (glassFrame): the glass fills with a milky light from the finger
    that frosts what is on it (buttons only) */
+/* the surfaces that answer with light need a stacking context of their own, so the light sits over their body and
+   under their label — and it is gentler on them than on a button that swells */
+:root[data-glass="on"] .cht,:root[data-glass="on"] .cht-lot,:root[data-glass="on"] .am-it,:root[data-glass="on"] .lg-pop button,
+:root[data-glass="on"] .seg button,:root[data-glass="on"] .bottomnav button,:root[data-glass="on"] .af-quick button,
+:root[data-glass="on"] .sheet .btn,:root[data-glass="on"] .lang-row,:root[data-glass="on"] .subtabs button{position:relative;isolation:isolate}
+.cht .lg-milk,.cht-lot .lg-milk,.am-it .lg-milk,.lg-pop button .lg-milk,.seg button .lg-milk,
+.bottomnav button .lg-milk,.subtabs button .lg-milk{--mc:calc(.24 * var(--lgh,1))}
 /* THE MILK LIVES UNDER THE LABEL. At z-index 2 it sat over it and, having a backdrop-filter of its own inside a
    backdrop root, it frosted the very text it covered — that is the «раздвоенный / нечитаемый» text. A negative
    z-index inside the pane's own stacking context puts it above the tint and below every glyph (user 2026-09-21). */
@@ -1487,6 +1505,8 @@ body.amenu-open .wl-logo{opacity:0}
    it deleted it: on a phone with the setting on, every transition SNAPPED, and that is most of what read as
    «дёшево» (user 2026-09-21, and the shadow / button hand-overs we chased for days). Now motion is scaled down,
    not switched off: shorter, straighter, with the decorative loops and the parallax stopped outright. */
+/* the page's own cross-fade (theme, glass on/off) speaks the system too */
+::view-transition-old(root),::view-transition-new(root){animation-duration:var(--mo-t3);animation-timing-function:var(--mo-e3)}
 @media (prefers-reduced-motion:reduce){
   :root{--mo:.62}
   :root,:root *{--mo-e1:cubic-bezier(.3,.85,.4,1);--mo-e2:cubic-bezier(.3,.85,.4,1);--mo-e3:cubic-bezier(.3,.85,.4,1);--mo-e4:cubic-bezier(.3,.85,.4,1)}
@@ -2097,6 +2117,8 @@ const I18N = {
 "Преломление":["Refraction","Заломлення","Réfraction","Kırılma"],
 "Блик":["Highlight","Відблиск","Reflet","Parlama"],
 "Тень":["Shadow","Тінь","Ombre","Gölge"],
+"Обводка":["Edge","Обведення","Contour","Kenar"],
+"Затемнение":["Darkening","Затемнення","Assombrissement","Koyulaştırma"],
 "Свет от наклона":["Light follows tilt","Світло за нахилом","La lumière suit l’inclinaison","Işık eğime uysun"],
 "Датчик наклона недоступен":["The tilt sensor is not available","Датчик нахилу недоступний","Le capteur d’inclinaison n’est pas disponible","Eğim sensörü kullanılamıyor"],
 "Прозрачность стекла":["Glass clarity","Прозорість скла","Transparence du verre","Cam şeffaflığı"],
@@ -4525,6 +4547,13 @@ function lgRamp(ms, apply, done){
   requestAnimationFrame(step);
 }
 function lgFlow(el, a, ra, dur, opening, key, done, soon){
+  // WHERE THE LAST ONE GOT TO. Closing a window that is 40 % open must go home from 40 %, not snap to whole and
+  // then shrink; opening one that is half drained picks it up where it is. Every flow leaves its progress on the
+  // run object, and the next one starts there and only travels what is left (user §5).
+  const prev = key && _lgRun[key];
+  const k0 = (prev && typeof prev.k === "number") ? clamp(prev.k, 0, 1) : (opening ? 0 : 1);
+  const span = opening ? 1 - k0 : k0;
+  dur = Math.max(150, dur * Math.max(.2, span));
   lgStop(key);
   const fin0 = () => { if(done) done(); };
   if(!el || !el.isConnected || !a || !glassOn("morph")){ fin0(); return null; }
@@ -4547,7 +4576,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     fin = true;
     cancelAnimationFrame(raf);
     soonNow();
-    el.style.clipPath = ""; el.style.removeProperty("opacity");
+    el.style.clipPath = ""; el.style.removeProperty("opacity"); el.style.removeProperty("--lgcr");
     el.classList.remove("lg-flowing");
     if(opening) lgRamp(300, e => el.style.setProperty("--shw", e.toFixed(3)), () => el.style.removeProperty("--shw"));   // the shadow arrives over a breath — in one frame it reads as grey spreading round the window
     else el.style.removeProperty("--shw");
@@ -4555,19 +4584,21 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     if(_lgRun[key] === run) delete _lgRun[key];
     fin0();
   };
-  const run = { stop: finish };
+  const run = { stop: finish, k: k0 };
   if(key) _lgRun[key] = run;
   setTimeout(finish, dur + 900);                                   // a flow that never lands must not hold the figures
   // opening: a spring with a little overshoot — past its own box the clip simply shows all of the window, and the
   // dip on the way back is the jelly of a landing drop. Closing: it drains away, quick at the end.
-  const Z = .56, W = 5.4 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);   // springier: it arrives, leans past its size and settles (user: «улучшите пружность»)
+  const Z = .75, W = 5.4 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);   // quick off the mark, a breath of inertia, the smallest overshoot, a soft settle (user §4)
   const t0 = performance.now();
   const step = now => {
     const t = Math.min(1, (now - t0) / dur);
     let k;
-    if(opening){ const u = t * dur / 1000, e = Math.exp(-Z * W * u); k = Math.max(0, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); }
+    if(opening){ const u = t * dur / 1000, e = Math.exp(-Z * W * u); k = k0 + span * Math.max(0, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); }
     // closing it does not bolt off its mark: it gathers itself — a 7 % swell — and pours back, landing soft
-    else k = (1 - t * t * (3 - 2 * t)) + .07 * (t < .22 ? Math.sin(Math.PI * t / .22) : 0);
+    else k = k0 * ((1 - t * t * (3 - 2 * t)) + .07 * (t < .22 ? Math.sin(Math.PI * t / .22) : 0));
+    run.k = k;                                                     // so whatever interrupts this knows where it was
+    if(opening){ const c = clamp((k - .06) / .5, 0, 1); el.style.setProperty("--lgcr", (c * c * (3 - 2 * c)).toFixed(3)); }
     const kc = Math.min(1, k), lerp = (p, q, e) => p + (q - p) * e;
     // a drop swells sideways first and only then pours along its long way — growing both at once made a tall
     // window look like it was unrolling out of a corner (user: «чтобы оно от какого-то угла работало»)
@@ -4605,7 +4636,10 @@ function morphOpen(from, m){
   from.classList.add("lg-hid");
   const inside = !!from.closest(".modal");                         // a field inside the window itself must come back at once
   if(!inside) m._hid = from;
-  lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", inside ? () => from.classList.remove("lg-hid") : null);
+  lgFlow(sh, a, getComputedStyle(from).borderRadius, 460, true, "sheet", () => {
+    if(m._melt) m._melt.classList.remove("lg-melt");              // it gets its own edge back once it IS the window's mark
+    if(inside) from.classList.remove("lg-hid");
+  });
 }
 // closing, it lands on its button — the same one, or the one render() put in its place
 /* the mark that a window grows out of can stay where it is, ABOVE the window, instead of being hidden and drawn
@@ -4657,6 +4691,7 @@ function morphClose(m){
   const btn = cur();
   if(!sh || !glassOn("morph") || !btn){ lgStop("sheet"); return false; }   // no button to go back to: no drop to drain
   const lifted = !!btn._lift;                                    // a twin stands above the window: nothing to hide
+  if(lifted) btn._lift.classList.add("lg-melt");                 // and it melts back into the glass as the drop drains
   if(!lifted) btn.classList.add("lg-hid");
   // the drop keeps its body to the very last frame, where it IS the button's shape — and the button comes back in
   // that same frame. Nothing fades across the hand-over, so the mark never dims (user: «мерцание логотипа»)
@@ -4714,20 +4749,29 @@ let _navDir = 0;
 function navEnter(dir){
   const el = app().querySelector(":scope > .wrap, :scope > .chartbox");
   if(!el) return;
+  // A TRANSFORM ON AN ANCESTOR BECOMES THE CONTAINING BLOCK OF EVERY position:fixed INSIDE IT. «Новый ордер» lives
+  // in the route (and is fixed), so translating the whole column tore it off the bottom of the screen and parked it
+  // in the middle of the list for the length of the animation (user video 2026-09-21). Opacity does no such thing,
+  // so the column fades as one and only what is NOT fixed actually travels.
+  const kids = el.classList.contains("chartbox") ? [el]
+    : [...el.children].filter(c => getComputedStyle(c).position !== "fixed");
+  if(!kids.length) return;
   let x = dir * (MO.soft ? 12 : 26), v = 0, o = 0, t0 = 0;
-  el.style.willChange = "transform,opacity";
-  el.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+  for(const k of kids) k.style.willChange = "transform";
+  const put = () => { const t = "translate3d(" + x.toFixed(2) + "px,0,0)"; for(const k of kids) k.style.transform = t; };
   el.style.opacity = "0";
+  put();
   const step = now => {
-    if(!el.isConnected){ return; }
+    if(!el.isConnected) return;
     const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
     v = MO.sp(v, x, 0, MO.P.large, dt); x += v * dt;
     o = Math.min(1, o + dt / (MO.soft ? .1 : .17));
     if(Math.abs(x) < .15 && Math.abs(v) < 2 && o >= 1){
-      el.style.removeProperty("transform"); el.style.removeProperty("opacity"); el.style.removeProperty("will-change");
+      el.style.removeProperty("opacity");
+      for(const k of kids){ k.style.removeProperty("transform"); k.style.removeProperty("will-change"); }
       return;
     }
-    el.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+    put();
     el.style.opacity = (o * o * (3 - 2 * o)).toFixed(3);
     moAdd(step);
   };
@@ -4815,7 +4859,7 @@ function openGlassSheet(){
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
     row("light", "Светлая тема") + row("dark", "Тёмная тема") +
     `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
-    dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("shadow", "Тень") +
+    dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Затемнение") + dial("shadow", "Тень") +
     `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
     `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
   // the glass follows the finger LIVE (user: «ползунок и тема применяется когда отпустить палец» — it must change while
@@ -4936,10 +4980,27 @@ function applyGlass(on){
   document.documentElement.dataset.glass = on ? "on" : "off";
   try{ localStorage.setItem("xc_glass", on ? "on" : "off"); }catch(e){}
 }
+/* the clarity, walked from one value to another on the shared frame */
+function moClarity(from, to, ms, done){
+  const t0 = performance.now();
+  const step = now => {
+    const t = Math.min(1, (now - t0) / ms), e = t * t * (3 - 2 * t);
+    applyClarity(from + (to - from) * e);
+    if(t < 1) moAdd(step); else if(done) done();
+  };
+  moAdd(step);
+}
 function setGlass(on){
   if(!S.ui) S.ui = {};
-  S.ui.glass = !!on;
-  smoothSwap(() => { applyGlass(S.ui.glass); render(); otReform(); });
+  const want = !!on;
+  S.ui.glass = want;
+  const saved = glassClarity();
+  const swap = () => smoothSwap(() => { applyGlass(want); render(); otReform(); });
+  // GLASS IS A MATERIAL, so it arrives and leaves like one instead of being cross-faded with a different picture:
+  // switched off it thins away to nothing first and the flat page takes the place it left; switched on the flat
+  // page becomes the glass one while the glass is still invisible, and the material then condenses into it.
+  if(!want) moClarity(saved, 100, 190, () => { swap(); applyClarity(saved); });
+  else { applyClarity(100); swap(); setTimeout(() => moClarity(100, saved, 360), 50); }
   save();
   toast("", S.ui.glass ? L("💧 Жидкое стекло включено") : L("Жидкое стекло выключено"));
 }
@@ -5226,6 +5287,7 @@ function openAppMenu(){
     from.classList.remove("lg-hid"); modalEl._hid = null;
     lgLift(from);
     const twin = from._lift;                                      // the mark still closes what it opened
+    if(twin){ twin.classList.add("lg-melt"); modalEl._melt = twin; }   // one material while the window grows out of it
     modalEl._unlift = () => lgDrop(from, twin);                   // this drawer puts back ITS twin, not a newer one
     if(twin){ twin.style.pointerEvents = "auto"; twin.onclick = () => closeModal(); }
   }
@@ -8972,7 +9034,7 @@ function lgRefresh(){
    it bends, how bright its light, how far it floats off the page. 50 on each slider is the design, 100 is twice
    it. Depth / highlight / shadow are pure CSS (they only feed custom properties), so moving them costs nothing
    per frame; refraction re-scales the displacement maps, which is the one that has to be re-applied. */
-const LG_UI = { depth: 1, light: 1, shadow: 1, refract: 1, chroma: false, tilt: false };
+const LG_UI = { depth: 1, light: 1, shadow: 1, refract: 1, line: 1, dark: 1, chroma: false, tilt: false };
 const LG_LOW = ((navigator.hardwareConcurrency || 8) <= 4) || ((navigator.deviceMemory || 4) <= 2);
 const LG_SOFT = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 function lgUiApply(hard){
@@ -8980,12 +9042,14 @@ function lgUiApply(hard){
   st.setProperty("--lgd", LG_UI.depth.toFixed(2));
   st.setProperty("--lgh", LG_UI.light.toFixed(2));
   st.setProperty("--lgsh", LG_UI.shadow.toFixed(2));
+  st.setProperty("--lgln", LG_UI.line.toFixed(2));                 // the drawn edge: all the way down to none
+  st.setProperty("--lgdk", LG_UI.dark.toFixed(2));                 // every grey the glass casts into itself
   LG_UI.chroma = !LG_LOW && LG_UI.refract >= 1.4;                  // dispersion at the rim: the top of the slider only
   if(hard){ lgScaleAll(); lgRefresh(); }
   if(!LG_UI.light) litHome();
 }
 function lgUiSave(){
-  try{ localStorage.setItem("xc_lg_ui", JSON.stringify({ d: LG_UI.depth, l: LG_UI.light, s: LG_UI.shadow, r: LG_UI.refract, t: LG_UI.tilt })); }catch(e){}
+  try{ localStorage.setItem("xc_lg_ui", JSON.stringify({ d: LG_UI.depth, l: LG_UI.light, s: LG_UI.shadow, r: LG_UI.refract, ln: LG_UI.line, dk: LG_UI.dark, t: LG_UI.tilt })); }catch(e){}
 }
 function lgUiLoad(){
   try{
@@ -8993,6 +9057,7 @@ function lgUiLoad(){
     if(j){
       const num = (v, d) => (typeof v === "number" && v >= 0 && v <= 2) ? v : d;
       LG_UI.depth = num(j.d, 1); LG_UI.light = num(j.l, 1); LG_UI.shadow = num(j.s, 1); LG_UI.refract = num(j.r, 1);
+      LG_UI.line = num(j.ln, 1); LG_UI.dark = num(j.dk, 1);
       LG_UI.tilt = !!j.t;
     }
   }catch(e){}
@@ -9134,7 +9199,13 @@ function jellyFrame(now){
    BUTTONS ONLY: the tab bar, the trade bar and the menus never swell or glow — in the tab bar only its drop moves
    (user: «это создано только для маленьких кнопок … плашка не должна вообще дергатся»).
    One rAF loop for everything still moving; clicks are untouched. */
-const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close, .wl-logo";   // buttons only: the bars and menus hold still (user)
+/* EVERY interactive glass surface answers a finger, but not every one of them may change shape. A button can
+   swell; a segment of a bar, a row of a menu or a tab cannot — deforming one piece of a continuous capsule breaks
+   the capsule, and the user already told us the bars must hold still. Those answer with LIGHT instead: the glass
+   lifts where it is touched and settles back. Three tiers, one spring system. */
+const LG_CALM = ".cht, .cht-lot, .am-it, .lg-pop button, .seg button, .bottomnav button, .lw-bar button, .subtabs button";
+const LG_SOFTB = ".af-quick button, .sheet .btn, .ot-g .ot-st, .ot-g .ot-go, .lang-row";
+const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close, .wl-logo, " + LG_CALM + ", " + LG_SOFTB;
 const _glass = new Set();
 let _glassRaf = 0, _glassBtn = null;
 function glassAim(g, x, y){
@@ -9164,10 +9235,15 @@ function glassFrame(now){
     g.vx = MO.sp(g.vx, g.ox, dn ? g.tx : 0, Pb, dt); g.ox += g.vx * dt;                         // the rubber band, home with a wobble
     g.vy = MO.sp(g.vy, g.oy, dn ? g.ty : 0, Pb, dt); g.oy += g.vy * dt;
     g.m += ((dn ? 1 : 0) - g.m) * (1 - Math.exp(-dt / (dn ? .05 : .13)));                        // the milk: in 0.05 s, out 0.13 s
-    const sc = 1 + g.S * g.p, ax = Math.min(Math.abs(g.ox) / g.Lx, 1.2), ay = Math.min(Math.abs(g.oy) / g.Ly, 1.2);
-    b.style.setProperty("--psx", (sc * (1 + g.St * (ax - ay / 3))).toFixed(4));            // stretched the way it is pulled
-    b.style.setProperty("--psy", (sc * (1 + g.St * (ay - ax / 3))).toFixed(4));
-    b.style.setProperty("--pdx", g.ox.toFixed(2) + "px"); b.style.setProperty("--pdy", g.oy.toFixed(2) + "px");
+    if(!g.calm){
+      const sc = 1 + g.S * g.p, ax = Math.min(Math.abs(g.ox) / g.Lx, 1.2), ay = Math.min(Math.abs(g.oy) / g.Ly, 1.2);
+      b.style.setProperty("--psx", (sc * (1 + g.St * (ax - ay / 3))).toFixed(4));          // stretched the way it is pulled
+      b.style.setProperty("--psy", (sc * (1 + g.St * (ay - ax / 3))).toFixed(4));
+      b.style.setProperty("--pdx", g.ox.toFixed(2) + "px"); b.style.setProperty("--pdy", g.oy.toFixed(2) + "px");
+    }
+    b.style.setProperty("--lx", g.fx.toFixed(1) + "px");                                   // the glass lifts exactly where it is touched
+    b.style.setProperty("--ly", g.fy.toFixed(1) + "px");
+    b.style.setProperty("--la", (g.m * .3).toFixed(3));
     b.style.setProperty("--pk", g.p.toFixed(3));                                           // the core shadow deepens under the finger
     b.style.setProperty("--pcx", (g.ox * -.22).toFixed(2) + "px");                         // and the label lags the shell, as through a moving pane
     b.style.setProperty("--pcy", (g.oy * -.22).toFixed(2) + "px");
@@ -9178,7 +9254,7 @@ function glassFrame(now){
       m.style.setProperty("--mr", g.R + "px"); m.style.setProperty("--mb", g.mb + "px");
     }
     if(!dn && Math.abs(g.p) < .002 && Math.abs(g.pv) < .02 && Math.abs(g.ox) < .05 && Math.abs(g.oy) < .05 && Math.abs(g.vx) < .3 && Math.abs(g.vy) < .3 && g.m < .01){
-      for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--pk", "--pcx", "--pcy"]) b.style.removeProperty(p);
+      for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--pk", "--pcx", "--pcy", "--lx", "--ly", "--la"]) b.style.removeProperty(p);
       glassMilk(b, false);
       g.p = g.pv = g.ox = g.oy = g.vx = g.vy = g.m = 0; g.t = 0;
       b.classList.remove("pressing");
@@ -9193,7 +9269,16 @@ function glassFrame(now){
 function glassKind(b, g){
   const w = g.w, h = g.h;
   // St: how much a full pull stretches it (a round button ~14 %, a bar only a few %, as in the video)
-  g.rs = 0; g.blur = 1; g.mb = 1.6; g.R = Math.round(Math.max(w, h) * 1.25); g.St = .1;
+  g.rs = 0; g.blur = 1; g.mb = 1.6; g.R = Math.round(Math.max(w, h) * 1.25); g.St = .1; g.calm = false;
+  if(b.matches(LG_CALM)){                                          // part of a bar, a row or a track: light only
+    g.calm = true; g.S = 0; g.St = 0; g.Lx = g.Ly = 1; g.mb = .8;
+    g.R = Math.round(clamp(Math.min(w, h) * 2.2, 40, 150));
+    return;
+  }
+  if(b.matches(LG_SOFTB)){                                         // a button of its own, but a quiet one
+    g.S = .035; g.St = .03; g.Lx = clamp(h * .3, 4, 10); g.Ly = clamp(h * .14, 2, 5);
+    return;
+  }
   if(b.matches(".bignew, .fabnew")){ g.rs = 26; g.blur = .6; g.St = w > 200 ? .04 : .08; }
   if(b.matches(".sheet .close")) g.blur = 16;
   if(Math.abs(w - h) < 4){ g.S = .17; g.Lx = g.Ly = w * .45; g.St = .14; return; }       // a round button: swells the most
