@@ -4552,6 +4552,40 @@ function moFrame(now){
   }   // re-adds itself and schedules
   if(_moA.length && !_moRaf) _moRaf = requestAnimationFrame(moFrame);   // the next frame — never schedule it twice,
 }                                                                  // or every frame doubles the number of frames
+/* a menu that grows out of the thing that opened it and falls back into it: one piece, one spring, scale and
+   opacity together, anchored on the pill so it clearly belongs to it. No clip, nothing to uncover a strip at a
+   time, nothing left over at the end. */
+function moPop(el, anchor, open, done){
+  const a = anchor && anchor.getBoundingClientRect(), r = el.getBoundingClientRect();
+  if(a && r.width > 1){
+    const ox = clamp((a.left + a.width / 2 - r.left) / r.width * 100, -20, 120);
+    const oy = a.top > r.top ? 104 : -4;
+    el.style.transformOrigin = ox.toFixed(1) + "% " + oy + "%";
+  }
+  let p = open ? (el._pop == null ? 0 : el._pop) : (el._pop == null ? 1 : el._pop), v = el._popv || 0, t0 = 0;
+  const to = open ? 1 : 0;
+  el.style.willChange = "transform,opacity";
+  const put = () => {
+    el._pop = p; el._popv = v;
+    const sc = .9 + .1 * p;
+    el.style.transform = "scale(" + sc.toFixed(4) + ")";
+    el.style.opacity = clamp(p * 1.25, 0, 1).toFixed(3);
+  };
+  put();
+  const step = now => {
+    if(!el.isConnected) return;
+    const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+    v = MO.sp(v, p, to, open ? MO.P.std : MO.P.micro, dt); p += v * dt;
+    if(Math.abs(p - to) < .004 && Math.abs(v) < .05){
+      p = to; v = 0; put();
+      if(open){ el.style.removeProperty("transform"); el.style.removeProperty("opacity"); el.style.removeProperty("will-change"); }
+      if(done) done();
+      return;
+    }
+    put(); moAdd(step);
+  };
+  moAdd(step);
+}
 /* a short ease-out ramp driven by rAF. CSS transitions are killed system-wide by "reduce motion" (and by Android's
    animator scale), and these two hand-overs — a window's shadow coming up, a button coming back — must stay soft on
    every phone, or they snap and read as a flicker (user 2026-09-20). */
@@ -4656,6 +4690,11 @@ function lgRestRect(el){
 }
 function morphOpen(from, m){
   const sh = m.querySelector(".sheet"); if(!sh) return;
+  const R0 = sh.getBoundingClientRect();
+  if(R0.width * R0.height > (innerWidth || 400) * (innerHeight || 800) * .38){
+    m.classList.remove("morph");                                   // too big to be uncovered: it arrives whole
+    return;
+  }
   const a = lgRestRect(from);
   m._from = from; m._fromSel = from.dataset.act ? '[data-act="' + from.dataset.act + '"]' : null;
   from.classList.add("lg-hid");
@@ -4740,7 +4779,7 @@ function openTFPop(pill){
   _tfPop = { pop, catcher, pill };
   pop.classList.add("shown");
   pill.classList.add("lg-hid");
-  lgFlow(pop, a, getComputedStyle(pill).borderRadius, 400, true, "tf");   // the pill stays hidden: the menu IS the pill while it is open
+  moPop(pop, pill, true);                                        // the pill stays hidden: the menu IS the pill while it is open
   // a tap beside the menu only closes it: the catcher stays for that tap's click, so nothing beneath is pressed
   catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(false, true); });
   pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ setChartTF(b.dataset.tfpick); closeTFPop(); });
@@ -4752,8 +4791,8 @@ function closeTFPop(now, outside){
   else P.catcher.remove();
   const pill = tfPill();
   lgShowBtn(P.pill); if(pill !== P.pill) lgShowBtn(pill);          // it comes back the way every other button does
-  if(now === true || !pill || !glassOn("morph")){ lgStop("tf"); P.pop.remove(); return; }
-  lgFlow(P.pop, pill.getBoundingClientRect(), "22px", 300, false, "tf", () => P.pop.remove());   // it drains into the pill
+  if(now === true){ P.pop.remove(); return; }
+  moPop(P.pop, pill || P.pill, false, () => P.pop.remove());       // it falls back into the pill it came from
 }
 
 function toast(kind, msg){
@@ -6443,7 +6482,7 @@ function chartMarkup(h, o){
 const PM_D = 21, PM_JOIN = 3;   // joins 3 px apart; the neck snaps 16 px apart under the finger, 8 px let go (home is 9 px apart)
 const PM = { x: null, v: 0, t: 0, raf: 0, drag: null, joined: false, j: 0, jv: 0, sx: 0, sv: 0, sj: 0, sjv: 0, b: 0, bv: 0, gap: 99 };   // sx/sj «XAUUSD»'s own sway and stretch, b the drop's bulge
 let _pmSkip = 0;
-const pmMerged = () => !!(S.ui && S.ui.chMerge) && glassOn("chart");
+const pmMerged = () => false;                                       // they are two pills and they stay two (user 2026-09-21)
 const PM_SVG = `<svg class="chp-shade" aria-hidden="true"><defs><filter id="chpShB" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="3"/></filter><filter id="chpShA" x="-90%" y="-90%" width="280%" height="280%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="11"/></filter><mask id="chpShM" maskUnits="userSpaceOnUse"><rect x="-600" y="-600" width="2400" height="1400" fill="#fff"/><path class="c2"/></mask></defs><g mask="url(#chpShM)"><path class="am" transform="translate(0,9)" filter="url(#chpShA)"/><path class="sh" transform="translate(0,4)" filter="url(#chpShB)"/></g></svg><span class="chp-goo" aria-hidden="true"></span><svg class="chp-rim" aria-hidden="true"><defs><linearGradient id="chpRimG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="s1"/><stop offset=".36" class="s0"/><stop offset=".64" class="s0"/><stop offset="1" class="s2"/></linearGradient><clipPath id="chpClip"><path class="c"/></clipPath></defs><path class="h"/><path class="r" clip-path="url(#chpClip)"/></svg>`;
 const pmRow = () => document.querySelector(".chartbox:not(.sub) .chpills");
 // the outline: two capsules (same height) and, joined, a neck whose waist thins with the gap (k 1 → 0); it
@@ -6494,7 +6533,7 @@ function pmDraw(row){
 function pmFrame(now){
   PM.raf = 0;
   const row = pmRow();
-  const target = S.ui.chMerge ? -PM_D : 0;
+  const target = 0;
   if(!row || !glassOn("chart")){ PM.x = target; PM.v = 0; PM.j = PM.jv = 0; PM.sx = PM.sv = PM.sj = PM.sjv = PM.b = PM.bv = 0; return; }
   const dt = PM.t ? Math.min(Math.max((now - PM.t) / 1000, 0), 1 / 30) : MO.dt0;
   PM.t = now;
@@ -6555,8 +6594,7 @@ document.addEventListener("pointerdown", e => {
   if(e.button > 0 || !glassOn("chart")) return;
   const pill = e.target.closest && e.target.closest(".chartbox:not(.sub) .chpills .chpill");
   if(!pill) return;
-  const merged = !!S.ui.chMerge;
-  if(!merged && pill.dataset.act !== "charttf") return;                     // apart, only «м1» is pulled
+  if(pill.dataset.act !== "charttf") return;                                // only «м1» takes a gesture now
   PM.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, xs: PM.x == null ? 0 : PM.x, on: false, pill, lx: e.clientX, lt: performance.now(), vel: 0 };
 }, { capture: true, passive: true });
 document.addEventListener("pointermove", e => {
@@ -6576,13 +6614,9 @@ document.addEventListener("pointermove", e => {
     _pmSkip = performance.now();
     return;
   }
-  if(!d.on){
-    if(Math.abs(dx) < 7 || Math.abs(dx) < Math.abs(dy)){ if(Math.abs(dy) > 12) PM.drag = null; return; }
-    d.on = true;
-    const row = pmRow(); if(!row){ PM.drag = null; return; }
-    row.querySelectorAll(".chpill").forEach(glassCancel);
-    row.classList.add("goo"); row.classList.remove("merged");
-    PM.v = 0; pmKick();
+  if(!d.on){                                                       // sideways does nothing: there is nothing to join
+    if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) PM.drag = null;
+    return;
   }
   const raw = d.xs + dx;
   PM.x = raw < -PM_D ? -PM_D - 9 * Math.tanh((-PM_D - raw) / 14) : raw > 0 ? 14 * Math.tanh(raw / 20) : raw;   // a rubber band past either end
