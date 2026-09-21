@@ -10,7 +10,7 @@
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
 function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.978,b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";if(localStorage.getItem("xc_glass")==="off")document.documentElement.dataset.glass="off";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -357,7 +357,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chp-goo,.chp-rim,.chp-shade{display:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-goo{display:block;position:absolute;left:-10px;top:-10px;width:calc(100% + 100px);height:calc(100% + 20px);pointer-events:none;z-index:-1;
   clip-path:var(--gp,inset(50%));
-  background:linear-gradient(180deg,transparent 10px,var(--lg-sheen) 10px,transparent 28px),linear-gradient(var(--lg-tint),var(--lg-tint));
+  background:radial-gradient(52% 40% at var(--lit-x,30%) var(--lit-y,26%),var(--lg-spot) 0%,transparent 74%),
+    linear-gradient(180deg,transparent 10px,var(--lg-sheen) 10px,transparent 28px),
+    linear-gradient(180deg,transparent 10px,var(--lg-spec) 11.4px,transparent 13.2px),
+    linear-gradient(0deg,transparent 10px,var(--lg-glow) 11.8px,transparent 14.4px),
+    linear-gradient(180deg,rgba(16,24,40,calc(.09 * var(--lgdk,1))) 10px,transparent 24px),
+    linear-gradient(0deg,var(--lg-foot) 10px,transparent 26px),
+    linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(calc(1px * var(--lgb,1))) saturate(1.35) brightness(1.03);backdrop-filter:blur(calc(1px * var(--lgb,1))) saturate(1.35) brightness(1.03)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-rim,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-shade{display:block;position:absolute;left:-10px;top:-10px;width:calc(100% + 100px);height:calc(100% + 20px);overflow:visible;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-rim{z-index:1}
@@ -365,6 +371,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* the shadow is blurred and offset INSIDE the svg and the drop's own shape is masked out of it: glass this clear
    shows whatever is under it, and a filled copy of itself under the capsule was the colour change (user video 4) */
 .chp-shade .sh{fill:var(--lg-shadow)}
+.chp-shade .am{fill:var(--lg-shadow);opacity:.75}   /* the far, wide one: the pair a real object casts */
 .chp-shade .c2{fill:#000}
 .chp-rim .h{fill:none;stroke:var(--lg-line);stroke-width:1}
 .chp-rim .r{fill:none;stroke:url(#chpRimG);stroke-width:3}
@@ -2429,7 +2436,7 @@ const DEFAULTS = () => { const m0 = randomStartMid(); return {
           delta:0, _vel:0 },
   lock: { active:false, until:0 },
   newsLog: [],
-  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false, theme: "light" },
+  ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false, theme: "light", glass: false },
   seq: { pos: 1, ord: 1, evt: 1 },
   createdAt: Date.now()
 }; };
@@ -4494,7 +4501,7 @@ const MO = {
     follow:{ k: 430, z: .62 },                                   // steered by a finger, allowed to lag a step
     lead:  { k: 540, z: .52 }, trail: { k: 240, z: .55 }         // the two edges of a drop that flows: one leads, one catches up
   },
-  P: {}, soft: false
+  P: {}, soft: false, errs: 0, lastErr: null
 };
 MO.tune = () => {
   MO.soft = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -4538,7 +4545,10 @@ function moFrame(now){
   const list = _moA; _moA = _moB; _moB = list;                     // two buffers, swapped: a frame allocates nothing
   _moA.length = 0;
   _moRaf = 0;                                                      // cleared BEFORE the callbacks run: one of them
-  for(let i = 0; i < list.length; i++){ try{ list[i](now); }catch(e){ console.error(e); } }   // re-adds itself and schedules
+  for(let i = 0; i < list.length; i++){
+    try{ list[i](now); }
+    catch(e){ MO.errs++; MO.lastErr = String((e && e.message) || e); console.error("[motion]", e); }   // one bad loop must not kill the others — but it must not hide either
+  }   // re-adds itself and schedules
   if(_moA.length && !_moRaf) _moRaf = requestAnimationFrame(moFrame);   // the next frame — never schedule it twice,
 }                                                                  // or every frame doubles the number of frames
 /* a short ease-out ramp driven by rAF. CSS transitions are killed system-wide by "reduce motion" (and by Android's
@@ -4600,6 +4610,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
   const Z = .75, W = 5.4 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);   // quick off the mark, a breath of inertia, the smallest overshoot, a soft settle (user §4)
   const t0 = performance.now();
   const step = now => {
+   try{
     const t = Math.min(1, (now - t0) / dur);
     let k;
     if(opening){ const u = t * dur / 1000, e = Math.exp(-Z * W * u); k = k0 + span * Math.max(0, 1 - e * (Math.cos(WD * u) + Z * W / WD * Math.sin(WD * u))); }
@@ -4607,8 +4618,8 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     else k = k0 * ((1 - t * t * (3 - 2 * t)) + .07 * (t < .22 ? Math.sin(Math.PI * t / .22) : 0));
     run.k = k;                                                     // so whatever interrupts this knows where it was
     if(opening){ const c = clamp((k - .06) / .5, 0, 1); el.style.setProperty("--lgcr", (c * c * (3 - 2 * c)).toFixed(3)); }
-    el.style.setProperty("--lgfb", (.4 + .6 * kc * kc).toFixed(3));   // the glass thickens as it forms: cheap while it flies, full when it lands
     const kc = Math.min(1, k), lerp = (p, q, e) => p + (q - p) * e;
+    el.style.setProperty("--lgfb", (.4 + .6 * kc * kc).toFixed(3));   // the glass thickens as it forms: cheap while it flies, full when it lands
     // a drop swells sideways first and only then pours along its long way — growing both at once made a tall
     // window look like it was unrolling out of a corner (user: «чтобы оно от какого-то угла работало»)
     const slowW = (R.width - src.width) >= (R.height - src.height);
@@ -4624,6 +4635,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     // piece — glass and text together — instead of leaving a pane with no writing on it (the grey plate)
     if(t < 1) raf = requestAnimationFrame(step);
     else finish();
+   }catch(err){ console.error(err); finish(); }   // never leave a pane half-clipped and un-closable
   };
   step(t0);
   raf = requestAnimationFrame(step);
@@ -4768,7 +4780,7 @@ function moNudge(el){
 }
 document.addEventListener("pointerdown", e => {
   const d = e.target.closest && e.target.closest('[aria-disabled="true"], .menu-item.soon, .soon-pill, [disabled]');
-  if(d) moNudge(d.closest(".menu-item, .sw-row, .row, button") || d);
+  if(d) moNudge(d.querySelector(".soon-pill") || (d.matches(".soon-pill") ? d : d.querySelector("button, .v, span:last-child")) || d);
 }, { passive: true, capture: true });
 /* A SCREEN ARRIVES FROM SOMEWHERE. Tapping a tab to the right brings the next screen in from the right and the
    other way round: the interface has a left and a right, and the move says which way you went. The bar and the
@@ -6428,7 +6440,7 @@ const PM_D = 21, PM_JOIN = 3;   // joins 3 px apart; the neck snaps 16 px apart 
 const PM = { x: null, v: 0, t: 0, raf: 0, drag: null, joined: false, j: 0, jv: 0, sx: 0, sv: 0, sj: 0, sjv: 0, b: 0, bv: 0, gap: 99 };   // sx/sj «XAUUSD»'s own sway and stretch, b the drop's bulge
 let _pmSkip = 0;
 const pmMerged = () => !!(S.ui && S.ui.chMerge) && glassOn("chart");
-const PM_SVG = `<svg class="chp-shade" aria-hidden="true"><defs><filter id="chpShB" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="6"/></filter><mask id="chpShM" maskUnits="userSpaceOnUse"><rect x="-600" y="-600" width="2400" height="1400" fill="#fff"/><path class="c2"/></mask></defs><g mask="url(#chpShM)"><path class="sh" transform="translate(0,5)" filter="url(#chpShB)"/></g></svg><span class="chp-goo" aria-hidden="true"></span><svg class="chp-rim" aria-hidden="true"><defs><linearGradient id="chpRimG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="s1"/><stop offset=".36" class="s0"/><stop offset=".64" class="s0"/><stop offset="1" class="s2"/></linearGradient><clipPath id="chpClip"><path class="c"/></clipPath></defs><path class="h"/><path class="r" clip-path="url(#chpClip)"/></svg>`;
+const PM_SVG = `<svg class="chp-shade" aria-hidden="true"><defs><filter id="chpShB" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="3"/></filter><filter id="chpShA" x="-90%" y="-90%" width="280%" height="280%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="11"/></filter><mask id="chpShM" maskUnits="userSpaceOnUse"><rect x="-600" y="-600" width="2400" height="1400" fill="#fff"/><path class="c2"/></mask></defs><g mask="url(#chpShM)"><path class="am" transform="translate(0,9)" filter="url(#chpShA)"/><path class="sh" transform="translate(0,4)" filter="url(#chpShB)"/></g></svg><span class="chp-goo" aria-hidden="true"></span><svg class="chp-rim" aria-hidden="true"><defs><linearGradient id="chpRimG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="s1"/><stop offset=".36" class="s0"/><stop offset=".64" class="s0"/><stop offset="1" class="s2"/></linearGradient><clipPath id="chpClip"><path class="c"/></clipPath></defs><path class="h"/><path class="r" clip-path="url(#chpClip)"/></svg>`;
 const pmRow = () => document.querySelector(".chartbox:not(.sub) .chpills");
 // the outline: two capsules (same height) and, joined, a neck whose waist thins with the gap (k 1 → 0); it
 // leaves each cap at an angle that grows as it thins, so the shoulders stay round
@@ -6471,7 +6483,7 @@ function pmDraw(row){
   PM.gap = gap;
   const d = pmPath(s0, s1, t0, t1, h, PM.joined, gap, brk, PM.b);
   row.querySelector(".chp-goo").style.setProperty("--gp", 'path("' + d + '")');
-  for(const p of row.querySelectorAll(".chp-rim .h, .chp-rim .r, .chp-rim .c, .chp-shade path")) p.setAttribute("d", d);
+  for(const p of row.querySelectorAll(".chp-rim .h, .chp-rim .r, .chp-rim .c, .chp-shade path")) p.setAttribute("d", d);   // the mask hole and both shadows share it
 }
 function pmFrame(now){
   PM.raf = 0;
@@ -7074,7 +7086,12 @@ function quickLens(root){
     let lens = box.querySelector(":scope > .mq-lens");
     if(!lens){ lens = document.createElement("span"); lens.className = "mq-lens idle"; box.appendChild(lens); }
     const st = { x: 0, y: 0, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0, tx: 0, ty: 0, tw: 0, th: 0, f: 0, box, lens, t: 0, drag: null };
-    if(_mqMem && _mqMem.f > .01){ Object.assign(st, _mqMem, { box, lens, t: 0, drag: null }); st.tx = st.x; st.ty = st.y; st.tw = st.w; st.th = st.h; st.tf = 0; _mq.set(box, st); mqKick(); }
+    if(_mqMem && _mqMem.f > .01){
+      Object.assign(st, _mqMem, { box, lens, t: 0, drag: null });
+      if(_mqMem.tx == null){ st.tx = st.x; st.ty = st.y; st.tw = st.w; st.th = st.h; }
+      st.tf = st.hold ? 1 : 0;                                     // still on its way: it shows until it lands
+      box._mqSt = st; _mq.set(box, st); mqKick();
+    }
     mqApply(st);
     if(box._mqBound) return;
     box._mqBound = true;
@@ -7125,9 +7142,11 @@ function quickLens(root){
     const end = (e, go) => {
       const s = box._mqSt, d = s && s.drag;
       if(!d || e.pointerId !== d.id) return;
-      s.drag = null; s.tf = 0; _mq.set(box, s); mqKick();
+      s.drag = null; _mq.set(box, s); mqKick();
       const c = aim(s, e.clientX, e.clientY);
-      if(go) _mqMem = { x: s.x, y: s.y, w: s.w, h: s.h, f: s.f, p: s.p || 0, pv: s.pv || 0, jx: s.jx };   // the re-render the new lot causes keeps the fade going
+      s.hold = true;                                               // it must arrive before it is allowed to go
+      s.tf = 1;
+      if(go) _mqMem = { x: s.x, y: s.y, w: s.w, h: s.h, tx: s.tx, ty: s.ty, tw: s.tw, th: s.th, hold: true, f: s.f, p: s.p || 0, pv: s.pv || 0, jx: s.jx };   // the re-render the new lot causes keeps it flying, and it lands on the number
       if(go && c){ box._mqPick = performance.now(); box._mqSelf = true; c.click(); box._mqSelf = false; }   // drag or tap: the chip under the lens
     };
     box.addEventListener("pointerup", e => end(e, true));
@@ -7166,14 +7185,15 @@ function mqFrame(now){
     s.vh = MO.sp(s.vh || 0, s.h, s.th, MO.P.fluid, dt); s.h += s.vh * dt;
     s.pv = MO.sp(s.pv || 0, s.p || 0, 0, MO.P.jelly, dt);
     s.p = (s.p || 0) + s.pv * dt;
-    s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
-    if(_mqMem) _mqMem.f = s.f;
-    mqApply(s);
     const home = Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25 && Math.abs(s.y - s.ty) < .25 && Math.abs(s.h - s.th) < .25
       && Math.abs(s.vl || 0) < 4 && Math.abs(s.vr || 0) < 4 && Math.abs(s.vy || 0) < 4 && Math.abs(s.vh || 0) < 4;
     if(home){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; s.vl = s.vr = s.vy = s.vh = 0; }
+    if(s.hold && home){ s.hold = false; s.tf = 0; }                // landed on the number: now it may fade
+    s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
+    if(_mqMem) _mqMem.f = s.f;
+    mqApply(s);
     const still = home && Math.abs(s.p || 0) < .004 && Math.abs(s.pv || 0) < .05;
-    if(still && s.drag && s.f > .99){ s.p = s.pv = 0; mqApply(s); _mq.delete(box); continue; }   // held still: nothing to animate
+    if(still && (s.drag || s.hold) && s.f > .99) continue;      // arrived, but the finger has it or it is still showing
     if(!s.drag && s.f < .01 && still){ s.f = 0; s.p = s.pv = 0; mqApply(s); _mq.delete(box); if(_mqMem) _mqMem = null; }
   }
   if(_mq.size){ _mqRaf = 1; moAdd(mqFrame); }
@@ -10769,6 +10789,7 @@ function screenAuth(msg, kind){
     const btn = document.getElementById("au-go"); btn.disabled = true; btn.textContent = "…";
     try{
       const res = await xcApi("POST", reg ? "/api/auth/register" : "/api/auth/login", { email, password: pass });
+      if(reg) try{ localStorage.setItem("xc_glass", "off"); }catch(e){}   // a new account starts plain; the mode is theirs to turn on
       xcSetSession(res);
       await bootAfterAuth(true);
     }catch(e){
