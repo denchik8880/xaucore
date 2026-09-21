@@ -1259,7 +1259,6 @@ body.amenu-open .wl-logo{opacity:0}
 .about-doc p{margin:0 0 11px}
 .about-doc b{font-weight:600;color:var(--ink)}
 .ab-note{margin:20px 0 0!important;padding:12px 13px;border-radius:14px;background:var(--sheet-card,var(--line));font-size:13px;line-height:1.5;color:var(--ink3)}
-.ab-ver{margin:14px 0 0!important;font-size:12.5px;text-align:center;color:var(--ink3)}
 .about-sheet h2{margin-bottom:10px}
 /* a long read is not a control panel: this one pane is denser than the rest, or a live chart moves under every
    line of it. It is still glass, you just cannot read the page through it */
@@ -5411,20 +5410,10 @@ function aboutMarkup(){
       b.startsWith("## ") ? "<h3>" + esc(b.slice(3)) + "</h3>"
     : b.startsWith("! ")  ? '<p class="ab-note">' + line(b.slice(2)) + "</p>"
     :                       "<p>" + line(b) + "</p>").join("");
-  return "<h2>" + L("О приложении") + '</h2><div class="about-doc">' + body
-       + '<p class="ab-ver">XAUCORE · <span id="abBuild">…</span></p></div>';
-}
-// which build is actually running — the server knows, we do not bake it in and let it go stale
-function aboutBuild(){
-  const el = document.getElementById("abBuild"); if(!el) return;
-  const drop = () => { if(el.parentElement) el.parentElement.remove(); };
-  fetch("/api/health", { cache: "no-store" }).then(r => r.json())
-    .then(j => { if(!el.isConnected) return; if(j && j.build) el.textContent = j.build; else drop(); })
-    .catch(drop);
+  return "<h2>" + L("О приложении") + '</h2><div class="about-doc">' + body + "</div>";
 }
 function aboutModal(){
   openSheet(aboutMarkup(), "about-sheet");
-  aboutBuild();
 }
 /* «Пополнить счёт» / «Снять средства» — DEMO money straight into the trading account (the broker wallet is a
    separate thing and still «Скоро»). Withdrawal is capped by what is actually free, so an open position's margin
