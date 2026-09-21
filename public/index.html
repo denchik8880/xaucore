@@ -357,8 +357,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .chp-goo,.chp-rim,.chp-shade{display:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-goo{display:block;position:absolute;left:-10px;top:-10px;width:calc(100% + 100px);height:calc(100% + 20px);pointer-events:none;z-index:-1;
   clip-path:var(--gp,inset(50%));
-  background:radial-gradient(52% 40% at var(--lit-x,30%) var(--lit-y,26%),var(--lg-spot) 0%,transparent 74%),
-    linear-gradient(180deg,transparent 10px,var(--lg-sheen) 10px,transparent 28px),
+  background:linear-gradient(180deg,transparent 10px,var(--lg-sheen) 10px,transparent 28px),
     linear-gradient(180deg,transparent 10px,var(--lg-spec) 11.4px,transparent 13.2px),
     linear-gradient(0deg,transparent 10px,var(--lg-glow) 11.8px,transparent 14.4px),
     linear-gradient(180deg,rgba(16,24,40,calc(.09 * var(--lgdk,1))) 10px,transparent 24px),
@@ -1114,13 +1113,14 @@ html:has(body.route-wallet){background:#0c0a08}
 /* the surfaces that answer with light need a stacking context of their own, so the light sits over their body and
    under their label — and it is gentler on them than on a button that swells */
 :root[data-glass="on"] .cht,:root[data-glass="on"] .am-it,:root[data-glass="on"] .lg-pop button,
-:root[data-glass="on"] .bottomnav button,:root[data-glass="on"] .af-quick button,
+:root[data-glass="on"] .af-quick button,
 :root[data-glass="on"] .sheet .btn,:root[data-glass="on"] .lang-row{position:relative;isolation:isolate}
 /* these are already positioned — giving them position:relative tore «Лоты» out of the middle of the bar and
    dropped it below it (user screenshot 2026-09-21). They only ever needed the stacking context. */
 :root[data-glass="on"] .cht-lot,:root[data-glass="on"] .seg button,:root[data-glass="on"] .subtabs button{isolation:isolate}
-.cht .lg-milk,.cht-lot .lg-milk,.am-it .lg-milk,.lg-pop button .lg-milk,.seg button .lg-milk,
-.bottomnav button .lg-milk,.subtabs button .lg-milk{--mc:calc(.24 * var(--lgh,1))}
+.cht .lg-milk,.cht-lot .lg-milk,.am-it .lg-milk,.lg-pop button .lg-milk,.seg button .lg-milk,.lw-bar button .lg-milk{
+  --mc:calc(.24 * var(--lgh,1));border-radius:inherit;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 /* THE MILK LIVES UNDER THE LABEL. At z-index 2 it sat over it and, having a backdrop-filter of its own inside a
    backdrop root, it frosted the very text it covered — that is the «раздвоенный / нечитаемый» text. A negative
    z-index inside the pane's own stacking context puts it above the tint and below every glyph (user 2026-09-21). */
@@ -9343,7 +9343,7 @@ function jellyFrame(now){
    swell; a segment of a bar, a row of a menu or a tab cannot — deforming one piece of a continuous capsule breaks
    the capsule, and the user already told us the bars must hold still. Those answer with LIGHT instead: the glass
    lifts where it is touched and settles back. Three tiers, one spring system. */
-const LG_CALM = ".cht, .cht-lot, .am-it, .lg-pop button, .seg button, .bottomnav button, .lw-bar button, .subtabs button";
+const LG_CALM = ".cht, .cht-lot, .am-it, .lg-pop button, .seg button, .lw-bar button";
 const LG_SOFTB = ".af-quick button, .sheet .btn, .ot-g .ot-st, .ot-g .ot-go, .lang-row";
 const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close, .wl-logo, " + LG_CALM + ", " + LG_SOFTB;
 const _glass = new Set();
