@@ -53,8 +53,8 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
-  --nav-glass:rgba(255,255,255,calc(.72 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.075); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
-  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#1f4e9c; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
+  --nav-glass:rgba(255,255,255,calc(.72 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.045); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#9aa1ac; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -64,14 +64,14 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
-  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#7aa7f7; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
+  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#ff4a45; --nav-ic:#78787e; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
-  --nav-glass:rgba(28,28,30,calc(.74 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.13); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
+  --nav-glass:rgba(28,28,30,calc(.74 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.085); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -265,14 +265,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
 .bottomnav button.on{color:var(--nav-on)}
 .bottomnav .ic svg{width:26px;height:26px}
-.nav-bub,.nav-lens{display:none}
+.nav-bub,.nav-lens,.nav-red{display:none}
 /* liquid glass ON (the default; «Ещё» → «Жидкое стекло») — iOS 26's floating tab bar (user 2026-09-18, an Apple
    Music recording): a frosted capsule the page scrolls under; the current tab sits on a soft drop (.nav-bub).
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
 :root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:31px;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:24px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),var(--lg-body)}
@@ -280,14 +280,29 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.near{color:var(--nav-on)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav.dragging button.on:not(.near){color:var(--ink2)}
+/* nothing in the row changes colour by itself any more: the drop carries the accent (see .nav-red), so a tab
+   reads as chosen only while the drop is over it. The label is the dark one and the icon the pale one. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button,
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--ink)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-ic)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:24px;height:24px}
 /* the resting drop and the lens share one place and shape (--u, --sx, --sy on the bar) and CROSS-FADE by
    --lf, the lift: pressed, the lens rises out of the drop; released, it melts back into it (user: it turned
    grey in one jump — «нужно более плавнее, как с того видео») */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:3px;width:calc(20% - 6px);border-radius:27px;pointer-events:none;
-  transform:translateX(calc(var(--u,0) * (100% + 6px))) scale(var(--sx,1),var(--sy,1));will-change:transform,opacity}
+/* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
+   it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:0;width:20%;border-radius:27px;pointer-events:none;
+  transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
+/* THE ACCENT, CARRIED BY THE DROP. The row is drawn a second time in the accent colour and shown only through
+   the drop's own rectangle, so the red is a window that travels: a tab is red while the drop is over it and
+   grey again behind it, with the hard edge the video shows mid-icon. It reads --u/--sx/--sy straight off the
+   bar, so it costs no frame of its own. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:grid;position:absolute;inset:0;z-index:2;grid-template-columns:repeat(5,1fr);
+  pointer-events:none;color:var(--nav-on);
+  -webkit-clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px);
+  clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:11.5px;font-weight:500;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 62%),var(--nav-bub);
   box-shadow:inset 0 1px 1px var(--nb-sheen)}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
@@ -1136,8 +1151,8 @@ html:has(body.route-wallet){background:#0c0a08}
    bar up; a tap beside it, the grabber or a swipe down closes it. It holds the account at a glance, live. */
 body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while it grows / shrinks navCardRun cross-fades it inline */
 .nav-card-catch{position:fixed;inset:0;z-index:88}
-.nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 20px);max-width:500px;z-index:89;
-  box-sizing:border-box;padding:8px 18px 14px;border-radius:31px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
+.nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 28px);max-width:500px;z-index:89;
+  box-sizing:border-box;padding:8px 18px 14px;border-radius:24px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
   background:color-mix(in srgb,var(--nav-glass),var(--sheet-glass,var(--card)) calc(var(--ncp,1) * 100%));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
   box-shadow:var(--lg-lift3),var(--lg-body);opacity:0}
 .nav-card.shown{opacity:1}
@@ -6829,33 +6844,80 @@ async function refreshLockCard(){
 /* ---------- bottom nav ---------- */
 /* ---- the tab bar's drop (see .bottomnav in the CSS) ---- */
 const NAV_TABS = ["markets", "chart", "positions", "orders", "more"];
+const NAV_ICONS = [
+  ["markets",   '<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>', "Рынки", ["markets","calendar","dom"]],
+  ["chart",     '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>', "Графики", ["chart"]],
+  ["positions", '<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>', "Позиции", ["positions"]],
+  ["orders",    '<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 13.5h7M8.5 17h4"/>', "Ордеры", ["orders"]],
+  ["more",      '<circle cx="7.5" cy="7.5" r="3"/><circle cx="16.5" cy="7.5" r="3"/><circle cx="7.5" cy="16.5" r="3"/><circle cx="16.5" cy="16.5" r="3"/>', "Ещё", ["more","settings","history","debug","wallet"]]
+];
 function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : t === "positions" ? 2 : t === "orders" ? 3 : 4; }
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
-// u: the drop's place in tabs (0…4, fractional in motion); lift 0…1: resting drop → lens under the finger
-const NB = { u: null, vel: 0, target: 0, lift: 0, t: 0, raf: 0, drag: null };
+// a: the drop's LEADING edge in tabs, b its trailing one (at rest on tab i they are i and i+1); u is the tab
+// they straddle, kept because the icons' swell and the drag read it. lift 0…1: resting drop → lens under the finger
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
+// cubic-bezier(.16,0,.78,1) — measured off the user's video (2026-09-22). x is solved by halving; with y1 = 0
+// and y2 = 1 the y half of the curve is just 3t² - 2t³, so there is nothing else to evaluate.
+function navEase(x){
+  if(x <= 0) return 0; if(x >= 1) return 1;
+  let lo = 0, hi = 1, t = x;
+  for(let i = 0; i < 16; i++){
+    const u = 1 - t, v = .48 * t * u * u + 2.34 * t * t * u + t * t * t;
+    if(v < x) lo = t; else hi = t;
+    t = (lo + hi) / 2;
+  }
+  return t * t * (3 - 2 * t);
+}
+// GO TO A TAB. The drop is not told where it is, it is told where to be by when: the leading edge takes
+// .30 s + .085 s per tab crossed, the trailing one the same curve 62 ms later. Neither is scaled down under
+// Reduce Motion — this pace IS what the user asked for, and their phone has Reduce Motion on.
+function navGo(i){
+  NB.target = i;
+  if(NB.a == null){ NB.a = i; NB.b = i + 1; NB.u = i; NB.tw = null; return; }
+  // whichever edge FACES the way it is going sets off first; the other one is the one that gets the 62 ms
+  const right = i + .5 > (NB.a + NB.b) / 2, dur = 300 + 85 * Math.abs(i - NB.a);
+  NB.tw = { t0: performance.now(), dur, end: dur + 62, la: right ? 62 : 0, lb: right ? 0 : 62, a0: NB.a, b0: NB.b };
+  navBubKick();
+}
 function navBubFrame(now){
   NB.raf = 0;
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
-  if(!lens){ NB.u = NB.target; NB.vel = 0; NB.lift = 0; return; }
+  if(!lens){ NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; return; }
+  if(NB.a == null){ NB.a = NB.target; NB.b = NB.target + 1; }
   const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : MO.dt0;
   NB.t = now;
-  const target = NB.drag ? NB.drag.u : NB.target;
-  // one to one with the user's video (WhatsApp, iOS 26): under the finger a SOFT spring — the lens lags a step
-  // behind and sways when the finger stops; let go, it overshoots a hair onto the tab
-  NB.vel = MO.sp(NB.vel, NB.u, target, NB.drag ? MO.P.follow : MO.P.std, dt);
-  NB.u = clamp(NB.u + NB.vel * dt, -0.3, 4.3);
+  // TWO EDGES, NOT A BOX (the user's video, 2026-09-22). Whichever edge faces the way it is going sets off
+  // first and the other one follows 62 ms behind it, so the drop stretches across the tabs it crosses and
+  // gathers itself where it lands — the stretch is not a number I picked, it is the gap between the two.
+  if(NB.drag){                                 // the finger owns it: stiff springs, it must not trail the hand
+    const right = NB.drag.u + .5 > (NB.a + NB.b) / 2;
+    NB.va = MO.sp(NB.va, NB.a, NB.drag.u, right ? MO.P.trailDrag : MO.P.leadDrag, dt);
+    NB.a = clamp(NB.a + NB.va * dt, -.25, 4.25);
+    NB.vb = MO.sp(NB.vb, NB.b, NB.drag.u + 1, right ? MO.P.leadDrag : MO.P.trailDrag, dt);
+    NB.b = clamp(NB.b + NB.vb * dt, .75, 5.25);
+    NB.tw = null;
+  }else if(NB.tw){                             // travelling between tabs: the curve, not a spring
+    const e = now - NB.tw.t0, w = NB.tw;
+    NB.a = w.a0 + (NB.target - w.a0) * navEase((e - w.la) / w.dur);
+    NB.b = w.b0 + (NB.target + 1 - w.b0) * navEase((e - w.lb) / w.dur);
+    NB.va = NB.vb = 0;
+    if(e >= w.end){ NB.a = NB.target; NB.b = NB.target + 1; NB.tw = null; }
+  }else{ NB.a = NB.target; NB.b = NB.target + 1; NB.va = NB.vb = 0; }
+  NB.u = (NB.a + NB.b) / 2 - .5;
   // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
   const lt = NB.drag ? 1 : 0;
   NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
-  // lifted it is a big lens, ~1.3 tabs wide and taller than the bar; stretched along its way by its speed (to
-  // ~1.55×); run past an end, squashed flat against it
-  const stretch = Math.min(Math.abs(NB.vel) * .1, .42);             // tabs / s → up to ~1.6 tabs, as in the video
-  const over = Math.max(0, -NB.u, NB.u - 4);
-  const sx = 1 + .32 * NB.lift + stretch - over * 1.4, sy = 1 + .3 * NB.lift - stretch * .3 + over * .35;
-  bar.style.setProperty("--u", NB.u.toFixed(4));
-  bar.style.setProperty("--sx", sx.toFixed(3));
+  // lifted it is a big lens, ~1.3 tabs wide and taller than the bar; stretched, it thins; pushed past an end,
+  // it squashes against it instead of hanging over the edge
+  const span0 = NB.b - NB.a, span = span0 * (1 + .32 * NB.lift), mid = (NB.a + NB.b) / 2;
+  const over = Math.max(0, span / 2 - mid, mid + span / 2 - 5);
+  const sx = Math.max(.25, span - over * 1.1);
+  const sy = Math.max(.5, 1 + .3 * NB.lift - Math.max(0, span0 - 1) * .18 + over * .3);
+  const left = clamp(mid - span / 2, 0, 5 - sx);
+  bar.style.setProperty("--u", left.toFixed(4));
+  bar.style.setProperty("--sx", sx.toFixed(4));
   bar.style.setProperty("--sy", sy.toFixed(3));
   bar.style.setProperty("--lf", NB.lift.toFixed(3));
   const idle = NB.lift < .01;
@@ -6863,18 +6925,18 @@ function navBubFrame(now){
     lens._idle = idle; lens.classList.toggle("idle", idle);
     if(!idle && !lens._lg) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, 22, .5);
   }
-  // the icons under the lens swell and take the accent colour (a CSS colour transition, no jump)
-  const lifted = NB.lift > .3;
-  bar.querySelectorAll("button[data-nav]").forEach((b, i) => {
+  // the icons under the lens swell — and the accent copy of the row swells with them, or the red would slide
+  // off the grey underneath it
+  const bs = bar.querySelectorAll("button[data-nav]"), rs = bar.querySelectorAll(".nav-red>.nb");
+  for(let i = 0; i < bs.length; i++){
     const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .25 * k * NB.lift;    // magnified under the lens
     const tr = sc > 1.002 ? "scale(" + sc.toFixed(3) + ")" : "";
-    if(b.style.transform !== tr) b.style.transform = tr;
-    const near = lifted && k > .5;
-    if(b.classList.contains("near") !== near) b.classList.toggle("near", near);
-  });
-  if(!NB.drag && Math.abs(NB.u - target) < .002 && Math.abs(NB.vel) < .02 && NB.lift < .01){
-    NB.u = target; NB.vel = 0; NB.lift = 0; NB.t = 0;
-    bar.style.setProperty("--u", String(target)); bar.style.setProperty("--sx", "1"); bar.style.setProperty("--sy", "1"); bar.style.setProperty("--lf", "0");
+    if(bs[i].style.transform !== tr) bs[i].style.transform = tr;
+    if(rs[i] && rs[i].style.transform !== tr) rs[i].style.transform = tr;
+  }
+  if(!NB.drag && !NB.tw && NB.lift < .01){
+    NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
+    bar.style.setProperty("--u", String(NB.target)); bar.style.setProperty("--sx", "1"); bar.style.setProperty("--sy", "1"); bar.style.setProperty("--lf", "0");
     if(!lens._idle){ lens._idle = true; lens.classList.add("idle"); }
     return;
   }
@@ -6980,7 +7042,7 @@ function navBind(bar){
     NB.drag = null;
     const b = document.querySelector(".bottomnav"); if(b) b.classList.remove("dragging");
     const i = clamp(Math.round(d.u), 0, 4);
-    NB.target = i; navBubKick();
+    navGo(i);
     if(go){ _navByDrop = performance.now(); navTo(NAV_TABS[i]); }
   };
   bar.onpointerdown = e => {
@@ -7005,13 +7067,13 @@ function navBind(bar){
   bar.onpointercancel = e => end(e, false);
   // a screen re-rendered mid-drag gets a new bar: it takes the finger over
   if(NB.drag){ try{ bar.setPointerCapture(NB.drag.id); }catch(_){} }
-  if(NB.drag || NB.lift > .01 || Math.abs((NB.u == null ? NB.target : NB.u) - NB.target) > .001) navBubKick();
+  if(NB.drag || NB.tw || NB.lift > .01 || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
 }
 // a finger lifted outside everything still ends the drag
 // (bubbling, after the bar's own handler — which opens the tab — has had its turn)
 window.addEventListener("pointerup", e => {
   if(!NB.drag || e.pointerId !== NB.drag.id || (e.target && e.target.closest && e.target.closest(".bottomnav"))) return;
-  const d = NB.drag; NB.drag = null; NB.target = clamp(Math.round(d.u), 0, 4); navBubKick();
+  const d = NB.drag; NB.drag = null; navGo(clamp(Math.round(d.u), 0, 4));
 });
 /* the drop under the current subtab and under each segmented control's choice (liquid glass on). It lives
    on across re-renders (_dropMem), so a tap makes it FLOW to the new choice: its two edges ride their own
@@ -7272,18 +7334,18 @@ function dropFrame(now){
 }
 function bottomNav(){
   const t = S.ui.tab;
-  const on = x => (t===x || (x==="markets" && t==="chart" && false)) ? "on":"";
-  const posCount = S.positions.length;
-  // cTrader's outline icons (stroke = the label colour: grey, blue on the current tab)
+  // cTrader's outline icons (stroke = whatever colour the row it sits in carries)
   const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-  if(NB.u == null) NB.u = navIndexOf(t);
-  if(!NB.drag) NB.target = navIndexOf(t);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.u.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
-    <button data-nav="markets" class="${["markets","calendar","dom"].includes(t)?"on":""}"><span class="ic">${I('<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>')}</span>${L("Рынки")}</button>
-    <button data-nav="chart" class="${t==="chart"?"on":""}"><span class="ic">${I('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>')}</span>${L("Графики")}</button>
-    <button data-nav="positions" class="${t==="positions"?"on":""}"><span class="ic">${I('<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>')}${posCount?`<span class="navpill">${posCount}</span>`:""}</span>${L("Позиции")}</button>
-    <button data-nav="orders" class="${t==="orders"?"on":""}"><span class="ic">${I('<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 13.5h7M8.5 17h4"/>')}${S.pendings.length?`<span class="navpill">${S.pendings.length}</span>`:""}</span>${L("Ордеры")}</button>
-    <button data-nav="more" class="${["more","settings","history","debug","wallet"].includes(t)?"on":""}"><span class="ic">${I('<circle cx="7.5" cy="7.5" r="3"/><circle cx="16.5" cy="7.5" r="3"/><circle cx="7.5" cy="16.5" r="3"/><circle cx="16.5" cy="16.5" r="3"/>')}</span>${L("Ещё")}</button>
+  const ti = navIndexOf(t);
+  if(NB.a == null){ NB.a = ti; NB.b = ti + 1; NB.u = ti; NB.target = ti; }
+  else if(!NB.drag && NB.target !== ti) navGo(ti);
+  // the accent copy of the row: the same five tabs again, shown only through the drop (see .nav-red), so the
+  // colour travels with it instead of jumping from one tab to the next
+  const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}</span>${L(x[2])}</span>`).join("");
+  const tag = { positions: S.positions.length, orders: S.pendings.length };
+  const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.a.toFixed(4)};--sx:${(NB.b - NB.a).toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-red" aria-hidden="true">${red}</span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+    ${row}
   </div>`;
 }
 
