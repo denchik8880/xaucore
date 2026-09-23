@@ -53,8 +53,8 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
-  --nav-glass:rgba(255,255,255,calc(.72 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.045); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
-  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#9aa1ac; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
+  --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,.045); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -64,14 +64,14 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --line:#2e2e2e; --green:#00a152; --green-bg:rgba(0,161,82,.16); --red:#f25a23;
   --red-bg:rgba(242,90,35,.16); --orange:#f5920d; --orange-bg:rgba(245,146,13,.16); --blue:#3d7ef5;
   --shadow:none;
-  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#ff4a45; --nav-ic:#78787e; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
+  --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#ff4a45; --nav-ic:#78787e; --nav-hole:#000; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
   --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
-  --nav-glass:rgba(28,28,30,calc(.74 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.085); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
+  --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,.085); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -274,37 +274,38 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:24px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
-  background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(18px * var(--lgb,1))) saturate(1.8);
-  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),var(--lg-body)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
-  background:linear-gradient(135deg,var(--lg-rim) 0%,transparent 30%,transparent 70%,var(--lg-rim2) 100%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:2px;font-size:11.5px;font-weight:500;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
+  /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
+     that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
+  background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);
+  box-shadow:var(--lg-lift2)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:4px;font-size:11.5px;font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* nothing in the row changes colour by itself any more: the drop carries the accent (see .nav-red), so a tab
    reads as chosen only while the drop is over it. The label is the dark one and the icon the pale one. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button,
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-ic)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:24px;height:24px}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:27px;height:27px}
 /* the resting drop and the lens share one place and shape (--u, --sx, --sy on the bar) and CROSS-FADE by
    --lf, the lift: pressed, the lens rises out of the drop; released, it melts back into it (user: it turned
    grey in one jump — «нужно более плавнее, как с того видео») */
 /* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
    it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:0;width:20%;border-radius:27px;pointer-events:none;
-  transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:-1.4%;width:22.8%;border-radius:27px;pointer-events:none;
+  transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 87.72%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
 /* THE ACCENT, CARRIED BY THE DROP. The row is drawn a second time in the accent colour and shown only through
    the drop's own rectangle, so the red is a window that travels: a tab is red while the drop is over it and
    grey again behind it, with the hard edge the video shows mid-icon. It reads --u/--sx/--sy straight off the
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:grid;position:absolute;inset:0;z-index:2;grid-template-columns:repeat(5,1fr);
   pointer-events:none;color:var(--nav-on);
-  -webkit-clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px);
-  clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  font-size:11.5px;font-weight:500;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 62%),var(--nav-bub);
-  box-shadow:inset 0 1px 1px var(--nb-sheen)}
+  -webkit-clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% + 1.4% - var(--u,0) * 20% - var(--sx,1) * 22.8%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20% - 1.4%) round 27px);
+  clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% + 1.4% - var(--u,0) * 20% - var(--sx,1) * 22.8%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20% - 1.4%) round 27px)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font-size:11.5px;font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
+/* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
+   band across its top, no lit lip, no edge. Everything I had drawn on it is what made it read as a separate
+   object sitting on the bar instead of a shadow under the tab. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:0;opacity:calc(1 - var(--lf,0));background:var(--nav-bub)}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:2;opacity:var(--lf,0);background:rgba(255,255,255,.025);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
@@ -933,6 +934,7 @@ html:has(body.route-wallet){background:#0c0a08}
 /* ---- LIQUID GLASS everywhere else it fits (user 2026-09-18: «первые 8 пунктов отличны») — all gated on
    html[data-glass=on]; off, every one of these keeps its flat cTrader look ---- */
 :root[data-glass="on"]{
+  --nav-hole:#fff;
   --bar-glass:rgba(255,255,255,calc(.6 * var(--lgk,1))); --bg-glass:rgba(239,241,244,calc(.6 * var(--lgk,1))); --sheet-glass:rgba(255,255,255,calc(.8 * var(--lgs,1)));
   --seg-track:rgba(120,120,128,.13); --ctl-glass:rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,calc(.42 * var(--lgk,1)));
   --toast-glass:rgba(22,24,28,calc(.6 * max(.75, var(--lgs,1)))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
@@ -962,6 +964,7 @@ html:has(body.route-wallet){background:#0c0a08}
   --lg-spot:rgba(255,255,255,calc(.42 * var(--lgh,1))); --lg-foot:rgba(16,24,40,calc(.055 * var(--lgdk,1)));
 }
 :root[data-theme="dark"][data-glass="on"]{
+  --nav-hole:#1d1d1f;
   --bar-glass:rgba(12,12,12,calc(.58 * var(--lgk,1))); --bg-glass:rgba(0,0,0,calc(.52 * var(--lgk,1))); --sheet-glass:rgba(26,26,28,calc(.82 * var(--lgs,1)));
   --seg-track:rgba(255,255,255,.08); --ctl-glass:rgba(24,24,27,calc(.9 + .08 * var(--lgs,1))); --seg-bub:rgba(120,120,128,calc(.2 + .55 * var(--lgs,1))); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,calc(.4 * var(--lgk,1)));
   --toast-glass:rgba(52,52,56,calc(.58 * max(.75, var(--lgs,1)))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
@@ -6844,12 +6847,15 @@ async function refreshLockCard(){
 /* ---------- bottom nav ---------- */
 /* ---- the tab bar's drop (see .bottomnav in the CSS) ---- */
 const NAV_TABS = ["markets", "chart", "positions", "orders", "more"];
+/* SOLID icons, the reference's weight: a silhouette in the tab's colour with its detail cut out in the bar's
+   (--nav-hole), exactly as its own do — a red square with a white figure in it, a grey block with white lines.
+   Only «Рынки» stays linear, because two arrows have no silhouette; it carries the same weight at 2.6 px. */
 const NAV_ICONS = [
-  ["markets",   '<path d="M11 5L5 11M5 11V7M5 11h4M13 19l6-6M19 13h-4M19 13v4"/>', "Рынки", ["markets","calendar","dom"]],
-  ["chart",     '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7 15l3.2-3.4 2.6 2.2 4.2-4.3"/>', "Графики", ["chart"]],
-  ["positions", '<path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/>', "Позиции", ["positions"]],
-  ["orders",    '<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 13.5h7M8.5 17h4"/>', "Ордеры", ["orders"]],
-  ["more",      '<circle cx="7.5" cy="7.5" r="3"/><circle cx="16.5" cy="7.5" r="3"/><circle cx="7.5" cy="16.5" r="3"/><circle cx="16.5" cy="16.5" r="3"/>', "Ещё", ["more","settings","history","debug","wallet"]]
+  ["markets",   '<g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.2 5.2 5.6 10.8M5.6 10.8V7.3M5.6 10.8h3.5M12.8 18.8l5.6-5.6M18.4 13.2h-3.5M18.4 13.2v3.5"/></g>', "Рынки", ["markets","calendar","dom"]],
+  ["chart",     '<path fill="currentColor" d="M6.2 3.4h11.6a2.8 2.8 0 0 1 2.8 2.8v11.6a2.8 2.8 0 0 1-2.8 2.8H6.2a2.8 2.8 0 0 1-2.8-2.8V6.2a2.8 2.8 0 0 1 2.8-2.8z"/><path fill="none" stroke="var(--nav-hole)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" d="m6.9 15.2 3.4-3.7 2.6 2.2 4.2-4.4"/>', "Графики", ["chart"]],
+  ["positions", '<g fill="currentColor"><path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/></g>', "Позиции", ["positions"]],
+  ["orders",    '<path fill="currentColor" d="M9.6 2.2h4.8c.72 0 1.3.58 1.3 1.3v.8h1.8A2.7 2.7 0 0 1 20.2 7v11.8a2.7 2.7 0 0 1-2.7 2.7H6.5a2.7 2.7 0 0 1-2.7-2.7V7a2.7 2.7 0 0 1 2.7-2.7h1.8v-.8c0-.72.58-1.3 1.3-1.3z"/><path fill="none" stroke="var(--nav-hole)" stroke-width="2" stroke-linecap="round" d="M8.4 10.4h7.2M8.4 14h7.2M8.4 17.6h4.2"/>', "Ордеры", ["orders"]],
+  ["more",      '<g fill="currentColor"><circle cx="7.6" cy="7.6" r="3.15"/><circle cx="16.4" cy="7.6" r="3.15"/><circle cx="7.6" cy="16.4" r="3.15"/><circle cx="16.4" cy="16.4" r="3.15"/></g>', "Ещё", ["more","settings","history","debug","wallet"]]
 ];
 function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : t === "positions" ? 2 : t === "orders" ? 3 : 4; }
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
@@ -7033,7 +7039,7 @@ function closeNavCard(outside){
 function navBind(bar){
   if(!bar) return;
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
-  lgGlass(bar, bar.offsetWidth, bar.offsetHeight, 0, 18);                // the capsule bends what scrolls under its rim
+  // the bar bends nothing any more: the reference's rim is straight (only the lens under a finger still does)
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
   const end = (e, go) => {
@@ -7335,7 +7341,7 @@ function dropFrame(now){
 function bottomNav(){
   const t = S.ui.tab;
   // cTrader's outline icons (stroke = whatever colour the row it sits in carries)
-  const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${d}</svg>`;
   const ti = navIndexOf(t);
   if(NB.a == null){ NB.a = ti; NB.b = ti + 1; NB.u = ti; NB.target = ti; }
   else if(!NB.drag && NB.target !== ti) navGo(ti);
