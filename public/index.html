@@ -6897,7 +6897,7 @@ function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t 
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // a: the drop's LEADING edge in tabs, b its trailing one (at rest on tab i they are i and i+1); u is the tab
 // they straddle, kept because the icons' swell and the drag read it. lift 0…1: resting drop → lens under the finger
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, wCircle: 0, hCircle: 1 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, wCircle: 0, hCircle: 1, dms: null, dmB: null, _lensK: null };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 // The drop is a seventh wider than a tab, as the reference's is, and it is CLAMPED inside the bar: on the end
@@ -7014,7 +7014,9 @@ function navBubFrame(now){
   // (a twentieth of a second) and fills back slowly (a third of one), which is the asymmetry the user describes:
   // crystal the moment it sets off, grey only once it has settled.
   const want = Math.min(1, Math.abs(vmid) * .5);
-  NB.clear += (want - NB.clear) * (1 - Math.exp(-dt / (want > NB.clear ? .05 : .3)));
+  // it clears fast and fills back QUICKLY - an eighth of a second, not a third. The slow fill was meant to read
+  // as «плавно» and read as late instead: the drop had landed and was still swimming.
+  NB.clear += (want - NB.clear) * (1 - Math.exp(-dt / (want > NB.clear ? .05 : .07)));
   // ON THE ROOT, not on the bar. A custom property that carries a var() inside it - and --nav-bub, --nav-lip
   // and --nav-edge all carry var(--dk) - has that var substituted where the TOKEN is declared, which is :root,
   // not where it is used. Setting --dk on the bar left :root without one, the fallback of 1 won every time, and
@@ -7032,15 +7034,7 @@ function navBubFrame(now){
   // the icons under the lens swell — and the accent copy of the row swells with them, or the red would slide
   // off the grey underneath it
   // the harder lens only while it is actually going somewhere (or lifted under a finger)
-  const bub = bar.querySelector(".nav-bub");
-  if(bub && bub._lgRest){
-    const hard = NB.clear > .3;                // the same signal that clears the grey hardens the bend
-    if(bub._hard !== hard){
-      bub._hard = hard;
-      const f = hard ? bub._lgMove : bub._lgRest;
-      if(f && bub._lg !== f){ bub._lg = f; bub.style.backdropFilter = f; }
-    }
-  }
+  navLens(NB.clear);                           // the bend rides the same number as the grey - no swap, no lag
   const bs = bar.querySelectorAll("button[data-nav]"), rs = bar.querySelectorAll(".nav-red .nb");
   for(let i = 0; i < bs.length; i++){
     const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .25 * k * NB.lift;    // magnified under the lens
@@ -7055,6 +7049,7 @@ function navBubFrame(now){
   if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
     NB._pm = null; NB.clear = 0; bar.style.setProperty("--bx", "0px"); document.documentElement.style.setProperty("--dk", "1");
+    navLens(0);                                // and it is written once more here, where the frames stop
     const r = navBox(NB.target, NB.target + 1, 0);
     // --sy comes from navBox as well: it carries the ball-up on the end tabs, and a hard 1 here threw it away
     bar.style.setProperty("--u", r.left.toFixed(4)); bar.style.setProperty("--sx", r.sx.toFixed(4)); bar.style.setProperty("--sy", r.sy.toFixed(4)); bar.style.setProperty("--lf", "0");
@@ -7190,6 +7185,15 @@ function navFit(bar){
   _navFit = key;
   if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
 }
+// how hard the drop bends what is under it: a tenth of full standing still, full while it travels. At rest that
+// is under half a pixel at the label, so the letters sit where they are drawn.
+function navLens(clear){
+  if(!NB.dms || !NB.dmB) return;
+  const k = .1 + .9 * Math.max(0, Math.min(1, clear));
+  if(NB._lensK != null && Math.abs(NB._lensK - k) < .004) return;
+  NB._lensK = k;
+  for(let i = 0; i < NB.dms.length; i++) NB.dms[i].setAttribute("scale", (NB.dmB[i] * k).toFixed(2));
+}
 function navBind(bar){
   if(!bar) return;
   // THE ENDS KEEP A GAP, and a bigger one than the top and bottom: measured off the user's frame, about an
@@ -7242,8 +7246,17 @@ function navBind(bar){
     // and the strength: a drop 91 px wide bending a 24 px icon and a 10 px word is a much smaller lens than
     // the reference's 225 px one, so the same bend goes far further into the content. Twelve travelling and
     // seven at rest leaves the icon an icon and the word a word, with the fringe still on them.
-    lgGlass(bub, dw, dh, 12, .12, false, true, 0, -14, true); bub._lgMove = bub._lg;
-    lgGlass(bub, dw, dh, 7, .08, false, true, 0, -12, true);  bub._lgRest = bub._lg;
+    lgGlass(bub, dw, dh, 12, .12, false, true, 0, -14, true);
+    // its three displacement passes are driven straight, frame by frame, so the bend can slide instead of
+    // switching. Only this drop uses this filter, so nothing else feels it.
+    const fid = bub._lg && bub._lg.indexOf("#") > 0 ? bub._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
+    const flt = fid && document.getElementById(fid);
+    NB.dms = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
+    // the base comes from lgDmScale, never from the attribute: navBind runs on every render, and reading
+    // back a scale this function had already turned down would compound it toward nothing
+    NB.dmB = NB.dms ? NB.dms.map(d => +lgDmScale(d)) : null;
+    NB._lensK = null;
+    navLens(NB.clear);
   }
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
@@ -9443,7 +9456,10 @@ function lgMap(w, h, rad, rim){
 // the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
 // noise instead of a word with a coloured edge.
 const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .10) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
-function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
+function lgScaleAll(){
+  for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
+  if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
+}
 function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
