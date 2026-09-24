@@ -947,6 +947,12 @@ html:has(body.route-wallet){background:#0c0a08}
 .appbar .ttl.run .ttl-run{animation:ttlRun var(--run-dur,6s) ease-in-out infinite}
 @keyframes ttlRun{0%,20%{transform:translateX(0)}50%,70%{transform:translateX(var(--run-x,0))}100%{transform:translateX(0)}}
 .badge-demo{flex:0 0 auto}
+/* SIGN-IN HEADER: the mark on the left, in its capsule. The screen itself stays flat - liquid glass is the paid
+   part of this app and does not show before an account exists (authPlain) - so the capsule is drawn in the flat
+   tokens rather than as glass. On a plain background there is nothing behind it to bend in any case. */
+.appbar.auth-bar{background:transparent;border-bottom:0;padding-top:10px}
+.appbar.auth-bar .ttl{height:38px;padding:0 17px;border-radius:999px;font-size:16px;letter-spacing:.07em;
+  background:var(--card);box-shadow:0 0 0 1px var(--line),0 2px 8px var(--nav-shadow,rgba(16,24,40,.08))}
 /* «Ещё» footer: the author's credit */
 .creator{text-align:center;margin:16px 0 6px;font-size:13px;color:var(--ink2)}
 .creator b{color:var(--ink);font-weight:600}
@@ -5202,10 +5208,9 @@ function themeColors(){
 }
 
 /* ---------- top-level render ---------- */
-/* The broker wallet is closed for now: its "Ещё" entry reads «Скоро» and goes
-   nowhere. The wallet screen itself (screenWallet and everything behind it) is
-   deliberately left untouched — set this to false to open it again. */
-const WALLET_SOON = true;
+/* The broker wallet is OPEN (user 2026-09-24). Its "Ещё" entry carries the balance and goes to the page; set
+   this back to true and the entry reads «Скоро» and goes nowhere, with the screen itself left untouched. */
+const WALLET_SOON = false;
 let _renderKey = "", _cvOffRaf = 0;
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
@@ -11123,9 +11128,10 @@ function screenAuth(msg, kind){
   const bad = kind === "err";
   authPlain();
   app().innerHTML = `
-    <div class="wrap" style="max-width:420px;margin:0 auto;padding-top:26px">
-      <div class="card" style="text-align:center;padding:26px 16px">
-        <div style="font-size:clamp(24px,8vw,30px);font-weight:700;letter-spacing:.09em;white-space:nowrap">XAUCORE</div>
+    <div class="appbar auth-bar"><div class="ttl"><span class="ttl-run">XAUCORE</span></div><div class="sp"></div></div>
+    <div class="wrap" style="max-width:420px;margin:0 auto">
+      <div class="card" style="text-align:center;padding:22px 16px">
+        <div style="font-size:clamp(21px,7.2vw,26px);font-weight:700;letter-spacing:.01em;white-space:nowrap">cTrade Simulator</div>
       </div>
       <div class="card">
         <div class="seg" style="margin-bottom:14px">
