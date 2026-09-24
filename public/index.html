@@ -7020,7 +7020,11 @@ function navBubFrame(now){
     if(bs[i].style.transform !== tr) bs[i].style.transform = tr;
     if(rs[i] && rs[i].style.transform !== tr) rs[i].style.transform = tr;
   }
-  if(!NB.drag && !NB.tw && NB.lift < .01){
+  // IT MUST NOT SNAP BACK TO GREY. The drop clears as it travels and fills again over a third of a second once
+  // it lands - but the loop used to stop the instant the travel ended and set the grey to full in the same
+  // breath, so the fill never played: the drop went crystal for the whole flight and then flicked grey on its
+  // last frame. The frame keeps running until the fill has burnt down as well.
+  if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
     NB._pm = null; NB.clear = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
     const r = navBox(NB.target, NB.target + 1, 0);
