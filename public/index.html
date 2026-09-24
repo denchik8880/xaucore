@@ -870,7 +870,8 @@ html:has(body.route-wallet){background:#0c0a08}
   calc(var(--g3d-ex,-.49) * 13px) calc(var(--g3d-ey,.63) * 13px) 16px rgba(0,0,0,.6)}
 .g3d-face{position:relative;z-index:1;-webkit-text-fill-color:transparent;
   background-image:linear-gradient(var(--lit-a,151deg),rgba(255,233,187,.62) 0%,rgba(227,184,119,.34) 42%,rgba(150,112,58,.5) 100%),var(--g3d-img,url(/wallet-bg.svg));
-  background-size:cover,cover;background-position:center 38%,center 38%;
+  /* the picture layer is placed by g3dSync so it lines up with the pinned wallpaper behind the figure */
+  background-size:cover,var(--g3d-bs,cover);background-position:center 38%,var(--g3d-bp,center 38%);
   -webkit-background-clip:text;background-clip:text;
   filter:url(#g3dref) saturate(1.35) brightness(1.5) contrast(1.06);
   -webkit-text-stroke:.6px rgba(255,240,214,.42)}
@@ -6057,6 +6058,45 @@ function walletBalHTML(x){
   if(!glassOn()) return big;
   return `<span class="g3d-l g3d-side" aria-hidden="true">${big}</span><span class="g3d-face">${big}</span><span class="g3d-l g3d-spec" aria-hidden="true">${big}</span>`;
 }
+/* THE GLASS SHOWS WHAT IT IS STANDING ON. The wallpaper is pinned - it does not move when the page scrolls -
+   so the piece of it behind the figure changes as the figure travels up, and a fixed crop inside the glyphs is
+   simply wrong: the numerals kept their sunset while the photograph behind them had gone dark. The face's
+   picture layer is laid out to the same cover geometry as the pinned photo and offset by where the figure is. */
+let _g3dNat = null;
+function g3dNat(cb){
+  if(_g3dNat) return cb(_g3dNat);
+  const im = new Image();
+  const done = () => { _g3dNat = { w: im.naturalWidth || 1600, h: im.naturalHeight || 1000 }; cb(_g3dNat); };
+  im.onload = done; im.onerror = () => { _g3dNat = { w: 1600, h: 1000 }; cb(_g3dNat); };
+  im.src = "/wallet-bg." + _walletBg;
+}
+function g3dSync(){
+  const page = document.querySelector(".wallet-page"), face = document.querySelector("#wiBalance .g3d-face");
+  if(!page || !face || !_g3dNat) return;
+  const W = page.clientWidth, H = page.clientHeight;
+  const sc = Math.max(W / _g3dNat.w, H / _g3dNat.h), dw = _g3dNat.w * sc, dh = _g3dNat.h * sc;
+  const ox = (W - dw) / 2, oy = (H - dh) * .30;                  // the pinned photo is «center 30% / cover»
+  const pr = page.getBoundingClientRect(), fr = face.getBoundingClientRect();
+  face.style.setProperty("--g3d-bs", dw.toFixed(1) + "px " + dh.toFixed(1) + "px");
+  face.style.setProperty("--g3d-bp", (ox - (fr.left - pr.left)).toFixed(1) + "px " + (oy - (fr.top - pr.top)).toFixed(1) + "px");
+}
+// called straight, not through a requestAnimationFrame latch: a frame callback that never fires - a hidden
+// tab, a throttled view - would leave the latch set and wedge every later sync. Two rects and two writes is
+// cheap enough to do on the scroll event itself, and scroll events are already frame-aligned.
+const g3dTick = () => g3dSync();
+function g3dBind(){
+  const page = document.querySelector(".wallet-page");
+  if(!page) return;
+  // EVERY render, not only the first. render() replaces #app wholesale, so the placement written onto the face
+  // goes with the old element and the new one starts on the default crop - and nothing would put it back until
+  // the next scroll. The listener is bound once per element; the sync is asked for every time.
+  if(!page._g3d){
+    page._g3d = 1;
+    page.addEventListener("scroll", g3dTick, { passive: true });
+  }
+  g3dNat(g3dTick);
+}
+addEventListener("resize", () => { if(document.querySelector(".wallet-page")) g3dTick(); }, { passive: true });
 /* which way the walls lean. litWrite only writes when the light MOVES, so on a still screen these two were
    never set and the walls fell back on their defaults; this puts them in place from the first paint. */
 function g3dLean(){
@@ -6088,7 +6128,7 @@ function g3dDefs(){
 let _walletBg = "svg";
 function walletProbePhoto(){
   const im = new Image();
-  im.onload = () => { _walletBg = "jpg"; if(S && S.ui && S.ui.tab === "wallet") render(); };
+  im.onload = () => { _walletBg = "jpg"; _g3dNat = null; if(S && S.ui && S.ui.tab === "wallet") render(); };
   im.src = "/wallet-bg.jpg?v=1";
 }
 function walletCardMarkup(){
@@ -7695,6 +7735,7 @@ function bindScreen(){
     nav(["settings","history","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
   });
   act("gotowallet", ()=> nav("wallet"));
+  g3dBind();                                   // the wallet's glass figure follows the pinned wallpaper as it scrolls
   act("wdeposit", ()=> walletAmountModal("deposit"));
   act("wwithdraw", ()=> walletAmountModal("withdraw"));
   act("wtransfer", ()=> walletTransferModal());
@@ -9291,7 +9332,11 @@ function updateLive(){
   const wib = document.getElementById("wiBalance");
   if(wib){
     const big = walletBig(S.wallet.balance), hero = walletBalHTML(S.wallet.balance);
-    if(wib.innerHTML !== hero) wib.innerHTML = hero;
+    // compared against what was BUILT, not against what is in the element. g3dSync writes the picture's placement
+    // onto the face as an inline style, so innerHTML never matches the freshly built string again and this rebuilt
+    // the figure every tick - throwing the placement away each time, which is why the glass would not follow the
+    // scroll. Now it rebuilds only when the number itself changes, and asks for the placement back when it does.
+    if(wib._bal !== hero){ wib._bal = hero; wib.innerHTML = hero; g3dTick(); }
     fitText(wib, 18);
     const wt = document.getElementById("wStatTotal"), wa = document.getElementById("wStatAvail");
     if(wt) wt.innerHTML = big;
