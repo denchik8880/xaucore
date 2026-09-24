@@ -328,7 +328,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
      and bottom rims too, four or five levels over the body */
   box-shadow:inset 0 7px 8px -7px var(--nav-lip),inset 0 -7px 8px -7px var(--nav-lip),
     inset 0 0 0 1px var(--nav-edge),
-    0 0 10px rgba(16,24,40,.03)}
+    0 0 10px rgba(16,24,40,calc(.03 * var(--dk,1)))}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:4;opacity:var(--lf,0);background:rgba(255,255,255,.025);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
@@ -6991,7 +6991,11 @@ function navBubFrame(now){
   // crystal the moment it sets off, grey only once it has settled.
   const want = Math.min(1, Math.abs(vmid) * .5);
   NB.clear += (want - NB.clear) * (1 - Math.exp(-dt / (want > NB.clear ? .05 : .3)));
-  bar.style.setProperty("--dk", (1 - NB.clear).toFixed(3));
+  // ON THE ROOT, not on the bar. A custom property that carries a var() inside it - and --nav-bub, --nav-lip
+  // and --nav-edge all carry var(--dk) - has that var substituted where the TOKEN is declared, which is :root,
+  // not where it is used. Setting --dk on the bar left :root without one, the fallback of 1 won every time, and
+  // the drop stayed fully grey through the whole flight however far the number fell.
+  document.documentElement.style.setProperty("--dk", (1 - NB.clear).toFixed(3));
   bar.style.setProperty("--u", left.toFixed(4));
   bar.style.setProperty("--sx", sx.toFixed(4));
   bar.style.setProperty("--sy", sy.toFixed(3));
@@ -7026,7 +7030,7 @@ function navBubFrame(now){
   // last frame. The frame keeps running until the fill has burnt down as well.
   if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
-    NB._pm = null; NB.clear = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
+    NB._pm = null; NB.clear = 0; bar.style.setProperty("--bx", "0px"); document.documentElement.style.setProperty("--dk", "1");
     const r = navBox(NB.target, NB.target + 1, 0);
     bar.style.setProperty("--u", r.left.toFixed(4)); bar.style.setProperty("--sx", r.sx.toFixed(4)); bar.style.setProperty("--sy", "1"); bar.style.setProperty("--lf", "0");
     if(!lens._idle){ lens._idle = true; lens.classList.add("idle"); }
