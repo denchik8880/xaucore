@@ -7204,8 +7204,11 @@ function navBind(bar){
     // smear you cannot read - that IS the effect. So the bend runs over the whole face now (a gentle magnifier
     // everywhere plus the hard wall at the rim, which is what the ninth argument being 0 turns back on) and at
     // twice the strength, with real frosting behind it.
-    lgGlass(bub, dw, dh, 16, 1, false, true, 0, 9, true);  bub._lgMove = bub._lg;
-    lgGlass(bub, dw, dh, 9, .5, false, true, 0, 8, true);   bub._lgRest = bub._lg;
+    // NO FROSTING. The bend is what glass does to a letter; a blur on top of it only makes the word muddy, and
+    // the user reads that as broken rather than as glass. The displacement stays strong and the frost goes to
+    // almost nothing, so the letters under the drop are bent and sharp instead of bent and smeared.
+    lgGlass(bub, dw, dh, 16, .12, false, true, 0, 9, true); bub._lgMove = bub._lg;
+    lgGlass(bub, dw, dh, 9, .08, false, true, 0, 8, true);  bub._lgRest = bub._lg;
   }
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
