@@ -7022,7 +7022,11 @@ function navBubFrame(now){
   // the light line at its sides — runs through --dk, so one number takes it from glass to grey. It clears fast
   // (a twentieth of a second) and fills back slowly (a third of one), which is the asymmetry the user describes:
   // crystal the moment it sets off, grey only once it has settled.
-  const want = Math.min(1, Math.abs(vmid) * .5);
+  // A FINGER ON IT MEANS IT IS IN MOTION, even when it is not moving. The clearing was a function of the
+  // drop's speed alone, so holding the finger still halfway across took the speed to zero and the drop filled
+  // grey under a finger that had not let go. While there is a finger on it it stays crystal; the speed only
+  // gets a say once the finger is off.
+  const want = NB.drag ? 1 : Math.min(1, Math.abs(vmid) * .5);
   // it clears fast and fills back QUICKLY - an eighth of a second, not a third. The slow fill was meant to read
   // as «плавно» and read as late instead: the drop had landed and was still swimming.
   NB.clear += (want - NB.clear) * (1 - Math.exp(-dt / (want > NB.clear ? .05 : .07)));
