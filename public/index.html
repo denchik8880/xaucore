@@ -298,8 +298,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:2;
   pointer-events:none;color:var(--nav-on);
-  -webkit-clip-path:inset(calc(3px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(-1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(var(--u,0) * 20%) round 50%);
-  clip-path:inset(calc(3px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(-1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(var(--u,0) * 20%) round 50%)}
+  -webkit-clip-path:inset(calc(3px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(-1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(var(--u,0) * 20%) round calc(var(--sx,1) * 10%) / calc((100% - 2px) * var(--sy,1) / 2));
+  clip-path:inset(calc(3px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(-1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(var(--u,0) * 20%) round calc(var(--sx,1) * 10%) / calc((100% - 2px) * var(--sy,1) / 2))}
 /* THE DROP IS A MAGNIFIER. Measured on the reference: everything under it is 1.18x, about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
@@ -6891,7 +6891,9 @@ function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(nav
 // tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
 // settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
 // drop came out a tab wide and too round.
-const NAV_W = .95;   // narrower is rounder, which is what the reference reads as
+// as wide as it is tall - a circle, which is what has been asked for four times. navBind measures it, because
+// it depends on the bar the screen gives us.
+let NAV_W = .95;
 function navBox(a, b, lift){
   const span0 = b - a, mid = (a + b) / 2;
   const over = Math.max(0, -a, b - 5);
@@ -7144,14 +7146,16 @@ function navFit(bar){
   const avail = W * Math.sqrt(Math.max(0, 1 - (d / r) * (d / r)));   // an ellipse, not a capsule
   const fit = Math.min(1, (avail - 3) / (need * k));
   _navFit = key;
-  if(fit < .999){ _navFs = (10.5 * Math.max(.8, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
+  if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
 }
 function navBind(bar){
   if(!bar) return;
   // THE ENDS KEEP A GAP, and a bigger one than the top and bottom: measured off the user's frame, about an
   // eighth of the bar's height at the end against a thirteenth above and below. There is white bar either side
   // of a drop sitting on the first or last tab, and there was none in ours.
-  NB.eIn = 6 / Math.max(1, bar.clientWidth / 5);
+  const tabW = Math.max(1, bar.clientWidth / 5);
+  NAV_W = (bar.clientHeight - 2) / tabW;               // round: its width IS its height
+  NB.eIn = 6 / tabW;
   navFit(bar);
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   // the bar's own rim bends nothing (the reference's is straight) — but the DROP is a lens, always, not only
