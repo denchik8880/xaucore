@@ -6891,7 +6891,7 @@ function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(nav
 // tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
 // settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
 // drop came out a tab wide and too round.
-const NAV_W = 1;
+const NAV_W = .95;   // narrower is rounder, which is what the reference reads as
 function navBox(a, b, lift){
   const span0 = b - a, mid = (a + b) / 2;
   const over = Math.max(0, -a, b - 5);
@@ -7148,7 +7148,10 @@ function navFit(bar){
 }
 function navBind(bar){
   if(!bar) return;
-  NB.eIn = 0;                                        // at the ends it is cut off by the bar, not held inside it
+  // THE ENDS KEEP A GAP, and a bigger one than the top and bottom: measured off the user's frame, about an
+  // eighth of the bar's height at the end against a thirteenth above and below. There is white bar either side
+  // of a drop sitting on the first or last tab, and there was none in ours.
+  NB.eIn = 6 / Math.max(1, bar.clientWidth / 5);
   navFit(bar);
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   // the bar's own rim bends nothing (the reference's is straight) — but the DROP is a lens, always, not only
