@@ -290,13 +290,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey in one jump — «нужно более плавнее, как с того видео») */
 /* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
    it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:6.5px;bottom:6.5px;left:0;width:20%;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
   /* THE RADIUS IS RESOLVED BEFORE THE TRANSFORM. The box is 20% of the bar by 47 px and the shape we want is
      whatever the scale turns it into, so a flat 999px gave a capsule with a straight middle that the scale then
      squashed - which is why the numbers said circle and the eye did not. Half the height vertically (50% of the
      box, so it scales with --sy on its own) and, horizontally, that same rendered radius divided back out by
      --sx, so the ends come out circular whatever the drop is doing. */
-  border-radius:calc((60px - 13px) / 2 * var(--sy,1) / var(--sx,1)) / 50%;pointer-events:none;
+  border-radius:calc((60px - 9px) / 2 * var(--sy,1) / var(--sx,1)) / 50%;pointer-events:none;
   transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
 /* THE ACCENT, CARRIED BY THE DROP. The row is drawn a second time in the accent colour and shown only through
    the drop's own rectangle, so the red is a window that travels: a tab is red while the drop is over it and
@@ -304,8 +304,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:2;
   pointer-events:none;color:var(--nav-on);
-  -webkit-clip-path:inset(calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(var(--u,0) * 20%) round calc((60px - 13px) * var(--sy,1) / 2));
-  clip-path:inset(calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(var(--u,0) * 20%) round calc((60px - 13px) * var(--sy,1) / 2))}
+  -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round calc((60px - 9px) * var(--sy,1) / 2));
+  clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round calc((60px - 9px) * var(--sy,1) / 2))}
 /* THE DROP IS A MAGNIFIER. Measured on the reference: everything under it is 1.18x, about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
@@ -6916,7 +6916,10 @@ function navBox(a, b, lift){
   const end = Math.max(0, 1 - Math.min(Math.abs(t), Math.abs(t - 4)));
   const wT = NAV_W + ((NB.wCircle || NAV_W) - NAV_W) * end;
   const hK = 1 + ((NB.hCircle || 1) - 1) * end;
-  let sx = span0 * wT * (1 + .32 * lift), left = mid - sx / 2;
+  // the two edges still decide WHERE it is; how far that pulls it OUT is damped to what the reference does.
+  // Measured there: 96 px of drop at rest and 125 at the peak of a four-tab flight, a third more - where the
+  // raw gap between the edges would have given two thirds.
+  let sx = (1 + (span0 - 1) * .45) * wT * (1 + .32 * lift), left = mid - sx / 2;
   // pressed into an end it squashes AGAINST that end: the edge touching the wall stays where it is and the far
   // one comes in. Taking it off the far edge either way — which is what scaling from the left edge does by
   // itself — pulls the drop off the very wall it is pressed into, and the bulge comes out lopsided.
@@ -6935,7 +6938,10 @@ function navBox(a, b, lift){
     // back into proportion once it lands - and a still one never is
     // standing still it keeps clear of the ends; travelling it may hang past them, as the third video shows
     left: clamp(left, e - slack, 5 - sx - e + slack), sx,
-    sy: hK * Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * 1.7 + over * .3)
+    // and it stands a fifth taller travelling than at rest - 79 px against 65 on a 76 px bar - not two thirds
+    // taller. The swell scales the displacement map with it, so an honest number here is what keeps the colour
+    // fringe the width of a letter stroke instead of a band across the whole drop.
+    sy: hK * Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .85 + over * .3)
   };
 }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
@@ -6962,7 +6968,7 @@ function navGo(i){
   // of those wrong: it is already open on the first frame, it peaks with the speed, and it lands at +47 %
   // instead of the reference's +25 %. .30 s plus .12 s a tab is its 780 ms for the full four.
   const right = i + .5 > (NB.a + NB.b) / 2;
-  const dur = 300 + 120 * Math.abs(i - NB.a), slow = dur * 1.1;
+  const dur = 250 + 95 * Math.abs(i - NB.a), slow = dur * 1.1;   // measured: four tabs in 0.70 s on the reference, where ours took 0.88
   NB.tw = { t0: performance.now(), end: slow, da: right ? slow : dur, db: right ? dur : slow, a0: NB.a, b0: NB.b };
   navBubKick();
 }
@@ -7157,22 +7163,30 @@ function navFit(bar){
   // one is gone the moment the screen redraws while the cache still says it has been worked out
   if(_navFit === key){ if(_navFs) bar.style.setProperty("--nav-fs", _navFs); return; }
   _navFs = ""; bar.style.removeProperty("--nav-fs");
-  const H = bar.clientHeight - 3, r = H / 2, W = H;              // the circle on an end tab: the tightest it gets
+  // the two shapes the drop actually takes: a circle on the first and last tab, a capsule over the middle three
+  const hCir = bar.clientHeight - 3, hCap = Math.max(8, bar.clientHeight - 9);
+  const cir = { W: hCir, r: hCir / 2 }, cap = { W: bar.clientWidth / 5 * NAV_W, r: hCap / 2 };
   const cy = bar.getBoundingClientRect().top + bar.clientHeight / 2;
-  let need = 0, dy = 0;
-  for(const nb of red.querySelectorAll(".nb")){
-    const t = [...nb.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+  const k = 1.08;                                               // the copy is spread outward by k
+  let fit = 1, any = false;
+  const nbs = [...red.querySelectorAll(".nb")];
+  for(let i = 0; i < nbs.length; i++){
+    const t = [...nbs[i].childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
     if(!t) continue;
     const g = document.createRange(); g.selectNodeContents(t);
     const b = g.getBoundingClientRect();
+    if(!b.width) continue;
+    any = true;
     // the LINE box runs below the letters by the depth of a descender, and these words have none; measuring to
     // it puts the label two pixels lower than it really sits and shrinks the row for nothing
-    if(b.width > need){ need = b.width; dy = Math.abs(b.bottom - b.height * .21 - cy); }
+    const dy = Math.abs(b.bottom - b.height * .21 - cy);
+    const sh = (i === 0 || i === nbs.length - 1) ? cir : cap;
+    const d = Math.min(sh.r, dy * k);
+    const avail = sh.W - 2 * (sh.r - Math.sqrt(Math.max(0, sh.r * sh.r - d * d)));  // it only pinches at the ends
+    fit = Math.min(fit, (avail - 3) / (b.width * k));
   }
-  if(!need) return;
-  const k = 1.08, d = Math.min(r, dy * k);                       // the copy is spread outward by k
-  const avail = W - 2 * (r - Math.sqrt(Math.max(0, r * r - d * d)));  // a capsule: it only pinches at the ends
-  const fit = Math.min(1, (avail - 3) / (need * k));
+  if(!any) return;
+  fit = Math.min(1, fit);
   _navFit = key;
   if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
 }
@@ -7181,11 +7195,21 @@ function navBind(bar){
   // THE ENDS KEEP A GAP, and a bigger one than the top and bottom: measured off the user's frame, about an
   // eighth of the bar's height at the end against a thirteenth above and below. There is white bar either side
   // of a drop sitting on the first or last tab, and there was none in ours.
-  const tabW = Math.max(1, bar.clientWidth / 5), h0 = Math.max(8, bar.clientHeight - 13);
+  const tabW = Math.max(1, bar.clientWidth / 5), h0 = Math.max(8, bar.clientHeight - 9);
   NAV_W = 1.07;                                      // measured: 225 px of drop against a 210 px tab
   NB.wCircle = (bar.clientHeight - 3) / tabW;        // on the END tabs it is a circle, as wide as it is tall
   NB.hCircle = (bar.clientHeight - 3) / h0;          // and taller than the capsule, or the label will not fit
   NB.eIn = 6 / tabW;
+  // and the shape those three measurements make has to reach the bar. The markup is built before this runs, so
+  // the first paint carried navBox's answer from BEFORE the circle was known - a flat capsule - and with nothing
+  // moving there was no frame to correct it. The drop has been sitting there un-round ever since, which is what
+  // the user has been pointing at.
+  if(!NB.tw && !NB.drag && NB.a != null){
+    const r0 = navBox(NB.a, NB.b, NB.lift);
+    bar.style.setProperty("--u", r0.left.toFixed(4));
+    bar.style.setProperty("--sx", r0.sx.toFixed(4));
+    bar.style.setProperty("--sy", r0.sy.toFixed(3));
+  }
   navFit(bar);
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   // the bar's own rim bends nothing (the reference's is straight) — but the DROP is a lens, always, not only
@@ -7193,7 +7217,10 @@ function navBind(bar){
   // apart so its edge throws the colour the user calls «полурадуга». Fixed, so the clarity slider cannot flatten it.
   const bub = bar.querySelector(".nav-bub");
   if(bub){
-    const dw = Math.round(bar.clientWidth / 5 * 1.14), dh = Math.max(8, bar.clientHeight - 13);
+    // the map must be the size of the element's OWN box. A backdrop filter runs before the transform, so the
+    // 1.14 I had here laid an 86 px map over a 76 px box: the whole right-hand wall of the rim fell outside the
+    // filter region and that side of the drop bent nothing at all.
+    const dw = bar.clientWidth / 5, dh = Math.max(8, bar.clientHeight - 9);
     // rim-only (the ninth argument): the reference's fringe is a ring along the edge and its middle is clean,
     // so the drop must not carry the gentle magnifier that every other lens here has. Two strengths, because
     // the split measures about half a source pixel at rest and two and a half at the peak of a travel.
@@ -7207,8 +7234,16 @@ function navBind(bar){
     // NO FROSTING. The bend is what glass does to a letter; a blur on top of it only makes the word muddy, and
     // the user reads that as broken rather than as glass. The displacement stays strong and the frost goes to
     // almost nothing, so the letters under the drop are bent and sharp instead of bent and smeared.
-    lgGlass(bub, dw, dh, 16, .12, false, true, 0, 9, true); bub._lgMove = bub._lg;
-    lgGlass(bub, dw, dh, 9, .08, false, true, 0, 8, true);  bub._lgRest = bub._lg;
+    // A NEGATIVE rim: that band width, and the gentle magnifier over the whole face kept. Rim-only was the
+    // single reason there was no rainbow anywhere - the accent copy of the label sits in the MIDDLE of the drop,
+    // where a rim-only map bends nothing, so the one piece of content with an edge sharp enough to split into
+    // colour was the one piece the lens never touched. On the reference the word under a travelling drop is
+    // dragged out of shape across its whole width; the rim is where it is worst, not where it is only.
+    // and the strength: a drop 91 px wide bending a 24 px icon and a 10 px word is a much smaller lens than
+    // the reference's 225 px one, so the same bend goes far further into the content. Twelve travelling and
+    // seven at rest leaves the icon an icon and the word a word, with the fringe still on them.
+    lgGlass(bub, dw, dh, 12, .12, false, true, 0, -14, true); bub._lgMove = bub._lg;
+    lgGlass(bub, dw, dh, 7, .08, false, true, 0, -12, true);  bub._lgRest = bub._lg;
   }
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
@@ -9364,24 +9399,37 @@ function lgMap(w, h, rad, rim){
   const key = w + "x" + h + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
   if(_lgMaps.has(key)) return _lgMaps.get(key);
   // a capsule / circle (r = half the short side) unless a corner radius is given (the slider's rounded-rectangle drop)
-  const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = rim || Math.min(r, Math.max(12, r * .92));
+  // rim: the width of the band that carries the hard wall. POSITIVE also turns the whole-face magnifier off
+  // (a rim-only lens); NEGATIVE keeps it, which is what the tab bar's drop needs - see navBind.
+  const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = rim ? Math.abs(rim) : Math.min(r, Math.max(12, r * .92));
   const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
   const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
     const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
     let dx = cx - px, dy = cy - py; const dist = Math.hypot(dx, dy), edge = r - dist;   // edge: 0 at the rim
     // toward the drop's core: a strong bend in the rim band plus a gentle magnifier over the whole drop
-    let m = 0;
+    let mx = 0, my = 0;
     if(dist > 0){
       const t = edge < BAND ? 1 - Math.max(edge, 0) / BAND : 0;
       // the wall of a rounded glass edge: gentle where the face turns over, running away in the last fraction of
       // a millimetre. That last stretch is what squeezes what is behind real glass into a bright ring.
       const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;
-      m = Math.min(1, wall + (rim ? 0 : .3 * Math.min(dist / r, 1)));
-      dx /= dist; dy /= dist;
+      mx = dx / dist * wall; my = dy / dist * wall;
     }
+    if(rim < 0){
+      // the lens itself, about the drop's own CENTRE, so the middle of the face swells too. Aiming at the core
+      // alone leaves a capsule with no sideways bend at all through its middle - the one part of the drop the
+      // label actually lives under.
+      const ax = px - w / 2, ay = py - h / 2, ad = Math.hypot(ax, ay);
+      if(ad > 0){ const gq = .45 * Math.min(1, Math.hypot(ax / (w / 2), ay / (h / 2))); mx -= ax / ad * gq; my -= ay / ad * gq; }
+    }else if(!rim && dist > 0){
+      const g = .3 * Math.min(dist / r, 1);
+      mx += dx / dist * g; my += dy / dist * g;
+    }
+    const mm = Math.hypot(mx, my);
+    if(mm > 1){ mx /= mm; my /= mm; }
     const i = (y * w + x) * 4;
-    d[i] = 128 + 127 * dx * m; d[i + 1] = 128 + 127 * dy * m; d[i + 2] = 128; d[i + 3] = 255;
+    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = 128; d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
   const url = cv.toDataURL();
@@ -9391,8 +9439,10 @@ function lgMap(w, h, rad, rim){
 // its bend right now: the clarity scales it (0 at the least glass, ×2.3 crystal); with colour fringes the three
 // channels bend a little apart (blue most, like a real lens)
 // a FIXED bend (one that does not follow the clarity slider) still splits the channels: the reference's drop
-// disperses at any setting, and its fringe is the width of a letter stroke — .07 apart, not .018
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .22) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+// disperses at any setting, and its fringe is the width of a letter stroke. A TENTH apart, not the fifth I had:
+// the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
+// noise instead of a word with a coloured edge.
+const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .10) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
 function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
@@ -9421,15 +9471,12 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
     // was allowed to hang past the bar, where there is no backdrop at all, that came out as a WHITE SQUARE over
     // the page. It is not needed any more either: the accent layer lays an opaque patch under the drop, so what
     // the split works on is already solid everywhere it matters.
-    // NOT the physical order. Measured on the reference, the magenta flank lies OUTSIDE the drop and the amber
-    // one inside, on every side rim - and that is what you get when RED is thrown furthest and blue least, the
-    // reverse of the optics. Run it the physical way round and the two swap sides: amber outside, magenta in
-    // - three passes at iorR = ior - k, iorG = ior, iorB = ior + k. It looks at first as though this must throw
-    // a cold fringe the reference does not have, and it does throw one; it is simply invisible. On red content
-    // over a white bar the cold band is (230,255,255), which is 25 levels under white, while the warm one is
-    // (230,40,255), which is 215 under it. So the eye reads magenta and amber and nothing else - exactly what
-    // the reference measures, with only a trace of violet where the bend is gentlest.
-    dm(1, "dr"); dm(0, "dg"); dm(-1, "db");
+    // THE PHYSICAL ORDER: blue bends most, red least, three passes at iorR < iorG < iorB. Measured on the
+    // reference at the one edge that gives a clean reading - the leading rim over the flat red icon - blue is
+    // the lowest channel right the way out of the icon, so blue is the one still finding it after red has let
+    // go. I had this the other way round and argued for it in a comment; what I was reading as a magenta flank
+    // outside the drop is a fast drop smearing in a twenty-frame recording.
+    dm(-1, "dr"); dm(0, "dg"); dm(1, "db");
     el("feColorMatrix", { in: "dr", type: "matrix", values: "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "r" });
     el("feColorMatrix", { in: "dg", type: "matrix", values: "0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "g" });
     el("feColorMatrix", { in: "db", type: "matrix", values: "0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "b" });
