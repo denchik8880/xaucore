@@ -851,6 +851,32 @@ html:has(body.route-wallet){background:#0c0a08}
 .wpanel-info{min-width:0}
 .wpi-title{color:var(--wtxt);font-size:clamp(15px,3.8vw,19px);font-weight:600;margin-bottom:10px}
 .wpi-bal{font-size:clamp(25px,7.6vw,44px);font-weight:700;color:var(--wg);line-height:1.04;white-space:nowrap;overflow:hidden;letter-spacing:-.015em}
+/* GLASS NUMERALS — the iOS 26 lock-screen clock, built out of what is already here. Side walls, a face that
+   holds the wallpaper caught and bent inside the glyphs, and a lit edge along the same --lit-a every other piece
+   of glass in this app uses. The walls lean AWAY from the light, and --lit-a already follows the tilt sensor and
+   the finger, so turning the phone swings them. */
+.wpi-bal.g3d{overflow:visible;position:relative;isolation:isolate}
+.g3d .g3d-l{position:absolute;left:0;top:0;white-space:nowrap;pointer-events:none}
+.g3d-side{z-index:0;-webkit-text-fill-color:transparent;text-shadow:
+  calc(var(--g3d-ex,-.49) * 1px) calc(var(--g3d-ey,.63) * 1px) 0 rgba(150,112,58,.96),
+  calc(var(--g3d-ex,-.49) * 2px) calc(var(--g3d-ey,.63) * 2px) 0 rgba(134,99,50,.96),
+  calc(var(--g3d-ex,-.49) * 3px) calc(var(--g3d-ey,.63) * 3px) 0 rgba(118,86,43,.96),
+  calc(var(--g3d-ex,-.49) * 4px) calc(var(--g3d-ey,.63) * 4px) 0 rgba(101,73,36,.96),
+  calc(var(--g3d-ex,-.49) * 5px) calc(var(--g3d-ey,.63) * 5px) 0 rgba(85,61,29,.96),
+  calc(var(--g3d-ex,-.49) * 6px) calc(var(--g3d-ey,.63) * 6px) 0 rgba(69,49,23,.96),
+  calc(var(--g3d-ex,-.49) * 7px) calc(var(--g3d-ey,.63) * 7px) 0 rgba(53,37,17,.96),
+  calc(var(--g3d-ex,-.49) * 8px) calc(var(--g3d-ey,.63) * 8px) 0 rgba(38,26,11,.96),
+  calc(var(--g3d-ex,-.49) * 9px) calc(var(--g3d-ey,.63) * 9px) 0 rgba(24,16,7,.96),
+  calc(var(--g3d-ex,-.49) * 13px) calc(var(--g3d-ey,.63) * 13px) 16px rgba(0,0,0,.6)}
+.g3d-face{position:relative;z-index:1;-webkit-text-fill-color:transparent;
+  background-image:linear-gradient(var(--lit-a,151deg),rgba(255,233,187,.62) 0%,rgba(227,184,119,.34) 42%,rgba(150,112,58,.5) 100%),var(--g3d-img,url(/wallet-bg.svg));
+  background-size:cover,cover;background-position:center 38%,center 38%;
+  -webkit-background-clip:text;background-clip:text;
+  filter:url(#g3dref) saturate(1.35) brightness(1.5) contrast(1.06);
+  -webkit-text-stroke:.6px rgba(255,240,214,.42)}
+.g3d-spec{z-index:2;-webkit-text-fill-color:transparent;mix-blend-mode:screen;
+  background-image:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.9) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 66%,rgba(255,255,255,.62) 100%);
+  -webkit-background-clip:text;background-clip:text}
 .wpi-bal .u{font-size:.46em;font-weight:600;color:var(--wg2);margin-left:.3em;letter-spacing:.04em}
 .wpi-div{border-top:1px solid var(--wline);margin:clamp(14px,3vw,22px) 0 12px}
 .wpi-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -951,8 +977,17 @@ html:has(body.route-wallet){background:#0c0a08}
    part of this app and does not show before an account exists (authPlain) - so the capsule is drawn in the flat
    tokens rather than as glass. On a plain background there is nothing behind it to bend in any case. */
 .appbar.auth-bar{background:transparent;border-bottom:0;padding-top:10px}
-.appbar.auth-bar .ttl{height:38px;padding:0 17px;border-radius:999px;font-size:16px;letter-spacing:.07em;
-  background:var(--card);box-shadow:0 0 0 1px var(--line),0 2px 8px var(--nav-shadow,rgba(16,24,40,.08))}
+.appbar.auth-bar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;
+  font-size:16px;letter-spacing:.07em;
+  background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);
+  box-shadow:0 0 0 .5px rgba(16,24,40,.14),0 6px 18px rgba(16,24,40,.16),inset 0 1px 1px rgba(255,255,255,.95),inset 0 -1px 2px rgba(255,255,255,.4)}
+.appbar.auth-bar .ttl::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.95) 0%,transparent 28%,rgba(16,24,40,.1) 50%,transparent 72%,rgba(255,255,255,.6) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+:root[data-theme="dark"] .appbar.auth-bar .ttl{background:rgba(62,62,69,.62);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.2),0 6px 18px rgba(0,0,0,.7),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -1px 2px rgba(255,255,255,.16)}
+:root[data-theme="dark"] .appbar.auth-bar .ttl::after{
+  background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.5) 0%,transparent 28%,rgba(0,0,0,.3) 50%,transparent 72%,rgba(255,255,255,.3) 100%)}
 /* «Ещё» footer: the author's credit */
 .creator{text-align:center;margin:16px 0 6px;font-size:13px;color:var(--ink2)}
 .creator b{color:var(--ink);font-weight:600}
@@ -6014,6 +6049,34 @@ function walletBig(x){                                       // "3,000,000,000<s
   const s = walletFmt(x), i = s.lastIndexOf(" ");
   return `${s.slice(0, i)}<span class="u">${s.slice(i + 1)}</span>`;
 }
+/* The hero figure as GLASS: the same string three times over - the side walls behind, the face that carries the
+   wallpaper inside the glyphs, the lit edge on top. Flat mode gets the plain figure, because the whole point of
+   flat mode is that the paid effect is not there. */
+function walletBalHTML(x){
+  const big = walletBig(x);
+  if(!glassOn()) return big;
+  return `<span class="g3d-l g3d-side" aria-hidden="true">${big}</span><span class="g3d-face">${big}</span><span class="g3d-l g3d-spec" aria-hidden="true">${big}</span>`;
+}
+/* which way the walls lean. litWrite only writes when the light MOVES, so on a still screen these two were
+   never set and the walls fell back on their defaults; this puts them in place from the first paint. */
+function g3dLean(){
+  const r = (typeof LIT !== "undefined" ? LIT.a : 151) * Math.PI / 180, st = document.documentElement.style;
+  st.setProperty("--g3d-ex", (-Math.sin(r)).toFixed(3));
+  st.setProperty("--g3d-ey", (.85 + Math.cos(r) * .25).toFixed(3));
+}
+/* the bend inside the glyphs: low, slow turbulence, so the wallpaper caught in the number ripples the way it
+   does behind real glass without the figure becoming unreadable - it is money, it has to be read */
+function g3dDefs(){
+  g3dLean();
+  if(document.getElementById("g3dref")) return;
+  const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
+  svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+  svg.innerHTML = '<filter id="g3dref" x="-12%" y="-30%" width="124%" height="160%" color-interpolation-filters="sRGB">'
+    + '<feTurbulence type="fractalNoise" baseFrequency="0.009 0.022" numOctaves="2" seed="11" result="n"/>'
+    + '<feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/></filter>';
+  document.body.appendChild(svg);
+}
 /* Wallet background: a real photo at /wallet-bg.jpg is used if present (drop the
    file into public/), otherwise the stylized /wallet-bg.svg fallback. */
 let _walletBg = "svg";
@@ -6049,6 +6112,7 @@ function walletLedgerRow(l){
 }
 function screenWallet(){
   const W = S.wallet;
+  g3dDefs();
   const led = (W.ledger || []).slice(0, 8);
   const feat = [
     ["🛡", L("Безопасность"), L("DEMO-среда — реальные средства не задействованы")],
@@ -6056,7 +6120,7 @@ function screenWallet(){
     ["⚡", L("Быстрота"), L("Мгновенное пополнение и вывод внутри симулятора")],
     ["🎧", L("Поддержка"), L("Учебный проект")]
   ];
-  return `<div class="wallet-page">
+  return `<div class="wallet-page" style="--g3d-img:url(/wallet-bg.${_walletBg})">
     <div class="wallet-bg${_walletBg === "jpg" ? " has-photo" : ""}" aria-hidden="true"></div>
     <div class="wallet-inner">
       <button class="wp-back" data-act="back">${L("‹ НАЗАД")}</button>
@@ -6067,7 +6131,7 @@ function screenWallet(){
         ${walletCardMarkup()}
         <div class="wpanel-info">
           <div class="wpi-title">Zenin Markets</div>
-          <div class="wpi-bal" id="wiBalance">${walletBig(W.balance)}</div>
+          <div class="wpi-bal${glassOn() ? " g3d" : ""}" id="wiBalance">${walletBalHTML(W.balance)}</div>
           <div class="wpi-div"></div>
           <div class="wpi-row">
             <span class="wpi-row-k">${L("Номер виртуального кошелька")}</span>
@@ -9220,8 +9284,8 @@ function updateLive(){
   // broker wallet — single balance state reflected everywhere it shows
   const wib = document.getElementById("wiBalance");
   if(wib){
-    const big = walletBig(S.wallet.balance);
-    if(wib.innerHTML !== big) wib.innerHTML = big;
+    const big = walletBig(S.wallet.balance), hero = walletBalHTML(S.wallet.balance);
+    if(wib.innerHTML !== hero) wib.innerHTML = hero;
     fitText(wib, 18);
     const wt = document.getElementById("wStatTotal"), wa = document.getElementById("wStatAvail");
     if(wt) wt.innerHTML = big;
@@ -9583,7 +9647,13 @@ function lgUiLoad(){
 const LIT = { a: 135, x: 30, y: 14, ta: 135, tx: 30, ty: 14, va: 0, vx: 0, vy: 0, wa: 135, wx: 30, wy: 14, hx: 30, hy: 14, raf: 0, t: 0 };
 const litWrite = () => {
   const st = document.documentElement.style;
-  if(Math.abs(LIT.a - LIT.wa) > .4){ LIT.wa = LIT.a; st.setProperty("--lit-a", LIT.a.toFixed(1) + "deg"); }
+  if(Math.abs(LIT.a - LIT.wa) > .4){
+    LIT.wa = LIT.a; st.setProperty("--lit-a", LIT.a.toFixed(1) + "deg");
+    // the glass numerals extrude AWAY from the light, so their side walls swing as the phone turns
+    const r = LIT.a * Math.PI / 180;
+    st.setProperty("--g3d-ex", (-Math.sin(r)).toFixed(3));
+    st.setProperty("--g3d-ey", (.85 + Math.cos(r) * .25).toFixed(3));
+  }
   if(Math.abs(LIT.x - LIT.wx) > .7){ LIT.wx = LIT.x; st.setProperty("--lit-x", LIT.x.toFixed(1) + "%"); }
   if(Math.abs(LIT.y - LIT.wy) > .7){ LIT.wy = LIT.y; st.setProperty("--lit-y", LIT.y.toFixed(1) + "%"); }
 };
@@ -11117,7 +11187,13 @@ function syncBadge(){
 /* Before the account exists there is no liquid glass: the sign-in screen is plain, whatever this device has saved
    (user: «перед входом уберите везде жидкое стекло … там по дефолту нельзя»). The saved choice is untouched —
    normalizeState() puts it back the moment the account is in. */
-function authPlain(){ document.documentElement.dataset.glass = "off"; }
+function authPlain(){
+  document.documentElement.dataset.glass = "off";
+  // and the route classes go with it. They are set by render() and live on the BODY, so a session that expires
+  // while the wallet is open left body.route-wallet in place - and that rule hides .appbar outright, which is
+  // where the sign-in mark lives. The header simply was not there.
+  document.body.classList.remove("route-wallet", "route-chart", "chart-full", "navcard-open");
+}
 /* ---------- auth screen ----------
    Account required — guest mode was removed. A new visitor lands on
    "Регистрация" because they must create an account before they can sign in. */
