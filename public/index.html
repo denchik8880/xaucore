@@ -271,8 +271,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
-:root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:999px;
+:root[data-glass="on"]{--nav-top:calc(68px + env(safe-area-inset-bottom))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:60px;padding:0;border-top:0;border-radius:999px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
      that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
@@ -290,7 +290,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey in one jump — «нужно более плавнее, как с того видео») */
 /* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
    it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4px;bottom:4px;left:0;width:20%;border-radius:27px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:.5px;bottom:.5px;left:0;width:20%;border-radius:999px;pointer-events:none;
   transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
 /* THE ACCENT, CARRIED BY THE DROP. The row is drawn a second time in the accent colour and shown only through
    the drop's own rectangle, so the red is a window that travels: a tab is red while the drop is over it and
@@ -298,8 +298,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:2;
   pointer-events:none;color:var(--nav-on);
-  -webkit-clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px);
-  clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px)}
+  -webkit-clip-path:inset(calc(.5px + (1 - var(--sy,1)) * (100% - 1px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(.5px + (1 - var(--sy,1)) * (100% - 1px) / 2) calc(var(--u,0) * 20%) round 999px);
+  clip-path:inset(calc(.5px + (1 - var(--sy,1)) * (100% - 1px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(.5px + (1 - var(--sy,1)) * (100% - 1px) / 2) calc(var(--u,0) * 20%) round 999px)}
 /* THE DROP IS A MAGNIFIER. Measured on the reference: everything under it is 1.18x, about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
@@ -6885,14 +6885,14 @@ function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(nav
 // tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
 // settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
 // drop came out a tab wide and too round.
-const NAV_W = 1.14;
+const NAV_W = 1.09;
 function navBox(a, b, lift){
   const span0 = b - a, span = span0 * NAV_W * (1 + .32 * lift), mid = (a + b) / 2;
   const over = Math.max(0, -a, b - 5);
   const sx = Math.max(.25, span - over * 1.1);
   return {
     left: clamp(mid - span / 2, 0, 5 - sx), sx,
-    sy: Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .5 + over * .3)
+    sy: Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .08 + over * .3)
   };
 }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
@@ -6948,8 +6948,9 @@ function navBubFrame(now){
     if(e >= w.end){ NB.a = NB.target; NB.b = NB.target + 1; NB.tw = null; }
   }else{ NB.a = NB.target; NB.b = NB.target + 1; NB.va = NB.vb = 0; }
   NB.u = (NB.a + NB.b) / 2 - .5;
-  // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
-  const lt = NB.drag ? 1 : 0;
+  // the lens does not rise at all any more (see the note on this file's change): this bar has ONE drop and a
+  // finger moves it, so the lift is held at zero and the lens element never shows
+  const lt = 0;
   NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
   // its box comes from navBox and nowhere else (see there): a seventh wider than a tab, clamped inside the
   // bar, growing as it travels rather than thinning
@@ -6973,7 +6974,7 @@ function navBubFrame(now){
   // the harder lens only while it is actually going somewhere (or lifted under a finger)
   const bub = bar.querySelector(".nav-bub");
   if(bub && bub._lgRest){
-    const hard = span0 > 1.015 || NB.lift > .02;
+    const hard = span0 > 1.06;                 // well under way, where the movement covers the change
     if(bub._hard !== hard){
       bub._hard = hard;
       const f = hard ? bub._lgMove : bub._lgRest;
@@ -7093,12 +7094,12 @@ function navBind(bar){
   // apart so its edge throws the colour the user calls «полурадуга». Fixed, so the clarity slider cannot flatten it.
   const bub = bar.querySelector(".nav-bub");
   if(bub){
-    const dw = Math.round(bar.clientWidth / 5 * 1.14), dh = Math.max(8, bar.clientHeight - 8);
+    const dw = Math.round(bar.clientWidth / 5 * 1.14), dh = Math.max(8, bar.clientHeight - 1);
     // rim-only (the ninth argument): the reference's fringe is a ring along the edge and its middle is clean,
     // so the drop must not carry the gentle magnifier that every other lens here has. Two strengths, because
     // the split measures about half a source pixel at rest and two and a half at the peak of a travel.
-    lgGlass(bub, dw, dh, 13, .45, false, true, 0, 10, true); bub._lgMove = bub._lg;
-    lgGlass(bub, dw, dh, 3, .3, false, true, 0, 7, true);    bub._lgRest = bub._lg;
+    lgGlass(bub, dw, dh, 11, .45, false, true, 0, 10, true); bub._lgMove = bub._lg;
+    lgGlass(bub, dw, dh, 5, .35, false, true, 0, 8, true);   bub._lgRest = bub._lg;
   }
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
