@@ -278,7 +278,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
      that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);
   box-shadow:var(--lg-lift2)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:4px;font-size:11.5px;font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:3px;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* nothing in the row changes colour by itself any more: the drop carries the accent (see .nav-red), so a tab
    reads as chosen only while the drop is over it. The label is the dark one and the icon the pale one. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button,
@@ -310,9 +310,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    clear glass over the ordinary row. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-bg{position:absolute;inset:0;background:var(--nav-hole);opacity:calc(1 - var(--lf,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(calc(1 + .18 * (1 - var(--lf,0))));will-change:transform}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  font-size:11.5px;font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(calc(1 + .08 * (1 - var(--lf,0))));will-change:transform}
+/* the icon carries the rest of the lens's enlargement on its own. Spread over the whole row it pushes the
+   label down into the narrow end of the capsule, where a longer word than the reference's gets cut off at the
+   rim - and our five languages have longer ones. The icon is centred and can never reach an edge. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .ic{transform:scale(calc(1 + .09 * (1 - var(--lf,0))))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
    band across its top, no lit lip, no edge. Everything I had drawn on it is what made it read as a separate
    object sitting on the bar instead of a shadow under the tab. */
@@ -7086,8 +7090,36 @@ function closeNavCard(outside){
   if(!C.raf){ C.H = C.card.offsetHeight; C.h = C.H; C.v = 0; }         // at rest: its own height (its figures may have grown it); mid-grow: turns round
   C.open = false; navCardRun(C);
 }
+// The capsule pinches toward its ends, so a long label can run into the rim from inside even though it fits its
+// tab perfectly well. Measure the longest label against the capsule's width at that label's own height and size
+// the row down until it clears — once per language and bar width, never per frame. Both copies share the size,
+// because the accent one has to sit exactly on the plain one.
+let _navFit = "";
+function navFit(bar){
+  const red = bar.querySelector(".nav-red"); if(!red) return;
+  const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight;
+  if(_navFit === key) return;
+  bar.style.removeProperty("--nav-fs");
+  const H = bar.clientHeight - 1, r = H / 2, W = bar.clientWidth / 5 * NAV_W;
+  const cy = bar.getBoundingClientRect().top + bar.clientHeight / 2;
+  let need = 0, dy = 0;
+  for(const nb of red.querySelectorAll(".nb")){
+    const t = [...nb.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+    if(!t) continue;
+    const g = document.createRange(); g.selectNodeContents(t);
+    const b = g.getBoundingClientRect();
+    if(b.width > need){ need = b.width; dy = Math.abs(b.bottom - cy); }
+  }
+  if(!need) return;
+  const k = 1.08, d = Math.min(r, dy * k);                       // the copy is spread outward by k
+  const avail = W - 2 * (r - Math.sqrt(Math.max(0, r * r - d * d)));
+  const fit = Math.min(1, (avail - 3) / (need * k));
+  _navFit = key;
+  if(fit < .999) bar.style.setProperty("--nav-fs", (10.5 * Math.max(.8, fit)).toFixed(2) + "px");
+}
 function navBind(bar){
   if(!bar) return;
+  navFit(bar);
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
   // the bar's own rim bends nothing (the reference's is straight) — but the DROP is a lens, always, not only
   // under a finger: a strong bend in the band at its rim, near-sharp in the middle, the three channels a little
