@@ -290,7 +290,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey in one jump — «нужно более плавнее, как с того видео») */
 /* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
    it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:6.5px;bottom:6.5px;left:0;width:20%;border-radius:999px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:6.5px;bottom:6.5px;left:0;width:20%;
+  /* THE RADIUS IS RESOLVED BEFORE THE TRANSFORM. The box is 20% of the bar by 47 px and the shape we want is
+     whatever the scale turns it into, so a flat 999px gave a capsule with a straight middle that the scale then
+     squashed - which is why the numbers said circle and the eye did not. Half the height vertically (50% of the
+     box, so it scales with --sy on its own) and, horizontally, that same rendered radius divided back out by
+     --sx, so the ends come out circular whatever the drop is doing. */
+  border-radius:calc((60px - 13px) / 2 * var(--sy,1) / var(--sx,1)) / 50%;pointer-events:none;
   transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
 /* THE ACCENT, CARRIED BY THE DROP. The row is drawn a second time in the accent colour and shown only through
    the drop's own rectangle, so the red is a window that travels: a tab is red while the drop is over it and
