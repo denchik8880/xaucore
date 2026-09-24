@@ -324,8 +324,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    only tint; over it, the icons and the labels bend at its rim and split into colour there, which is what the
    reference does and what ours never did. The tint stays a whisper — nine units under the bar, measured. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc(1 - var(--lf,0));background:var(--nav-bub);
+  /* the bright line runs the whole way round, not just down the sides - measured on the reference at the top
+     and bottom rims too, four or five levels over the body */
   box-shadow:inset 0 7px 8px -7px var(--nav-lip),inset 0 -7px 8px -7px var(--nav-lip),
-    inset 2px 0 0 -1px var(--nav-edge),inset -2px 0 0 -1px var(--nav-edge),
+    inset 0 0 0 1px var(--nav-edge),
     0 0 10px rgba(16,24,40,.03)}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:4;opacity:var(--lf,0);background:rgba(255,255,255,.025);
@@ -9369,9 +9371,13 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
     // behind a pane is anyway.
     el("feFlood", { "flood-color": "currentColor", "flood-opacity": "1", result: "bgf" });
     el("feComposite", { in: "SourceGraphic", in2: "bgf", operator: "over", result: "opq" });
-    // red stays put and the other two are thrown either side of it: that gives magenta on one shoulder of a
-    // stroke and orange on the other, and no cold colour anywhere — the reference's two families exactly.
-    dm(0, "dr", "opq"); dm(-1, "dg", "opq"); dm(1, "db", "opq");
+    // The physical order, and the one every liquid-glass shader uses: red bends LEAST, blue MOST, green between
+    // - three passes at iorR = ior - k, iorG = ior, iorB = ior + k. It looks at first as though this must throw
+    // a cold fringe the reference does not have, and it does throw one; it is simply invisible. On red content
+    // over a white bar the cold band is (230,255,255), which is 25 levels under white, while the warm one is
+    // (230,40,255), which is 215 under it. So the eye reads magenta and amber and nothing else - exactly what
+    // the reference measures, with only a trace of violet where the bend is gentlest.
+    dm(-1, "dr", "opq"); dm(0, "dg", "opq"); dm(1, "db", "opq");
     el("feColorMatrix", { in: "dr", type: "matrix", values: "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "r" });
     el("feColorMatrix", { in: "dg", type: "matrix", values: "0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "g" });
     el("feColorMatrix", { in: "db", type: "matrix", values: "0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "b" });
