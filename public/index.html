@@ -53,7 +53,7 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
-  --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.045 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
+  --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.045 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
@@ -71,7 +71,7 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
-  --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.085 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
+  --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.085 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(0,0,0,.3); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -323,6 +323,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* THE DROP IS THE GLASS, and glass is in front of what it bends. Under the row (where it used to live) it could
    only tint; over it, the icons and the labels bend at its rim and split into colour there, which is what the
    reference does and what ours never did. The tint stays a whisper — nine units under the bar, measured. */
+/* THE SPECULAR RIM - the third of the three things a glass element is made of (displacement, specular,
+   self-shadow) and the one we never had. It follows the same distant light the rest of the app uses, so the
+   drop is lit from where everything else is lit, and it brightens as the drop clears: on glass this is what
+   reads as glass. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;pointer-events:none;
+  background:linear-gradient(var(--lit-a,151deg),var(--nav-spec) 0%,transparent 26%,var(--nav-specd) 50%,transparent 74%,var(--nav-spec2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc(1 - var(--lf,0));background:var(--nav-bub);
   /* the bright line runs the whole way round, not just down the sides - measured on the reference at the top
      and bottom rims too, four or five levels over the body */
@@ -7177,11 +7184,13 @@ function navBind(bar){
     // the split measures about half a source pixel at rest and two and a half at the peak of a travel.
     // the reference bends what is under it and still leaves it legible; at 11 on a drop this small the whole
     // word turned to paste
-    // A NARROW band matters more than a strong one here. An ellipse is curved everywhere, so its top and bottom
-    // come close to the label; a wide bend band swallows the whole word and turns it to paste. Six pixels of
-    // band keeps the bend on the rim, where the reference has it, and leaves the word readable through it.
-    lgGlass(bub, dw, dh, 9, .4, false, true, 0, 8, true); bub._lgMove = bub._lg;
-    lgGlass(bub, dw, dh, 5, .3, false, true, 0, 8, true); bub._lgRest = bub._lg;
+    // REAL GLASS, not a hint of it. Every time the word under the drop came out mangled I turned the bend
+    // down, and that was the wrong call every time: on the reference the label under a travelling drop is a
+    // smear you cannot read - that IS the effect. So the bend runs over the whole face now (a gentle magnifier
+    // everywhere plus the hard wall at the rim, which is what the ninth argument being 0 turns back on) and at
+    // twice the strength, with real frosting behind it.
+    lgGlass(bub, dw, dh, 16, 1, false, true, 0, 9, true);  bub._lgMove = bub._lg;
+    lgGlass(bub, dw, dh, 9, .5, false, true, 0, 8, true);   bub._lgRest = bub._lg;
   }
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
@@ -9365,7 +9374,7 @@ function lgMap(w, h, rad, rim){
 // channels bend a little apart (blue most, like a real lens)
 // a FIXED bend (one that does not follow the clarity slider) still splits the channels: the reference's drop
 // disperses at any setting, and its fringe is the width of a letter stroke — .07 apart, not .018
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .17) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .22) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){ for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm)); }
 function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
