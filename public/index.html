@@ -6897,7 +6897,7 @@ function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t 
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // a: the drop's LEADING edge in tabs, b its trailing one (at rest on tab i they are i and i+1); u is the tab
 // they straddle, kept because the icons' swell and the drag read it. lift 0…1: resting drop → lens under the finger
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, wCircle: 0, hCircle: 1, dms: null, dmB: null, _lensK: null };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, wCircle: 0, hCircle: 1, dms: null, dmB: null, _lensK: null, bx: 0 };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 // The drop is a seventh wider than a tab, as the reference's is, and it is CLAMPED inside the bar: on the end
@@ -7008,7 +7008,11 @@ function navBubFrame(now){
   // the bar leans a couple of pixels the way the drop is going and comes back to nothing when it lands
   const vmid = NB._pm != null && dt > 0 ? (mid - NB._pm) / dt : 0;
   NB._pm = mid;
-  bar.style.setProperty("--bx", clamp(vmid * .42, -2.6, 2.6).toFixed(2) + "px");
+  // IT FOLLOWS THE FINGER, AND SLOWLY. A hard function of the speed arrives and leaves with the speed, which
+  // reads as the bar twitching; low-passed, it drifts after the drop and is still drifting a little when the
+  // drop has stopped, which is what the Apple Music bar does under a finger.
+  NB.bx += (clamp(vmid * .70, -6, 6) - NB.bx) * (1 - Math.exp(-dt / .12));
+  bar.style.setProperty("--bx", NB.bx.toFixed(2) + "px");
   // CLEAR ON THE MOVE, GREY WHEN IT LANDS. Every grey the drop carries — its tint, the dark bands on its lips,
   // the light line at its sides — runs through --dk, so one number takes it from glass to grey. It clears fast
   // (a twentieth of a second) and fills back slowly (a third of one), which is the asymmetry the user describes:
@@ -7046,9 +7050,9 @@ function navBubFrame(now){
   // it lands - but the loop used to stop the instant the travel ended and set the grey to full in the same
   // breath, so the fill never played: the drop went crystal for the whole flight and then flicked grey on its
   // last frame. The frame keeps running until the fill has burnt down as well.
-  if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01){
+  if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01 && Math.abs(NB.bx) < .05){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
-    NB._pm = null; NB.clear = 0; bar.style.setProperty("--bx", "0px"); document.documentElement.style.setProperty("--dk", "1");
+    NB._pm = null; NB.clear = 0; NB.bx = 0; bar.style.setProperty("--bx", "0px"); document.documentElement.style.setProperty("--dk", "1");
     navLens(0);                                // and it is written once more here, where the frames stop
     const r = navBox(NB.target, NB.target + 1, 0);
     // --sy comes from navBox as well: it carries the ball-up on the end tabs, and a hard 1 here threw it away
@@ -9455,7 +9459,7 @@ function lgMap(w, h, rad, rim){
 // disperses at any setting, and its fringe is the width of a letter stroke. A TENTH apart, not the fifth I had:
 // the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
 // noise instead of a word with a coloured edge.
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .10) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .20) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){
   for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
   if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
