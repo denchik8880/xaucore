@@ -7011,7 +7011,12 @@ function navBubFrame(now){
   // IT FOLLOWS THE FINGER, AND SLOWLY. A hard function of the speed arrives and leaves with the speed, which
   // reads as the bar twitching; low-passed, it drifts after the drop and is still drifting a little when the
   // drop has stopped, which is what the Apple Music bar does under a finger.
-  NB.bx += (clamp(vmid * .70, -6, 6) - NB.bx) * (1 - Math.exp(-dt / .12));
+  // under a finger: where the finger has GOT TO, held there until it lifts. On a tap there is no finger to
+  // follow, so the drop's speed stands in for one.
+  // measured on the Apple Music bar: its left edge runs about two per cent of the bar out from where it rests
+  // and stays there while the finger is down. Two per cent of ours is eight pixels.
+  const bxT = NB.drag ? clamp((NB.drag.u - (NB.drag.u0 || 0)) * 7, -8, 8) : clamp(vmid * .70, -6, 6);
+  NB.bx += (bxT - NB.bx) * (1 - Math.exp(-dt / .16));
   bar.style.setProperty("--bx", NB.bx.toFixed(2) + "px");
   // CLEAR ON THE MOVE, GREY WHEN IT LANDS. Every grey the drop carries — its tint, the dark bands on its lips,
   // the light line at its sides — runs through --dk, so one number takes it from glass to grey. It clears fast
@@ -7164,7 +7169,7 @@ function navFit(bar){
   _navFs = ""; bar.style.removeProperty("--nav-fs");
   // the two shapes the drop actually takes: a circle on the first and last tab, a capsule over the middle three
   const hCir = bar.clientHeight - 3, hCap = Math.max(8, bar.clientHeight - 9);
-  const cir = { W: hCir, r: hCir / 2 }, cap = { W: bar.clientWidth / 5 * NAV_W, r: hCap / 2 };
+  const cir = { W: hCir * 1.158, r: hCir / 2 }, cap = { W: bar.clientWidth / 5 * NAV_W, r: hCap / 2 };
   const cy = bar.getBoundingClientRect().top + bar.clientHeight / 2;
   const k = 1.08;                                               // the copy is spread outward by k
   let fit = 1, any = false;
@@ -7205,9 +7210,9 @@ function navBind(bar){
   // of a drop sitting on the first or last tab, and there was none in ours.
   const tabW = Math.max(1, bar.clientWidth / 5), h0 = Math.max(8, bar.clientHeight - 9);
   NAV_W = 1.07;                                      // measured: 225 px of drop against a 210 px tab
-  NB.wCircle = (bar.clientHeight - 3) / tabW;        // on the END tabs it is a circle, as wide as it is tall
+  NB.wCircle = (bar.clientHeight - 3) * 1.158 / tabW;   // on the END tabs: 66 by 57 - round-ended, and the white either side comes down to 5.4 px
   NB.hCircle = (bar.clientHeight - 3) / h0;          // and taller than the capsule, or the label will not fit
-  NB.eIn = 6 / tabW;
+  NB.eIn = 4 / tabW;                                 // it must not bite at rest: the 66 px drop already sits 5.4 px off the bar's end, and clamping it to 6 made the white lopsided
   // and the shape those three measurements make has to reach the bar. The markup is built before this runs, so
   // the first paint carried navBox's answer from BEFORE the circle was known - a flat capsule - and with nothing
   // moving there was no frame to correct it. The drop has been sitting there un-round ever since, which is what
@@ -7276,7 +7281,7 @@ function navBind(bar){
   bar.onpointerdown = e => {
     if(e.button > 0) return;
     const br = bar.getBoundingClientRect();
-    NB.drag = { id: e.pointerId, u: uAt(e.clientX), x0: e.clientX, y0: e.clientY, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
+    NB.drag = { id: e.pointerId, u: uAt(e.clientX), u0: uAt(e.clientX), x0: e.clientX, y0: e.clientY, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
     try{ bar.setPointerCapture(e.pointerId); }catch(_){}
     bar.classList.add("dragging");
     navBubKick();
