@@ -53,7 +53,7 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
-  --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.045 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.1 * var(--dk,1))); --nav-edge:rgba(255,255,255,calc(.4 * var(--dk,1))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
+  --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.045 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * var(--dk,1))); --nav-edge:rgba(255,255,255,calc(.4 * var(--dk,1))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
@@ -71,7 +71,7 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
-  --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.085 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.34 * var(--dk,1))); --nav-edge:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
+  --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.085 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * var(--dk,1))); --nav-edge:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -271,8 +271,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
-:root[data-glass="on"]{--nav-top:calc(80px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:72px;padding:0;border-top:0;border-radius:999px;
+:root[data-glass="on"]{--nav-top:calc(68px + env(safe-area-inset-bottom))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:60px;padding:0;border-top:0;border-radius:999px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
      that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
@@ -290,7 +290,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey in one jump — «нужно более плавнее, как с того видео») */
 /* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
    it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:1px;bottom:1px;left:0;width:20%;border-radius:50%;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:6.5px;bottom:6.5px;left:0;width:20%;border-radius:999px;pointer-events:none;
   transform-origin:0 50%;transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--sy,1));will-change:transform,opacity}
 /* THE ACCENT, CARRIED BY THE DROP. The row is drawn a second time in the accent colour and shown only through
    the drop's own rectangle, so the red is a window that travels: a tab is red while the drop is over it and
@@ -298,8 +298,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:2;
   pointer-events:none;color:var(--nav-on);
-  -webkit-clip-path:inset(calc(1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(var(--u,0) * 20%) round calc(var(--sx,1) * 10%) / calc((100% - 2px) * var(--sy,1) / 2));
-  clip-path:inset(calc(1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(1px + (1 - var(--sy,1)) * (100% - 2px) / 2) calc(var(--u,0) * 20%) round calc(var(--sx,1) * 10%) / calc((100% - 2px) * var(--sy,1) / 2))}
+  -webkit-clip-path:inset(calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(var(--u,0) * 20%) round calc((100% - 13px) * var(--sy,1) / 2));
+  clip-path:inset(calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(6.5px + (1 - var(--sy,1)) * (100% - 13px) / 2) calc(var(--u,0) * 20%) round calc((100% - 13px) * var(--sy,1) / 2))}
 /* THE DROP IS A MAGNIFIER. Measured on the reference: everything under it is 1.18x, about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
@@ -6891,9 +6891,8 @@ function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(nav
 // tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
 // settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
 // drop came out a tab wide and too round.
-// as wide as it is tall - a circle, which is what has been asked for four times. navBind measures it, because
-// it depends on the bar the screen gives us.
-let NAV_W = .95;
+// a capsule with semicircular ends - "round at the ends" - 1.07 tabs wide and 0.78 of the bar tall
+let NAV_W = 1.07;
 function navBox(a, b, lift){
   const span0 = b - a, mid = (a + b) / 2;
   const over = Math.max(0, -a, b - 5);
@@ -6915,9 +6914,9 @@ function navBox(a, b, lift){
   return {
     // a moving drop is allowed past the ends of the bar - the user: it bulges out while you drag and settles
     // back into proportion once it lands - and a still one never is
-    // it stays inside the bar, standing still and travelling alike (the user, on the second video)
-    left: clamp(left, e, 5 - sx - e), sx,
-    sy: Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .11 + over * .3)
+    // standing still it keeps clear of the ends; travelling it may hang past them, as the third video shows
+    left: clamp(left, e - slack, 5 - sx - e + slack), sx,
+    sy: Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * 1.7 + over * .3)
   };
 }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
@@ -7138,7 +7137,7 @@ function navFit(bar){
   // one is gone the moment the screen redraws while the cache still says it has been worked out
   if(_navFit === key){ if(_navFs) bar.style.setProperty("--nav-fs", _navFs); return; }
   _navFs = ""; bar.style.removeProperty("--nav-fs");
-  const H = bar.clientHeight - 2, r = H / 2, W = bar.clientWidth / 5 * NAV_W;
+  const H = bar.clientHeight - 13, r = H / 2, W = bar.clientWidth / 5 * NAV_W;
   const cy = bar.getBoundingClientRect().top + bar.clientHeight / 2;
   let need = 0, dy = 0;
   for(const nb of red.querySelectorAll(".nb")){
@@ -7152,7 +7151,7 @@ function navFit(bar){
   }
   if(!need) return;
   const k = 1.08, d = Math.min(r, dy * k);                       // the copy is spread outward by k
-  const avail = W * Math.sqrt(Math.max(0, 1 - (d / r) * (d / r)));   // an ellipse, not a capsule
+  const avail = W - 2 * (r - Math.sqrt(Math.max(0, r * r - d * d)));  // a capsule: it only pinches at the ends
   const fit = Math.min(1, (avail - 3) / (need * k));
   _navFit = key;
   if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
@@ -7163,7 +7162,7 @@ function navBind(bar){
   // eighth of the bar's height at the end against a thirteenth above and below. There is white bar either side
   // of a drop sitting on the first or last tab, and there was none in ours.
   const tabW = Math.max(1, bar.clientWidth / 5);
-  NAV_W = (bar.clientHeight - 2) / tabW;               // round: its width IS its height
+  NAV_W = 1.07;                                      // measured: 225 px of drop against a 210 px tab
   NB.eIn = 6 / tabW;
   navFit(bar);
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
@@ -7172,7 +7171,7 @@ function navBind(bar){
   // apart so its edge throws the colour the user calls «полурадуга». Fixed, so the clarity slider cannot flatten it.
   const bub = bar.querySelector(".nav-bub");
   if(bub){
-    const dw = Math.round(bar.clientWidth / 5 * 1.14), dh = Math.max(8, bar.clientHeight - 2);
+    const dw = Math.round(bar.clientWidth / 5 * 1.14), dh = Math.max(8, bar.clientHeight - 13);
     // rim-only (the ninth argument): the reference's fringe is a ring along the edge and its middle is clean,
     // so the drop must not carry the gentle magnifier that every other lens here has. Two strengths, because
     // the split measures about half a source pixel at rest and two and a half at the peak of a travel.
