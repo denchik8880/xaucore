@@ -6891,14 +6891,22 @@ function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(nav
 // drop came out a tab wide and too round.
 const NAV_W = 1.09;
 function navBox(a, b, lift){
-  const span0 = b - a, span = span0 * NAV_W * (1 + .32 * lift), mid = (a + b) / 2;
+  const span0 = b - a, mid = (a + b) / 2;
   const over = Math.max(0, -a, b - 5);
-  const sx = Math.max(.25, span - over * 1.1);
   const slack = Math.max(0, span0 - 1) * .5 + over;
+  let sx = span0 * NAV_W * (1 + .32 * lift), left = mid - sx / 2;
+  // pressed into an end it squashes AGAINST that end: the edge touching the wall stays where it is and the far
+  // one comes in. Taking it off the far edge either way — which is what scaling from the left edge does by
+  // itself — pulls the drop off the very wall it is pressed into, and the bulge comes out lopsided.
+  const sq = Math.min(over * 1.1, sx - .25);
+  if(sq > 0){
+    sx -= sq;
+    if(-a < b - 5) left += sq;                       // the RIGHT end: the right edge holds
+  }
   return {
     // a moving drop is allowed past the ends of the bar - the user: it bulges out while you drag and settles
     // back into proportion once it lands - and a still one never is
-    left: clamp(mid - span / 2, -slack, 5 - sx + slack), sx,
+    left: clamp(left, -slack, 5 - sx + slack), sx,
     sy: Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .9 + over * .3)
   };
 }
