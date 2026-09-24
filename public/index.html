@@ -272,7 +272,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
 :root[data-glass="on"]{--nav-top:calc(70px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:24px;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:62px;padding:0;border-top:0;border-radius:999px;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
      that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
@@ -297,15 +297,20 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey again behind it, with the hard edge the video shows mid-icon. It reads --u/--sx/--sy straight off the
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:2;
-  pointer-events:none;color:var(--nav-on);background:var(--nav-hole);
+  pointer-events:none;color:var(--nav-on);
   -webkit-clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px);
   clip-path:inset(calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4px + (1 - var(--sy,1)) * (100% - 8px) / 2) calc(var(--u,0) * 20%) round 27px)}
 /* THE DROP IS A MAGNIFIER. Measured on the reference: everything under it is 1.18x, about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
    transform, so the window would grow with it); it goes on a wrapper inside it. */
+/* the patch that lets the enlarged copy REPLACE the row instead of lying over it — and the enlargement itself —
+   both belong to a drop that is sitting or travelling. Under a finger the drop swells by a third, and a patch
+   that swells with it blanks out whole tabs; so both fade out with the lift and the lens goes back to being
+   clear glass over the ordinary row. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-bg{position:absolute;inset:0;background:var(--nav-hole);opacity:calc(1 - var(--lf,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(1.18);will-change:transform}
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(calc(1 + .18 * (1 - var(--lf,0))));will-change:transform}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   font-size:11.5px;font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
@@ -1167,7 +1172,7 @@ html:has(body.route-wallet){background:#0c0a08}
 body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while it grows / shrinks navCardRun cross-fades it inline */
 .nav-card-catch{position:fixed;inset:0;z-index:88}
 .nav-card{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 28px);max-width:500px;z-index:89;
-  box-sizing:border-box;padding:8px 18px 14px;border-radius:24px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
+  box-sizing:border-box;padding:8px 18px 14px;border-radius:28px;overflow:hidden;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate;
   background:color-mix(in srgb,var(--nav-glass),var(--sheet-glass,var(--card)) calc(var(--ncp,1) * 100%));-webkit-backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);backdrop-filter:blur(calc(24px * max(.9, var(--lgsb,1)))) saturate(1.4);   /* its figures read even at «Кристалл» */
   box-shadow:var(--lg-lift3),var(--lg-body);opacity:0}
 .nav-card.shown{opacity:1}
@@ -6876,6 +6881,20 @@ function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); } 
 const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
+// The drop is a seventh wider than a tab, as the reference's is, and it is CLAMPED inside the bar: on the end
+// tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
+// settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
+// drop came out a tab wide and too round.
+const NAV_W = 1.14;
+function navBox(a, b, lift){
+  const span0 = b - a, span = span0 * NAV_W * (1 + .32 * lift), mid = (a + b) / 2;
+  const over = Math.max(0, -a, b - 5);
+  const sx = Math.max(.25, span - over * 1.1);
+  return {
+    left: clamp(mid - span / 2, 0, 5 - sx), sx,
+    sy: Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .5 + over * .3)
+  };
+}
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
 // 8.8 % of the curve this replaces. x is solved by halving; y1 = 0, so its y half is 2.76t²(1-t) + t³.
 function navEase(x){
@@ -6932,17 +6951,10 @@ function navBubFrame(now){
   // the lens rises quickly and melts back slowly (τ 60 / 200 ms), cross-fading with the resting drop
   const lt = NB.drag ? 1 : 0;
   NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
-  // lifted it is a big lens, ~1.3 tabs wide and taller than the bar; stretched, it thins; pushed past an end,
-  // it squashes against it instead of hanging over the edge
-  // a seventh wider than a tab, as the reference is — but CLAMPED inside the bar, so on the first and last tab
-  // it rests against the end instead of hanging over it
-  const span0 = NB.b - NB.a, span = span0 * 1.14 * (1 + .32 * NB.lift), mid = (NB.a + NB.b) / 2;
-  const over = Math.max(0, -NB.a, NB.b - 5);
-  const sx = Math.max(.25, span - over * 1.1);
-  // it GROWS while it goes (measured: seven pixels of inset at rest, two in mid-flight) — a drop picking up
-  // speed inflates, it does not thin out, whatever the usual rule says
-  const sy = Math.max(.5, 1 + .3 * NB.lift + Math.max(0, span0 - 1) * .5 + over * .3);
-  const left = clamp(mid - span / 2, 0, 5 - sx);
+  // its box comes from navBox and nowhere else (see there): a seventh wider than a tab, clamped inside the
+  // bar, growing as it travels rather than thinning
+  const span0 = NB.b - NB.a, mid = (NB.a + NB.b) / 2;
+  const box = navBox(NB.a, NB.b, NB.lift), left = box.left, sx = box.sx, sy = box.sy;
   // the bar leans a couple of pixels the way the drop is going and comes back to nothing when it lands
   const vmid = NB._pm != null && dt > 0 ? (mid - NB._pm) / dt : 0;
   NB._pm = mid;
@@ -6954,7 +6966,7 @@ function navBubFrame(now){
   const idle = NB.lift < .01;
   if(lens._idle !== idle){
     lens._idle = idle; lens.classList.toggle("idle", idle);
-    if(!idle && !lens._lg) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, 22, .5);
+    if(!idle && !lens._lg) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, 11, .5);
   }
   // the icons under the lens swell — and the accent copy of the row swells with them, or the red would slide
   // off the grey underneath it
@@ -6978,7 +6990,8 @@ function navBubFrame(now){
   if(!NB.drag && !NB.tw && NB.lift < .01){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
     NB._pm = null; bar.style.setProperty("--bx", "0px");
-    bar.style.setProperty("--u", String(NB.target)); bar.style.setProperty("--sx", "1"); bar.style.setProperty("--sy", "1"); bar.style.setProperty("--lf", "0");
+    const r = navBox(NB.target, NB.target + 1, 0);
+    bar.style.setProperty("--u", r.left.toFixed(4)); bar.style.setProperty("--sx", r.sx.toFixed(4)); bar.style.setProperty("--sy", "1"); bar.style.setProperty("--lf", "0");
     if(!lens._idle){ lens._idle = true; lens.classList.add("idle"); }
     return;
   }
@@ -7398,7 +7411,8 @@ function bottomNav(){
   // the copy carries the count badge as well, or a tab's badge would vanish the moment the drop covered it
   const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${NB.a.toFixed(4)};--sx:${(NB.b - NB.a).toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-red" aria-hidden="true"><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  const bx = navBox(NB.a, NB.b, NB.lift);
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     ${row}
   </div>`;
 }
