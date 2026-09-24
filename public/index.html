@@ -6074,7 +6074,13 @@ function g3dDefs(){
   svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
   svg.innerHTML = '<filter id="g3dref" x="-12%" y="-30%" width="124%" height="160%" color-interpolation-filters="sRGB">'
     + '<feTurbulence type="fractalNoise" baseFrequency="0.009 0.022" numOctaves="2" seed="11" result="n"/>'
-    + '<feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/></filter>';
+    + '<feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G" result="d"/>'
+    // back into the glyph's OWN alpha: the bend is what is inside the letter, never the letter
+    + '<feComposite in="d" in2="SourceAlpha" operator="in" result="cut"/>'
+    // and a floor of the base gold, so a sample dragged in from outside the stroke cannot leave a hole in it
+    + '<feFlood flood-color="#c39760" result="f"/>'
+    + '<feComposite in="f" in2="SourceAlpha" operator="in" result="floor"/>'
+    + '<feMerge><feMergeNode in="floor"/><feMergeNode in="cut"/></feMerge></filter>';
   document.body.appendChild(svg);
 }
 /* Wallet background: a real photo at /wallet-bg.jpg is used if present (drop the
