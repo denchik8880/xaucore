@@ -1465,16 +1465,22 @@ body.amenu-open .wl-logo{opacity:0}
 .am-head{display:flex;align-items:center;gap:14px;padding:21px 18px 13px 18px}   /* no mark of its own: the bar's poured out into the panel (user «Когда открылась вкладка, логотипа не должно быть»); the name starts where the rows' icons do */
 /* the drawer pouring out of the mark (amLiquid): all its writing comes in last, out of a blur */
 .am-sheet.lqa>*{opacity:var(--amc,1);filter:blur(calc((1 - var(--amc,1)) * 9px))}
-/* its glass while it pours, as the liquid menus' (.lg-pop.lq): a bright, clear lens first, the panel's frost at the end */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--lqg,1) * 100%),transparent);
-  -webkit-backdrop-filter:blur(calc(1.5px + 22px * var(--lgsb,1) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)));
-  backdrop-filter:blur(calc(1.5px + 22px * var(--lgsb,1) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)))}
+/* its glass while it pours: the mark's own bubble at --lqg 0 (its tint, blur 1px, saturate 1.35, brightness 1.03)
+   and at 1 EXACTLY the panel's glass as it rests, whatever the clarity. It used to end a brighter, more saturated
+   glass than the panel's own and swap at rest - at «Кристалл» a white drop that went grey a beat after it landed,
+   and a 10 % brightness that turned the drop over a light page into a solid white ball (user 2026-09-25 video:
+   «И опять серое с опозданием появляется») */
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--lqg,1) * 100%),var(--lg-tint));
+  -webkit-backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
+  backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)))}
 .lqa-x{position:fixed;left:0;top:0;pointer-events:none;z-index:3;transform-origin:50% 50%;will-change:transform,opacity}
 .lqa-x svg{width:100%;height:100%;display:block}
 .lqa-x svg circle{display:none}                                   /* the ball is the drop's; only the X rides in it */
-.lqa-rim{position:fixed;pointer-events:none;z-index:2;opacity:0;
-  box-shadow:0 8px 26px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.55),inset 0 1.5px 1px rgba(255,255,255,.85)}
-:root:not([data-theme="dark"]) .lqa-rim{box-shadow:0 8px 26px rgba(16,24,40,.12),0 0 0 .5px rgba(16,24,40,.14),inset 0 1.5px 1px rgba(255,255,255,.9)}
+/* the drop's edge (the clip cuts off the panel's own): the panel's own inset rim and body, so that at rest the two
+   are the same pixels and the hand-over cannot be seen; outside it (::after) the mark's hairline and lift, which
+   make a clear ball read as a drop over a light page, fading out as it becomes the panel (which has neither) */
+.lqa-rim{position:fixed;pointer-events:none;z-index:2;opacity:0;box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
+.lqa-rim::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:var(--rimo,0);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1)}
 .am-brand{font-size:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .am-acct{padding:0 18px 16px 18px;line-height:1.35}
 .am-acct b{display:block;font-size:14.5px;font-weight:400;color:var(--ink);overflow-wrap:anywhere}
@@ -6030,7 +6036,9 @@ function amEnter(m){
 const LQ_AM = { k: 185, z: .78 };                                  // a hair softer than a menu's: it has 3x the way to go
 function amShape(Q, p){
   const A = Q.A, F = Q.F;
-  const ew = lqE(p, 0, .6), w = A.w + (F.w - A.w) * ew;
+  // eased in at the mark: the last hundredths of the way back no longer cover 15 px, so the drop is the mark's size
+  // when the mark takes over (it snapped the last 15 px and the X jumped 7 px as the mark came back)
+  const ew = Math.pow(lqE(p, 0, .6), 1.3), w = A.w + (F.w - A.w) * ew;
   const r = 1 + (F.h / F.w - 1) * lqS(.1, .8, p);                  // round → an egg → the panel's tall box
   const h = Math.max(4, Math.min(Math.max(F.h, A.h), w * r));
   const left = A.l + (F.l - A.l) * ew, top = A.t + (F.t - A.t) * ew;
@@ -6060,21 +6068,26 @@ function amLiquid(m, mark, open, done){
     const rad = f(g.X) + f(g.X) + f(g.X) + f(g.X) + "/ " + f(g.yt) + f(g.yt) + f(g.yb) + f(g.yb);
     sh.style.clipPath = "inset(" + T.toFixed(2) + "px " + Rr.toFixed(2) + "px " + B.toFixed(2) + "px " + L.toFixed(2) + "px round " + rad + ")";
     sh.style.setProperty("--amc", lqS(.5, .88, p).toFixed(3));  // the writing: last, out of a blur - as «XAUUSD ▾» does
-    sh.style.setProperty("--lqg", (.08 + .92 * lqS(.15, .86, p)).toFixed(3));   // its glass: the mark's own clear ball first, the panel's frost at the end
+    sh.style.setProperty("--lqg", lqS(.1, .86, p).toFixed(3));   // its glass: the mark's own bubble first, the panel's own glass at the end
     m.style.setProperty("--shd", clamp(p, 0, 1).toFixed(3));
     const rs = Q.rim.style;
     rs.left = g.left.toFixed(2) + "px"; rs.top = g.top.toFixed(2) + "px"; rs.width = g.w.toFixed(2) + "px"; rs.height = g.h.toFixed(2) + "px";
     // THE MARK BECOMES THE DROP (user: «Сам логотип уже сразу должен вытекать вместе с овалом или как овал ставать»).
     // In the first frame the drop is the mark - a glass ball of its size in its place, its X in it - and the mark
-    // itself stands down in that frame. Then the ball swells and its X swells with it, at its heart, softening as it
-    // goes; as the ball runs down into the panel the X is drawn along a little and melts. Closing, the other way.
-    const A = Q.A, xk = 1 - lqS(.05, .4, p), xs = Q.x.style;
-    const s = 1 + Math.min(1.5, (g.w / A.w - 1) * .3), sy = s * (1 + Math.min(.45, (g.h / g.w - 1) * .35));
-    const xcx = g.left + g.w / 2, xcy = g.top + Math.min(g.h, g.w * 1.1) / 2;
-    xs.transform = "translate(" + (xcx - A.w / 2).toFixed(2) + "px," + (xcy - A.h / 2).toFixed(2) + "px) scale(" + s.toFixed(3) + "," + sy.toFixed(3) + ")";
+    // itself stands down in that frame. Then the ball swells and its X swells with it, at its heart, and melts while
+    // the ball is still small. Closing, the other way: the X comes back only as the ball is nearly the mark again (it
+    // came back in a ball twice the mark's size - «Логотип слишком рано появляется»).
+    // NO FILTER on it, ever: switching its blur off (blur(…) → none) as it came back made Android's Chrome draw it
+    // huge and cut to the drop, only two orange corners left in a white ball (user video, 1.69 s: «Х вылазит»,
+    // «вообще пропадает») - opacity and scale alone
+    const A = Q.A, xk = 1 - lqS(.02, .16, p), xs = Q.x.style;
+    const s = 1 + Math.min(1, (g.w / A.w - 1) * .25);
+    const xcx = g.left + g.w / 2, xcy = g.top + Math.min(g.h, g.w) / 2;
+    xs.transform = "translate(" + (xcx - A.w / 2).toFixed(2) + "px," + (xcy - A.h / 2).toFixed(2) + "px) scale(" + s.toFixed(3) + ")";
     xs.opacity = xk.toFixed(3);
-    xs.filter = xk < .995 ? "blur(" + ((1 - xk) * 6).toFixed(2) + "px)" : "none";
-    rs.borderRadius = rad; rs.opacity = (1 - lqS(.82, 1, p)).toFixed(3);   // the panel's own rim takes over as it lands
+    // its edge: the panel's own from the first frame to the last (it hands over at rest without a seam); the mark's
+    // hairline and lift around it only while it is still a drop
+    rs.borderRadius = rad; rs.opacity = "1"; rs.setProperty("--rimo", (1 - lqS(.5, 1, p)).toFixed(3));
   };
   const rest = () => {
     sh.style.removeProperty("clip-path"); sh.style.removeProperty("--amc"); sh.style.removeProperty("--lqg"); sh.style.removeProperty("opacity"); sh.classList.remove("lqa");
@@ -6091,7 +6104,10 @@ function amLiquid(m, mark, open, done){
     const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
     Q.v = MO.sp(Q.v, Q.p, to, P, dt); Q.p += Q.v * dt;
     if(!open && Q.p < 0){ Q.p = 0; Q.v = 0; }
-    const end = open ? Math.abs(Q.p - 1) < .01 && Math.abs(Q.v) < .15 : Q.p < .03;
+    // opening, it rests the moment it gets there: every part of the drop is already at its end by then (the shape is
+    // clamped, its writing and glass are in by .88), so what the spring had left to settle changed nothing on screen
+    // and only held the panel as a drop a beat longer
+    const end = open ? Q.p >= .999 : Q.p < .012;
     if(end){ Q.p = to; Q.v = 0; if(open) rest(); else put(0); if(done) done(); return; }
     put(Q.p);
     moAdd(step);
