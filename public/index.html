@@ -1371,6 +1371,17 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .disp-body.off{opacity:.4;pointer-events:none}
 .disp-k{margin:12px 2px 0}
 .disp-reset{margin-top:14px}
+/* the edge's own rainbow while something moves under it (the user's video, 8.1 s: a line of colour runs along the
+   moving edge, over flat teal too). Nothing at rest - its opacity is the motion's, written a frame at a time, and
+   its colours run along the edge with the page (background-position) */
+/* Not an outline: only the edges the page runs ACROSS - the top and the bottom - light up, as on the video only the
+   moving edge does; down the sides it dies away. (Ring = the box minus its content; then only its top and bottom.) */
+.disp-rim{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;padding:2px;box-sizing:border-box;z-index:1;
+  background:linear-gradient(90deg,#ff2d95,#ff9f1a,#ffe14d,#34e07c,#1fb6ff,#7a5cff,#ff2d95) 0 0/220px 100% repeat-x;
+  -webkit-mask:linear-gradient(#000 0 30%,transparent 44% 56%,#000 70%),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:source-in,xor;
+  mask:linear-gradient(#000 0 30%,transparent 44% 56%,#000 70%),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:intersect,exclude}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
@@ -2326,6 +2337,7 @@ const I18N = {
 "Заголовок и «назад»":["Title and “back”","Заголовок і «назад»","Titre et « retour »","Başlık ve “geri”"],
 "Капли вкладок":["Tab drops","Краплі вкладок","Gouttes des onglets","Sekme damlaları"],
 "Сбросить":["Reset","Скинути","Réinitialiser","Sıfırla"],
+"Радужная кромка в движении":["Rainbow edge in motion","Райдужна кромка в русі","Bord arc-en-ciel en mouvement","Hareket halinde gökkuşağı kenarı"],
 "Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
 "Пункты":["Pips","Пункти","Pips","Pip"],
 "Закрыть (лоты)":["Close (lots)","Закрити (лоти)","Clôturer (lots)","Kapat (lot)"],
@@ -5185,7 +5197,7 @@ function openDispSheet(){
     `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
     `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
       dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
-    `</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
+    `</div><div class="lgf-list">${sw("data-disp-rimsw", DISP.rim, "Радужная кромка в движении")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
   const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
@@ -5221,6 +5233,8 @@ function openDispSheet(){
     document.querySelectorAll("[data-act='dispset'] .dv").forEach(x => x.textContent = L(on ? "Вкл" : "Выкл"));
   });
   m.querySelectorAll("[data-disp-at]").forEach(b => flip(b, on => { DISP[b.dataset.dispAt] = on; }));
+  const rsw = m.querySelector("[data-disp-rimsw]");
+  if(rsw) flip(rsw, on => { DISP.rim = on; });
   const rs = m.querySelector("[data-disp-reset]");
   if(rs) rs.onclick = () => {
     Object.assign(DISP, DISP0); dispSave(); dispApply(true);
@@ -10007,7 +10021,7 @@ const _lgEls = new Set();
    Android Chrome rounds its memory DOWN to a power of two, so a 3 GB phone reads as 2), and every path that laid a
    lens again - a press on «Новый ордер» or «‹», a resize when the address bar slides away - forgot that colour had
    been asked for at all. Now no caller asks: DISP decides, by the element, every time a lens is laid. */
-const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, tabs: true, order: true, head: true, drops: true });
+const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, rim: true, tabs: true, order: true, head: true, drops: true });
 const DISP = Object.assign({}, DISP0);
 const DISP_PLACES = [["tabs", "Капсула вкладок"], ["order", "Кнопка «Новый ордер»"], ["head", "Заголовок и «назад»"], ["drops", "Капли вкладок"]];
 (function dispLoad(){
@@ -10029,9 +10043,18 @@ function dispPlace(el){
   return null;
 }
 function dispWants(el){ const p = DISP.on && dispPlace(el); return !!p && (p === "demo" || !!DISP[p]); }
-// how far apart the three passes go at full motion: the panels wide, the title and «‹» a little («чуть-чуть»).
-// Never past .95 - beyond 1 one channel would bend the wrong way
-const dispSpread = p => Math.min(.95, (p === "head" ? .35 : .6) * DISP.str / 50);
+/* WHAT MOTION DOES TO THE EDGE, read again off the user's video frame by frame (it "did not work" on the phone -
+   and it did not: a split of one or two pixels in a band of seven is invisible at arm's length in motion). The
+   moving edge does two things there. It DRAGS what is under it - the status icons pulled out like taffy at 1.2 s,
+   the Health heart at 8.1 s - and it splits that into colour several pixels wide. And the edge itself turns into
+   a line of rainbow, over flat teal too (8.1 s). At rest none of it: the same crystal as before.
+   So, at full motion and the middle of «Сила»: the rim's bend grows by 80 % and the three passes fan ±120 % of the
+   resting bend - on the tab capsule red and blue land about ten pixels apart at the rim; the title and «‹» take
+   60 % of it («чуть-чуть»). The edge's own line is .disp-rim, faded in by the same motion. */
+function dispMotion(p){
+  const f = DISP.str / 50, h = p === "head" ? .6 : 1;
+  return { bd: Math.min(1.2, .8 * f) * h, sp: 1.2 * f * h };
+}
 const dispVFull = () => 2400 * Math.pow(2, -DISP.sens / 25);   // px/s of scroll that fans it fully: 600 at the middle
 const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close back up: 0.16 at the middle
 // the tab drops split on their own (while they travel); their strength and their switch are these
@@ -10041,8 +10064,12 @@ let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainY = null, _rainSrc = null;
 const rainTop = () => _rainSrc && _rainSrc !== document ? _rainSrc.scrollTop : window.scrollY;
 function lgRainApply(el){
   if(!el._rdm) return;
-  const sp = dispSpread(el._dispP);
-  for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + d._c * sp * _rainK)).toFixed(2));
+  const m = dispMotion(el._dispP), k = _rainK;
+  for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + k * (m.bd + d._c * m.sp))).toFixed(2));
+  if(el._rim){
+    el._rim.style.opacity = (k * Math.min(1, .45 + .4 * DISP.str / 50)).toFixed(3);
+    if(k > 0) el._rim.style.backgroundPositionX = (-rainTop() * .7).toFixed(1) + "px";   // the colours run along the edge as the page does
+  }
 }
 function lgRainBind(el){
   const id = el._lg && el._lg.indexOf("#") > 0 ? el._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
@@ -10051,6 +10078,12 @@ function lgRainBind(el){
   if(!el._rdm) return;
   for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract);
   el._dispP = dispPlace(el);
+  // the edge's own rainbow line: a layer inside the glass, over its bent backdrop, clear at rest
+  let rim = el.querySelector(":scope > .disp-rim");
+  if(DISP.rim){
+    if(!rim){ rim = document.createElement("i"); rim.className = "disp-rim"; rim.setAttribute("aria-hidden", "true"); el.appendChild(rim); }
+    el._rim = rim;
+  }else{ if(rim) rim.remove(); el._rim = null; }
   _lgRain.add(el); lgRainApply(el);
 }
 function rainFrame(now){
@@ -10119,7 +10152,7 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
   // letters under a sitting drop were bent hard again, and a travelling drop no longer split its colour.
   if(ch && ios) lgRainBind(el);
-  else if(_lgRain.has(el)){ _lgRain.delete(el); el._rdm = null; }
+  else if(_lgRain.has(el)){ _lgRain.delete(el); el._rdm = null; if(el._rim){ el._rim.remove(); el._rim = null; } }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
 function lgRefresh(){
