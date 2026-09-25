@@ -1383,14 +1383,19 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 /* the edge's own rainbow while something moves under it (the user's video, 8.1 s: a line of colour runs along the
    moving edge, over flat teal too). Nothing at rest - its opacity is the motion's, written a frame at a time, and
    its colours run along the edge with the page (background-position) */
-/* Not an outline: only the edges the page runs ACROSS - the top and the bottom - light up, as on the video only the
-   moving edge does; down the sides it dies away. (Ring = the box minus its content; then only its top and bottom.) */
+/* ONE edge only, and not round the ends (user: «По краям не должно работать» → «Только верхний край»): the ring is
+   cut to its top (--rim-v) and faded out before the rounded ends (the first mask), so it is a line along the top
+   of the glass, never an outline. «Нижний край вместо верхнего» (.bot) flips it to the bottom.
+   (Ring = the box minus its content; then only its top; then not its ends.) */
 .disp-rim{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;padding:2px;box-sizing:border-box;z-index:1;
+  --rim-v:linear-gradient(#000 0 18%,transparent 38%);
+  --rim-h:linear-gradient(90deg,transparent min(6px,12%),#000 min(20px,32%),#000 calc(100% - min(20px,32%)),transparent calc(100% - min(6px,12%)));
   background:linear-gradient(90deg,#ff2d95,#ff9f1a,#ffe14d,#34e07c,#1fb6ff,#7a5cff,#ff2d95) 0 0/220px 100% repeat-x;
-  -webkit-mask:linear-gradient(#000 0 30%,transparent 44% 56%,#000 70%),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:source-in,xor;
-  mask:linear-gradient(#000 0 30%,transparent 44% 56%,#000 70%),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  mask-composite:intersect,exclude}
+  -webkit-mask:var(--rim-h),var(--rim-v),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:source-in,source-in,xor;
+  mask:var(--rim-h),var(--rim-v),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:intersect,intersect,exclude}
+.disp-rim.bot{--rim-v:linear-gradient(transparent 62%,#000 82%)}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
@@ -2356,6 +2361,7 @@ const I18N = {
 "Выключены «Верхние капсулы» — на вкладках и заголовке будет только радужная кромка":["“Top capsules” are off — the tabs and the title get only the rainbow edge","Вимкнено «Верхні капсули» — на вкладках і заголовку буде лише райдужна кромка","« Capsules du haut » désactivées — les onglets et le titre n’auront que le bord arc-en-ciel","“Üst kapsüller” kapalı — sekmelerde ve başlıkta yalnızca gökkuşağı kenarı olur"],
 "Выключена «Кнопка «Новый ордер»» — на ней будет только радужная кромка":["The “New Order” button glass is off — it gets only the rainbow edge","Вимкнено «Кнопка «Новий ордер»» — на ній буде лише райдужна кромка","Le verre du bouton « Nouvel ordre » est désactivé — il n’aura que le bord arc-en-ciel","“Yeni Emir” düğmesi camı kapalı — üzerinde yalnızca gökkuşağı kenarı olur"],
 "Открыть настройки стекла":["Open glass settings","Відкрити налаштування скла","Ouvrir les réglages du verre","Cam ayarlarını aç"],
+"Нижний край вместо верхнего":["Bottom edge instead of top","Нижній край замість верхнього","Bord inférieur au lieu du supérieur","Üst yerine alt kenar"],
 "Радужная кромка в движении":["Rainbow edge in motion","Райдужна кромка в русі","Bord arc-en-ciel en mouvement","Hareket halinde gökkuşağı kenarı"],
 "Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
 "Пункты":["Pips","Пункти","Pips","Pip"],
@@ -5193,8 +5199,9 @@ function openGlassSheet(){
 }
 /* «Дисперсия» on a sheet of its own: a live sample to try it on, the switch, three dials and where it shows. The
    sample is a strip of prices under a clear capsule - scroll it with a finger, or «Показать» flings it - and the
-   capsule's edge splits exactly as the real panels do: the same engine, the same settings. Every dial, moved, opens
-   the rainbow all the way and lets it close at its own pace, so what it changes can be seen on the spot. */
+   capsule's edge splits exactly as the real panels do: the same engine, the same settings. Nothing lights it but a
+   scroll going down (user: «только когда крутим вниз») - not a dial, not a switch - so «Показать» always throws the
+   sample DOWN. */
 // what on THIS device keeps the colour split off the page (the rainbow line shows regardless) - each with a way there
 function dispChecks(){
   const out = [];
@@ -5229,7 +5236,7 @@ function openDispSheet(){
     `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
     `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
       dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
-    `</div><div class="lgf-list">${sw("data-disp-rimsw", DISP.rim, "Радужная кромка в движении")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
+    `</div><div class="lgf-list">${sw("data-disp-rimsw", DISP.rim, "Радужная кромка в движении")}${sw("data-disp-botsw", DISP.bottom, "Нижний край вместо верхнего")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
   const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
@@ -5242,9 +5249,10 @@ function openDispSheet(){
   if(play && sc) play.onclick = () => {
     const max = sc.scrollHeight - sc.clientHeight; if(max <= 0) return;
     cancelAnimationFrame(sc._pl);
-    const from = sc.scrollTop, to = from > max / 2 ? 0 : max, t0 = performance.now(), D = 650;
+    if(sc.scrollTop > max * .6) sc.scrollTop = 0;                 // back to the top at once (going up lights nothing), then down
+    const from = sc.scrollTop, to = max, t0 = performance.now() + 120, D = 650;
     const step = now => {
-      const t = Math.min(1, (now - t0) / D), e = t < .5 ? 2 * t * t : 1 - Math.pow(2 - 2 * t, 2) / 2;
+      const t = Math.max(0, Math.min(1, (now - t0) / D)), e = t < .5 ? 2 * t * t : 1 - Math.pow(2 - 2 * t, 2) / 2;
       sc.scrollTop = from + (to - from) * e;
       if(t < 1) sc._pl = requestAnimationFrame(step);
     };
@@ -5253,13 +5261,13 @@ function openDispSheet(){
   m.querySelectorAll(".lgs[data-disp]").forEach(el => {
     const k = el.dataset.disp;
     lgsBind(el, Math.round(DISP[k]),
-      v => { DISP[k] = v; if(k === "str") dispApply(false); rainKick(true); },
-      v => { DISP[k] = v; if(k === "str") dispApply(false); dispSave(); rainKick(true); });
+      v => { DISP[k] = v; if(k === "str") dispApply(false); },
+      v => { DISP[k] = v; if(k === "str") dispApply(false); dispSave(); });
   });
   const flip = (b, fn) => b.onclick = () => {
     const on = !b.classList.contains("on");
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
-    swAfter(b, () => { fn(on); dispSave(); dispApply(true); if(on) rainKick(true); });
+    swAfter(b, () => { fn(on); dispSave(); dispApply(true); });
   };
   const body = m.querySelector(".disp-body"), mst = m.querySelector("[data-disp-on]");
   if(mst) flip(mst, on => {
@@ -5270,11 +5278,13 @@ function openDispSheet(){
   m.querySelectorAll("[data-disp-at]").forEach(b => flip(b, on => { DISP[b.dataset.dispAt] = on; }));
   const rsw = m.querySelector("[data-disp-rimsw]");
   if(rsw) flip(rsw, on => { DISP.rim = on; });
+  const bsw = m.querySelector("[data-disp-botsw]");
+  if(bsw) flip(bsw, on => { DISP.bottom = on; });
   const rs = m.querySelector("[data-disp-reset]");
   if(rs) rs.onclick = () => {
     Object.assign(DISP, DISP0); dispSave(); dispApply(true);
     document.querySelectorAll("[data-act='dispset'] .dv").forEach(x => x.textContent = L("Вкл"));
-    openDispSheet(); rainKick(true);
+    openDispSheet();
   };
 }
 /* an iOS 26 slider (video 3): pressed, the white knob grows into a clear lens that bends the track under it
@@ -10057,7 +10067,7 @@ const _lgEls = new Set();
    Android Chrome rounds its memory DOWN to a power of two, so a 3 GB phone reads as 2), and every path that laid a
    lens again - a press on «Новый ордер» or «‹», a resize when the address bar slides away - forgot that colour had
    been asked for at all. Now no caller asks: DISP decides, by the element, every time a lens is laid. */
-const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, rim: true, tabs: true, order: true, head: true, drops: true });
+const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, rim: true, bottom: false, tabs: true, order: true, head: true, drops: true });
 const DISP = Object.assign({}, DISP0);
 const DISP_PLACES = [["tabs", "Капсула вкладок"], ["order", "Кнопка «Новый ордер»"], ["head", "Заголовок и «назад»"], ["drops", "Капли вкладок"]];
 (function dispLoad(){
@@ -10121,6 +10131,7 @@ function dispAttach(root){
     let r = el.querySelector(":scope > .disp-rim");
     if(!want){ if(r){ r.remove(); _dispRims.delete(r); } return; }
     if(!r){ r = document.createElement("i"); r.className = "disp-rim"; r.setAttribute("aria-hidden", "true"); el.appendChild(r); }
+    r.classList.toggle("bot", !!DISP.bottom);
     _dispRims.add(r); dispRimApply(r);
   });
 }
@@ -10132,7 +10143,7 @@ function dispLive(v){
   const now = performance.now();
   if(now - _dispLiveT < 90 && _rainK > .005) return;
   _dispLiveT = now;
-  el.textContent = L("Скорость") + " " + Math.round(Math.abs(v)) + " " + L("px/с") + " · " + L("радуга") + " " + Math.round(_rainK * 100) + " %";
+  el.textContent = (v > 1 ? "↓ " : v < -1 ? "↑ " : "") + L("Скорость") + " " + Math.round(Math.abs(v)) + " " + L("px/с") + " · " + L("радуга") + " " + Math.round(_rainK * 100) + " %";
   el.classList.toggle("on", _rainK > .05);
 }
 function lgRainBind(el){
@@ -10157,7 +10168,8 @@ function rainFrame(now){
   _rainT = now;
   const age = performance.now() - _rainEvT;
   const v = age < 110 ? _rainV : 0;                              // no event for a few frames: it has stopped
-  const want = Math.min(1, Math.abs(v) / dispVFull());
+  // DOWN only (user: «только когда крутим вниз» → «Только вниз»): the page going down lights it, going up does not
+  const want = v > 0 ? Math.min(1, v / dispVFull()) : 0;
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
   rainAll();
   dispLive(v);
@@ -10168,12 +10180,6 @@ function rainFrame(now){
 function rainAll(){
   for(const el of _lgRain){ if(!el.isConnected){ _lgRain.delete(el); continue; } lgRainApply(el); }
   for(const r of _dispRims){ if(!r.isConnected){ _dispRims.delete(r); continue; } dispRimApply(r); }
-}
-// open it all the way now and let it close at its own pace: a setting changed, show what it does
-function rainKick(full){
-  if(full) _rainK = 1;
-  rainAll();
-  if(!_rainRaf){ _rainT = 0; _rainRaf = requestAnimationFrame(rainFrame); }
 }
 // ANY scroll moves what is under the glass - the page, and the ones that scroll inside themselves (the wallet, the
 // sample on the settings sheet): caught on the way down. A sheet scrolling carries its own glass with it, so not that.
