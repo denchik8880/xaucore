@@ -9982,7 +9982,7 @@ function lgMap(w, h, rad, rim){
    edge: "b" the bottom (the page comes in there as it scrolls down), "t" the top. */
 // in motion the scale grows by DISP_BD; the moving map carries the resting rim at 1 / (1 + DISP_BD) of its value, so
 // at full motion the rim bends exactly as it does at rest and all the growth goes into the leading zone
-const DISP_BD = 1.5, DISP_RIMC = 1 / (1 + DISP_BD);
+const DISP_BD = 2.2, DISP_RIMC = 1 / (1 + DISP_BD);
 function lgMotionMap(w, h, rad, rim, edge){
   const key = "M" + w + "x" + h + (rad ? "r" + rad : "") + "b" + rim + edge;
   if(_lgMaps.has(key)) return _lgMaps.get(key);
@@ -10076,6 +10076,29 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
     // the lowest channel right the way out of the icon, so blue is the one still finding it after red has let
     // go. I had this the other way round and argued for it in a comment; what I was reading as a magenta flank
     // outside the drop is a fast drop smearing in a twenty-frame recording.
+    if(disp){
+      // A SPECTRUM, NOT THREE COPIES (user: «цвета не те»; the video, 0.3-1.4 s: the stretched status icons are edged
+      // with a smooth rainbow - red, orange, yellow, green, cyan, blue, violet running into each other - where a
+      // three-pass split can only make red, green and blue ghosts with hard cyan / magenta / yellow between). Seven
+      // passes, red bending least and violet most, each keeping its own share of the picture's red, green and blue;
+      // the shares add up to exactly the picture, so held together (at rest) they ARE the picture, and fanned out
+      // they part into a spectrum. The green pass (c = 0) is the one the others fall back on where they read nothing,
+      // and the one the result is cut to, as below.
+      const SPEC = [[1, 0, .05], [1, .45, 0], [.85, .95, 0], [.1, 1, .15], [0, .75, .85], [.1, .25, 1], [.55, 0, 1]];
+      const tot = [0, 1, 2].map(j => SPEC.reduce((a, s) => a + s[j], 0));
+      SPEC.forEach((s, i) => { if(i !== 3) dm((i - 3) / 3, "d" + i); else dm(0, "dg"); });
+      SPEC.forEach((s, i) => {
+        const src = i === 3 ? "dg" : "d" + i;
+        if(i !== 3) el("feComposite", { in: src, in2: "dg", operator: "over", result: "e" + i });
+        const [r, g, b] = s.map((v, j) => (v / tot[j]).toFixed(4));
+        el("feColorMatrix", { in: i === 3 ? "dg" : "e" + i, type: "matrix", values: `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, result: "c" + i });
+        if(i) el("feComposite", { in: i === 1 ? "c0" : "s" + (i - 1), in2: "c" + i, operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "s" + i });
+      });
+      el("feComposite", { in: "s6", in2: "dg", operator: "in" });
+      _lgDefs.appendChild(fl);
+      _lgIds.add(id);
+      return id;
+    }
     dm(-1, "dr"); dm(0, "dg"); dm(1, "db");
     // NO CHANNEL SPEAKS ALONE. Inside a backdrop root (the bar is one - it has its own backdrop-filter) anything
     // past the root's box reads as nothing, and a swollen drop's red pass samples out there first. Summed by
@@ -10140,9 +10163,11 @@ function dispMotion(p){
   // bd: how much the bend grows at full motion - all of it goes into the leading zone (see lgMotionMap / DISP_RIMC);
   // sp: how far apart the colour passes go, as a share of the bend - small where the bend is small, a rainbow
   // where the edge squeezes the page
-  return { bd: Math.min(3, DISP_BD * f) * h, sp: .45 * f * h };
+  return { bd: Math.min(4.5, DISP_BD * f) * h, sp: .6 * f * h };
 }
-const dispVFull = () => 2400 * Math.pow(2, -DISP.sens / 25);   // px/s of scroll that fans it fully: 600 at the middle
+// px/s of scroll that fans it fully: 3000 at the middle of «Чувствительность» - a slow scroll a little, a flick all of it
+// (user: «нету никакой разницы с какой скоростью крутить»: at 600 every ordinary scroll was already full)
+const dispVFull = () => 12000 * Math.pow(2, -DISP.sens / 25);
 const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close back up: 0.16 at the middle
 // the tab drops split on their own (while they travel); their strength and their switch are these
 const dispDropSp = () => DISP.on && DISP.drops ? .20 * DISP.str / 50 : 0;
@@ -10192,7 +10217,7 @@ function rainFrame(now){
   const age = performance.now() - _rainEvT;
   const v = age < 110 ? _rainV : 0;                              // no event for a few frames: it has stopped
   // DOWN only (user: «только когда крутим вниз» → «Только вниз»): the page going down lights it, going up does not
-  const want = v > 0 ? Math.min(1, v / dispVFull()) : 0;
+  const want = v > 0 ? Math.min(1, Math.pow(v / dispVFull(), .85)) : 0;
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
   rainAll();
   dispLive(v);
