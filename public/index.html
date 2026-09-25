@@ -7364,11 +7364,11 @@ function navFit(bar){
   _navFit = key;
   if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
 }
-// how hard the drop bends what is under it: a tenth of full standing still, full while it travels. At rest that
-// is under half a pixel at the label, so the letters sit where they are drawn.
+// how hard the drop bends what is under it: nothing at all standing still, full while it travels. A tenth was
+// kept at rest once, and even that fanned a yellow fringe onto the red label and bent it a hair.
 function navLens(clear){
   if(!NB.dms || !NB.dmB) return;
-  const k = .1 + .9 * Math.max(0, Math.min(1, clear));
+  const k = Math.max(0, Math.min(1, clear));   // NOTHING at rest: the label under a sitting drop is plain red, no fringe, no bend (user: «текст то красный должен быть в спокойном виде»)
   if(NB._lensK != null && Math.abs(NB._lensK - k) < .004) return;
   NB._lensK = k;
   for(let i = 0; i < NB.dms.length; i++) NB.dms[i].setAttribute("scale", (NB.dmB[i] * k).toFixed(2));
@@ -7514,7 +7514,7 @@ function glassDrops(root){
    сверху … та же схема … кристальная чистота должна работать»). Everything the bottom bar learned carries over:
    a timed flight on two edges, the trailing one a tenth slower, so the drop stretches and gathers; crystal while
    it moves AND while a finger is on it, grey only once it has settled; the lens that bends and splits what is
-   under it and backs down to a tenth of itself at rest so the letters stand still; the blue carried as a window
+   under it and lets go of it entirely at rest so the letters stand still; the blue carried as a window
    through the drop; the capsule leaning after the finger. The one difference is geometry: these tabs are as
    wide as their words, so it all runs in pixels off the buttons instead of in fifths of the bar. */
 const SB = { l: null, r: null, tl: 0, tr: 0, tw: null, drag: null, clear: 0, bx: 0, raf: 0, t: 0, pm: null, va: 0, vr: 0, wRest: 0, dms: null, dmB: null, lk: null };
@@ -7547,7 +7547,7 @@ function subGo(tl, tr){
 }
 function subLens(clear){
   if(!SB.dms || !SB.dmB) return;
-  const k = .1 + .9 * Math.max(0, Math.min(1, clear));
+  const k = Math.max(0, Math.min(1, clear));   // NOTHING at rest: the label under a sitting drop is plain red, no fringe, no bend (user: «текст то красный должен быть в спокойном виде»)
   if(SB.lk != null && Math.abs(SB.lk - k) < .004) return;
   SB.lk = k;
   for(let i = 0; i < SB.dms.length; i++) SB.dms[i].setAttribute("scale", (SB.dmB[i] * k).toFixed(2));
