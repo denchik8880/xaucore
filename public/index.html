@@ -5219,7 +5219,7 @@ function openDispSheet(){
     `<div class="disp-chk"><div class="disp-chk-k">${L("Проверка на этом устройстве")}</div>${dispChecks()}</div>` +
     `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
     `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
-      dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
+      dial("str", "Сила", "Слабее", "Сильнее") + dial("fade", "Затухание", "Быстро", "Плавно") +
     `</div><div class="lgf-list">${sw("data-disp-topsw", DISP.top, "Верхний край вместо нижнего")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
@@ -10165,9 +10165,6 @@ function dispMotion(p){
   // where the edge squeezes the page
   return { bd: Math.min(4.5, DISP_BD * f) * h, sp: .6 * f * h };
 }
-// px/s of scroll that fans it fully: 3000 at the middle of «Чувствительность» - a slow scroll a little, a flick all of it
-// (user: «нету никакой разницы с какой скоростью крутить»: at 600 every ordinary scroll was already full)
-const dispVFull = () => 12000 * Math.pow(2, -DISP.sens / 25);
 const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close back up: 0.16 at the middle
 // the tab drops split on their own (while they travel); their strength and their switch are these
 const dispDropSp = () => DISP.on && DISP.drops ? .20 * DISP.str / 50 : 0;
@@ -10217,7 +10214,8 @@ function rainFrame(now){
   const age = performance.now() - _rainEvT;
   const v = age < 110 ? _rainV : 0;                              // no event for a few frames: it has stopped
   // DOWN only (user: «только когда крутим вниз» → «Только вниз»): the page going down lights it, going up does not
-  const want = v > 0 ? Math.min(1, Math.pow(v / dispVFull(), .85)) : 0;
+  // and whatever the speed, all of it (user: «Скорость не должна влиять»): moving down at all is the full effect
+  const want = v > 12 ? 1 : 0;
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
   rainAll();
   dispLive(v);
