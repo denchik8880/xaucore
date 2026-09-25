@@ -1061,7 +1061,7 @@ html:has(body.route-wallet){background:#0c0a08}
   --lg-spot:rgba(255,255,255,calc(.20 * var(--lgh,1))); --lg-foot:rgba(0,0,0,calc(.20 * var(--lgdk,1)));
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
-:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
@@ -1196,12 +1196,12 @@ html:has(body.route-wallet){background:#0c0a08}
 /* the mark is a BUBBLE when the mode is on (user: «сделайте наш логотип бульбашкой»): the solid disc behind the X
    goes, the X floats in a ball of glass that bends the list under it and swells under the finger — and the drawer
    flows straight out of that ball. Flat, it is cTrader's solid round mark exactly as before. */
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo{position:relative;isolation:isolate;border-radius:50%;
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo{position:relative;isolation:isolate;border-radius:50%;
   background:radial-gradient(42px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"] .wl-logo svg circle,:root[data-glass="on"] .am-logo svg circle{display:none}   /* the ball IS the disc now */
+:root[data-glass="on"] .wl-logo svg circle{display:none}   /* the ball IS the disc now */
 :root[data-glass="on"] .wl-logo:active{opacity:1}                /* the press is the swell, not a dim */
 /* WHILE THE WINDOW IS GROWING OUT OF IT, the mark is not a separate object sitting on the glass: it loses its own
    hairline and its own shadow, so the bubble and the drop coming out from under it are one material. Keeping them
@@ -1462,13 +1462,21 @@ body.amenu-open .wl-logo{opacity:0}
 .amodal.closing .sheet{transform:translateX(-100%);transition:transform var(--mo-std)}
 .am-sheet>.close{display:none}
 @keyframes amIn{from{transform:translateX(-100%)}to{transform:none}}
-.am-head{display:flex;align-items:center;gap:14px;padding:15px 18px 8px 14px}   /* its mark sits exactly where the bar's logo is, so the two hand over without a jump */
-.am-logo{flex:0 0 auto;width:42px;height:42px}
-.am-logo.ghost{background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.am-logo.ghost::after{display:none}                              /* the bar's own bubble stands here instead */
-.am-logo svg{display:block;width:100%;height:100%}
+.am-head{display:flex;align-items:center;gap:14px;padding:21px 18px 13px 18px}   /* no mark of its own: the bar's poured out into the panel (user «Когда открылась вкладка, логотипа не должно быть»); the name starts where the rows' icons do */
+/* the drawer pouring out of the mark (amLiquid): all its writing comes in last, out of a blur */
+.am-sheet.lqa>*{opacity:var(--amc,1);filter:blur(calc((1 - var(--amc,1)) * 9px))}
+/* its glass while it pours, as the liquid menus' (.lg-pop.lq): a bright, clear lens first, the panel's frost at the end */
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--lqg,1) * 100%),transparent);
+  -webkit-backdrop-filter:blur(calc(1.5px + 22px * var(--lgsb,1) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)));
+  backdrop-filter:blur(calc(1.5px + 22px * var(--lgsb,1) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)))}
+.lqa-x{position:fixed;left:0;top:0;pointer-events:none;z-index:3;transform-origin:50% 50%;will-change:transform,opacity}
+.lqa-x svg{width:100%;height:100%;display:block}
+.lqa-x svg circle{display:none}                                   /* the ball is the drop's; only the X rides in it */
+.lqa-rim{position:fixed;pointer-events:none;z-index:2;opacity:0;
+  box-shadow:0 8px 26px rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.55),inset 0 1.5px 1px rgba(255,255,255,.85)}
+:root:not([data-theme="dark"]) .lqa-rim{box-shadow:0 8px 26px rgba(16,24,40,.12),0 0 0 .5px rgba(16,24,40,.14),inset 0 1.5px 1px rgba(255,255,255,.9)}
 .am-brand{font-size:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.am-acct{padding:0 18px 16px 70px;line-height:1.35}
+.am-acct{padding:0 18px 16px 18px;line-height:1.35}
 .am-acct b{display:block;font-size:14.5px;font-weight:400;color:var(--ink);overflow-wrap:anywhere}
 .am-acct span{display:block;font-size:14.5px;color:var(--ink2)}
 .am-grp{border-top:1px solid var(--line);padding:6px 0}
@@ -1484,9 +1492,9 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.062) 34%,rgba(255,255,255,.05))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-grp{margin:8px;padding:2px 0;border-top:0;border-radius:20px;background:var(--sheet-card);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-it{width:calc(100% - 8px);margin:0 4px;border-radius:16px}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-head{padding:3px 18px 8px 4px}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding:0 14px 10px 60px}
-.lg-pop-catch{position:fixed;inset:0;z-index:89}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-head{padding:9px 18px 13px 30px}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding:0 14px 10px 30px}
+.lg-pop-catch{position:fixed;inset:0;z-index:89;touch-action:none}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--pop-glass,var(--sheet-glass,var(--card)));
   -webkit-backdrop-filter:blur(calc((10px + 16px * var(--lgsb,1)) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc((10px + 16px * var(--lgsb,1)) * var(--lgfb,1))) saturate(var(--lgsat,1.4));
   box-shadow:0 3px 12px rgba(0,0,0,calc(.09 * var(--shw,1))),var(--lg-body);opacity:0}
@@ -1495,6 +1503,28 @@ body.amenu-open .wl-logo{opacity:0}
 .lg-pop button b{font-weight:600;color:var(--ink2)}
 .lg-pop button.on,.lg-pop button.on b{color:var(--blue-ink)}
 .lg-pop button:active{background:var(--press)}
+/* LIQUID MENUS (lqPut): the menu is the drop. Its glass comes in with --lqg - a clear, bright lens while it pours out
+   (the scene behind lit and saturated through it, a bright rim), the menu's frost and shadow when it lands - and its
+   writing is a layer of its own, clipped by it */
+.lg-pop.lq{padding:0;overflow:hidden;background:transparent!important;background-image:none!important;
+  -webkit-backdrop-filter:blur(calc(1.5px + (8px + 16px * var(--lgsb,1)) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)));
+  backdrop-filter:blur(calc(1.5px + (8px + 16px * var(--lgsb,1)) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)));
+  box-shadow:0 3px 12px rgba(0,0,0,calc(.1 * var(--lqg,1))),0 12px 32px rgba(0,0,0,calc(.08 * var(--lqg,1))),
+    inset 0 -2px 6px rgba(0,0,0,calc(.08 * (1 - var(--lqg,1))))}
+/* on a light page a white rim on white is nothing: the drop is drawn by a hairline and a soft shadow from its first frame */
+:root:not([data-theme="dark"]) .lg-pop.lq{box-shadow:0 3px 12px rgba(0,0,0,calc(.06 + .05 * var(--lqg,1))),0 12px 32px rgba(0,0,0,calc(.04 + .05 * var(--lqg,1))),
+    0 0 0 .5px rgba(16,24,40,calc(.16 - .08 * var(--lqg,1))),inset 0 -2px 6px rgba(16,24,40,calc(.06 * (1 - var(--lqg,1))))}
+.lg-pop.lq::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:var(--lqg,1);background:var(--pop-glass,var(--sheet-glass,var(--card)))}
+:root[data-theme="dark"] .lg-pop.lq::before{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.12 * var(--lgs,1))),rgba(255,255,255,calc(.075 * var(--lgs,1))) 40%,rgba(255,255,255,calc(.06 * var(--lgs,1))))}
+.lq-in{position:absolute;left:0;top:0;box-sizing:border-box;z-index:1}
+.lg-pop.lq{touch-action:none}
+/* its rim and top light over its glass - under the ::before glass they were lost as soon as it landed */
+.lg-pop.lq::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,calc(.55 - .33 * var(--lqg,1))),inset 0 1.5px 1px rgba(255,255,255,calc(.85 - .45 * var(--lqg,1)))}
+:root:not([data-theme="dark"]) .lg-pop.lq::after{box-shadow:inset 0 1.5px 1px rgba(255,255,255,.9)}
+.lg-pop .lq-sep{height:.5px;margin:4px 10px;background:var(--line)}
+.lg-pop .lq-n{font-style:normal;font-size:12px;font-weight:600;margin-left:8px;padding:1px 7px;border-radius:9px;background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue-ink)}
+.appbar .ttl[data-act="symmenu"]{cursor:pointer}
 /* 3. the Charts tab's trade bar floats over the chart as a glass capsule — the candles run on under it (drawChart
    keeps the auto range clear of it, chartTabHeight measures it); the time axis stays visible below it */
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart:not(.chart-full) .chtrade-wrap{position:fixed;left:50%;transform:translateX(-50%);width:min(504px,calc(100% - 16px));
@@ -2403,6 +2433,8 @@ const I18N = {
 "Выключены «Верхние капсулы» — на вкладках и заголовке радуги не будет":["“Top capsules” are off — no rainbow on the tabs and the title","Вимкнено «Верхні капсули» — на вкладках і заголовку веселки не буде","« Capsules du haut » désactivées — pas d’arc-en-ciel sur les onglets et le titre","“Üst kapsüller” kapalı — sekmelerde ve başlıkta gökkuşağı olmaz"],
 "Выключена «Кнопка «Новый ордер»» — на ней радуги не будет":["The “New Order” button glass is off — no rainbow on it","Вимкнено «Кнопка «Новий ордер»» — на ній веселки не буде","Le verre du bouton « Nouvel ordre » est désactivé — pas d’arc-en-ciel dessus","“Yeni Emir” düğmesi camı kapalı — üzerinde gökkuşağı olmaz"],
 "Открыть настройки стекла":["Open glass settings","Відкрити налаштування скла","Ouvrir les réglages du verre","Cam ayarlarını aç"],
+"Обзор":["Overview","Огляд","Aperçu","Genel bakış"],
+"График":["Chart","Графік","Graphique","Grafik"],
 "Верхний край вместо нижнего":["Top edge instead of bottom","Верхній край замість нижнього","Bord supérieur au lieu de l’inférieur","Alt yerine üst kenar"],
 "Радужная кромка в движении":["Rainbow edge in motion","Райдужна кромка в русі","Bord arc-en-ciel en mouvement","Hareket halinde gökkuşağı kenarı"],
 "Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
@@ -5023,36 +5055,294 @@ function morphClose(m){
     () => { morphShow(m); m.remove(); }, lifted ? null : () => btn.classList.remove("lg-hid"));
   return true;
 }
-// «м1» on the chart: a small glass menu grows out of the pill instead of a sheet
-let _tfPop = null;
+/* LIQUID MENUS - a glass button pours out into its menu and gathers back into it, the way iOS 26 does (user
+   2026-09-25, two recordings - Photos' «…» and the Home Screen's «Editar»: «нужно что бы ты сделал у нас где-то
+   такие анимации … выглядеть должно 1 в 1 правильно»). Read off them frame by frame at 30 fps:
+   OPENING, ~0.3 s. The button is gone in the first frame - it IS the drop now. The drop hangs from where the button
+   was and fills out AWAY from it, fuller at its far end (a pear, 12.57 s), then an oval (12.60), then a tall box
+   whose far end is still round (12.63); it lands a hair past its size and settles. Until then it is an empty lens -
+   the scene behind bent and brightened through it, no writing; the menu's text comes in only over the last third,
+   out of a blur (12.63 → 12.80).
+   CLOSING, ~0.2 s. The writing goes first; the box draws back into an oval drop and rises into the button, which is
+   back as the drop arrives (13.10 → 13.26).
+   A second tap on the way turns it round from where it is (the Photos clip is tapped over and over).
+   One element: the menu itself is the drop - its box, corners and glass are written a frame at a time, and the
+   writing sits in an inner layer at its final place, clipped by the drop. No scale anywhere: a backdrop-filtered
+   layer under a scale paints a phantom square. */
+// timed against the recording: full size at ~0.18 s and settled with its 3 % landing by ~0.3 s; back in ~0.18 s
+const LQ_OPEN = { k: 230, z: .74 }, LQ_CLOSE = { k: 1100, z: 1 };
+const lqS = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+// how far along one part of the drop is at p. It lands ON its size: carried past it by the spring's overshoot, the
+// box grew a pixel or two and came back - a twitch as it landed (user: «когда появляются что-то дергаются чуть-чуть»)
+const lqE = (p, a, b) => clamp((p - a) / (b - a), 0, 1);
+function lqShape(Q, p){
+  const A = Q.A, F = Q.F, dn = Q.dn;
+  const eh = lqE(p, 0, .72), ew = lqE(p, .06, .84), ey = lqE(p, 0, .62);
+  const w = Math.max(4, A.w + (F.w - A.w) * ew), h = Math.max(4, A.h + (F.h - A.h) * eh);
+  // it hangs from the button: its near edge travels from the button's near edge to the menu's
+  const near = dn ? A.t + (F.t - A.t) * ey : (A.t + A.h) + ((F.t + F.h) - (A.t + A.h)) * ey;
+  const top = dn ? near : near - h;
+  const cx = (A.l + A.w / 2) + ((F.l + F.w / 2) - (A.l + A.w / 2)) * ew;
+  const left = clamp(cx - w / 2, Math.min(4, F.l), Math.max(4, Math.max(innerWidth - 4, F.l + F.w) - w));
+  // corners: the button's own → a pear, fuller at its far end → the menu's own corners
+  const pr = Math.min(A.r, w / 2, h / 2), e0 = lqS(0, .2, p), m = lqS(.52, .9, p), R = Q.R;
+  const mix = egg => { const v = pr + (egg - pr) * e0; return v + (R - v) * m; };
+  const X = mix(w / 2), YN = mix(h * .6), YF = mix(h * .4);
+  return { left, top, w, h, X, yt: dn ? YN : YF, yb: dn ? YF : YN };
+}
+function lqPut(pop, p){
+  const Q = pop._lq, F = Q.F, g = lqShape(Q, p), { left, top, w, h } = g;
+  const X = g.X.toFixed(1), yt = g.yt.toFixed(1), yb = g.yb.toFixed(1);
+  const st = pop.style;
+  st.left = left.toFixed(2) + "px"; st.top = top.toFixed(2) + "px"; st.width = w.toFixed(2) + "px"; st.height = h.toFixed(2) + "px";
+  st.borderRadius = X + "px " + X + "px " + X + "px " + X + "px / " + yt + "px " + yt + "px " + yb + "px " + yb + "px";
+  // the glass: a body like the button's from the first frame (it IS the button), clearest while it pours, the menu's
+  // frost at the end
+  st.setProperty("--lqg", (.3 + .7 * lqS(.28, .86, p)).toFixed(3));
+  const c = lqS(.5, .88, p), ist = Q.inner.style;                 // the writing: last, out of a blur
+  ist.transform = "translate(" + (F.l - left).toFixed(2) + "px," + (F.t - top).toFixed(2) + "px)";
+  ist.opacity = c.toFixed(3);
+  ist.filter = c < .995 ? "blur(" + ((1 - c) * 9).toFixed(2) + "px)" : "none";
+}
+// the menu at rest, exactly as it was laid out
+function lqRest(pop){
+  const Q = pop._lq, F = Q.F, st = pop.style;
+  st.left = F.l + "px"; st.top = F.t + "px"; st.width = F.w + "px"; st.height = F.h + "px"; st.borderRadius = Q.R + "px";
+  st.setProperty("--lqg", "1");
+  Q.inner.style.transform = "none"; Q.inner.style.opacity = "1"; Q.inner.style.filter = "none";
+}
+// the drop's glass and box are taken over from the laid-out menu; its writing moves into a layer of its own
+function lqInit(pop, anchor){
+  const F = pop.getBoundingClientRect(), cs = getComputedStyle(pop);
+  const inner = document.createElement("div"); inner.className = "lq-in";
+  inner.style.padding = cs.padding;
+  while(pop.firstChild) inner.appendChild(pop.firstChild);
+  pop.appendChild(inner);
+  pop.classList.add("lq");
+  inner.style.width = F.width + "px"; inner.style.height = F.height + "px";
+  pop._lq = { F: { l: F.left, t: F.top, w: F.width, h: F.height }, R: parseFloat(cs.borderTopLeftRadius) || 22, inner, p: 0, v: 0, gen: 0 };
+  lqAnchor(pop, anchor);
+  lqPut(pop, 0);
+}
+function lqAnchor(pop, anchor){
+  const Q = pop._lq, a = lgRestRect(anchor), br = getComputedStyle(anchor).borderTopLeftRadius;
+  // its corners as the drop is born: the button's own (a pill's, a 16 px field's); a bare label is taken for a pill
+  const r = br.includes("%") ? Math.min(a.width, a.height) / 2 : (parseFloat(br) || Math.min(a.width, a.height) / 2);
+  Q.A = { l: a.left, t: a.top, w: Math.max(4, a.width), h: Math.max(4, a.height), r };
+  Q.dn = (Q.F.t + Q.F.h / 2) >= (a.top + a.height / 2);           // it opens below the button, or above it
+}
+// a spring from wherever it is: a reversal keeps its speed and its place
+function lqRun(pop, open, done){
+  const Q = pop._lq; if(!Q) return;
+  const gen = ++Q.gen, P = open ? LQ_OPEN : LQ_CLOSE, to = open ? 1 : 0;
+  Q.soon = false;
+  let t0 = 0;
+  const step = now => {
+    if(Q.gen !== gen || !pop.isConnected) return;
+    const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+    Q.v = MO.sp(Q.v, Q.p, to, P, dt); Q.p += Q.v * dt;
+    if(!open && Q.p < 0){ Q.p = 0; Q.v = 0; }
+    const end = open ? Math.abs(Q.p - 1) < .002 && Math.abs(Q.v) < .02 : Q.p < .03;
+    if(end){
+      Q.p = to; Q.v = 0;
+      if(open) lqRest(pop); else lqPut(pop, 0);
+      if(!open && !Q.soon && Q.onSoon){ Q.soon = true; Q.onSoon(); }
+      if(done) done();
+      return;
+    }
+    lqPut(pop, Q.p);
+    if(!open && !Q.soon && Q.p < .16 && Q.onSoon){ Q.soon = true; Q.onSoon(); }   // the button is back as the drop arrives
+    moAdd(step);
+  };
+  moAdd(step);
+}
+/* the menus themselves: one controller for all of them. Three reviewers read it independently (2026-09-25) and every
+   rule below answers one of their cases:
+   - its catcher stays for the whole way back: removed at the pick, it let the second tap of a double-tap through to
+     whatever lay under the shrinking drop (the theme or the glass switch under «Язык», the side under «Инструмент»);
+   - it is turned round on its way back only by its own button, and with its writing built again: turned round as it
+     was, it offered the timeframe or the language just left - and the ticket's two fields, one key between them,
+     could hand the trigger's list to the instrument's field;
+   - a tap on the drop while it is still pouring out (it covers its button then) closes it;
+   - its button toggles it, Enter as well; the keyboard's focus goes into it and back to the button;
+   - a render that rebuilds the button hides the new one while the menu is out or on its way back, and the way back
+     aims at it; a button gone altogether (the screen changed) takes its menu with it at once;
+   - a scroll under it closes it (fixed, it would hang where the button used to be);
+   - only a change of WIDTH - a turn - closes it at once: a keyboard or a toolbar sliding changes the height only;
+   - a window opening (openSheet) closes it at once. */
+const _lqM = {};
+function lqCatcher(key){
+  const c = document.createElement("div"); c.className = "lg-pop-catch";
+  c.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    c._down = performance.now();
+    const M = _lqM[key]; if(!M) return;
+    if(M.closing){                                                 // on its way back: its own button turns it round,
+      const h = lqHome(M), r = h && h.getBoundingClientRect();     // anything else is swallowed
+      if(r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom && M.o) lqMenu(key, h, M.o);
+      return;
+    }
+    lqMenuClose(key);
+  });
+  return c;
+}
+// the catcher goes when its menu has gone - but not before the click of a tap that has only just landed on it
+function lqDropCatcher(c){
+  if(!c || !c.isConnected) return;
+  if(performance.now() - (c._down || -1e9) < 450){ const rm = () => c.remove(); c.addEventListener("click", rm, { once: true }); setTimeout(rm, 450); }
+  else c.remove();
+}
+// the button melts into its drop over ~90 ms instead of vanishing in one frame (a hard swap read as a twitch); the
+// melt gives up the moment the menu is going back or its button has been replaced, so it can never leave one hidden
+function lqHide(M, el){
+  const t0 = performance.now();
+  const step = now => {
+    if(_lqM[M.key] !== M || M.closing || M.anchor !== el || !el.isConnected){ el.style.removeProperty("opacity"); return; }
+    const t = Math.min(1, (now - t0) / 90);
+    if(t >= 1){ el.style.removeProperty("opacity"); el.classList.add("lg-hid"); return; }
+    el.style.opacity = (1 - t * t).toFixed(3);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const lqSame = (M, el) => !!el && (M.anchor === el || (!M.keep && !!M.sel && el.matches(M.sel)));
+function lqFocus(M){                                               // the keyboard goes into the menu if it was on its button
+  const a = document.activeElement;
+  if(a && a !== document.body && (a === M.anchor || a.contains(M.anchor) || M.anchor.contains(a))){
+    const b = M.pop.querySelector("button.on") || M.pop.querySelector("button");
+    if(b) b.focus({ preventScroll: true });
+  }
+}
+function lqFocusBack(M, home){
+  if(!M.pop.contains(document.activeElement) || !home) return;
+  const f = home.closest("button, [tabindex]") || home;
+  if(f.focus) f.focus({ preventScroll: true });
+}
+function lqMenu(key, anchor, o){
+  if(!anchor) return null;
+  const M0 = _lqM[key];
+  if(M0 && !M0.closing && lqSame(M0, anchor)){ lqMenuClose(key); return null; }   // its button toggles it
+  if(M0 && M0.closing && lqSame(M0, anchor) && M0.pop.isConnected && M0.pop._lq && glassOn("morph")){
+    M0.closing = false; M0.anchor = anchor; M0.o = o;
+    const tmp = document.createElement("div"); o.build(tmp);      // its writing as it is now: the pick that sent it
+    M0.pop._lq.inner.replaceChildren(...tmp.childNodes);          // back may have changed what is ticked
+    M0.pop.style.pointerEvents = "";
+    if(!M0.keep) lqHide(M0, anchor);
+    lqAnchor(M0.pop, anchor);
+    lqRun(M0.pop, true);
+    lqFocus(M0);
+    return M0;
+  }
+  if(M0) lqMenuClose(key, true);
+  const catcher = lqCatcher(key), pop = document.createElement("div");
+  pop.className = "lg-pop" + (o.cls ? " " + o.cls : ""); pop.setAttribute("role", "menu");
+  o.build(pop);
+  document.body.append(catcher, pop);
+  o.place(pop, anchor.getBoundingClientRect());
+  pop.classList.add("shown");
+  // keep: a form field the menu pours out of stays where it is (hidden, it left a hole in the form)
+  const M = _lqM[key] = { key, pop, catcher, anchor, sel: o.sel || null, closing: false, keep: !!o.keep, o };
+  // a tap on the drop while it is still pouring out - its writing not yet there, its body over the button - closes it
+  pop.addEventListener("pointerdown", e => { if(_lqM[key] === M && !M.closing && pop._lq && pop._lq.p < .5){ e.preventDefault(); lqMenuClose(key); } });
+  if(glassOn("morph")){ lqInit(pop, anchor); if(!M.keep) lqHide(M, anchor); lqRun(pop, true); }
+  lqFocus(M);
+  return M;
+}
+// the button the menu goes back to: the same one, or the one render() put in its place
+function lqHome(M){
+  const shown = e => e && e.isConnected && e.getClientRects().length > 0;
+  if(shown(M.anchor)) return M.anchor;
+  return M.sel ? [...document.querySelectorAll(M.sel)].find(shown) || null : null;
+}
+function lqMenuClose(key, now){
+  const M = _lqM[key]; if(!M) return;
+  const unhide = () => { M.anchor.classList.remove("lg-hid"); if(M.sel) document.querySelectorAll(M.sel).forEach(e => e.classList.remove("lg-hid")); };
+  const kill = () => { if(_lqM[key] === M) delete _lqM[key]; M.pop.remove(); lqDropCatcher(M.catcher); unhide(); };
+  if(M.closing){ if(now === true) kill(); return; }
+  const home = lqHome(M);
+  lqFocusBack(M, home);
+  if(now === true || !glassOn("morph") || !M.pop._lq || !home){ kill(); return; }
+  M.closing = true; M.anchor = home;
+  M.pop.style.pointerEvents = "none";                              // a tap on it falls to the catcher, which swallows it
+  lqAnchor(M.pop, home);
+  M.pop._lq.onSoon = () => { const h = lqHome(M); if(h && !M.keep) lgShowBtn(h); };
+  lqRun(M.pop, false, kill);
+}
+// after a render: a button rebuilt while its menu is out (or on its way back) stays hidden, and the way back aims at it
+function lqRehide(){
+  for(const k in _lqM){
+    const M = _lqM[k]; if(M.keep || !M.sel || !M.pop._lq) continue;
+    const el = [...document.querySelectorAll(M.sel)].find(e => e.isConnected && e.getClientRects().length > 0);
+    if(!el){ if(!M.closing) lqMenuClose(k, true); continue; }      // its button is gone (the screen changed): so is it
+    if(el === M.anchor) continue;
+    M.anchor = el;
+    if(!(M.closing && M.pop._lq.soon)) el.classList.add("lg-hid");
+    if(M.closing) lqAnchor(M.pop, el);
+  }
+}
+document.addEventListener("keydown", e => { if(e.key === "Escape") for(const k in _lqM) lqMenuClose(k); });
+// a scroll under a menu: it closes (on its way back, it follows its button)
+document.addEventListener("scroll", e => {
+  for(const k in _lqM){
+    const M = _lqM[k]; if(e.target && e.target.nodeType === 1 && M.pop.contains(e.target)) continue;
+    if(!M.closing) lqMenuClose(k); else { const h = lqHome(M); if(h && M.pop._lq) lqAnchor(M.pop, h); }
+  }
+}, { capture: true, passive: true });
+// a turn - a new width - closes them at once; a keyboard or a toolbar sliding in or out changes only the height
+let _lqW = innerWidth;
+addEventListener("resize", () => { if(Math.abs(innerWidth - _lqW) < 2) return; _lqW = innerWidth; for(const k in _lqM) lqMenuClose(k, true); }, { passive: true });
+// «м1» on the chart: its timeframes pour out of the pill
 const tfPill = () => document.querySelector('.chpill[data-act="charttf"]');
 function openTFPop(pill){
-  closeTFPop(true);
-  const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
-  const pop = document.createElement("div"); pop.className = "lg-pop"; pop.setAttribute("role", "menu");
-  pop.innerHTML = TF_ORDER.map(tf => `<button type="button" role="menuitem" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("");
-  document.body.append(catcher, pop);
-  const a = pill.getBoundingClientRect(), W = Math.min(220, innerWidth - 16), H = pop.offsetHeight;
-  const left = clamp(a.left, 8, innerWidth - W - 8);
-  let top = a.top - H - 10; if(top < 8) top = Math.min(innerHeight - H - 8, a.bottom + 10);
-  pop.style.left = left + "px"; pop.style.top = top + "px"; pop.style.width = W + "px";
-  _tfPop = { pop, catcher, pill };
-  pop.classList.add("shown");
-  pill.classList.add("lg-hid");
-  moPop(pop, pill, true);                                        // the pill stays hidden: the menu IS the pill while it is open
-  // a tap beside the menu only closes it: the catcher stays for that tap's click, so nothing beneath is pressed
-  catcher.addEventListener("pointerdown", e => { e.preventDefault(); closeTFPop(false, true); });
-  pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ setChartTF(b.dataset.tfpick); closeTFPop(); });
+  lqMenu("tf", pill, { sel: '.chpill[data-act="charttf"]',
+    build: pop => {
+      pop.innerHTML = TF_ORDER.map(tf => `<button type="button" role="menuitem" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("");
+      pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = () => { setChartTF(b.dataset.tfpick); closeTFPop(); });
+    },
+    place: (pop, a) => {
+      const W = Math.min(220, innerWidth - 16); pop.style.width = W + "px";
+      const H = pop.offsetHeight, left = clamp(a.left, 8, innerWidth - W - 8);
+      let top = a.top - H - 10; if(top < 8) top = Math.min(innerHeight - H - 8, a.bottom + 10);
+      pop.style.left = left + "px"; pop.style.top = top + "px";
+    } });
 }
-function closeTFPop(now, outside){
-  const P = _tfPop; if(!P) return;
-  _tfPop = null;
-  if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
-  else P.catcher.remove();
-  const pill = tfPill();
-  lgShowBtn(P.pill); if(pill !== P.pill) lgShowBtn(pill);          // it comes back the way every other button does
-  if(now === true){ P.pop.remove(); return; }
-  moPop(P.pop, pill || P.pill, false, () => P.pop.remove());       // it falls back into the pill it came from
+function closeTFPop(now, outside){ lqMenuClose("tf", now, outside); }
+// «Ещё» → «Язык»: the languages pour out of the one on show
+function openLangMenu(row){
+  const v = row && row.querySelector(".v");
+  if(!v) return openLangSheet();
+  lqMenu("lang", v, { sel: '[data-act="langpick"] .v',
+    build: pop => {
+      pop.innerHTML = LANGS.map(k => `<button type="button" role="menuitemradio" aria-checked="${LANG === k}" data-langpick="${k}" class="${LANG === k ? "on" : ""}"><span>${langName(k)}</span><b>${LANG === k ? "✓" : ""}</b></button>`).join("");
+      pop.querySelectorAll("[data-langpick]").forEach(b => b.onclick = () => { const k = b.dataset.langpick; if(k !== LANG) setLang(k); lqMenuClose("lang"); });
+    },
+    place: (pop, a) => {
+      const W = Math.min(210, innerWidth - 16); pop.style.width = W + "px";
+      const H = pop.offsetHeight; let top = a.bottom + 8; if(top + H > innerHeight - 8) top = Math.max(8, a.top - H - 8);
+      pop.style.left = clamp(a.right - W, 8, innerWidth - W - 8) + "px"; pop.style.top = top + "px";
+    } });
+}
+/* «XAUUSD ▾» in the symbol's header - the Home Screen's «Editar» of the second recording: its caret promised a menu
+   and nothing opened. Now its sections pour out of it, and a new order. */
+const SYM_MENU = [["overview", "Обзор"], ["positions", "Позиции"], ["orders", "Ордера"], ["chart", "График"]];
+function openSymMenu(ttl){
+  lqMenu("sym", ttl, { sel: '.appbar .ttl[data-act="symmenu"]',
+    build: pop => {
+      const n = { positions: xauOpenCount(), orders: xauOrderCount() }, sub = S.ui.subtab;
+      pop.innerHTML = SYM_MENU.map(([k, t]) => `<button type="button" role="menuitemradio" aria-checked="${sub === k}" data-symgo="${k}" class="${sub === k ? "on" : ""}"><span>${L(t)}${n[k] ? `<i class="lq-n">${n[k]}</i>` : ""}</span><b>${sub === k ? "✓" : ""}</b></button>`).join("")
+        + `<div class="lq-sep" role="separator"></div><button type="button" role="menuitem" data-symgo="new"><span>${L("Новый ордер")}</span><b aria-hidden="true">+</b></button>`;
+      pop.querySelectorAll("[data-symgo]").forEach(b => b.onclick = () => {
+        const k = b.dataset.symgo;
+        if(k === "new"){ lqMenuClose("sym", true); openTicket(); return; }
+        if(k !== S.ui.subtab){ S.ui.subtab = k; render(); save(); }
+        lqMenuClose("sym");
+      });
+    },
+    place: (pop, a) => {
+      const W = Math.min(230, innerWidth - 16); pop.style.width = W + "px";
+      const H = pop.offsetHeight;
+      pop.style.left = clamp(a.left, 8, innerWidth - W - 8) + "px"; pop.style.top = Math.max(8, Math.min(a.bottom + 8, innerHeight - H - 8)) + "px";
+    } });
 }
 
 function toast(kind, msg){
@@ -5552,6 +5842,7 @@ function render(){
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(t === "dom") drawDOMCanvasMaybe();
   runTitles();
+  lqRehide();                                                      // a button rebuilt while its menu is out stays hidden
   if(_navDir){ const d = _navDir; _navDir = 0; navEnter(d); }     // last, so every measurement above saw the screen at rest
 }
 
@@ -5594,7 +5885,7 @@ function appbar(title, opts){
   opts = opts || {};
   return `<div class="appbar">
     ${opts.back?`<button class="iconbtn" data-act="back" aria-label="${L("Назад")}">${BACK_ICON}</button>`:``}
-    <div class="ttl"><span class="ttl-run">${title}${opts.caret?`<span style="color:var(--ink3)">▾</span>`:``}</span></div>
+    <div class="ttl"${opts.caret ? ` data-act="symmenu" role="button" tabindex="0" aria-haspopup="menu"` : ``}><span class="ttl-run">${title}${opts.caret?`<span style="color:var(--ink3)">▾</span>`:``}</span></div>
     <div class="sp"></div>
     ${opts.demo ? `<span class="badge-demo">DEMO • SYNTHETIC DATA</span>` : ``}
   </div>`;
@@ -5674,10 +5965,9 @@ const AM_IC = {
 const OWNER_TG = "XAUGOLDOFFICIAL";                                 // the owner's Telegram (user 2026-09-20)
 const AM_EXT = '<svg class="am-ext" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8.4 8.4M18 14.4V20H4V6h5.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const amRow = (act, ic, label, ext) => `<button type="button" class="am-it" data-amenu="${act}"><svg viewBox="0 0 24 24" aria-hidden="true">${AM_IC[ic]}</svg><span>${label}</span>${ext ? AM_EXT : ""}</button>`;
-function appMenuMarkup(lift){
+function appMenuMarkup(){
   const mail = XC.email || "", nick = mail ? mail.split("@")[0] : "";
   return `<div class="am-head">
-      <span class="am-logo${lift ? " ghost" : ""}" aria-hidden="true">${lift ? "" : xcLogoSVG()}</span>
       <span class="am-brand">XAUCORE</span>
     </div>
     <div class="am-acct">${mail ? `<b>${mail}</b><span>${nick}</span>` : `<span>${L("Не выполнен вход")}</span>`}</div>
@@ -5725,11 +6015,100 @@ function amEnter(m){
   };
   moAdd(step);
 }
+/* THE DRAWER POURS OUT OF THE MARK (user 2026-09-25: «там где логотип я просил именно анимацию открытия того, что
+   находиться в том логотипе») - the liquid menus' opening at the drawer's size. The mark becomes the drop (and the panel,
+   once open, has no mark of its own: it IS the mark, poured out). The drop hangs from it and fills out down and to the right into the panel - pear, oval,
+   the panel's box - with the panel's glass as its body from the first frame and the panel's writing coming in
+   last, out of a blur. Closing, the writing goes first and the panel gathers back into the mark. The panel is laid
+   out ONCE at its place and only clipped a frame at a time (no layout per frame at this size); a thin rim layer
+   draws the drop's edge, which the clip would cut off the panel's own. A swipe still carries it off to its edge. */
+/* the drawer's drop. A menu is about as wide as it is tall, so the menus' timing (lqShape: height first, width
+   late) keeps it a round blob all the way; the drawer is 2.25 times taller than wide, and the same timing drew the
+   mark out into a thin stick first (user 2026-09-25 photo: «Начальная анимация совсем плохая … на золоте вроде не
+   такая же»). Here the mark swells as a ball first - round, as the gold's blob is - its width leading, and only
+   then does it run down into the panel, fuller at its far end, and square off into the panel's corners. */
+const LQ_AM = { k: 185, z: .78 };                                  // a hair softer than a menu's: it has 3x the way to go
+function amShape(Q, p){
+  const A = Q.A, F = Q.F;
+  const ew = lqE(p, 0, .6), w = A.w + (F.w - A.w) * ew;
+  const r = 1 + (F.h / F.w - 1) * lqS(.1, .8, p);                  // round → an egg → the panel's tall box
+  const h = Math.max(4, Math.min(Math.max(F.h, A.h), w * r));
+  const left = A.l + (F.l - A.l) * ew, top = A.t + (F.t - A.t) * ew;
+  // corners: a true ball (the mark is round, so its radius grows with it - kept at the mark's 21 px it read as a
+  // rounded square) → a pear, fuller at its far end → the panel's own corners
+  const e0 = lqS(.05, .3, p), m = lqS(.5, .92, p), R = Q.R;
+  const mix = (ball, egg) => { const v = ball + (egg - ball) * e0; return v + (R - v) * m; };
+  return { left, top, w, h, X: mix(w / 2, w / 2), yt: mix(h / 2, h * .58), yb: mix(h / 2, h * .42) };
+}
+function amLiquid(m, mark, open, done){
+  const sh = m.querySelector(".am-sheet"); if(!sh) return false;
+  let Q = sh._lq;
+  if(!Q){
+    const R = sh.getBoundingClientRect(), a = lgRestRect(mark);
+    Q = sh._lq = { mark, F: { l: R.left, t: R.top, w: R.width, h: R.height }, R: parseFloat(getComputedStyle(sh).borderTopLeftRadius) || 28,
+                   A: { l: a.left, t: a.top, w: a.width, h: a.height, r: Math.min(a.width, a.height) / 2 }, dn: true, p: 0, v: 0, gen: 0 };
+    const rim = document.createElement("span"); rim.className = "lqa-rim"; rim.setAttribute("aria-hidden", "true");
+    const x = document.createElement("span"); x.className = "lqa-x"; x.setAttribute("aria-hidden", "true"); x.innerHTML = xcLogoSVG();
+    x.style.width = a.width + "px"; x.style.height = a.height + "px";
+    m.append(rim, x); Q.rim = rim; Q.x = x;
+  }
+  sh.classList.add("lqa"); m.classList.add("shd");
+  const put = p => {
+    const g = amShape(Q, p), F = Q.F;
+    const T = g.top - F.t, L = g.left - F.l, Rr = F.l + F.w - (g.left + g.w), B = F.t + F.h - (g.top + g.h);
+    const f = v => v.toFixed(1) + "px ";
+    const rad = f(g.X) + f(g.X) + f(g.X) + f(g.X) + "/ " + f(g.yt) + f(g.yt) + f(g.yb) + f(g.yb);
+    sh.style.clipPath = "inset(" + T.toFixed(2) + "px " + Rr.toFixed(2) + "px " + B.toFixed(2) + "px " + L.toFixed(2) + "px round " + rad + ")";
+    sh.style.setProperty("--amc", lqS(.5, .88, p).toFixed(3));  // the writing: last, out of a blur - as «XAUUSD ▾» does
+    sh.style.setProperty("--lqg", (.08 + .92 * lqS(.15, .86, p)).toFixed(3));   // its glass: the mark's own clear ball first, the panel's frost at the end
+    m.style.setProperty("--shd", clamp(p, 0, 1).toFixed(3));
+    const rs = Q.rim.style;
+    rs.left = g.left.toFixed(2) + "px"; rs.top = g.top.toFixed(2) + "px"; rs.width = g.w.toFixed(2) + "px"; rs.height = g.h.toFixed(2) + "px";
+    // THE MARK BECOMES THE DROP (user: «Сам логотип уже сразу должен вытекать вместе с овалом или как овал ставать»).
+    // In the first frame the drop is the mark - a glass ball of its size in its place, its X in it - and the mark
+    // itself stands down in that frame. Then the ball swells and its X swells with it, at its heart, softening as it
+    // goes; as the ball runs down into the panel the X is drawn along a little and melts. Closing, the other way.
+    const A = Q.A, xk = 1 - lqS(.05, .4, p), xs = Q.x.style;
+    const s = 1 + Math.min(1.5, (g.w / A.w - 1) * .3), sy = s * (1 + Math.min(.45, (g.h / g.w - 1) * .35));
+    const xcx = g.left + g.w / 2, xcy = g.top + Math.min(g.h, g.w * 1.1) / 2;
+    xs.transform = "translate(" + (xcx - A.w / 2).toFixed(2) + "px," + (xcy - A.h / 2).toFixed(2) + "px) scale(" + s.toFixed(3) + "," + sy.toFixed(3) + ")";
+    xs.opacity = xk.toFixed(3);
+    xs.filter = xk < .995 ? "blur(" + ((1 - xk) * 6).toFixed(2) + "px)" : "none";
+    rs.borderRadius = rad; rs.opacity = (1 - lqS(.82, 1, p)).toFixed(3);   // the panel's own rim takes over as it lands
+  };
+  const rest = () => {
+    sh.style.removeProperty("clip-path"); sh.style.removeProperty("--amc"); sh.style.removeProperty("--lqg"); sh.style.removeProperty("opacity"); sh.classList.remove("lqa");
+    document.body.classList.add("amenu-open");                     // covered and gone: now the class holds it away
+    if(Q.mark) Q.mark.style.removeProperty("opacity");
+    Q.x.style.opacity = "0";
+    m.classList.remove("shd"); m.style.removeProperty("--shd"); Q.rim.style.opacity = "0";
+  };
+  const gen = ++Q.gen, P = open ? LQ_AM : LQ_CLOSE, to = open ? 1 : 0;
+  let t0 = 0;
+  put(Q.p);
+  const step = now => {
+    if(Q.gen !== gen || !sh.isConnected) return;
+    const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
+    Q.v = MO.sp(Q.v, Q.p, to, P, dt); Q.p += Q.v * dt;
+    if(!open && Q.p < 0){ Q.p = 0; Q.v = 0; }
+    const end = open ? Math.abs(Q.p - 1) < .01 && Math.abs(Q.v) < .15 : Q.p < .03;
+    if(end){ Q.p = to; Q.v = 0; if(open) rest(); else put(0); if(done) done(); return; }
+    put(Q.p);
+    moAdd(step);
+  };
+  moAdd(step);
+  return true;
+}
 function openAppMenu(){
   if(modalEl && modalEl.classList.contains("amodal")){ closeModal(); return; }   // the mark closes it as well
-  openSheet(appMenuMarkup(false), "am-sheet", "amodal");
+  const mark = document.querySelector("#app .wl-logo");
+  openSheet(appMenuMarkup(), "am-sheet", "amodal");
   modalEl._closed = () => document.body.classList.remove("amenu-open");
-  amEnter(modalEl);
+  if(mark && glassOn("morph") && glassOn("sheets") && mark.getClientRects().length){
+    modalEl._amMark = mark;
+    amLiquid(modalEl, mark, true);                                 // (measures the mark before it stands down)
+    mark.style.opacity = "0";                                      // the drop and its X are the mark from this frame
+  }else amEnter(modalEl);
   const funds = kind => { closeModal(true); acctFundsModal(kind); };   // (not `money` — that is the formatter)
   const acts = {
     deposit:  () => funds("deposit"),
@@ -7124,7 +7503,7 @@ function tfSwap(snap, dir){
     c.animate([{ transform: "translateY(" + (8 * d) + "px)" }, { transform: "none" }], { duration: 460, easing: E });
   }
   const pill = document.querySelector('.chpill[data-act="charttf"]');
-  if(pill) pill.animate([{ opacity: .25, transform: "translateY(" + (7 * d) + "px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: E });
+  if(pill && !_lqM.tf) pill.animate([{ opacity: .25, transform: "translateY(" + (7 * d) + "px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: E });
 }
 function openChartTFSheet(){
   const pill = glassOn("morph") && document.querySelector('.chpill[data-act="charttf"]');
@@ -8242,7 +8621,9 @@ function bindScreen(){
   act("openxau", ()=>{ S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
   act("addinstr", ()=> toast("o", L("В DEMO-режиме доступен только XAUUSD")));
   act("search", ()=> toast("o", L("Поиск инструментов будет добавлен позже")));
-  act("langpick", openLangSheet);
+  act("langpick", e => openLangMenu(e.currentTarget));
+  act("symmenu", e => openSymMenu(e.currentTarget));
+  root.querySelectorAll('[data-act="symmenu"]').forEach(el => el.onkeydown = e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openSymMenu(el); } });
   act("glassfeats", openGlassSheet);
   act("dispset", openDispSheet);
   act("newticket", ()=> openTicket());
@@ -9158,8 +9539,21 @@ function otWheel(){
 }
 /* the ▼ menus (instrument, trigger): cTrader's dropdown under the field; with glass a glass menu grows out of it */
 function otMenu(anchor, items, cur, pick, foot){
-  otMenuClose(true);
   const G = OT && OT.G;
+  const html = items.map(([v, t]) => `<button type="button" role="menuitemradio" aria-checked="${v === cur}" data-v="${v}" class="${v === cur ? "on" : ""}"><span>${t}</span>${v === cur ? OT_TICK : ""}</button>`).join("")
+    + (foot ? `<div class="ot-menu-foot">${foot}</div>` : "");
+  if(G){                                                           // the glass ticket: its field pours out into the menu
+    if(_otMenu) otMenuClose(true);
+    lqMenu("otm", anchor, { cls: "ot-menu", keep: true,
+      build: pop => { pop.innerHTML = html; pop.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { pick(b.dataset.v); lqMenuClose("otm"); }); },
+      place: (pop, a) => {
+        pop.style.width = a.width + "px";
+        const H = pop.offsetHeight; let top = a.bottom + 8; if(top + H > innerHeight - 8) top = Math.max(8, a.top - H - 8);
+        pop.style.left = a.left + "px"; pop.style.top = top + "px";
+      } });
+    return;
+  }
+  otMenuClose(true);
   const catcher = document.createElement("div"); catcher.className = "lg-pop-catch";
   const pop = document.createElement("div"); pop.className = G ? "lg-pop ot-menu" : "ot-menu ot-mp"; pop.setAttribute("role", "menu");
   pop.innerHTML = items.map(([v, t]) => `<button type="button" role="menuitemradio" aria-checked="${v === cur}" data-v="${v}" class="${v === cur ? "on" : ""}"><span>${t}</span>${v === cur ? OT_TICK : ""}</button>`).join("")
@@ -9175,6 +9569,7 @@ function otMenu(anchor, items, cur, pick, foot){
   pop.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { pick(b.dataset.v); otMenuClose(); });
 }
 function otMenuClose(now, outside){
+  lqMenuClose("otm", now, outside);                                // the glass ticket's menu, if one is out
   const P = _otMenu; if(!P) return;
   _otMenu = null;
   if(outside){ const rm = () => P.catcher.remove(); P.catcher.addEventListener("click", rm, { once: true }); setTimeout(rm, 700); }
@@ -9451,7 +9846,7 @@ function sheetDrag(m){
 function openSheet(html, sheetCls, modalCls){
   const from = _morphFrom && _morphFrom.isConnected && performance.now() - _morphT < 450 && glassOn("morph") ? _morphFrom : null;
   _morphFrom = null;
-  closeTFPop(true);
+  for(const k in _lqM) lqMenuClose(k, true);                       // a window over a menu: the menu goes at once
   const swap = !!modalEl || !!document.querySelector(".modal.closing:not(.morph)");
   closeModal(true);
   document.querySelectorAll(".modal.closing").forEach(m => m.remove());
@@ -9502,6 +9897,14 @@ function closeModal(now){
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
   if(m.classList.contains("amodal")){                             // a panel goes back to its edge, at the speed it has
     const sh = m.querySelector(".am-sheet");
+    const mk = m._amMark;
+    if(sh && sh._lq && SHD.sh !== sh && mk && mk.isConnected && glassOn("morph")){   // out of the mark: back into it
+      m.style.pointerEvents = "none";
+      document.body.classList.remove("amenu-open");                // it comes back by its own opacity, as the drop drains
+      mk.style.opacity = "0";
+      amLiquid(m, mk, false, () => { m.remove(); mk.style.removeProperty("opacity"); });
+      return;
+    }
     if(sh){
       const W = Math.max(1, sh.offsetWidth || 320);
       let x = SHD.sh === sh ? -SHD.o : 0, v = SHD.sh === sh ? -SHD.v : 0;
