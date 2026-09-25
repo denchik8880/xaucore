@@ -9921,7 +9921,7 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   blur = blur == null ? 1 : blur;
   el._lga = [w, h, scale, blur, force, fixed, rad, rim, chroma]; _lgEls.add(el);
   let bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
-  let ch, sc = scale, rm = rim;
+  let ch, sc = scale, rm = rim, ios = false;
   if(fixed){
     // the tab bars' drops and the slider's knob keep their own tuned lens (crystal in motion, grey at rest)
     ch = (chroma == null ? LG_UI.chroma : chroma) && blur <= 2 && w * h <= 16000;
@@ -9938,11 +9938,16 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
     // the rainbow belongs to two panels only - the tab capsule and «Новый ордер» - which ask for it, and even
     // there it only shows while something moves under them (lgRain)
     ch = chroma === true && !LG_LOW && w * h <= 60000;
+    ios = true;
     fixed = true;                                // the strength is the size's, so the clarity must not rescale it
   }
   const f = "url(#" + lgFilterId(w, h, sc, ch, fixed, rad, rm) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
-  if(ch && chroma === true && !el._rainFixed) lgRainBind(el);
+  // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
+  // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
+  // letters under a sitting drop were bent hard again, and a travelling drop no longer split its colour.
+  if(ch && ios) lgRainBind(el);
+  else if(_lgRain.has(el)){ _lgRain.delete(el); el._rdm = null; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
 function lgRefresh(){
