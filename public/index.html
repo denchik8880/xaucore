@@ -8,7 +8,7 @@
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:1+lo*.5-hi*.978,b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
+function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.45,1+lo*.5-hi*.978),b:Math.max(.45,1+lo*.4-hi*.985),s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
@@ -1178,8 +1178,12 @@ html:has(body.route-wallet){background:#0c0a08}
 /* the capsule's frost lives on a layer BEHIND its content, not on the capsule itself: a backdrop-filter on the
    element would make it a backdrop root, and the drop inside could then see only the capsule's own thin white -
    never the page - which is what turned it lavender in flight */
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:0;pointer-events:none;
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs > .sub-glass{content:"";position:absolute;inset:0;border-radius:inherit;z-index:0;pointer-events:none;
   background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8)}
+/* with the real layer in place (it carries the lens as well), the pseudo one stands down */
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs:has(> .sub-glass)::before{display:none}
+.sub-glass{display:none}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs > .sub-glass{display:block}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
 /* the mark is a BUBBLE when the mode is on (user: «сделайте наш логотип бульбашкой»): the solid disc behind the X
    goes, the X floats in a ball of glass that bends the list under it and swells under the finger — and the drawer
@@ -5044,7 +5048,7 @@ function lgFeat(el){
   if(el.matches(".chfs, .chzoom button, .chpill, .chlast, .mini-tools button, .chartinfo")) return "chart";
   if(el.matches(".bignew, .fabnew")) return "newbtn";
   if(el.matches(".toast")) return "toasts";
-  if(el.closest(".appbar")) return "headers";
+  if(el.closest(".appbar, .wl-topbar") || el.matches(".sub-glass")) return "headers";
   if(el.closest(".sheet")) return "sheets";
   if(el.matches(".mq-lens, .lw-lens")) return "lots";
   if(el.matches(".sub-lens, .seg-lens")) return "drops";
@@ -5321,6 +5325,9 @@ function render(){
     quickLens(app());
     document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 26, .6));   // «Новый ордер»: crystal — bent hard at the rim
     document.querySelectorAll("#app .appbar .iconbtn, #app .mini-tools button, #app .wl-logo").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // «‹», the mini chart's ⛶ / м1: glass drops
+    // the capsules - the screen's title, search, the balance - were frosted but never bent: the same glass now,
+    // with the frost they had (16 at full haze)
+    document.querySelectorAll("#app .appbar .ttl, #app .wl-search, #app .ab-bal").forEach(b => { if(b.offsetWidth) lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, 16); });
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -7605,6 +7612,10 @@ function subGlass(bar){
   const t = subTarget(bar); if(!t) return;
   let bub = bar.querySelector(":scope > .sub-bub");
   if(!bub){ bub = document.createElement("span"); bub.className = "sub-bub"; bar.insertBefore(bub, bar.firstChild); }
+  // the capsule's own glass, as a layer under everything in it: frost AND the iOS bend at its rim
+  let sgl = bar.querySelector(":scope > .sub-glass");
+  if(!sgl){ sgl = document.createElement("span"); sgl.className = "sub-glass"; sgl.setAttribute("aria-hidden", "true"); bar.insertBefore(sgl, bar.firstChild); }
+  if(glassOn("headers")) lgGlass(sgl, bar.clientWidth, bar.clientHeight, undefined, 16);
   let red = bar.querySelector(":scope > .sub-red");
   if(!red){ red = document.createElement("span"); red.className = "sub-red"; red.setAttribute("aria-hidden", "true"); red.inert = true; bar.insertBefore(red, bub); }
   // the accent copy: the very same buttons - same classes, same padding, same count badges - so it lays out
@@ -9867,11 +9878,27 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   if(!LG_LENS || !el || (!force && (!glassOn("refract") || !glassOn(lgFeat(el))))) return;
   blur = blur == null ? 1 : blur;
   el._lga = [w, h, scale, blur, force, fixed, rad, rim, chroma]; _lgEls.add(el);
-  const bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
-  // dispersion costs three maps: small, clear pieces only. A caller may insist on it (the tab bar's drop, whose
-  // fringes are half of what makes it read as glass).
-  const ch = (chroma == null ? LG_UI.chroma : chroma) && blur <= 2 && w * h <= 16000;
-  const f = "url(#" + lgFilterId(w, h, scale, ch, fixed, rad, rim) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";   // clear glass: the candles stay sharp, bent only at the rim
+  let bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
+  let ch, sc = scale, rm = rim;
+  if(fixed){
+    // the tab bars' drops and the slider's knob keep their own tuned lens (crystal in motion, grey at rest)
+    ch = (chroma == null ? LG_UI.chroma : chroma) && blur <= 2 && w * h <= 16000;
+  }else{
+    // iOS 26 GLASS, off the user's video: the bend lives in a band at the rim a third of the radius wide, it
+    // drags what is near the edge in by about a fifth of the radius, and it comes from the SIZE of the piece -
+    // never from the clarity, which used to multiply it by up to 2.65 and scribbled the chart through «Новый
+    // ордер». A caller's own strength still counts, relative to the old 22 (a press deepens, a switch is mild).
+    const md = Math.max(8, Math.min(w, h)), r = md / 2;
+    sc = Math.max(3, Math.round(md * .18 * clamp((scale || 22) / 22, .5, 1.5)));
+    rm = Math.max(4, Math.round(r * .3));
+    // and the inside is FROSTED, a seventh of the radius at least, whatever the slider says - on the video the
+    // handset under the flashlight is a wash of colour; bare glass let the prices read through our labels
+    bl = Math.max(bl, clamp(md * .075, 2, 8));
+    // a thin rainbow along the rim, as on the widgets' edges: small pieces only, three maps each
+    ch = chroma !== false && !LG_LOW && w * h <= 16000;
+    fixed = true;                                // the strength is the size's, so the clarity must not rescale it
+  }
+  const f = "url(#" + lgFilterId(w, h, sc, ch, fixed, rad, rm) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
