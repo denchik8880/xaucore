@@ -1371,6 +1371,15 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .disp-body.off{opacity:.4;pointer-events:none}
 .disp-k{margin:12px 2px 0}
 .disp-reset{margin-top:14px}
+/* the live readout (what the engine hears on this device) and the device check */
+.disp-live{margin:0 2px 10px;padding:7px 12px;border-radius:10px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink2);
+  background:color-mix(in srgb,var(--ink) 6%,transparent);transition:color var(--mo-micro),background-color var(--mo-micro)}
+.disp-live.on{color:#fff;background:linear-gradient(90deg,#ff2d95,#ff9f1a,#34e07c,#1fb6ff,#7a5cff)}
+.disp-chk{margin:0 2px 12px}
+.disp-chk-k{font-size:12px;font-weight:600;color:var(--ink3);margin-bottom:4px}
+.disp-ok{font-size:13px;font-weight:600;color:var(--green)}
+.disp-bad{font-size:13px;line-height:1.35;color:var(--red);margin-top:4px}
+.disp-go{margin-top:8px;padding:9px}
 /* the edge's own rainbow while something moves under it (the user's video, 8.1 s: a line of colour runs along the
    moving edge, over flat teal too). Nothing at rest - its opacity is the motion's, written a frame at a time, and
    its colours run along the edge with the page (background-position) */
@@ -2337,6 +2346,16 @@ const I18N = {
 "Заголовок и «назад»":["Title and “back”","Заголовок і «назад»","Titre et « retour »","Başlık ve “geri”"],
 "Капли вкладок":["Tab drops","Краплі вкладок","Gouttes des onglets","Sekme damlaları"],
 "Сбросить":["Reset","Скинути","Réinitialiser","Sıfırla"],
+"Скорость":["Speed","Швидкість","Vitesse","Hız"],
+"px/с":["px/s","px/с","px/s","px/sn"],
+"радуга":["rainbow","веселка","arc-en-ciel","gökkuşağı"],
+"Проверка на этом устройстве":["Check on this device","Перевірка на цьому пристрої","Vérification sur cet appareil","Bu cihazda kontrol"],
+"Всё включено — радуга должна работать на странице":["All on — the rainbow should work on the page","Усе ввімкнено — веселка має працювати на сторінці","Tout est activé — l’arc-en-ciel doit fonctionner sur la page","Her şey açık — gökkuşağı sayfada çalışmalı"],
+"Этот браузер не преломляет стекло — на странице будет только радужная кромка":["This browser cannot refract the glass — the page gets only the rainbow edge","Цей браузер не заломлює скло — на сторінці буде лише райдужна кромка","Ce navigateur ne réfracte pas le verre — la page n’aura que le bord arc-en-ciel","Bu tarayıcı camı kırmıyor — sayfada yalnızca gökkuşağı kenarı olur"],
+"Выключено «Преломление по краям» — цвета не расходятся, будет только радужная кромка":["“Edge refraction” is off — the colours do not split, only the rainbow edge shows","Вимкнено «Заломлення по краях» — кольори не розходяться, буде лише райдужна кромка","« Réfraction des bords » est désactivée — les couleurs ne se séparent pas, seul le bord arc-en-ciel s’affiche","“Kenar kırılması” kapalı — renkler ayrılmaz, yalnızca gökkuşağı kenarı görünür"],
+"Выключены «Верхние капсулы» — на вкладках и заголовке будет только радужная кромка":["“Top capsules” are off — the tabs and the title get only the rainbow edge","Вимкнено «Верхні капсули» — на вкладках і заголовку буде лише райдужна кромка","« Capsules du haut » désactivées — les onglets et le titre n’auront que le bord arc-en-ciel","“Üst kapsüller” kapalı — sekmelerde ve başlıkta yalnızca gökkuşağı kenarı olur"],
+"Выключена «Кнопка «Новый ордер»» — на ней будет только радужная кромка":["The “New Order” button glass is off — it gets only the rainbow edge","Вимкнено «Кнопка «Новий ордер»» — на ній буде лише райдужна кромка","Le verre du bouton « Nouvel ordre » est désactivé — il n’aura que le bord arc-en-ciel","“Yeni Emir” düğmesi camı kapalı — üzerinde yalnızca gökkuşağı kenarı olur"],
+"Открыть настройки стекла":["Open glass settings","Відкрити налаштування скла","Ouvrir les réglages du verre","Cam ayarlarını aç"],
 "Радужная кромка в движении":["Rainbow edge in motion","Райдужна кромка в русі","Bord arc-en-ciel en mouvement","Hareket halinde gökkuşağı kenarı"],
 "Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
 "Пункты":["Pips","Пункти","Pips","Pip"],
@@ -5176,6 +5195,19 @@ function openGlassSheet(){
    sample is a strip of prices under a clear capsule - scroll it with a finger, or «Показать» flings it - and the
    capsule's edge splits exactly as the real panels do: the same engine, the same settings. Every dial, moved, opens
    the rainbow all the way and lets it close at its own pace, so what it changes can be seen on the spot. */
+// what on THIS device keeps the colour split off the page (the rainbow line shows regardless) - each with a way there
+function dispChecks(){
+  const out = [];
+  if(!LG_LENS) out.push("Этот браузер не преломляет стекло — на странице будет только радужная кромка");
+  else if(!glassOn("refract")) out.push("Выключено «Преломление по краям» — цвета не расходятся, будет только радужная кромка");
+  else{
+    if(!glassOn("headers")) out.push("Выключены «Верхние капсулы» — на вкладках и заголовке будет только радужная кромка");
+    if(!glassOn("newbtn")) out.push("Выключена «Кнопка «Новый ордер»» — на ней будет только радужная кромка");
+  }
+  if(!out.length) return `<div class="disp-ok">✓ ${L("Всё включено — радуга должна работать на странице")}</div>`;
+  return out.map(t => `<div class="disp-bad">${L(t)}</div>`).join("") +
+    (LG_LENS ? `<button type="button" class="btn ghost disp-go" data-disp-glass>${L("Открыть настройки стекла")}</button>` : "");
+}
 function openDispSheet(){
   const dial = (k, ttl, lo, hi) => {
     const v = Math.round(DISP[k]);
@@ -5190,10 +5222,10 @@ function openDispSheet(){
     rows += `<div class="disp-r"><b>XAUUSD</b><i class="dn">${p.toFixed(2)}</i><i class="up">${(p + .27).toFixed(2)}</i></div>`;
   }
   openSheet(`<h2>${L("Дисперсия")}</h2><div class="disp-note">${L("Радуга на краю стекла: цвета расходятся, только пока под стеклом что-то движется.")}</div>` +
-    (LG_LENS
-      ? `<div class="disp-demo" aria-hidden="true"><div class="disp-sc">${rows}</div><span class="disp-lens"></span></div>` +
-        `<div class="disp-play"><span>${L("Прокрутите образец пальцем")}</span><button type="button" class="btn ghost" data-disp-play>${L("Показать")}</button></div>`
-      : `<div class="disp-note">${L("Дисперсия работает в Chrome")}</div>`) +
+    `<div class="disp-demo" aria-hidden="true"><div class="disp-sc">${rows}</div><span class="disp-lens"></span></div>` +
+    `<div class="disp-play"><span>${L("Прокрутите образец пальцем")}</span><button type="button" class="btn ghost" data-disp-play>${L("Показать")}</button></div>` +
+    `<div class="disp-live" data-disp-live>${L("Скорость")} 0 ${L("px/с")} · ${L("радуга")} 0 %</div>` +
+    `<div class="disp-chk"><div class="disp-chk-k">${L("Проверка на этом устройстве")}</div>${dispChecks()}</div>` +
     `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
     `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
       dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
@@ -5201,8 +5233,11 @@ function openDispSheet(){
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
   const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
-  // the sample's glass: the tab capsule's own (crystal, bent at the rim), laid once the sheet has its size
-  if(lens) requestAnimationFrame(() => { if(lens.isConnected && lens.offsetWidth) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, undefined, 16, true, false); });
+  // the sample's glass: the tab capsule's own (crystal, bent at the rim), laid once the sheet has its size. It obeys
+  // «Преломление по краям» as the page does - a sample that splits while the page cannot was the lie behind "it
+  // worked, then it went off" - and its rainbow line, like the page's, needs no lens at all
+  if(lens) requestAnimationFrame(() => { if(lens.isConnected && lens.offsetWidth) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, undefined, 16, glassOn("refract"), false); dispAttach(m); });
+  m.querySelectorAll("[data-disp-glass]").forEach(b => b.onclick = openGlassSheet);
   const play = m.querySelector("[data-disp-play]");
   if(play && sc) play.onclick = () => {
     const max = sc.scrollHeight - sc.clientHeight; if(max <= 0) return;
@@ -5467,6 +5502,7 @@ function render(){
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(t === "dom") drawDOMCanvasMaybe();
   runTitles();
+  dispAttach(app());                                               // the rainbow lines on their places (no lens needed)
   if(_navDir){ const d = _navDir; _navDir = 0; navEnter(d); }     // last, so every measurement above saw the screen at rest
 }
 
@@ -10066,10 +10102,38 @@ function lgRainApply(el){
   if(!el._rdm) return;
   const m = dispMotion(el._dispP), k = _rainK;
   for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + k * (m.bd + d._c * m.sp))).toFixed(2));
-  if(el._rim){
-    el._rim.style.opacity = (k * Math.min(1, .45 + .4 * DISP.str / 50)).toFixed(3);
-    if(k > 0) el._rim.style.backgroundPositionX = (-rainTop() * .7).toFixed(1) + "px";   // the colours run along the edge as the page does
-  }
+}
+/* THE EDGE'S OWN RAINBOW LINE (.disp-rim) needs no lens: it is plain CSS, so it goes on its place whatever the glass
+   settings switch off and whatever the browser can do - the colour split needs the lens, the line does not. It used to
+   hang off the lens, and a phone on which the lens was not laid (a glass feature off, a browser without it) got
+   nothing at all while the settings sheet's sample, whose lens is forced, showed it: "it worked, then it went off".
+   Laid after every render (dispAttach), faded by the same motion. */
+const DISP_HOSTS = [[".subtabs", "tabs"], [".bignew, .fabnew", "order"], [".appbar .ttl, .appbar .iconbtn", "head"], [".disp-lens", "demo"]];
+const _dispRims = new Set();
+function dispRimApply(r){
+  const k = _rainK;
+  r.style.opacity = (k * Math.min(1, .45 + .4 * DISP.str / 50)).toFixed(3);
+  if(k > 0) r.style.backgroundPositionX = (-rainTop() * .7).toFixed(1) + "px";   // the colours run along the edge as the page does
+}
+function dispAttach(root){
+  for(const [sel, p] of DISP_HOSTS) (root || document).querySelectorAll(sel).forEach(el => {
+    const want = glassOn() && DISP.on && DISP.rim && (p === "demo" || !!DISP[p]);
+    let r = el.querySelector(":scope > .disp-rim");
+    if(!want){ if(r){ r.remove(); _dispRims.delete(r); } return; }
+    if(!r){ r = document.createElement("i"); r.className = "disp-rim"; r.setAttribute("aria-hidden", "true"); el.appendChild(r); }
+    _dispRims.add(r); dispRimApply(r);
+  });
+}
+// the settings sheet's live readout: what the engine hears on THIS device, as it hears it
+let _dispLiveT = 0;
+function dispLive(v){
+  const el = modalEl && modalEl.querySelector("[data-disp-live]");
+  if(!el) return;
+  const now = performance.now();
+  if(now - _dispLiveT < 90 && _rainK > .005) return;
+  _dispLiveT = now;
+  el.textContent = L("Скорость") + " " + Math.round(Math.abs(v)) + " " + L("px/с") + " · " + L("радуга") + " " + Math.round(_rainK * 100) + " %";
+  el.classList.toggle("on", _rainK > .05);
 }
 function lgRainBind(el){
   const id = el._lg && el._lg.indexOf("#") > 0 ? el._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
@@ -10078,12 +10142,6 @@ function lgRainBind(el){
   if(!el._rdm) return;
   for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract);
   el._dispP = dispPlace(el);
-  // the edge's own rainbow line: a layer inside the glass, over its bent backdrop, clear at rest
-  let rim = el.querySelector(":scope > .disp-rim");
-  if(DISP.rim){
-    if(!rim){ rim = document.createElement("i"); rim.className = "disp-rim"; rim.setAttribute("aria-hidden", "true"); el.appendChild(rim); }
-    el._rim = rim;
-  }else{ if(rim) rim.remove(); el._rim = null; }
   _lgRain.add(el); lgRainApply(el);
 }
 function rainFrame(now){
@@ -10094,21 +10152,26 @@ function rainFrame(now){
   _rainY = y;
   const want = Math.min(1, Math.abs(v) / dispVFull());
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
-  for(const el of _lgRain){ if(!el.isConnected){ _lgRain.delete(el); continue; } lgRainApply(el); }
+  rainAll();
+  dispLive(v);
   if(_rainK > .005 || Math.abs(v) > 1){ _rainRaf = requestAnimationFrame(rainFrame); return; }
   _rainK = 0; _rainT = 0; _rainY = null;
-  for(const el of _lgRain) lgRainApply(el);
+  rainAll(); dispLive(0);
+}
+function rainAll(){
+  for(const el of _lgRain){ if(!el.isConnected){ _lgRain.delete(el); continue; } lgRainApply(el); }
+  for(const r of _dispRims){ if(!r.isConnected){ _dispRims.delete(r); continue; } dispRimApply(r); }
 }
 // open it all the way now and let it close at its own pace: a setting changed, show what it does
 function rainKick(full){
   if(full) _rainK = 1;
-  for(const el of _lgRain) lgRainApply(el);
+  rainAll();
   if(!_rainRaf){ _rainT = 0; _rainY = null; _rainRaf = requestAnimationFrame(rainFrame); }
 }
 // ANY scroll moves what is under the glass - the page, and the ones that scroll inside themselves (the wallet, the
 // sample on the settings sheet): caught on the way down. A sheet scrolling carries its own glass with it, so not that.
 document.addEventListener("scroll", e => {
-  if(!_lgRain.size) return;
+  if(!_lgRain.size && !_dispRims.size) return;
   const t = e.target, src = !t || t === document || t === document.documentElement || t === document.body ? document : t;
   if(src !== document && src.matches && src.matches(".sheet")) return;
   if(src !== _rainSrc){ _rainSrc = src; _rainY = rainTop(); }
@@ -10116,7 +10179,7 @@ document.addEventListener("scroll", e => {
 }, { capture: true, passive: true });
 // a setting changed: every lens asks again whether it splits (hard), and every split takes the new strength
 function dispApply(hard){
-  if(hard) lgRefresh();
+  if(hard){ lgRefresh(); dispAttach(); }
   lgScaleAll();
 }
 // no colour fringes any more: a channel-split lens darkened what it sat on inside a see-through sheet (the slider
@@ -10152,7 +10215,7 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
   // letters under a sitting drop were bent hard again, and a travelling drop no longer split its colour.
   if(ch && ios) lgRainBind(el);
-  else if(_lgRain.has(el)){ _lgRain.delete(el); el._rdm = null; if(el._rim){ el._rim.remove(); el._rim = null; } }
+  else if(_lgRain.has(el)){ _lgRain.delete(el); el._rdm = null; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
 function lgRefresh(){
