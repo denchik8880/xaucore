@@ -1233,6 +1233,25 @@ html:has(body.route-wallet){background:#0c0a08}
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+/* CRYSTAL for the four rainbow places - «XAUUSD», «‹», the tab capsule, «Новый ордер» (user 2026-09-25, phone
+   screenshot: «вкладки слабо кристально чистые, особенно золото … новый ордер чуть лучше надо»). Three layers laid
+   over their glass were clouding it: a tint of 60 % page colour times the clarity slider (thick and grey anywhere
+   below «Кристалл»), the glass's "thickness" - inset shadows of up to 62 % black along the top and the bottom, which
+   on a 40 px pill darkens half of it - and, on «Новый ордер», a white sheen over its top half and a dark foot over
+   its bottom half, right where the rainbow lives. Here: a third of the tint, the bright rims only (no dark
+   thickness), a lighter sheen and no foot. The labels keep their halos, so they still read over anything. */
+:root[data-glass="on"]{--crys-cap:rgba(255,255,255,calc(.2 * var(--lgk,1)));
+  --crys-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),inset 0 0 0 .7px rgba(255,255,255,calc(.14 * var(--lgh,1)))}
+:root[data-theme="dark"][data-glass="on"]{--crys-cap:rgba(34,34,38,calc(.18 * var(--lgk,1)))}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{background:var(--crys-cap);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--crys-body)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{
+  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--crys-cap),var(--crys-cap));
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--crys-body)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--crys-body)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs > .sub-glass{background:var(--crys-cap)}
+:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{--lg-sheen:rgba(255,255,255,.26);--lg-foot:transparent;
+  background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 46%),rgba(var(--crys),var(--lgn,.08))}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{--lg-sheen:rgba(255,255,255,.07)}
 /* 7. the lot drum: a glass panel (its band and bar go translucent through --lw-band / --lw-bar above) */
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);backdrop-filter:blur(calc(22px * var(--lgsb,1))) saturate(1.8);border-top:0;animation:lwInG var(--mo-t4) var(--mo-e4);
   border-radius:24px 24px 0 0;overflow:hidden;box-shadow:0 -10px 32px rgba(0,0,0,.18),var(--lg-body)}
