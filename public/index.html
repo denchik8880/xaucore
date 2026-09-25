@@ -1683,6 +1683,45 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .ot-go.sell{box-shadow:0 8px 22px color-mix(in srgb,var(--red) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go:disabled{background-color:var(--cap-glass);background-image:none;box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);color:var(--ink3)}
 .ot-g .ot-go:not(:disabled):active{transform:scale(.986) translateY(.8px);transition:transform var(--mo-micro)}
+/* THE ORDER TICKET, SECOND PASS (user 2026-09-25, a recording: «нужно все равно как-то лучше что бы выглядело,
+   особенно стекло когда водим, плохо видно»). What the recording shows: the page read through the sheet in words
+   («Нет отложенных ордеров», «Создать ордер» behind the title); the resting drop was a white pillow on a near-white
+   track; under the finger it turned into a lens of 2.5 % white - a pale smudge; the side's drop a wash of pink or
+   green with no edge. Now the way iOS 26 draws a segmented control in glass: a grey track, a solid knob with a
+   shadow that reads at a glance, and under the finger a clear lens a little larger than the knob, ringed by a
+   bright rim and lifted by a shadow. */
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.ot-g{background-color:rgba(247,248,250,max(.82,calc(.6 * var(--lgs,1))));
+  -webkit-backdrop-filter:blur(max(24px,calc(22px * var(--lgsb,1)))) saturate(1.6);backdrop-filter:blur(max(24px,calc(22px * var(--lgsb,1)))) saturate(1.6)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.ot-g{background-color:rgba(26,26,29,max(.86,calc(.6 * var(--lgs,1))))}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag{background:rgba(118,118,128,.13);box-shadow:inset 0 .5px 1px rgba(16,24,40,.06)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag{background:rgba(118,118,128,.26);box-shadow:inset 0 .5px 1px rgba(0,0,0,.3)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{-webkit-backdrop-filter:none;backdrop-filter:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.8));
+  box-shadow:0 3px 8px rgba(16,24,40,.13),0 1px 1.5px rgba(16,24,40,.07),0 0 0 .5px rgba(16,24,40,.06),inset 0 1px 0 #fff}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(132,132,140,.66),rgba(100,100,108,.56));
+  box-shadow:0 3px 8px rgba(0,0,0,.38),0 0 0 .5px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.24)}
+/* the side's knob wears its colour, with an edge of it */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 70%),color-mix(in srgb,var(--green) 26%,#fff);
+  box-shadow:0 3px 10px color-mix(in srgb,var(--green) 28%,transparent),0 0 0 1px color-mix(in srgb,var(--green) 42%,transparent),inset 0 1px 0 rgba(255,255,255,.9)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 70%),color-mix(in srgb,var(--red) 22%,#fff);
+  box-shadow:0 3px 10px color-mix(in srgb,var(--red) 26%,transparent),0 0 0 1px color-mix(in srgb,var(--red) 40%,transparent),inset 0 1px 0 rgba(255,255,255,.9)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 70%),color-mix(in srgb,var(--green) 40%,transparent);
+  box-shadow:0 3px 10px rgba(0,0,0,.35),0 0 0 1px color-mix(in srgb,var(--green) 60%,transparent),inset 0 1px 0 rgba(255,255,255,.2)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 70%),color-mix(in srgb,var(--red) 40%,transparent);
+  box-shadow:0 3px 10px rgba(0,0,0,.35),0 0 0 1px color-mix(in srgb,var(--red) 60%,transparent),inset 0 1px 0 rgba(255,255,255,.2)}
+/* under the finger: a clear lens a little taller than its track, a bright rim and a lift; only a breath of white
+   inside - it is the rim that shows it */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{top:-2px;bottom:-2px;border-radius:12px;
+  transform:translateX(var(--bx,0px));     /* no scale on a backdrop-filtered layer: it paints a phantom square */
+  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%,rgba(255,255,255,.07));
+  box-shadow:0 9px 22px rgba(16,24,40,.2),0 2px 5px rgba(16,24,40,.1),inset 0 0 0 1.2px rgba(255,255,255,.92),inset 0 1.5px 1px #fff,inset 0 -2px 3px rgba(16,24,40,.07)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag.dragging{overflow:visible}   /* the lens may lift past it while it is held */
+/* the side's lens stays clear (tinted, it wore the side it was leaving - green over «Продать»), and a label under the
+   finger keeps its own colour instead of going black */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag.dragging button.near[data-otside="sell"]{color:var(--red-ink)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag.dragging button.near[data-otside="buy"]{color:var(--green-ink)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{
+  box-shadow:0 9px 22px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.3),inset 0 0 0 1.2px rgba(255,255,255,.55),inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -2px 3px rgba(0,0,0,.25)}
 /* the lot list without liquid glass — cTrader's Android dropdown under «Количество», one to one with its screenshot:
    it starts OVER the field, at the middle of its number (no gap, no padding — the lit row sits right at its top), the
    field's width, 52 px rows, down to the screen's foot; a thin bar only while it scrolls (scrollInd). The current
@@ -8109,6 +8148,7 @@ function dropApply(bub, st){
     if(!idle) lgFit(L, st.r - st.l, L._h || (L._h = L.offsetHeight) || 30, 10, 0);   // mild: labels stay readable under it
   }
 }
+const SEG_DRAG_LEAD = { k: 1250, z: .82 }, SEG_DRAG_TRAIL = { k: 820, z: .86 };
 function dropFrame(now){
   _dropRaf = 0;
   for(const [bub, st] of _drops){
@@ -8117,7 +8157,9 @@ function dropFrame(now){
     st.t = now;
     const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
     const dr = !!st.drag;                                           // under the finger: a soft spring that lags and stretches (the video); let go: the flowing drop
-    const Pf = dr ? MO.P.leadDrag : MO.P.lead, Ps = dr ? MO.P.trailDrag : MO.P.trail;   // a bounce on landing
+    // under a finger these small drops (the order ticket's) follow it closely - with the tab bar's soft drag springs
+    // the finger was a whole tab ahead on the recording (user: «плохо видно … когда водим»); let go, they flow
+    const Pf = dr ? SEG_DRAG_LEAD : MO.P.lead, Ps = dr ? SEG_DRAG_TRAIL : MO.P.trail;   // a bounce on landing
     const Pl = right ? Ps : Pf, Pr = right ? Pf : Ps;
     st.vl = MO.sp(st.vl, st.l, st.tl, Pl, dt); st.l += st.vl * dt;
     st.vr = MO.sp(st.vr, st.r, st.tr, Pr, dt); st.r += st.vr * dt;
