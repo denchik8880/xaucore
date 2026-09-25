@@ -1091,8 +1091,36 @@ html:has(body.route-wallet){background:#0c0a08}
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens.idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{position:relative;z-index:1;border-bottom-color:transparent}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;border-radius:999px;pointer-events:none;z-index:0;opacity:calc(1 - var(--lf,0));background:linear-gradient(180deg,var(--nb-sheen),transparent 65%),var(--sub-bub);
-  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-body);transform:translateX(var(--bx,0px)) scale(var(--dsx,1),var(--dsy,1));width:var(--bw,0px);will-change:transform,width}
+/* THE TOP TABS CARRY THE BOTTOM BAR'S DROP (user 2026-09-25: «та же схема … кристальная чистота должна
+   работать»). Same build as .nav-bub: a box of one fixed width scaled into place, so the lens map drawn for it
+   stays valid while it stretches; the radius stated so it comes out round AFTER the scale; the tint, the lips
+   and the lit rim all running off one number, --sdk - this bar's own, set on .subtabs, so the two drops on the
+   XAUUSD screen clear independently. The tint is written out here and not taken from a :root token, because a
+   token that carries a var() has it substituted where the TOKEN is declared. */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;width:var(--sw0,80px);pointer-events:none;z-index:3;
+  border-radius:calc(var(--sh,30px) / 2 * var(--ssy,1) / var(--ssx,1)) / 50%;
+  transform-origin:0 50%;transform:translateX(var(--sbl,0px)) scaleX(var(--ssx,1)) scaleY(var(--ssy,1));will-change:transform;
+  background:rgba(16,24,40,calc(.09 * var(--sdk,1)));
+  box-shadow:inset 0 6px 7px -6px rgba(16,24,40,calc(.15 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(16,24,40,calc(.15 * (1 + (1 - var(--sdk,1)) * .7))),
+    inset 0 0 0 1px rgba(255,255,255,calc(.4 * (1 + (1 - var(--sdk,1))))),0 0 10px rgba(16,24,40,.03)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,calc(.9 * (1 + (1 - var(--sdk,1))))) 0%,transparent 26%,rgba(16,24,40,.13) 50%,transparent 74%,rgba(255,255,255,calc(.55 * (1 + (1 - var(--sdk,1))))) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:rgba(255,255,255,calc(.14 * var(--sdk,1)));
+  box-shadow:inset 0 6px 7px -6px rgba(0,0,0,calc(.5 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(0,0,0,calc(.5 * (1 + (1 - var(--sdk,1)) * .7))),
+    inset 0 0 0 1px rgba(255,255,255,calc(.14 * (1 + (1 - var(--sdk,1)) * 3))),0 0 10px rgba(0,0,0,.2)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{
+  background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,calc(.62 * (1 + (1 - var(--sdk,1))))) 0%,transparent 26%,rgba(0,0,0,.3) 50%,transparent 74%,rgba(255,255,255,calc(.3 * (1 + (1 - var(--sdk,1))))) 100%)}
+/* the BLUE is a window that travels with the drop: the row drawn a second time in the accent colour and shown
+   only through the drop's own rounded rectangle (its clip is written by subFrame, in pixels - a percentage in a
+   clip radius resolves per axis and comes out square). Every real tab is grey; the drop is what is blue. */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-red{display:flex;justify-content:space-between;position:absolute;inset:0;padding:0 4px;z-index:2;pointer-events:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-red button{color:var(--blue-ink)!important;pointer-events:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button,:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button.near{color:var(--ink3)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > .sub-lens{display:none!important}
+/* and the capsule leans after the finger, as the bottom bar does */
+:root[data-glass="on"]:not([data-lgoff~="headers"]):not([data-lgoff~="drops"]) .subtabs{transform:translateX(var(--sbx,0px))}
+.sub-red{display:none}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line);
   -webkit-backdrop-filter:blur(calc(10px + 8px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 8px * var(--lgsb,1))) saturate(var(--lgsat,1.4))}
@@ -1146,7 +1174,12 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs .cnt{margin-left:4px}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--blue-ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:transparent;box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
+/* the capsule's frost lives on a layer BEHIND its content, not on the capsule itself: a backdrop-filter on the
+   element would make it a backdrop root, and the drop inside could then see only the capsule's own thin white -
+   never the page - which is what turned it lavender in flight */
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:0;pointer-events:none;
+  background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
 /* the mark is a BUBBLE when the mode is on (user: «сделайте наш логотип бульбашкой»): the solid disc behind the X
    goes, the X floats in a ball of glass that bends the list under it and swells under the finger — and the drawer
@@ -1200,7 +1233,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{isolation:isolate;background:var(--info-glass);-webkit-backdrop-filter:blur(calc(5px * var(--lgb,1))) saturate(1.7);backdrop-filter:blur(calc(5px * var(--lgb,1))) saturate(1.7);border-radius:12px;text-shadow:var(--lg-text-shadow);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 @media (prefers-reduced-transparency:reduce){
-  :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs,:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo{-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 /* pressed, what is written on the glass does not ride the shell one to one: it lags a hair behind it, the way a
    thing seen through a moving pane does. --pcx/--pcy, a fraction of the shell's own lean (glassFrame) */
@@ -7083,7 +7116,12 @@ function navGo(i){
   // of those wrong: it is already open on the first frame, it peaks with the speed, and it lands at +47 %
   // instead of the reference's +25 %. .30 s plus .12 s a tab is its 780 ms for the full four.
   const right = i + .5 > (NB.a + NB.b) / 2;
-  const dur = 250 + 95 * Math.abs(i - NB.a), slow = dur * 1.1;   // measured: four tabs in 0.70 s on the reference, where ours took 0.88
+  // FASTER, and faster still when the taps come quickly (user 2026-09-25: «когда мы быстро тапаем … капелька
+  // быстрее двигалась, например от Рынки до Ещё»). A far jump used to cost 0.63 s whatever the finger was doing,
+  // so a quick run of taps queued up flight after flight behind the finger. Four tabs now take under half a second,
+  // one tab about a quarter, and a tap that lands while the drop is still in the air cuts the next flight by 30 %.
+  const hurry = NB.tw ? .7 : 1;
+  const dur = (200 + 55 * Math.abs(i - NB.a)) * hurry, slow = dur * 1.1;
   NB.tw = { t0: performance.now(), end: slow, da: right ? slow : dur, db: right ? dur : slow, a0: NB.a, b0: NB.b };
   navBubKick();
 }
@@ -7440,7 +7478,8 @@ function dropKey(bar){
 }
 function glassDrops(root){
   if(!glassOn("drops") || !root) return;
-  root.querySelectorAll(".subtabs, .seg").forEach(bar => {
+  subGlass(root.querySelector(".subtabs"));     // the top tabs have the bottom bar's drop now (subGlass)
+  root.querySelectorAll(".seg").forEach(bar => {
     const on = bar.querySelector(":scope > button.on");
     if(!on) return;
     const sub = bar.classList.contains("subtabs"), big = sub || bar.classList.contains("seg-drag");   // dragged with a big lens (the tab bar's drop)
@@ -7457,6 +7496,183 @@ function glassDrops(root){
     if(big) subDragBind(bar);
   });
   if(_drops.size && !_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+}
+/* THE TOP TABS, DRIVEN THE WAY THE BOTTOM BAR IS (user 2026-09-25: «то что мы сделали внизу, должно быть и
+   сверху … та же схема … кристальная чистота должна работать»). Everything the bottom bar learned carries over:
+   a timed flight on two edges, the trailing one a tenth slower, so the drop stretches and gathers; crystal while
+   it moves AND while a finger is on it, grey only once it has settled; the lens that bends and splits what is
+   under it and backs down to a tenth of itself at rest so the letters stand still; the blue carried as a window
+   through the drop; the capsule leaning after the finger. The one difference is geometry: these tabs are as
+   wide as their words, so it all runs in pixels off the buttons instead of in fifths of the bar. */
+const SB = { l: null, r: null, tl: 0, tr: 0, tw: null, drag: null, clear: 0, bx: 0, raf: 0, t: 0, pm: null, va: 0, vr: 0, wRest: 0, dms: null, dmB: null, lk: null };
+// where the drop sits on a tab: six pixels of air past the word on each side, as on the reference, where it
+// is wider than the label rather than pinched round it - but never past the capsule's own inner edge
+function subSpan(bar, b){
+  // CENTRED on the word, always. Clamping each end to the capsule separately left the first and last tabs
+  // lopsided - one pixel of air on the wall side and six on the other, which is what read as a broken drop.
+  // Where there is no room for the full six, it narrows by the same amount on both sides instead.
+  const c = b.offsetLeft + b.offsetWidth / 2;
+  const half = Math.min(b.offsetWidth / 2 + 6, c - 3, bar.clientWidth - 3 - c);
+  return { tl: c - half, tr: c + half };
+}
+function subTarget(bar){
+  const on = bar.querySelector(":scope > button.on");
+  return on ? subSpan(bar, on) : null;
+}
+function subKick(){ if(!SB.raf) SB.raf = requestAnimationFrame(subFrame); }
+function subGo(tl, tr){
+  if(SB.l == null){ SB.l = tl; SB.r = tr; SB.tl = tl; SB.tr = tr; SB.wRest = tr - tl; return; }
+  if(Math.abs(tl - SB.tl) < .5 && Math.abs(tr - SB.tr) < .5) return;
+  // the same curve and the same prices as the bottom bar: a far jump under half a second, a tap that lands
+  // while the drop is still in the air cutting the next flight by 30 %
+  const tabs = Math.abs((tl + tr) - (SB.l + SB.r)) / 2 / Math.max(40, tr - tl);
+  const right = tl + tr > SB.l + SB.r, hurry = SB.tw ? .7 : 1;
+  const dur = (200 + 55 * tabs) * hurry, slow = dur * 1.1;
+  SB.tl = tl; SB.tr = tr;
+  SB.tw = { t0: performance.now(), end: slow, dl: right ? slow : dur, dr: right ? dur : slow, l0: SB.l, r0: SB.r };
+  subKick();
+}
+function subLens(clear){
+  if(!SB.dms || !SB.dmB) return;
+  const k = .1 + .9 * Math.max(0, Math.min(1, clear));
+  if(SB.lk != null && Math.abs(SB.lk - k) < .004) return;
+  SB.lk = k;
+  for(let i = 0; i < SB.dms.length; i++) SB.dms[i].setAttribute("scale", (SB.dmB[i] * k).toFixed(2));
+}
+// the drop's box, the bottom bar's navBox in pixels: the stretch damped to what the reference does, a swell of
+// the height with it, and the blue window clipped to exactly that rounded rectangle
+function subApply(bar){
+  const wRest = Math.max(20, SB.wRest || (SB.tr - SB.tl));
+  const span = Math.max(1, (SB.r - SB.l) / wRest), mid = (SB.l + SB.r) / 2;
+  const w = wRest * (1 + (span - 1) * .45), left = mid - w / 2, sy = Math.min(1.45, 1 + (span - 1) * .85);
+  const W0 = bar._sw0 || 80, h = bar._sh || 30;
+  bar.style.setProperty("--sbl", left.toFixed(2) + "px");
+  bar.style.setProperty("--ssx", (w / W0).toFixed(4));
+  bar.style.setProperty("--ssy", sy.toFixed(4));
+  const red = bar.querySelector(":scope > .sub-red");
+  if(red){
+    const hh = h * sy, top = (bar.clientHeight - hh) / 2;
+    // a pure length for the radius: a percentage there resolves per axis and comes out square
+    const cp = "inset(" + top.toFixed(2) + "px " + (bar.clientWidth - left - w).toFixed(2) + "px " + top.toFixed(2) + "px " + left.toFixed(2) + "px round " + (hh / 2).toFixed(2) + "px)";
+    if(red._cp !== cp){ red._cp = cp; red.style.clipPath = cp; red.style.webkitClipPath = cp; }
+  }
+}
+function subFrame(now){
+  SB.raf = 0;
+  const bar = document.querySelector(".subtabs");
+  if(!bar || !glassOn("drops") || SB.l == null){ SB.t = 0; return; }
+  const dt = SB.t ? Math.min(Math.max((now - SB.t) / 1000, 0), 1 / 30) : MO.dt0;
+  SB.t = now;
+  if(SB.drag){                                   // under a finger: soft springs toward it, the back one slower
+    const d = SB.drag, right = d.tl + d.tr > SB.l + SB.r;
+    SB.va = MO.sp(SB.va, SB.l, d.tl, right ? MO.P.trailDrag : MO.P.leadDrag, dt); SB.l += SB.va * dt;
+    SB.vr = MO.sp(SB.vr, SB.r, d.tr, right ? MO.P.leadDrag : MO.P.trailDrag, dt); SB.r += SB.vr * dt;
+    SB.wRest = d.tr - d.tl; SB.tw = null;
+  }else if(SB.tw){                               // in flight: the curve, not a spring
+    const w = SB.tw, e = now - w.t0, pa = navEase(e / w.dl), pb = navEase(e / w.dr), pm = (pa + pb) / 2;
+    SB.l = w.l0 + (SB.tl - w.l0) * pa; SB.r = w.r0 + (SB.tr - w.r0) * pb;
+    // the width it WOULD have at this point with no stretch, so a narrow tab heading for a wide one does not
+    // read the change of width as a stretch
+    SB.wRest = (w.r0 + (SB.tr - w.r0) * pm) - (w.l0 + (SB.tl - w.l0) * pm);
+    SB.va = SB.vr = 0;
+    if(e >= w.end){ SB.l = SB.tl; SB.r = SB.tr; SB.tw = null; SB.wRest = SB.tr - SB.tl; }
+  }else{ SB.l = SB.tl; SB.r = SB.tr; SB.wRest = SB.tr - SB.tl; SB.va = SB.vr = 0; }
+  if(SB.r - SB.l < 12) SB.r = SB.l + 12;
+  const mid = (SB.l + SB.r) / 2, vmid = SB.pm != null && dt > 0 ? (mid - SB.pm) / dt : 0;
+  SB.pm = mid;
+  // crystal while it moves or a finger is on it, grey again an eighth of a second after it lands
+  const want = SB.drag ? 1 : Math.min(1, Math.abs(vmid) / 160);
+  SB.clear += (want - SB.clear) * (1 - Math.exp(-dt / (want > SB.clear ? .05 : .07)));
+  bar.style.setProperty("--sdk", (1 - SB.clear).toFixed(3));
+  // the capsule leans after the finger - where it has got to, held there - or after the drop's speed on a tap
+  const tabW = Math.max(40, SB.tr - SB.tl);
+  const bxT = SB.drag ? clamp((SB.drag.x - SB.drag.x0) / tabW * 7, -8, 8) : clamp(vmid / tabW * .70, -6, 6);
+  SB.bx += (bxT - SB.bx) * (1 - Math.exp(-dt / .16));
+  bar.style.setProperty("--sbx", SB.bx.toFixed(2) + "px");
+  subApply(bar);
+  subLens(SB.clear);
+  if(!SB.drag && !SB.tw && SB.clear < .01 && Math.abs(SB.bx) < .05){
+    SB.clear = 0; SB.bx = 0; SB.pm = null; SB.t = 0;
+    bar.style.setProperty("--sdk", "1"); bar.style.setProperty("--sbx", "0px");
+    subApply(bar); subLens(0);
+    return;
+  }
+  SB.raf = requestAnimationFrame(subFrame);
+}
+// every render builds a new bar; the drop's state lives on in SB, so it flies on from wherever it was
+function subGlass(bar){
+  if(!bar || !glassOn("drops")) return;
+  const t = subTarget(bar); if(!t) return;
+  let bub = bar.querySelector(":scope > .sub-bub");
+  if(!bub){ bub = document.createElement("span"); bub.className = "sub-bub"; bar.insertBefore(bub, bar.firstChild); }
+  let red = bar.querySelector(":scope > .sub-red");
+  if(!red){ red = document.createElement("span"); red.className = "sub-red"; red.setAttribute("aria-hidden", "true"); red.inert = true; bar.insertBefore(red, bub); }
+  // the accent copy: the very same buttons - same classes, same padding, same count badges - so it lays out
+  // exactly over the row; no data, no ids, no focus
+  red.innerHTML = [...bar.querySelectorAll(":scope > button")].map(b => {
+    const c = b.cloneNode(true); c.removeAttribute("data-sub"); c.tabIndex = -1; c.classList.remove("on", "near");
+    c.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
+    return c.outerHTML;
+  }).join("");
+  const W0 = Math.max(40, Math.round(bar.clientWidth / 4)), h = Math.max(12, bar.clientHeight - 12);
+  bar._sw0 = W0; bar._sh = h;
+  bar.style.setProperty("--sw0", W0 + "px"); bar.style.setProperty("--sh", h + "px");
+  // the lens, drawn once for the box's own size (a backdrop filter runs before the transform); a strength the
+  // bottom bar does not use, so the two drops can never end up sharing one filter and each other's settings
+  // scaled to the drop: this one is 30 px tall against the bottom one's 51, and the same bend pulled its letters
+  // about twice as hard. Seven, and a band of eight, is the bottom drop's lens at this size.
+  lgGlass(bub, W0, h, 7, .12, false, true, 0, -8, true);
+  const fid = bub._lg && bub._lg.indexOf("#") > 0 ? bub._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
+  const flt = fid && document.getElementById(fid);
+  SB.dms = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
+  SB.dmB = SB.dms ? SB.dms.map(d => +lgDmScale(d)) : null; SB.lk = null;
+  subGo(t.tl, t.tr);
+  bar.style.setProperty("--sdk", (1 - SB.clear).toFixed(3));
+  bar.style.setProperty("--sbx", SB.bx.toFixed(2) + "px");
+  subApply(bar); subLens(SB.clear);
+  subBind(bar);
+  if(SB.tw || SB.drag || SB.clear > .01 || Math.abs(SB.bx) > .05) subKick();
+}
+// the finger: the drop follows it while it is down and the tab under it opens when it lifts
+function subBind(bar){
+  if(bar._sbBound) return;
+  bar._sbBound = true;
+  const btns = () => [...bar.querySelectorAll(":scope > button")];
+  const near = x => {
+    const r = bar.getBoundingClientRect(), lx = x - r.left;
+    let best = null, bd = 1e9;
+    for(const b of btns()){ const d = Math.abs(lx - (b.offsetLeft + b.offsetWidth / 2)); if(d < bd){ bd = d; best = b; } }
+    return { b: best, lx };
+  };
+  const aim = x => {
+    const d = SB.drag, h = near(x); if(!d || !h.b) return;
+    const bs = btns(), f = bs[0], l = bs[bs.length - 1], sp = subSpan(bar, h.b), w = sp.tr - sp.tl;
+    const c0 = f.offsetLeft + f.offsetWidth / 2, c1 = l.offsetLeft + l.offsetWidth / 2;   // past the ends: a rubber band
+    const cx = h.lx < c0 ? c0 - 9 * Math.tanh((c0 - h.lx) / 24) : h.lx > c1 ? c1 + 9 * Math.tanh((h.lx - c1) / 24) : h.lx;
+    d.tl = cx - w / 2; d.tr = cx + w / 2; d.x = x;
+  };
+  bar.addEventListener("pointerdown", e => {
+    if(!glassOn("drops") || e.button > 0 || SB.l == null) return;
+    SB.drag = { id: e.pointerId, x0: e.clientX, x: e.clientX, tl: SB.tl, tr: SB.tr };
+    try{ bar.setPointerCapture(e.pointerId); }catch(_){}
+    aim(e.clientX); subKick();
+  });
+  bar.addEventListener("pointermove", e => { const d = SB.drag; if(d && e.pointerId === d.id) aim(e.clientX); });
+  const end = (e, go) => {
+    const d = SB.drag; if(!d || e.pointerId !== d.id) return;
+    SB.drag = null;
+    _subByDrag = performance.now();              // the click that follows is ours already
+    const h = near(e.clientX), on = bar.querySelector(":scope > button.on");
+    if(go && h.b && h.b !== on){
+      const sp = subSpan(bar, h.b); subGo(sp.tl, sp.tr);
+      S.ui.subtab = h.b.dataset.sub; render(); save();
+      return;
+    }
+    const t = subTarget(bar); if(t){ SB.tl = NaN; subGo(t.tl, t.tr); }
+    subKick();
+  };
+  bar.addEventListener("pointerup", e => end(e, true));
+  bar.addEventListener("pointercancel", e => end(e, false));
 }
 /* SUBTABS under a finger, like the tab bar (user: «водить пальцем можно было как это в рынки, графики…»): the
    drop lifts into a lens and follows the finger, the tab under it tints; let go, the tab beneath opens and the
@@ -9592,6 +9808,7 @@ const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .20) : dm._s * LGQ.r 
 function lgScaleAll(){
   for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
   if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
+  if(typeof SB !== "undefined" && SB.dms){ SB.dmB = SB.dms.map(d => +d.getAttribute("scale")); SB.lk = null; subLens(SB.clear); }
 }
 function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
@@ -9626,11 +9843,18 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
     // go. I had this the other way round and argued for it in a comment; what I was reading as a magenta flank
     // outside the drop is a fast drop smearing in a twenty-frame recording.
     dm(-1, "dr"); dm(0, "dg"); dm(1, "db");
-    el("feColorMatrix", { in: "dr", type: "matrix", values: "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "r" });
+    // NO CHANNEL SPEAKS ALONE. Inside a backdrop root (the bar is one - it has its own backdrop-filter) anything
+    // past the root's box reads as nothing, and a swollen drop's red pass samples out there first. Summed by
+    // alpha, red-reads-nothing + blue-reads-white came out pure blue. Red and blue fall back on green where
+    // they read nothing, and the result is cut to green's alpha, so a hole is a hole in every channel at once.
+    el("feComposite", { in: "dr", in2: "dg", operator: "over", result: "dr2" });
+    el("feComposite", { in: "db", in2: "dg", operator: "over", result: "db2" });
+    el("feColorMatrix", { in: "dr2", type: "matrix", values: "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "r" });
     el("feColorMatrix", { in: "dg", type: "matrix", values: "0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0", result: "g" });
-    el("feColorMatrix", { in: "db", type: "matrix", values: "0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "b" });
+    el("feColorMatrix", { in: "db2", type: "matrix", values: "0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "b" });
     el("feComposite", { in: "r", in2: "g", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rg" });
-    el("feComposite", { in: "rg", in2: "b", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0 });
+    el("feComposite", { in: "rg", in2: "b", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rgb" });
+    el("feComposite", { in: "rgb", in2: "dg", operator: "in" });
   }
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
