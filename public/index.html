@@ -1380,22 +1380,6 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .disp-ok{font-size:13px;font-weight:600;color:var(--green)}
 .disp-bad{font-size:13px;line-height:1.35;color:var(--red);margin-top:4px}
 .disp-go{margin-top:8px;padding:9px}
-/* the edge's own rainbow while something moves under it (the user's video, 8.1 s: a line of colour runs along the
-   moving edge, over flat teal too). Nothing at rest - its opacity is the motion's, written a frame at a time, and
-   its colours run along the edge with the page (background-position) */
-/* ONE edge only, and not round the ends (user: «По краям не должно работать», then «Наоборот вниз надо»): the ring
-   is cut to its BOTTOM (--rim-v) - where the page comes in under the glass as it scrolls down - and faded out before
-   the rounded ends (the first mask), so it is a line along the bottom of the glass, never an outline. «Верхний край
-   вместо нижнего» (.top) flips it. (Ring = the box minus its content; then only its bottom; then not its ends.) */
-.disp-rim{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;padding:2px;box-sizing:border-box;z-index:1;
-  --rim-v:linear-gradient(transparent 62%,#000 82%);
-  --rim-h:linear-gradient(90deg,transparent min(6px,12%),#000 min(20px,32%),#000 calc(100% - min(20px,32%)),transparent calc(100% - min(6px,12%)));
-  background:linear-gradient(90deg,#ff2d95,#ff9f1a,#ffe14d,#34e07c,#1fb6ff,#7a5cff,#ff2d95) 0 0/220px 100% repeat-x;
-  -webkit-mask:var(--rim-h),var(--rim-v),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:source-in,source-in,xor;
-  mask:var(--rim-h),var(--rim-v),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  mask-composite:intersect,intersect,exclude}
-.disp-rim.top{--rim-v:linear-gradient(#000 0 18%,transparent 38%)}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
@@ -2356,10 +2340,10 @@ const I18N = {
 "радуга":["rainbow","веселка","arc-en-ciel","gökkuşağı"],
 "Проверка на этом устройстве":["Check on this device","Перевірка на цьому пристрої","Vérification sur cet appareil","Bu cihazda kontrol"],
 "Всё включено — радуга должна работать на странице":["All on — the rainbow should work on the page","Усе ввімкнено — веселка має працювати на сторінці","Tout est activé — l’arc-en-ciel doit fonctionner sur la page","Her şey açık — gökkuşağı sayfada çalışmalı"],
-"Этот браузер не преломляет стекло — на странице будет только радужная кромка":["This browser cannot refract the glass — the page gets only the rainbow edge","Цей браузер не заломлює скло — на сторінці буде лише райдужна кромка","Ce navigateur ne réfracte pas le verre — la page n’aura que le bord arc-en-ciel","Bu tarayıcı camı kırmıyor — sayfada yalnızca gökkuşağı kenarı olur"],
-"Выключено «Преломление по краям» — цвета не расходятся, будет только радужная кромка":["“Edge refraction” is off — the colours do not split, only the rainbow edge shows","Вимкнено «Заломлення по краях» — кольори не розходяться, буде лише райдужна кромка","« Réfraction des bords » est désactivée — les couleurs ne se séparent pas, seul le bord arc-en-ciel s’affiche","“Kenar kırılması” kapalı — renkler ayrılmaz, yalnızca gökkuşağı kenarı görünür"],
-"Выключены «Верхние капсулы» — на вкладках и заголовке будет только радужная кромка":["“Top capsules” are off — the tabs and the title get only the rainbow edge","Вимкнено «Верхні капсули» — на вкладках і заголовку буде лише райдужна кромка","« Capsules du haut » désactivées — les onglets et le titre n’auront que le bord arc-en-ciel","“Üst kapsüller” kapalı — sekmelerde ve başlıkta yalnızca gökkuşağı kenarı olur"],
-"Выключена «Кнопка «Новый ордер»» — на ней будет только радужная кромка":["The “New Order” button glass is off — it gets only the rainbow edge","Вимкнено «Кнопка «Новий ордер»» — на ній буде лише райдужна кромка","Le verre du bouton « Nouvel ordre » est désactivé — il n’aura que le bord arc-en-ciel","“Yeni Emir” düğmesi camı kapalı — üzerinde yalnızca gökkuşağı kenarı olur"],
+"Этот браузер не преломляет стекло — радуги не будет":["This browser cannot refract the glass — no rainbow","Цей браузер не заломлює скло — веселки не буде","Ce navigateur ne réfracte pas le verre — pas d’arc-en-ciel","Bu tarayıcı camı kırmıyor — gökkuşağı olmaz"],
+"Выключено «Преломление по краям» — радуги не будет":["“Edge refraction” is off — no rainbow","Вимкнено «Заломлення по краях» — веселки не буде","« Réfraction des bords » est désactivée — pas d’arc-en-ciel","“Kenar kırılması” kapalı — gökkuşağı olmaz"],
+"Выключены «Верхние капсулы» — на вкладках и заголовке радуги не будет":["“Top capsules” are off — no rainbow on the tabs and the title","Вимкнено «Верхні капсули» — на вкладках і заголовку веселки не буде","« Capsules du haut » désactivées — pas d’arc-en-ciel sur les onglets et le titre","“Üst kapsüller” kapalı — sekmelerde ve başlıkta gökkuşağı olmaz"],
+"Выключена «Кнопка «Новый ордер»» — на ней радуги не будет":["The “New Order” button glass is off — no rainbow on it","Вимкнено «Кнопка «Новий ордер»» — на ній веселки не буде","Le verre du bouton « Nouvel ordre » est désactivé — pas d’arc-en-ciel dessus","“Yeni Emir” düğmesi camı kapalı — üzerinde gökkuşağı olmaz"],
 "Открыть настройки стекла":["Open glass settings","Відкрити налаштування скла","Ouvrir les réglages du verre","Cam ayarlarını aç"],
 "Верхний край вместо нижнего":["Top edge instead of bottom","Верхній край замість нижнього","Bord supérieur au lieu de l’inférieur","Alt yerine üst kenar"],
 "Радужная кромка в движении":["Rainbow edge in motion","Райдужна кромка в русі","Bord arc-en-ciel en mouvement","Hareket halinde gökkuşağı kenarı"],
@@ -5205,11 +5189,11 @@ function openGlassSheet(){
 // what on THIS device keeps the colour split off the page (the rainbow line shows regardless) - each with a way there
 function dispChecks(){
   const out = [];
-  if(!LG_LENS) out.push("Этот браузер не преломляет стекло — на странице будет только радужная кромка");
-  else if(!glassOn("refract")) out.push("Выключено «Преломление по краям» — цвета не расходятся, будет только радужная кромка");
+  if(!LG_LENS) out.push("Этот браузер не преломляет стекло — радуги не будет");
+  else if(!glassOn("refract")) out.push("Выключено «Преломление по краям» — радуги не будет");
   else{
-    if(!glassOn("headers")) out.push("Выключены «Верхние капсулы» — на вкладках и заголовке будет только радужная кромка");
-    if(!glassOn("newbtn")) out.push("Выключена «Кнопка «Новый ордер»» — на ней будет только радужная кромка");
+    if(!glassOn("headers")) out.push("Выключены «Верхние капсулы» — на вкладках и заголовке радуги не будет");
+    if(!glassOn("newbtn")) out.push("Выключена «Кнопка «Новый ордер»» — на ней радуги не будет");
   }
   if(!out.length) return `<div class="disp-ok">✓ ${L("Всё включено — радуга должна работать на странице")}</div>`;
   return out.map(t => `<div class="disp-bad">${L(t)}</div>`).join("") +
@@ -5243,7 +5227,7 @@ function openDispSheet(){
   // the sample's glass: the tab capsule's own (crystal, bent at the rim), laid once the sheet has its size. It obeys
   // «Преломление по краям» as the page does - a sample that splits while the page cannot was the lie behind "it
   // worked, then it went off" - and its rainbow line, like the page's, needs no lens at all
-  if(lens) requestAnimationFrame(() => { if(lens.isConnected && lens.offsetWidth) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, undefined, 16, glassOn("refract"), false); dispAttach(m); });
+  if(lens) requestAnimationFrame(() => { if(lens.isConnected && lens.offsetWidth) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, undefined, 16, glassOn("refract"), false); });
   m.querySelectorAll("[data-disp-glass]").forEach(b => b.onclick = openGlassSheet);
   const play = m.querySelector("[data-disp-play]");
   if(play && sc) play.onclick = () => {
@@ -5512,7 +5496,6 @@ function render(){
   if(t === "markets" && S.ui.marketOpen && S.ui.subtab === "overview") drawMini();
   if(t === "dom") drawDOMCanvasMaybe();
   runTitles();
-  dispAttach(app());                                               // the rainbow lines on their places (no lens needed)
   if(_navDir){ const d = _navDir; _navDir = 0; navEnter(d); }     // last, so every measurement above saw the screen at rest
 }
 
@@ -9990,6 +9973,45 @@ function lgMap(w, h, rad, rim){
   _lgMaps.set(key, url);
   return url;
 }
+/* THE MAP OF A MOVING EDGE, for «Дисперсия» (user 2026-09-25: «не такой перелом как на видео, нужно что бы радуга
+   чувствовалась со стеклом, а не просто её анимация … на видео она не менялась как RGB»). On the video the moving
+   edge DRAGS what is under it - the status icons and the Health heart pulled out like taffy toward it - and the
+   colours come apart ACROSS the edge, a prism's order, standing still along it. So while the page scrolls the lens
+   blends from its resting map into this one: the same rim, plus a zone over the leading half of the glass that
+   pulls the page in from further inside, harder toward the edge (and fading out before the rounded ends - «по
+   краям не должно»). Its blue channel, free (the bend reads red and green), carries the glass's own bright edge: a
+   thin line just inside the leading edge, which the filter splits into red, green and blue by the motion.
+   edge: "b" the bottom (the page comes in there as it scrolls down), "t" the top. */
+function lgMotionMap(w, h, rad, rim, edge){
+  const key = "M" + w + "x" + h + (rad ? "r" + rad : "") + "b" + rim + edge;
+  if(_lgMaps.has(key)) return _lgMaps.get(key);
+  const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = Math.abs(rim) || 6, Z = h * .55;
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
+    const dx = cx - px, dy = cy - py, dist = Math.hypot(dx, dy), edg = r - dist;
+    let mx = 0, my = 0;
+    if(dist > 0){                                                  // the resting rim, as lgMap draws it
+      const t = edg < BAND ? 1 - Math.max(edg, 0) / BAND : 0;
+      const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;
+      mx = dx / dist * wall; my = dy / dist * wall;
+    }
+    const fe = Math.min(1, Math.min(px, w - px) / r), fs = fe * fe * (3 - 2 * fe);   // 0 at the rounded ends
+    const lead = edge === "t" ? Z - py : py - (h - Z);               // how far into the leading zone
+    if(lead > 0){ const t = lead / Z; my += (edge === "t" ? 1 : -1) * .95 * t * t * fs; }   // pull the page in from inside
+    const mm = Math.hypot(mx, my);
+    if(mm > 1){ mx /= mm; my /= mm; }
+    const dd = edge === "t" ? py : h - py;                           // the bright edge: 3 px inside the leading edge
+    const hl = Math.exp(-((dd - 2.6) * (dd - 2.6)) / 2.4) * fs;
+    const i = (y * w + x) * 4;
+    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = Math.round(255 * hl); d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const url = cv.toDataURL();
+  _lgMaps.set(key, url);
+  return url;
+}
 // its bend right now: the clarity scales it (0 at the least glass, ×2.3 crystal); with colour fringes the three
 // channels bend a little apart (blue most, like a real lens)
 // a FIXED bend (one that does not follow the clarity slider) still splits the channels: the reference's drop
@@ -10004,10 +10026,11 @@ function lgScaleAll(){
   // and the two rainbow panels close their colour back up, or a move of the slider would leave it split at rest
   if(typeof _lgRain !== "undefined") for(const el of _lgRain){ if(el._rdm){ for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract); lgRainApply(el); } }
 }
-function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
+function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
+  if(!chroma) disp = "";
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "") + (disp ? "d" + disp : "");
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -10019,7 +10042,13 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
-  el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  if(disp){
+    // «Дисперсия»: the resting map and the moving edge's map, blended by the motion a frame at a time (k2 / k3)
+    el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m0" });
+    el("feImage", { href: lgMotionMap(w, h, rad, rim, disp), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m1" });
+    fl._mix = el("feComposite", { in: "m0", in2: "m1", operator: "arithmetic", k1: 0, k2: 1, k3: 0, k4: 0, result: "m" });
+    fl._edge = disp;
+  }else el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
   // the rim-only lenses (the iOS glass) split their colour wider than the tab drops do: on the video the edge
   // squeezes what is under it into a line and fans it out into a plain rainbow
   const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : null; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
@@ -10050,7 +10079,26 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
     el("feColorMatrix", { in: "db2", type: "matrix", values: "0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "b" });
     el("feComposite", { in: "r", in2: "g", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rg" });
     el("feComposite", { in: "rg", in2: "b", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rgb" });
-    el("feComposite", { in: "rgb", in2: "dg", operator: "in" });
+    el("feComposite", disp ? { in: "rgb", in2: "dg", operator: "in", result: "gl" } : { in: "rgb", in2: "dg", operator: "in" });
+    if(disp){
+      // THE GLASS'S OWN BRIGHT EDGE, split like light through a prism: the map's blue channel is a thin line just
+      // inside the leading edge; it is drawn three times - red, green, blue - and the red and the blue slide apart
+      // across the edge by the motion. Where the three still overlap it is white; apart they make red, yellow,
+      // green, cyan, blue in that order, standing still along the edge (nothing runs along it: «не как RGB»).
+      const line = (vals, res) => el("feColorMatrix", { in: "m1", type: "matrix", values: vals, result: res });
+      // not pure primaries - three pure lines read as an RGB strip; these sum to white and part into warm and cool
+      line("0 0 0 0 1 0 0 0 0 .38 0 0 0 0 .28 0 0 1 0 0", "hr0");
+      line("0 0 0 0 .3 0 0 0 0 1 0 0 0 0 .42 0 0 1 0 0", "hg");
+      line("0 0 0 0 .3 0 0 0 0 .45 0 0 0 0 1 0 0 1 0 0", "hb0");
+      const oR = el("feOffset", { in: "hr0", dx: 0, dy: 0, result: "hr" }), oB = el("feOffset", { in: "hb0", dx: 0, dy: 0, result: "hb" });
+      el("feComposite", { in: "hr", in2: "hg", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "hrg" });
+      el("feComposite", { in: "hrg", in2: "hb", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "hl0" });
+      el("feGaussianBlur", { in: "hl0", stdDeviation: .8, result: "hl1" });
+      const ct = el("feComponentTransfer", { in: "hl1", result: "hl" });
+      const fa = document.createElementNS(NS, "feFuncA"); fa.setAttribute("type", "linear"); fa.setAttribute("slope", "0"); ct.appendChild(fa);
+      el("feComposite", { in: "hl", in2: "gl", operator: "over" });
+      fl._ofs = [oR, oB]; fl._ha = fa;
+    }
   }
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
@@ -10096,10 +10144,10 @@ function dispWants(el){ const p = DISP.on && dispPlace(el); return !!p && (p ===
    a line of rainbow, over flat teal too (8.1 s). At rest none of it: the same crystal as before.
    So, at full motion and the middle of «Сила»: the rim's bend grows by 80 % and the three passes fan ±120 % of the
    resting bend - on the tab capsule red and blue land about ten pixels apart at the rim; the title and «‹» take
-   60 % of it («чуть-чуть»). The edge's own line is .disp-rim, faded in by the same motion. */
+   60 % of it («чуть-чуть»). The edge's own bright line is drawn inside the lens (lgFilterId, lgMotionMap). */
 function dispMotion(p){
   const f = DISP.str / 50, h = p === "head" ? .6 : 1;
-  return { bd: Math.min(1.2, .8 * f) * h, sp: 1.2 * f * h };
+  return { bd: Math.min(1.2, .8 * f) * h, sp: .35 * f * h };
 }
 const dispVFull = () => 2400 * Math.pow(2, -DISP.sens / 25);   // px/s of scroll that fans it fully: 600 at the middle
 const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close back up: 0.16 at the middle
@@ -10112,28 +10160,16 @@ function lgRainApply(el){
   if(!el._rdm) return;
   const m = dispMotion(el._dispP), k = _rainK;
   for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + k * (m.bd + d._c * m.sp))).toFixed(2));
-}
-/* THE EDGE'S OWN RAINBOW LINE (.disp-rim) needs no lens: it is plain CSS, so it goes on its place whatever the glass
-   settings switch off and whatever the browser can do - the colour split needs the lens, the line does not. It used to
-   hang off the lens, and a phone on which the lens was not laid (a glass feature off, a browser without it) got
-   nothing at all while the settings sheet's sample, whose lens is forced, showed it: "it worked, then it went off".
-   Laid after every render (dispAttach), faded by the same motion. */
-const DISP_HOSTS = [[".subtabs", "tabs"], [".bignew, .fabnew", "order"], [".appbar .ttl, .appbar .iconbtn", "head"], [".disp-lens", "demo"]];
-const _dispRims = new Set();
-function dispRimApply(r){
-  const k = _rainK;
-  r.style.opacity = (k * Math.min(1, .45 + .4 * DISP.str / 50)).toFixed(3);
-  if(k > 0) r.style.backgroundPositionX = (-rainTop() * .7).toFixed(1) + "px";   // the colours run along the edge as the page does
-}
-function dispAttach(root){
-  for(const [sel, p] of DISP_HOSTS) (root || document).querySelectorAll(sel).forEach(el => {
-    const want = glassOn() && DISP.on && DISP.rim && (p === "demo" || !!DISP[p]);
-    let r = el.querySelector(":scope > .disp-rim");
-    if(!want){ if(r){ r.remove(); _dispRims.delete(r); } return; }
-    if(!r){ r = document.createElement("i"); r.className = "disp-rim"; r.setAttribute("aria-hidden", "true"); el.appendChild(r); }
-    r.classList.toggle("top", !!DISP.top);
-    _dispRims.add(r); dispRimApply(r);
-  });
+  const f = el._flt;
+  if(!f) return;
+  // the moving edge's map comes in with the motion
+  if(f._mix){ f._mix.setAttribute("k2", (1 - k).toFixed(3)); f._mix.setAttribute("k3", k.toFixed(3)); }
+  // the bright edge: red slides out past it, blue in from it, by the motion; the title and «‹» a little less
+  if(f._ofs){
+    const s = (.25 + 1.25 * k * Math.min(1.6, DISP.str / 50)) * (el._dispP === "head" ? .7 : 1), out = f._edge === "t" ? -1 : 1;
+    f._ofs[0].setAttribute("dy", (out * s * .8).toFixed(2)); f._ofs[1].setAttribute("dy", (-out * s * 1.2).toFixed(2));
+  }
+  if(f._ha) f._ha.setAttribute("slope", (DISP.rim ? k * Math.min(.9, .35 + .3 * DISP.str / 50) * (el._dispP === "head" ? .75 : 1) : 0).toFixed(3));
 }
 // the settings sheet's live readout: what the engine hears on THIS device, as it hears it
 let _dispLiveT = 0;
@@ -10152,7 +10188,7 @@ function lgRainBind(el){
   el._rdm = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
   if(!el._rdm) return;
   for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract);
-  el._dispP = dispPlace(el);
+  el._dispP = dispPlace(el); el._flt = flt;
   _lgRain.add(el); lgRainApply(el);
 }
 /* THE SPEED COMES FROM THE SCROLL EVENTS THEMSELVES - where the page is and when (user's video 2026-09-25: the
@@ -10179,12 +10215,11 @@ function rainFrame(now){
 }
 function rainAll(){
   for(const el of _lgRain){ if(!el.isConnected){ _lgRain.delete(el); continue; } lgRainApply(el); }
-  for(const r of _dispRims){ if(!r.isConnected){ _dispRims.delete(r); continue; } dispRimApply(r); }
 }
 // ANY scroll moves what is under the glass - the page, and the ones that scroll inside themselves (the wallet, the
 // sample on the settings sheet): caught on the way down. A sheet scrolling carries its own glass with it, so not that.
 document.addEventListener("scroll", e => {
-  if(!_lgRain.size && !_dispRims.size) return;
+  if(!_lgRain.size) return;
   const t = e.target, src = !t || t === document || t === document.documentElement || t === document.body ? document : t;
   if(src !== document && src.matches && src.matches(".sheet")) return;
   if(src !== _rainSrc){ _rainSrc = src; _rainLastY = null; }
@@ -10198,7 +10233,7 @@ document.addEventListener("scroll", e => {
 }, { capture: true, passive: true });
 // a setting changed: every lens asks again whether it splits (hard), and every split takes the new strength
 function dispApply(hard){
-  if(hard){ lgRefresh(); dispAttach(); }
+  if(hard) lgRefresh();
   lgScaleAll();
 }
 // no colour fringes any more: a channel-split lens darkened what it sat on inside a see-through sheet (the slider
@@ -10228,7 +10263,7 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
     ios = true;
     fixed = true;                                // the strength is the size's, so the clarity must not rescale it
   }
-  const f = "url(#" + lgFilterId(w, h, sc, ch, fixed, rad, rm) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
+  const f = "url(#" + lgFilterId(w, h, sc, ch, fixed, rad, rm, ch && ios ? (DISP.top ? "t" : "b") : "") + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
