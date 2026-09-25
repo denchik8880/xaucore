@@ -1383,19 +1383,19 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 /* the edge's own rainbow while something moves under it (the user's video, 8.1 s: a line of colour runs along the
    moving edge, over flat teal too). Nothing at rest - its opacity is the motion's, written a frame at a time, and
    its colours run along the edge with the page (background-position) */
-/* ONE edge only, and not round the ends (user: «По краям не должно работать» → «Только верхний край»): the ring is
-   cut to its top (--rim-v) and faded out before the rounded ends (the first mask), so it is a line along the top
-   of the glass, never an outline. «Нижний край вместо верхнего» (.bot) flips it to the bottom.
-   (Ring = the box minus its content; then only its top; then not its ends.) */
+/* ONE edge only, and not round the ends (user: «По краям не должно работать», then «Наоборот вниз надо»): the ring
+   is cut to its BOTTOM (--rim-v) - where the page comes in under the glass as it scrolls down - and faded out before
+   the rounded ends (the first mask), so it is a line along the bottom of the glass, never an outline. «Верхний край
+   вместо нижнего» (.top) flips it. (Ring = the box minus its content; then only its bottom; then not its ends.) */
 .disp-rim{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;padding:2px;box-sizing:border-box;z-index:1;
-  --rim-v:linear-gradient(#000 0 18%,transparent 38%);
+  --rim-v:linear-gradient(transparent 62%,#000 82%);
   --rim-h:linear-gradient(90deg,transparent min(6px,12%),#000 min(20px,32%),#000 calc(100% - min(20px,32%)),transparent calc(100% - min(6px,12%)));
   background:linear-gradient(90deg,#ff2d95,#ff9f1a,#ffe14d,#34e07c,#1fb6ff,#7a5cff,#ff2d95) 0 0/220px 100% repeat-x;
   -webkit-mask:var(--rim-h),var(--rim-v),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:source-in,source-in,xor;
   mask:var(--rim-h),var(--rim-v),linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask-composite:intersect,intersect,exclude}
-.disp-rim.bot{--rim-v:linear-gradient(transparent 62%,#000 82%)}
+.disp-rim.top{--rim-v:linear-gradient(#000 0 18%,transparent 38%)}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
@@ -2361,7 +2361,7 @@ const I18N = {
 "Выключены «Верхние капсулы» — на вкладках и заголовке будет только радужная кромка":["“Top capsules” are off — the tabs and the title get only the rainbow edge","Вимкнено «Верхні капсули» — на вкладках і заголовку буде лише райдужна кромка","« Capsules du haut » désactivées — les onglets et le titre n’auront que le bord arc-en-ciel","“Üst kapsüller” kapalı — sekmelerde ve başlıkta yalnızca gökkuşağı kenarı olur"],
 "Выключена «Кнопка «Новый ордер»» — на ней будет только радужная кромка":["The “New Order” button glass is off — it gets only the rainbow edge","Вимкнено «Кнопка «Новий ордер»» — на ній буде лише райдужна кромка","Le verre du bouton « Nouvel ordre » est désactivé — il n’aura que le bord arc-en-ciel","“Yeni Emir” düğmesi camı kapalı — üzerinde yalnızca gökkuşağı kenarı olur"],
 "Открыть настройки стекла":["Open glass settings","Відкрити налаштування скла","Ouvrir les réglages du verre","Cam ayarlarını aç"],
-"Нижний край вместо верхнего":["Bottom edge instead of top","Нижній край замість верхнього","Bord inférieur au lieu du supérieur","Üst yerine alt kenar"],
+"Верхний край вместо нижнего":["Top edge instead of bottom","Верхній край замість нижнього","Bord supérieur au lieu de l’inférieur","Alt yerine üst kenar"],
 "Радужная кромка в движении":["Rainbow edge in motion","Райдужна кромка в русі","Bord arc-en-ciel en mouvement","Hareket halinde gökkuşağı kenarı"],
 "Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
 "Пункты":["Pips","Пункти","Pips","Pip"],
@@ -5236,7 +5236,7 @@ function openDispSheet(){
     `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
     `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
       dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
-    `</div><div class="lgf-list">${sw("data-disp-rimsw", DISP.rim, "Радужная кромка в движении")}${sw("data-disp-botsw", DISP.bottom, "Нижний край вместо верхнего")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
+    `</div><div class="lgf-list">${sw("data-disp-rimsw", DISP.rim, "Радужная кромка в движении")}${sw("data-disp-topsw", DISP.top, "Верхний край вместо нижнего")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
   const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
@@ -5278,8 +5278,8 @@ function openDispSheet(){
   m.querySelectorAll("[data-disp-at]").forEach(b => flip(b, on => { DISP[b.dataset.dispAt] = on; }));
   const rsw = m.querySelector("[data-disp-rimsw]");
   if(rsw) flip(rsw, on => { DISP.rim = on; });
-  const bsw = m.querySelector("[data-disp-botsw]");
-  if(bsw) flip(bsw, on => { DISP.bottom = on; });
+  const tsw = m.querySelector("[data-disp-topsw]");
+  if(tsw) flip(tsw, on => { DISP.top = on; });
   const rs = m.querySelector("[data-disp-reset]");
   if(rs) rs.onclick = () => {
     Object.assign(DISP, DISP0); dispSave(); dispApply(true);
@@ -10067,7 +10067,7 @@ const _lgEls = new Set();
    Android Chrome rounds its memory DOWN to a power of two, so a 3 GB phone reads as 2), and every path that laid a
    lens again - a press on «Новый ордер» or «‹», a resize when the address bar slides away - forgot that colour had
    been asked for at all. Now no caller asks: DISP decides, by the element, every time a lens is laid. */
-const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, rim: true, bottom: false, tabs: true, order: true, head: true, drops: true });
+const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, rim: true, top: false, tabs: true, order: true, head: true, drops: true });
 const DISP = Object.assign({}, DISP0);
 const DISP_PLACES = [["tabs", "Капсула вкладок"], ["order", "Кнопка «Новый ордер»"], ["head", "Заголовок и «назад»"], ["drops", "Капли вкладок"]];
 (function dispLoad(){
@@ -10131,7 +10131,7 @@ function dispAttach(root){
     let r = el.querySelector(":scope > .disp-rim");
     if(!want){ if(r){ r.remove(); _dispRims.delete(r); } return; }
     if(!r){ r = document.createElement("i"); r.className = "disp-rim"; r.setAttribute("aria-hidden", "true"); el.appendChild(r); }
-    r.classList.toggle("bot", !!DISP.bottom);
+    r.classList.toggle("top", !!DISP.top);
     _dispRims.add(r); dispRimApply(r);
   });
 }
