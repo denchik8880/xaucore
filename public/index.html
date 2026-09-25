@@ -1612,7 +1612,10 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-more,.ot-coll{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--mo-fluid)}
 .ot-opt.on>.ot-more,.ot-coll.open{grid-template-rows:1fr}
 .ot-in{min-height:0;overflow:hidden;padding:0 8px;margin:0 -8px;opacity:0;transition:opacity var(--mo-std)}   /* the rims of the fields are not cut at the sides */
-.ot-opt.on>.ot-more>.ot-in,.ot-coll.open>.ot-in{opacity:1;transition:opacity var(--mo-fluid) calc(50ms * var(--mo}
+.ot-opt.on>.ot-more>.ot-in,.ot-coll.open>.ot-in{opacity:1;transition:opacity var(--mo-fluid) calc(50ms * var(--mo,1))}
+/* ↑ that line lost its «,1))» in the motion-system commit (6f9f262, 21.09), and an unclosed calc( swallowed EVERY rule
+   after it: the glass order ticket, the lot list, the reduced-motion block … (user 2026-09-25: «где создавать ордера:
+   совсем нету логики жидкого стекла, перетаскивание не работает»). */
 .ot-more>.ot-in::after{content:"";display:block;height:10px}
 .ot-more .otf:first-child{margin-top:8px}
 /* the ▼ menus: cTrader's dropdown under its field */
@@ -1713,13 +1716,10 @@ body.amenu-open .wl-logo{opacity:0}
    not switched off: shorter, straighter, with the decorative loops and the parallax stopped outright. */
 /* the page's own cross-fade (theme, glass on/off) speaks the system too */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:var(--mo-t3);animation-timing-function:var(--mo-e3)}
-@media (prefers-reduced-motion:reduce){
-  :root{--mo:.62}
-  :root,:root *{--mo-e1:cubic-bezier(.3,.85,.4,1);--mo-e2:cubic-bezier(.3,.85,.4,1);--mo-e3:cubic-bezier(.3,.85,.4,1);--mo-e4:cubic-bezier(.3,.85,.4,1)}
-  .appbar .ttl.run .ttl-run{animation:none}
-  .dom-cell,.dom-row td{animation:none!important}
-  .badge-demo,.soon-pill{animation:none!important}
-}
+/* (Reduce Motion: no CSS block. One stood here - every CSS duration cut to 62 %, the long title's run stopped, four
+   custom properties set on every element - but it sat below the broken line above and never ran, and the app was
+   tuned for four days without it on a phone that has Reduce Motion on and whose owner asks for smoother, not
+   shorter, motion. The JS springs still soften under it: MO.soft.) */
 </style>
 
 <div id="app"></div>
@@ -7068,7 +7068,10 @@ function tfSnap(){
   return out;
 }
 function tfSwap(snap, dir){
-  const d = dir || 1, E = "cubic-bezier(.22,.8,.24,1)";
+  // (second pass, user: «переход все равно чуть-чуть резкий»): longer and softer, and the new chart no longer fades
+  // IN - both half-transparent at once made the picture dip in the middle, a blink; it lies there whole under the
+  // old one, which dissolves over it
+  const d = dir || 1, E = "cubic-bezier(.33,.1,.2,1)";
   for(const { id, g } of snap){
     const c = document.getElementById(id);
     if(!c || !c.parentElement) continue;
@@ -7077,12 +7080,12 @@ function tfSwap(snap, dir){
     g.style.cssText = "position:absolute;pointer-events:none;left:" + c.offsetLeft + "px;top:" + c.offsetTop + "px;width:" + c.offsetWidth + "px;height:" + c.offsetHeight + "px";
     if(getComputedStyle(c.parentElement).position === "static") c.parentElement.style.position = "relative";
     c.after(g);
-    const out = g.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(" + (-12 * d) + "px)" }], { duration: 240, easing: E, fill: "forwards" });
+    const out = g.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(" + (-8 * d) + "px)" }], { duration: 420, easing: E, fill: "forwards" });
     out.onfinish = out.oncancel = () => g.remove();
-    c.animate([{ opacity: 0, transform: "translateY(" + (14 * d) + "px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: E });
+    c.animate([{ transform: "translateY(" + (8 * d) + "px)" }, { transform: "none" }], { duration: 460, easing: E });
   }
   const pill = document.querySelector('.chpill[data-act="charttf"]');
-  if(pill) pill.animate([{ opacity: .2, transform: "translateY(" + (9 * d) + "px)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: E });
+  if(pill) pill.animate([{ opacity: .25, transform: "translateY(" + (7 * d) + "px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: E });
 }
 function openChartTFSheet(){
   const pill = glassOn("morph") && document.querySelector('.chpill[data-act="charttf"]');
@@ -8887,7 +8890,7 @@ function otBody(){
   return `${pend ? "" : `<div class="ot-closed" id="otClosed" hidden>${OT_INFO}<span>${L("Рынок закрыт. Принимаются только отложенные ордера.")}</span></div>`}
     <button type="button" class="otf otf-dd" id="otSym" data-otmenu="sym"><span class="otf-l">${L("Инструмент")}</span><span class="otf-v">${S.symbol.name}</span>${caret}</button>
     ${pend ? `<div class="ot-q" id="otQuote"></div>` : ""}
-    <div class="${G ? "seg " : ""}ot-side ${OT.side}${pend ? "" : " px"}" id="otSide">
+    <div class="${G ? "seg seg-drag " : ""}ot-side ${OT.side}${pend ? "" : " px"}" id="otSide">
       <button type="button" data-otside="sell" class="${buy ? "" : "on"}"><span>${L("Продать")}</span>${pend ? "" : `<b class="mono" id="otBid">${chartPx(S.price.bid)}</b>`}</button>
       <button type="button" data-otside="buy" class="${buy ? "on" : ""}"><span>${L("Купить")}</span>${pend ? "" : `<b class="mono" id="otAsk">${chartPx(S.price.ask)}</b>`}</button>
     </div>
@@ -9005,7 +9008,9 @@ function otSync(){
 }
 function otBindBody(){
   const M = modalEl, $ = id => document.getElementById(id);
-  M.querySelectorAll("[data-otside]").forEach(b => b.onclick = () => otSetSide(b.dataset.otside));
+  // the side's drop can be dragged as well as tapped, like the type's (a drag picks; its click is swallowed)
+  M.querySelectorAll("[data-otside]").forEach(b => b.onclick = () => { if(performance.now() - _subByDrag < 400) return; otSetSide(b.dataset.otside); });
+  const side = $("otSide"); if(side) side._pick = b => otSetSide(b.dataset.otside);
   M.querySelectorAll("[data-otmenu]").forEach(b => b.onclick = () => b.dataset.otmenu === "sym" ? otMenuSym(b) : otMenuTrig(b));
   const wb = M.querySelector("[data-otwheel]"); if(wb) wb.onclick = otWheel;
   const vi = $("otVol");
@@ -10588,7 +10593,7 @@ function glassFrame(now){
       glassMilk(b, false);
       g.p = g.pv = g.ox = g.oy = g.vx = g.vy = g.m = 0; g.t = 0;
       b.classList.remove("pressing");
-      lgGlass(b, g.w, g.h, g.rs, g.blur);                                  // back to the resting lens
+      if(!g.nl) lgGlass(b, g.w, g.h, g.rs, g.blur);                        // back to the resting lens
       _glass.delete(b);
     }
   }
@@ -10625,7 +10630,10 @@ document.addEventListener("pointerdown", e => {
   g.w = b.offsetWidth; g.h = b.offsetHeight; glassKind(b, g);
   glassAim(g, e.clientX, e.clientY);
   b.classList.add("pressing");
-  lgGlass(b, g.w, g.h, g.rs ? Math.round(g.rs * 1.35) : 32, g.blur);        // the lens deepens under the finger
+  // a tab inside a capsule with a drop has no lens of its own: the drop is its glass. Given one, it kept it after the
+  // press and stood as a pale chip beside the drop (the order ticket's types and side)
+  g.nl = b.matches(".seg button");
+  if(!g.nl) lgGlass(b, g.w, g.h, g.rs ? Math.round(g.rs * 1.35) : 32, g.blur);        // the lens deepens under the finger
   _glassBtn = b; _glass.add(b); glassKick();
 }, { capture: true, passive: true });
 // every finger moves / lets go of the glass IT pressed (two fingers on two bars: each keeps its own)
