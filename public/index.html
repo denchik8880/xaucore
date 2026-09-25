@@ -10096,7 +10096,7 @@ const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close ba
 // the tab drops split on their own (while they travel); their strength and their switch are these
 const dispDropSp = () => DISP.on && DISP.drops ? .20 * DISP.str / 50 : 0;
 const _lgRain = new Set();
-let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainY = null, _rainSrc = null;
+let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainSrc = null;
 const rainTop = () => _rainSrc && _rainSrc !== document ? _rainSrc.scrollTop : window.scrollY;
 function lgRainApply(el){
   if(!el._rdm) return;
@@ -10144,18 +10144,25 @@ function lgRainBind(el){
   el._dispP = dispPlace(el);
   _lgRain.add(el); lgRainApply(el);
 }
+/* THE SPEED COMES FROM THE SCROLL EVENTS THEMSELVES - where the page is and when (user's video 2026-09-25: the
+   readout said «Скорость 0 px/с» while a finger ran the sample). It used to come from the frames: the scroll event
+   set the starting point and the frame measured from it - but a real scroll lands BEFORE its event and nothing moves
+   between the event and the frame that follows it, so every frame measured nought, the loop went to sleep at once and
+   the next event started it over from the new point. Only a scroll driven from inside the frames - every test of mine
+   - ever read a speed. A finger or a wheel never did: the scroll rainbow never worked at all. */
+let _rainV = 0, _rainEvT = 0, _rainLastY = null, _rainLastT = 0;
 function rainFrame(now){
   _rainRaf = 0;
   const dt = _rainT ? Math.min(Math.max((now - _rainT) / 1000, 0), 1 / 30) : 1 / 60;
   _rainT = now;
-  const y = rainTop(), v = _rainY == null ? 0 : (y - _rainY) / dt;
-  _rainY = y;
+  const age = performance.now() - _rainEvT;
+  const v = age < 110 ? _rainV : 0;                              // no event for a few frames: it has stopped
   const want = Math.min(1, Math.abs(v) / dispVFull());
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
   rainAll();
   dispLive(v);
-  if(_rainK > .005 || Math.abs(v) > 1){ _rainRaf = requestAnimationFrame(rainFrame); return; }
-  _rainK = 0; _rainT = 0; _rainY = null;
+  if(_rainK > .005 || age < 160){ _rainRaf = requestAnimationFrame(rainFrame); return; }
+  _rainK = 0; _rainT = 0; _rainV = 0;
   rainAll(); dispLive(0);
 }
 function rainAll(){
@@ -10166,7 +10173,7 @@ function rainAll(){
 function rainKick(full){
   if(full) _rainK = 1;
   rainAll();
-  if(!_rainRaf){ _rainT = 0; _rainY = null; _rainRaf = requestAnimationFrame(rainFrame); }
+  if(!_rainRaf){ _rainT = 0; _rainRaf = requestAnimationFrame(rainFrame); }
 }
 // ANY scroll moves what is under the glass - the page, and the ones that scroll inside themselves (the wallet, the
 // sample on the settings sheet): caught on the way down. A sheet scrolling carries its own glass with it, so not that.
@@ -10174,8 +10181,14 @@ document.addEventListener("scroll", e => {
   if(!_lgRain.size && !_dispRims.size) return;
   const t = e.target, src = !t || t === document || t === document.documentElement || t === document.body ? document : t;
   if(src !== document && src.matches && src.matches(".sheet")) return;
-  if(src !== _rainSrc){ _rainSrc = src; _rainY = rainTop(); }
-  if(!_rainRaf){ _rainT = 0; _rainY = rainTop(); _rainRaf = requestAnimationFrame(rainFrame); }
+  if(src !== _rainSrc){ _rainSrc = src; _rainLastY = null; }
+  const now = performance.now(), y = rainTop(), gap = now - _rainLastT;
+  if(_rainLastY != null && gap > 0 && gap < 150){
+    const vi = (y - _rainLastY) / (gap / 1000);
+    _rainV = _rainV && now - _rainEvT < 110 ? _rainV * .35 + vi * .65 : vi;   // a little smoothing: events come about a frame apart, not evenly
+  }else _rainV = 0;                                              // the first event after a pause: the speed comes with the next
+  _rainLastY = y; _rainLastT = now; _rainEvT = now;
+  if(!_rainRaf){ _rainT = 0; _rainRaf = requestAnimationFrame(rainFrame); }
 }, { capture: true, passive: true });
 // a setting changed: every lens asks again whether it splits (hard), and every split takes the new strength
 function dispApply(hard){
