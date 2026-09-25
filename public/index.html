@@ -5220,7 +5220,7 @@ function openDispSheet(){
     `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
     `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
       dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
-    `</div><div class="lgf-list">${sw("data-disp-rimsw", DISP.rim, "Радужная кромка в движении")}${sw("data-disp-topsw", DISP.top, "Верхний край вместо нижнего")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
+    `</div><div class="lgf-list">${sw("data-disp-topsw", DISP.top, "Верхний край вместо нижнего")}</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
   const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
@@ -5260,8 +5260,6 @@ function openDispSheet(){
     document.querySelectorAll("[data-act='dispset'] .dv").forEach(x => x.textContent = L(on ? "Вкл" : "Выкл"));
   });
   m.querySelectorAll("[data-disp-at]").forEach(b => flip(b, on => { DISP[b.dataset.dispAt] = on; }));
-  const rsw = m.querySelector("[data-disp-rimsw]");
-  if(rsw) flip(rsw, on => { DISP.rim = on; });
   const tsw = m.querySelector("[data-disp-topsw]");
   if(tsw) flip(tsw, on => { DISP.top = on; });
   const rs = m.querySelector("[data-disp-reset]");
@@ -9982,6 +9980,9 @@ function lgMap(w, h, rad, rim){
    краям не должно»). Its blue channel, free (the bend reads red and green), carries the glass's own bright edge: a
    thin line just inside the leading edge, which the filter splits into red, green and blue by the motion.
    edge: "b" the bottom (the page comes in there as it scrolls down), "t" the top. */
+// in motion the scale grows by DISP_BD; the moving map carries the resting rim at 1 / (1 + DISP_BD) of its value, so
+// at full motion the rim bends exactly as it does at rest and all the growth goes into the leading zone
+const DISP_BD = 1.5, DISP_RIMC = 1 / (1 + DISP_BD);
 function lgMotionMap(w, h, rad, rim, edge){
   const key = "M" + w + "x" + h + (rad ? "r" + rad : "") + "b" + rim + edge;
   if(_lgMaps.has(key)) return _lgMaps.get(key);
@@ -9992,20 +9993,28 @@ function lgMotionMap(w, h, rad, rim, edge){
     const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
     const dx = cx - px, dy = cy - py, dist = Math.hypot(dx, dy), edg = r - dist;
     let mx = 0, my = 0;
-    if(dist > 0){                                                  // the resting rim, as lgMap draws it
-      const t = edg < BAND ? 1 - Math.max(edg, 0) / BAND : 0;
-      const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;
-      mx = dx / dist * wall; my = dy / dist * wall;
+    if(dist > 0){                                                  // the resting rim, as lgMap draws it - but at the
+      const t = edg < BAND ? 1 - Math.max(edg, 0) / BAND : 0;       // strength the moving scale leaves it (DISP_RIMC),
+      const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;   // so the top and the sides do not
+      mx = dx / dist * wall * DISP_RIMC; my = dy / dist * wall * DISP_RIMC;          // bend harder in motion
     }
     const fe = Math.min(1, Math.min(px, w - px) / r), fs = fe * fe * (3 - 2 * fe);   // 0 at the rounded ends
-    const lead = edge === "t" ? Z - py : py - (h - Z);               // how far into the leading zone
-    if(lead > 0){ const t = lead / Z; my += (edge === "t" ? 1 : -1) * .95 * t * t * fs; }   // pull the page in from inside
+    const lead = edge === "t" ? Z - py : py - (h - Z), dd = edge === "t" ? py : h - py;
+    if(lead > 0){
+      // the STRETCH: over the leading part the page is pulled in from further inside, more toward the edge - what
+      // turns the heart into a vase on the video (8.25 s)
+      let a = .55 * Math.pow(lead / Z, 2);
+      // the SQUEEZE: in the last few pixels the pull runs away, so a long stretch of the page is pressed into a thin
+      // band - and it is THAT band the colour passes fan into a rainbow, coloured by whatever is passing (white →
+      // yellow and orange, a dark icon → pink, flat colour → nothing much), so it is never a straight painted line
+      const B = Math.max(4, h * .14);
+      if(dd < B){ const u = 1 - dd / B; a += .55 * u * u * u; }
+      my += (edge === "t" ? 1 : -1) * a * fs;
+    }
     const mm = Math.hypot(mx, my);
     if(mm > 1){ mx /= mm; my /= mm; }
-    const dd = edge === "t" ? py : h - py;                           // the bright edge: 3 px inside the leading edge
-    const hl = Math.exp(-((dd - 2.6) * (dd - 2.6)) / 2.4) * fs;
     const i = (y * w + x) * 4;
-    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = Math.round(255 * hl); d[i + 3] = 255;
+    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = 128; d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
   const url = cv.toDataURL();
@@ -10079,26 +10088,7 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
     el("feColorMatrix", { in: "db2", type: "matrix", values: "0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "b" });
     el("feComposite", { in: "r", in2: "g", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rg" });
     el("feComposite", { in: "rg", in2: "b", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rgb" });
-    el("feComposite", disp ? { in: "rgb", in2: "dg", operator: "in", result: "gl" } : { in: "rgb", in2: "dg", operator: "in" });
-    if(disp){
-      // THE GLASS'S OWN BRIGHT EDGE, split like light through a prism: the map's blue channel is a thin line just
-      // inside the leading edge; it is drawn three times - red, green, blue - and the red and the blue slide apart
-      // across the edge by the motion. Where the three still overlap it is white; apart they make red, yellow,
-      // green, cyan, blue in that order, standing still along the edge (nothing runs along it: «не как RGB»).
-      const line = (vals, res) => el("feColorMatrix", { in: "m1", type: "matrix", values: vals, result: res });
-      // not pure primaries - three pure lines read as an RGB strip; these sum to white and part into warm and cool
-      line("0 0 0 0 1 0 0 0 0 .38 0 0 0 0 .28 0 0 1 0 0", "hr0");
-      line("0 0 0 0 .3 0 0 0 0 1 0 0 0 0 .42 0 0 1 0 0", "hg");
-      line("0 0 0 0 .3 0 0 0 0 .45 0 0 0 0 1 0 0 1 0 0", "hb0");
-      const oR = el("feOffset", { in: "hr0", dx: 0, dy: 0, result: "hr" }), oB = el("feOffset", { in: "hb0", dx: 0, dy: 0, result: "hb" });
-      el("feComposite", { in: "hr", in2: "hg", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "hrg" });
-      el("feComposite", { in: "hrg", in2: "hb", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "hl0" });
-      el("feGaussianBlur", { in: "hl0", stdDeviation: .8, result: "hl1" });
-      const ct = el("feComponentTransfer", { in: "hl1", result: "hl" });
-      const fa = document.createElementNS(NS, "feFuncA"); fa.setAttribute("type", "linear"); fa.setAttribute("slope", "0"); ct.appendChild(fa);
-      el("feComposite", { in: "hl", in2: "gl", operator: "over" });
-      fl._ofs = [oR, oB]; fl._ha = fa;
-    }
+    el("feComposite", { in: "rgb", in2: "dg", operator: "in" });
   }
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
@@ -10147,7 +10137,10 @@ function dispWants(el){ const p = DISP.on && dispPlace(el); return !!p && (p ===
    60 % of it («чуть-чуть»). The edge's own bright line is drawn inside the lens (lgFilterId, lgMotionMap). */
 function dispMotion(p){
   const f = DISP.str / 50, h = p === "head" ? .6 : 1;
-  return { bd: Math.min(1.2, .8 * f) * h, sp: .35 * f * h };
+  // bd: how much the bend grows at full motion - all of it goes into the leading zone (see lgMotionMap / DISP_RIMC);
+  // sp: how far apart the colour passes go, as a share of the bend - small where the bend is small, a rainbow
+  // where the edge squeezes the page
+  return { bd: Math.min(3, DISP_BD * f) * h, sp: .45 * f * h };
 }
 const dispVFull = () => 2400 * Math.pow(2, -DISP.sens / 25);   // px/s of scroll that fans it fully: 600 at the middle
 const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close back up: 0.16 at the middle
@@ -10164,12 +10157,6 @@ function lgRainApply(el){
   if(!f) return;
   // the moving edge's map comes in with the motion
   if(f._mix){ f._mix.setAttribute("k2", (1 - k).toFixed(3)); f._mix.setAttribute("k3", k.toFixed(3)); }
-  // the bright edge: red slides out past it, blue in from it, by the motion; the title and «‹» a little less
-  if(f._ofs){
-    const s = (.25 + 1.25 * k * Math.min(1.6, DISP.str / 50)) * (el._dispP === "head" ? .7 : 1), out = f._edge === "t" ? -1 : 1;
-    f._ofs[0].setAttribute("dy", (out * s * .8).toFixed(2)); f._ofs[1].setAttribute("dy", (-out * s * 1.2).toFixed(2));
-  }
-  if(f._ha) f._ha.setAttribute("slope", (DISP.rim ? k * Math.min(.9, .35 + .3 * DISP.str / 50) * (el._dispP === "head" ? .75 : 1) : 0).toFixed(3));
 }
 // the settings sheet's live readout: what the engine hears on THIS device, as it hears it
 let _dispLiveT = 0;
