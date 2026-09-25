@@ -1171,7 +1171,9 @@ html:has(body.route-wallet){background:#0c0a08}
    under them (user 2026-09-18, Telegram with / without liquid glass); a soft fade keeps the very top calm */
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom-color:transparent;box-shadow:none;isolation:isolate;padding:8px 10px;min-height:56px}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:-12px;pointer-events:none;z-index:-1;
-  background:linear-gradient(180deg,var(--edge-fade) 0%,var(--edge-fade) 30%,transparent 100%)}
+  /* only the very edge of the screen, ABOVE the capsules: across the whole header it bleached everything that
+     scrolled behind «‹» and the title, and those two read as milky while the tab capsule below it was crystal */
+  background:linear-gradient(180deg,var(--edge-fade) 0,transparent 9px)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{position:relative;isolation:isolate;height:40px;padding:0 18px;border-radius:999px;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl.run{padding:0 18px;margin-left:0;-webkit-mask-image:none;mask-image:none}
 /* the subtabs are dragged like the tab bar: they fit the capsule (no scrolling), a sideways drag is ours,
@@ -5330,10 +5332,12 @@ function render(){
     glassDrops(app());
     quickLens(app());
     document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 26, .6, false, false, undefined, undefined, true));   // «Новый ордер»: crystal, bent at the rim, a rainbow while the page moves under it
-    document.querySelectorAll("#app .appbar .iconbtn, #app .mini-tools button, #app .wl-logo").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // «‹», the mini chart's ⛶ / м1: glass drops
+    document.querySelectorAll("#app .mini-tools button, #app .wl-logo").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // the mini chart's ⛶ / м1, the mark: glass drops
+    document.querySelectorAll("#app .appbar .iconbtn").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, undefined, false, false, undefined, undefined, true));   // «‹»: a little rainbow while the page moves
     // the capsules - the screen's title, search, the balance - were frosted but never bent: the same glass now,
     // with the frost they had (16 at full haze)
-    document.querySelectorAll("#app .appbar .ttl, #app .wl-search, #app .ab-bal").forEach(b => { if(b.offsetWidth) lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, 16); });
+    document.querySelectorAll("#app .wl-search, #app .ab-bal").forEach(b => { if(b.offsetWidth) lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, 16); });
+    document.querySelectorAll("#app .appbar .ttl").forEach(b => { if(b.offsetWidth) lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, 16, false, false, undefined, undefined, true); });   // the title: a little rainbow while the page moves
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -9890,7 +9894,8 @@ const _lgRain = new Set();
 let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainY = null;
 function lgRainApply(el){
   if(!el._rdm) return;
-  for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + d._c * .35 * _rainK)).toFixed(2));
+  const sp = el._rainSp || .6;
+  for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + d._c * sp * _rainK)).toFixed(2));
 }
 function lgRainBind(el){
   const id = el._lg && el._lg.indexOf("#") > 0 ? el._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
@@ -9898,6 +9903,8 @@ function lgRainBind(el){
   el._rdm = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
   if(!el._rdm) return;
   for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract);
+  // the two panels fan wide; the title and the back button only a little (user: «чуть-чуть»)
+  el._rainSp = el.matches(".appbar .ttl, .appbar .iconbtn") ? .35 : .6;
   _lgRain.add(el); lgRainApply(el);
 }
 function rainFrame(now){
