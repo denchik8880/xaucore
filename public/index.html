@@ -8,7 +8,7 @@
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.45,1+lo*.5-hi*.978),b:Math.max(.45,1+lo*.4-hi*.985),s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
+function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.45,1+lo*.5-hi*.978),b:Math.max(.12,1+lo*.4-hi*.985),s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
@@ -1062,7 +1062,18 @@ html:has(body.route-wallet){background:#0c0a08}
 }
 /* the rim every glass piece wears: a 1 px ring brightest top-left and bottom-right */
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::after,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::after,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .am-logo::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl::after,:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button::after,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .close::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%);
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%),var(--lg-iris);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+/* THE IRIDESCENT EDGE (the video: a thin rainbow line along the glass's own edge, even over flat colour). It runs
+   round the rim under the white highlight and starts from the light's angle, so it turns when the light does -
+   and the light already follows the finger and the tilt: that is the small animation. Faint on purpose; it is a
+   line, not a border. */
+:root{--lg-iris:conic-gradient(from calc(var(--lit-a,151deg) + 90deg),rgba(255,64,160,.34),rgba(255,196,40,.3),rgba(60,230,140,.3),rgba(40,170,255,.34),rgba(150,80,255,.3),rgba(255,64,160,.34))}
+:root[data-theme="dark"]{--lg-iris:conic-gradient(from calc(var(--lit-a,151deg) + 90deg),rgba(255,80,170,.42),rgba(255,206,60,.36),rgba(70,240,150,.36),rgba(60,180,255,.42),rgba(170,100,255,.36),rgba(255,80,170,.42))}
+/* the capsules that only had a hairline - search, the balance, the tab capsule - wear the same edge */
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal{position:relative;isolation:isolate}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .ab-bal::after,:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs > .sub-glass::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%),var(--lg-iris);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* 1. «Новый ордер»: a tinted but CLEAR drop (the list shows through, bent at its rim), a sheen, a drop under the finger */
 :root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew::before,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew::before,:root[data-glass="on"]:not([data-lgoff~="toasts"]) .toast::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chartinfo::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
@@ -1121,6 +1132,12 @@ html:has(body.route-wallet){background:#0c0a08}
 /* and the capsule leans after the finger, as the bottom bar does */
 :root[data-glass="on"]:not([data-lgoff~="headers"]):not([data-lgoff~="drops"]) .subtabs{transform:translateX(var(--sbx,0px))}
 .sub-red{display:none}
+/* LEGIBLE ON CLEAR GLASS. With the glass clear, as on the video, whatever scrolls under the tab capsule and the
+   title reads through them - and a label lying on another label is unreadable. iOS keeps its labels on clear
+   glass legible with a soft halo in the glass's own colour rather than by frosting the glass, so that is what
+   they get: the glass stays clear, the letters get a whisper of backing. */
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs button,:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{text-shadow:0 0 1px rgba(255,255,255,.95),0 0 4px rgba(255,255,255,.9),0 0 9px rgba(255,255,255,.75)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="headers"]) .subtabs button,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{text-shadow:0 0 1px rgba(0,0,0,.95),0 0 4px rgba(0,0,0,.9),0 0 9px rgba(0,0,0,.75)}
 /* 3. segmented controls (Market / Pending, SELL / BUY, the theme): the choice is a glass drop that flows */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg{position:relative;background:var(--seg-track);box-shadow:inset 0 0 0 .5px var(--lg-line);
   -webkit-backdrop-filter:blur(calc(10px + 8px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(10px + 8px * var(--lgsb,1))) saturate(var(--lgsat,1.4))}
@@ -9815,7 +9832,7 @@ function lgMap(w, h, rad, rim){
 // disperses at any setting, and its fringe is the width of a letter stroke. A TENTH apart, not the fifth I had:
 // the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
 // noise instead of a word with a coloured edge.
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * .20) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp || .20)) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){
   for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
   if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
@@ -9837,7 +9854,9 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
   el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
-  const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
+  // the rim-only lenses (the iOS glass) split their colour wider than the tab drops do: on the video the edge
+  // squeezes what is under it into a line and fans it out into a plain rainbow
+  const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : .20; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
   if(!chroma) dm(0, "o");
   else {
     // the split below adds three alphas together, so it needs an opaque backdrop or it darkens everything it
@@ -9891,11 +9910,12 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
     const md = Math.max(8, Math.min(w, h)), r = md / 2;
     sc = Math.max(3, Math.round(md * .18 * clamp((scale || 22) / 22, .5, 1.5)));
     rm = Math.max(4, Math.round(r * .3));
-    // and the inside is FROSTED, a seventh of the radius at least, whatever the slider says - on the video the
-    // handset under the flashlight is a wash of colour; bare glass let the prices read through our labels
-    bl = Math.max(bl, clamp(md * .075, 2, 8));
-    // a thin rainbow along the rim, as on the widgets' edges: small pieces only, three maps each
-    ch = chroma !== false && !LG_LOW && w * h <= 16000;
+    // and CLEAR inside: through the pulled-down sheet everything reads, tinted and barely blurred - about a
+    // pixel on a button. (A frost of a seventh of the radius was my reading of the flashlight button alone, and
+    // it smeared everything.)
+    bl = Math.max(bl * .35, clamp(md * .025, .6, 2));
+    // the rainbow along the rim, on the capsules too, not only the small pieces
+    ch = chroma !== false && !LG_LOW && w * h <= 60000;
     fixed = true;                                // the strength is the size's, so the clarity must not rescale it
   }
   const f = "url(#" + lgFilterId(w, h, sc, ch, fixed, rad, rm) + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
