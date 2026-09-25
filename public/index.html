@@ -5245,8 +5245,8 @@ function openDispSheet(){
   m.querySelectorAll(".lgs[data-disp]").forEach(el => {
     const k = el.dataset.disp;
     lgsBind(el, Math.round(DISP[k]),
-      v => { DISP[k] = v; if(k === "str") dispApply(false); },
-      v => { DISP[k] = v; if(k === "str") dispApply(false); dispSave(); });
+      v => { DISP[k] = v; },
+      v => { DISP[k] = v; dispSave(); if(k === "str") dispApply(true); });   // the strength is baked into the ready filters: built again once, on release
   });
   const flip = (b, fn) => b.onclick = () => {
     const on = !b.classList.contains("on");
@@ -9980,11 +9980,11 @@ function lgMap(w, h, rad, rim){
    краям не должно»). Its blue channel, free (the bend reads red and green), carries the glass's own bright edge: a
    thin line just inside the leading edge, which the filter splits into red, green and blue by the motion.
    edge: "b" the bottom (the page comes in there as it scrolls down), "t" the top. */
-// in motion the scale grows by DISP_BD; the moving map carries the resting rim at 1 / (1 + DISP_BD) of its value, so
-// at full motion the rim bends exactly as it does at rest and all the growth goes into the leading zone
-const DISP_BD = 2.2, DISP_RIMC = 1 / (1 + DISP_BD);
-function lgMotionMap(w, h, rad, rim, edge){
-  const key = "M" + w + "x" + h + (rad ? "r" + rad : "") + "b" + rim + edge;
+// in motion the scale grows by k × DISP_BD; the map of that level carries the resting rim at 1 / (1 + k × DISP_BD) of
+// its value, so the rim bends exactly as it does at rest at every level and all the growth goes into the leading zone
+const DISP_BD = 2.2;
+function lgMotionMap(w, h, rad, rim, edge, k){
+  const key = "M" + w + "x" + h + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k, rimc = 1 / (1 + k * DISP_BD);
   if(_lgMaps.has(key)) return _lgMaps.get(key);
   const r = rad ? Math.min(rad, Math.min(w, h) / 2) : Math.min(w, h) / 2, BAND = Math.abs(rim) || 6, Z = h * .55;
   const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
@@ -9994,9 +9994,9 @@ function lgMotionMap(w, h, rad, rim, edge){
     const dx = cx - px, dy = cy - py, dist = Math.hypot(dx, dy), edg = r - dist;
     let mx = 0, my = 0;
     if(dist > 0){                                                  // the resting rim, as lgMap draws it - but at the
-      const t = edg < BAND ? 1 - Math.max(edg, 0) / BAND : 0;       // strength the moving scale leaves it (DISP_RIMC),
+      const t = edg < BAND ? 1 - Math.max(edg, 0) / BAND : 0;       // strength the moving scale leaves it (rimc),
       const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;   // so the top and the sides do not
-      mx = dx / dist * wall * DISP_RIMC; my = dy / dist * wall * DISP_RIMC;          // bend harder in motion
+      mx = dx / dist * wall * rimc; my = dy / dist * wall * rimc;                    // bend harder in motion
     }
     const fe = Math.min(1, Math.min(px, w - px) / r), fs = fe * fe * (3 - 2 * fe);   // 0 at the rounded ends
     const lead = edge === "t" ? Z - py : py - (h - Z), dd = edge === "t" ? py : h - py;
@@ -10009,7 +10009,7 @@ function lgMotionMap(w, h, rad, rim, edge){
       // yellow and orange, a dark icon → pink, flat colour → nothing much), so it is never a straight painted line
       const B = Math.max(4, h * .14);
       if(dd < B){ const u = 1 - dd / B; a += .55 * u * u * u; }
-      my += (edge === "t" ? 1 : -1) * a * fs;
+      my += (edge === "t" ? 1 : -1) * a * fs * k;                   // as much of it as this level of motion
     }
     const mm = Math.hypot(mx, my);
     if(mm > 1){ mx /= mm; my /= mm; }
@@ -10033,13 +10033,12 @@ function lgScaleAll(){
   if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
   if(typeof SB !== "undefined" && SB.dms){ SB.dmB = SB.dms.map(d => +d.getAttribute("scale")); SB.lk = null; subLens(SB.clear); }
   // and the two rainbow panels close their colour back up, or a move of the slider would leave it split at rest
-  if(typeof _lgRain !== "undefined") for(const el of _lgRain){ if(el._rdm){ for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract); lgRainApply(el); } }
+  // (the rainbow places' ready filters carry the bend in their ids: lgRefresh builds them again)
 }
-function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
+function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  if(!chroma) disp = "";
-  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "") + (disp ? "d" + disp : "");
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -10051,13 +10050,7 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
-  if(disp){
-    // «Дисперсия»: the resting map and the moving edge's map, blended by the motion a frame at a time (k2 / k3)
-    el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m0" });
-    el("feImage", { href: lgMotionMap(w, h, rad, rim, disp), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m1" });
-    fl._mix = el("feComposite", { in: "m0", in2: "m1", operator: "arithmetic", k1: 0, k2: 1, k3: 0, k4: 0, result: "m" });
-    fl._edge = disp;
-  }else el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
   // the rim-only lenses (the iOS glass) split their colour wider than the tab drops do: on the video the edge
   // squeezes what is under it into a line and fans it out into a plain rainbow
   const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : null; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
@@ -10076,29 +10069,6 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
     // the lowest channel right the way out of the icon, so blue is the one still finding it after red has let
     // go. I had this the other way round and argued for it in a comment; what I was reading as a magenta flank
     // outside the drop is a fast drop smearing in a twenty-frame recording.
-    if(disp){
-      // A SPECTRUM, NOT THREE COPIES (user: «цвета не те»; the video, 0.3-1.4 s: the stretched status icons are edged
-      // with a smooth rainbow - red, orange, yellow, green, cyan, blue, violet running into each other - where a
-      // three-pass split can only make red, green and blue ghosts with hard cyan / magenta / yellow between). Seven
-      // passes, red bending least and violet most, each keeping its own share of the picture's red, green and blue;
-      // the shares add up to exactly the picture, so held together (at rest) they ARE the picture, and fanned out
-      // they part into a spectrum. The green pass (c = 0) is the one the others fall back on where they read nothing,
-      // and the one the result is cut to, as below.
-      const SPEC = [[1, 0, .05], [1, .45, 0], [.85, .95, 0], [.1, 1, .15], [0, .75, .85], [.1, .25, 1], [.55, 0, 1]];
-      const tot = [0, 1, 2].map(j => SPEC.reduce((a, s) => a + s[j], 0));
-      SPEC.forEach((s, i) => { if(i !== 3) dm((i - 3) / 3, "d" + i); else dm(0, "dg"); });
-      SPEC.forEach((s, i) => {
-        const src = i === 3 ? "dg" : "d" + i;
-        if(i !== 3) el("feComposite", { in: src, in2: "dg", operator: "over", result: "e" + i });
-        const [r, g, b] = s.map((v, j) => (v / tot[j]).toFixed(4));
-        el("feColorMatrix", { in: i === 3 ? "dg" : "e" + i, type: "matrix", values: `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, result: "c" + i });
-        if(i) el("feComposite", { in: i === 1 ? "c0" : "s" + (i - 1), in2: "c" + i, operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "s" + i });
-      });
-      el("feComposite", { in: "s6", in2: "dg", operator: "in" });
-      _lgDefs.appendChild(fl);
-      _lgIds.add(id);
-      return id;
-    }
     dm(-1, "dr"); dm(0, "dg"); dm(1, "db");
     // NO CHANNEL SPEAKS ALONE. Inside a backdrop root (the bar is one - it has its own backdrop-filter) anything
     // past the root's box reads as nothing, and a swollen drop's red pass samples out there first. Summed by
@@ -10113,6 +10083,37 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, disp){
     el("feComposite", { in: "rg", in2: "b", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rgb" });
     el("feComposite", { in: "rgb", in2: "dg", operator: "in" });
   }
+  _lgDefs.appendChild(fl);
+  _lgIds.add(id);
+  return id;
+}
+/* «Дисперсия» AT ONE LEVEL OF MOTION, as a filter of its own: built once, then only SWITCHED TO (user 2026-09-25,
+   OnePlus 13 at 120 Hz: «Теперь все нарушилось и 60фпс»). Writing the passes' strengths into the filter a frame at a
+   time made the browser rebuild every glass filter on every frame of a scroll - measured in the preview, the page
+   fell from 60 to 30 frames a second with it on and held 60 with it off. Now each place gets three ready filters
+   (full motion, 60 %, 30 %) besides its resting lens, and a scroll switches between them two to four times.
+   The spectrum is five passes - red, amber, green, sky, violet; red bending least - each keeping its share of the
+   picture's red, green and blue (the shares add up to the picture), summed and cut to the green pass's shape. */
+const DISP_SPEC = [[1, 0, .05], [.9, .6, 0], [.15, 1, .2], [0, .55, 1], [.6, 0, .9]], DISP_LV = [0, 1, .6, .3];
+function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
+  w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
+  const base = (sc || 22) * Math.min(1.5, LG_UI.refract), m = dispMotion(place);
+  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2);
+  if(_lgIds.has(id) || !_lgDefs) return id;
+  const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const a in at) e.setAttribute(a, at[a]); fl.appendChild(e); return e; };
+  fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
+  fl.setAttribute("color-interpolation-filters", "sRGB");
+  el("feImage", { href: lgMotionMap(w, h, rad, rim, edge, k), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  const tot = [0, 1, 2].map(j => DISP_SPEC.reduce((a, s) => a + s[j], 0));
+  DISP_SPEC.forEach((s, i) => {
+    const c = (i - 2) / 2;
+    el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", scale: (base * (1 + k * (m.bd + c * m.sp))).toFixed(2), result: "d" + i });
+    const [r, g, b] = s.map((v, j) => (v / tot[j]).toFixed(4));
+    el("feColorMatrix", { in: "d" + i, type: "matrix", values: `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, result: "c" + i });
+    if(i) el("feComposite", { in: i === 1 ? "c0" : "s" + (i - 1), in2: "c" + i, operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "s" + i });
+  });
+  el("feComposite", { in: "s4", in2: "d2", operator: "in" });
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
   return id;
@@ -10160,7 +10161,7 @@ function dispWants(el){ const p = DISP.on && dispPlace(el); return !!p && (p ===
    60 % of it («чуть-чуть»). The edge's own bright line is drawn inside the lens (lgFilterId, lgMotionMap). */
 function dispMotion(p){
   const f = DISP.str / 50, h = p === "head" ? .6 : 1;
-  // bd: how much the bend grows at full motion - all of it goes into the leading zone (see lgMotionMap / DISP_RIMC);
+  // bd: how much the bend grows at full motion - all of it goes into the leading zone (see lgMotionMap);
   // sp: how far apart the colour passes go, as a share of the bend - small where the bend is small, a rainbow
   // where the edge squeezes the page
   return { bd: Math.min(4.5, DISP_BD * f) * h, sp: .6 * f * h };
@@ -10171,14 +10172,14 @@ const dispDropSp = () => DISP.on && DISP.drops ? .20 * DISP.str / 50 : 0;
 const _lgRain = new Set();
 let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainSrc = null;
 const rainTop = () => _rainSrc && _rainSrc !== document ? _rainSrc.scrollTop : window.scrollY;
+// the level of motion the rainbow is at: 0 at rest, 1 full, 2 and 3 on its way out - only a change of level touches
+// the glass, and then only to switch it to another ready filter
+let _rainLvl = 0;
+const dispLevel = k => k > .72 ? 1 : k > .42 ? 2 : k > .12 ? 3 : 0;
 function lgRainApply(el){
-  if(!el._rdm) return;
-  const m = dispMotion(el._dispP), k = _rainK;
-  for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + k * (m.bd + d._c * m.sp))).toFixed(2));
-  const f = el._flt;
-  if(!f) return;
-  // the moving edge's map comes in with the motion
-  if(f._mix){ f._mix.setAttribute("k2", (1 - k).toFixed(3)); f._mix.setAttribute("k3", k.toFixed(3)); }
+  if(!el._dispF || el._dispL === _rainLvl) return;
+  el._dispL = _rainLvl;
+  el.style.backdropFilter = _rainLvl ? el._dispF[_rainLvl] : el._lg;
 }
 // the settings sheet's live readout: what the engine hears on THIS device, as it hears it
 let _dispLiveT = 0;
@@ -10191,13 +10192,13 @@ function dispLive(v){
   el.textContent = (v > 1 ? "↓ " : v < -1 ? "↑ " : "") + L("Скорость") + " " + Math.round(Math.abs(v)) + " " + L("px/с") + " · " + L("радуга") + " " + Math.round(_rainK * 100) + " %";
   el.classList.toggle("on", _rainK > .05);
 }
-function lgRainBind(el){
-  const id = el._lg && el._lg.indexOf("#") > 0 ? el._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
-  const flt = id && document.getElementById(id);
-  el._rdm = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
-  if(!el._rdm) return;
-  for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract);
-  el._dispP = dispPlace(el); el._flt = flt;
+// a place that splits: its three ready filters, built now (not on the first scroll), each with the rest of the glass's
+// filter string (tail) after it
+function lgRainBind(el, w, h, sc, rad, rm, tail){
+  el._dispP = dispPlace(el);
+  const edge = DISP.top ? "t" : "b";
+  el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, el._dispP) + ")" + tail : null);
+  el._dispL = -1;
   _lgRain.add(el); lgRainApply(el);
 }
 /* THE SPEED COMES FROM THE SCROLL EVENTS THEMSELVES - where the page is and when (user's video 2026-09-25: the
@@ -10217,10 +10218,12 @@ function rainFrame(now){
   // and whatever the speed, all of it (user: «Скорость не должна влиять»): moving down at all is the full effect
   const want = v > 12 ? 1 : 0;
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
+  // coming on it goes straight to full (one switch); only going out does it step down
+  _rainLvl = want > _rainK ? (_rainK > .05 ? 1 : 0) : dispLevel(_rainK);
   rainAll();
   dispLive(v);
   if(_rainK > .005 || age < 160){ _rainRaf = requestAnimationFrame(rainFrame); return; }
-  _rainK = 0; _rainT = 0; _rainV = 0;
+  _rainK = 0; _rainT = 0; _rainV = 0; _rainLvl = 0;
   rainAll(); dispLive(0);
 }
 function rainAll(){
@@ -10273,13 +10276,15 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
     ios = true;
     fixed = true;                                // the strength is the size's, so the clarity must not rescale it
   }
-  const f = "url(#" + lgFilterId(w, h, sc, ch, fixed, rad, rm, ch && ios ? (DISP.top ? "t" : "b") : "") + ") blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
+  // a rainbow place rests on the plain lens (one pass): its colour lives in the ready filters it switches to in motion
+  const tail = " blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
+  const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm) + ")" + tail;
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
   // letters under a sitting drop were bent hard again, and a travelling drop no longer split its colour.
-  if(ch && ios) lgRainBind(el);
-  else if(_lgRain.has(el)){ _lgRain.delete(el); el._rdm = null; }
+  if(ch && ios){ el._dispL = -1; lgRainBind(el, w, h, sc, rad, rm, tail); }
+  else if(_lgRain.has(el)){ _lgRain.delete(el); el._dispF = null; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
 function lgRefresh(){
