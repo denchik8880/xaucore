@@ -1349,6 +1349,28 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .lgf-list .sw-row{margin-top:0;padding:11px 2px;border-bottom:1px solid var(--line)}
 .lgf-list .sw-row:last-child{border-bottom:0}
 .lgf-list .sw-row .k{font-weight:500}
+/* «Дисперсия»: its own sheet - a live sample (a strip of prices under a clear capsule), the switch, three dials,
+   where it shows. The sample is solid page colour, so the capsule's three passes have something opaque to split. */
+.disp-note{margin:-2px 2px 12px;font-size:13px;line-height:1.4;color:var(--ink2)}
+.disp-demo{position:relative;height:128px;border-radius:16px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.disp-sc{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scroll-behavior:auto;scrollbar-width:none;touch-action:pan-y}
+.disp-sc::-webkit-scrollbar{display:none}
+.disp-r{display:flex;align-items:center;gap:12px;height:31px;padding:0 16px;border-bottom:1px solid var(--line);font-size:14px}
+.disp-r b{flex:1;font-weight:700;color:var(--ink)}
+.disp-r i{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums}
+.disp-r .dn{color:var(--red)}
+.disp-r .up{color:var(--green)}
+.disp-lens{position:absolute;left:12%;right:12%;top:calc(50% - 22px);height:44px;border-radius:22px;pointer-events:none;z-index:1;
+  background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.62),inset 0 1px 1px rgba(255,255,255,.85),0 4px 14px rgba(0,0,0,.12)}
+:root[data-theme="dark"] .disp-lens{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),inset 0 1px 1px rgba(255,255,255,.4),0 4px 14px rgba(0,0,0,.45)}
+.disp-play{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 2px 10px;font-size:12.5px;color:var(--ink3)}
+.disp-play .btn{width:auto;flex:none;margin:0;padding:8px 18px}
+.disp-main .sw-row{border-top:1px solid var(--line)}
+.disp-main .sw-row .k{font-weight:600}
+.disp-body{transition:opacity var(--mo-std)}
+.disp-body.off{opacity:.4;pointer-events:none}
+.disp-k{margin:12px 2px 0}
+.disp-reset{margin-top:14px}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
@@ -2285,6 +2307,25 @@ const I18N = {
 "Всплывающие сообщения":["Pop-up messages","Спливні повідомлення","Messages contextuels","Açılır mesajlar"],
 "Лоты и барабан":["Lots and the wheel","Лоти та барабан","Lots et roue","Lotlar ve çark"],
 "Преломление по краям":["Edge refraction","Заломлення по краях","Réfraction des bords","Kenar kırılması"],
+"Дисперсия":["Dispersion","Дисперсія","Dispersion","Dispersiyon"],
+"Радуга на краю стекла: цвета расходятся, только пока под стеклом что-то движется.":["The rainbow at the edge of the glass: the colours part only while something moves beneath it.","Веселка на краю скла: кольори розходяться, лише поки під склом щось рухається.","L’arc-en-ciel au bord du verre : les couleurs se séparent seulement quand quelque chose bouge dessous.","Camın kenarındaki gökkuşağı: renkler yalnızca altında bir şey hareket ederken ayrılır."],
+"Прокрутите образец пальцем":["Scroll the sample with your finger","Прокрутіть зразок пальцем","Faites défiler l’exemple du doigt","Örneği parmağınızla kaydırın"],
+"Показать":["Show","Показати","Montrer","Göster"],
+"Дисперсия работает в Chrome":["Dispersion works in Chrome","Дисперсія працює в Chrome","La dispersion fonctionne dans Chrome","Dispersiyon Chrome’da çalışır"],
+"Сила":["Strength","Сила","Intensité","Güç"],
+"Слабее":["Softer","Слабше","Plus faible","Daha zayıf"],
+"Сильнее":["Stronger","Сильніше","Plus fort","Daha güçlü"],
+"Чувствительность":["Sensitivity","Чутливість","Sensibilité","Hassasiyet"],
+"Быстрая прокрутка":["Fast scroll","Швидке прокручування","Défilement rapide","Hızlı kaydırma"],
+"Любое движение":["Any motion","Будь-який рух","Tout mouvement","Her hareket"],
+"Затухание":["Fade-out","Згасання","Extinction","Sönme"],
+"Быстро":["Quick","Швидко","Rapide","Hızlı"],
+"Плавно":["Smooth","Плавно","Doux","Yumuşak"],
+"Где":["Where","Де","Où","Nerede"],
+"Капсула вкладок":["Tab capsule","Капсула вкладок","Capsule des onglets","Sekme kapsülü"],
+"Заголовок и «назад»":["Title and “back”","Заголовок і «назад»","Titre et « retour »","Başlık ve “geri”"],
+"Капли вкладок":["Tab drops","Краплі вкладок","Gouttes des onglets","Sekme damlaları"],
+"Сбросить":["Reset","Скинути","Réinitialiser","Sıfırla"],
 "Разместить ордер":["Place order","Розмістити ордер","Passer l’ordre","Emir ver"],
 "Пункты":["Pips","Пункти","Pips","Pip"],
 "Закрыть (лоты)":["Close (lots)","Закрити (лоти)","Clôturer (lots)","Kapat (lot)"],
@@ -5119,6 +5160,74 @@ function openGlassSheet(){
     swAfter(b, () => { const f = b.dataset.lgf, v = b.classList.contains("on"); if(v === lgOffHas(f)) setGlassFeat(f, v); });
   });
 }
+/* «Дисперсия» on a sheet of its own: a live sample to try it on, the switch, three dials and where it shows. The
+   sample is a strip of prices under a clear capsule - scroll it with a finger, or «Показать» flings it - and the
+   capsule's edge splits exactly as the real panels do: the same engine, the same settings. Every dial, moved, opens
+   the rainbow all the way and lets it close at its own pace, so what it changes can be seen on the spot. */
+function openDispSheet(){
+  const dial = (k, ttl, lo, hi) => {
+    const v = Math.round(DISP[k]);
+    return `<div class="lgc-row"><div class="lgc-t"><span>${L(ttl)}</span></div>` +
+      `<div class="lgs" data-disp="${k}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
+      `<div class="lgc-ends"><span>${L(lo)}</span><span>${L(hi)}</span></div></div>`;
+  };
+  const sw = (attr, on, ttl) => `<div class="sw-row"><span class="k">${L(ttl)}</span><button type="button" class="switch${on ? " on" : ""}" ${attr} role="switch" aria-checked="${on}" aria-label="${L(ttl)}"><span class="knob"></span></button></div>`;
+  let rows = "";
+  for(let i = 0; i < 16; i++){
+    const p = 2318.45 + Math.sin(i * 1.7) * 6.3 + i * .37;
+    rows += `<div class="disp-r"><b>XAUUSD</b><i class="dn">${p.toFixed(2)}</i><i class="up">${(p + .27).toFixed(2)}</i></div>`;
+  }
+  openSheet(`<h2>${L("Дисперсия")}</h2><div class="disp-note">${L("Радуга на краю стекла: цвета расходятся, только пока под стеклом что-то движется.")}</div>` +
+    (LG_LENS
+      ? `<div class="disp-demo" aria-hidden="true"><div class="disp-sc">${rows}</div><span class="disp-lens"></span></div>` +
+        `<div class="disp-play"><span>${L("Прокрутите образец пальцем")}</span><button type="button" class="btn ghost" data-disp-play>${L("Показать")}</button></div>`
+      : `<div class="disp-note">${L("Дисперсия работает в Chrome")}</div>`) +
+    `<div class="lgf-list disp-main">${sw("data-disp-on", DISP.on, "Дисперсия")}</div>` +
+    `<div class="disp-body${DISP.on ? "" : " off"}"><div class="lgc">` +
+      dial("str", "Сила", "Слабее", "Сильнее") + dial("sens", "Чувствительность", "Быстрая прокрутка", "Любое движение") + dial("fade", "Затухание", "Быстро", "Плавно") +
+    `</div><div class="lgc-k disp-k">${L("Где")}</div><div class="lgf-list">${DISP_PLACES.map(([k, t]) => sw(`data-disp-at="${k}"`, DISP[k], t)).join("")}</div></div>` +
+    `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
+  const m = modalEl; if(!m) return;
+  const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
+  // the sample's glass: the tab capsule's own (crystal, bent at the rim), laid once the sheet has its size
+  if(lens) requestAnimationFrame(() => { if(lens.isConnected && lens.offsetWidth) lgGlass(lens, lens.offsetWidth, lens.offsetHeight, undefined, 16, true, false); });
+  const play = m.querySelector("[data-disp-play]");
+  if(play && sc) play.onclick = () => {
+    const max = sc.scrollHeight - sc.clientHeight; if(max <= 0) return;
+    cancelAnimationFrame(sc._pl);
+    const from = sc.scrollTop, to = from > max / 2 ? 0 : max, t0 = performance.now(), D = 650;
+    const step = now => {
+      const t = Math.min(1, (now - t0) / D), e = t < .5 ? 2 * t * t : 1 - Math.pow(2 - 2 * t, 2) / 2;
+      sc.scrollTop = from + (to - from) * e;
+      if(t < 1) sc._pl = requestAnimationFrame(step);
+    };
+    sc._pl = requestAnimationFrame(step);
+  };
+  m.querySelectorAll(".lgs[data-disp]").forEach(el => {
+    const k = el.dataset.disp;
+    lgsBind(el, Math.round(DISP[k]),
+      v => { DISP[k] = v; if(k === "str") dispApply(false); rainKick(true); },
+      v => { DISP[k] = v; if(k === "str") dispApply(false); dispSave(); rainKick(true); });
+  });
+  const flip = (b, fn) => b.onclick = () => {
+    const on = !b.classList.contains("on");
+    b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
+    swAfter(b, () => { fn(on); dispSave(); dispApply(true); if(on) rainKick(true); });
+  };
+  const body = m.querySelector(".disp-body"), mst = m.querySelector("[data-disp-on]");
+  if(mst) flip(mst, on => {
+    DISP.on = on;
+    if(body) body.classList.toggle("off", !on);
+    document.querySelectorAll("[data-act='dispset'] .dv").forEach(x => x.textContent = L(on ? "Вкл" : "Выкл"));
+  });
+  m.querySelectorAll("[data-disp-at]").forEach(b => flip(b, on => { DISP[b.dataset.dispAt] = on; }));
+  const rs = m.querySelector("[data-disp-reset]");
+  if(rs) rs.onclick = () => {
+    Object.assign(DISP, DISP0); dispSave(); dispApply(true);
+    document.querySelectorAll("[data-act='dispset'] .dv").forEach(x => x.textContent = L("Вкл"));
+    openDispSheet(); rainKick(true);
+  };
+}
 /* an iOS 26 slider (video 3): pressed, the white knob grows into a clear lens that bends the track under it
    (lgGlass, always — it is the glass's own control), jumps to the finger and follows it, squashed along its
    way by its speed (a spring, so it wobbles still when it stops); let go, it frosts back into the white pill.
@@ -6073,6 +6182,7 @@ function screenMore(){
       </div>`}
       <div class="sw-row"><span class="k">${L("💧 Жидкое стекло")}</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
+      ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="dispset"><span class="k">${L("Дисперсия")}</span><span class="v"><span class="dv">${L(DISP.on ? "Вкл" : "Выкл")}</span><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
     </div>
     ${WALLET_SOON
       ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="soon-pill">${L("Скоро")}</span></div>`
@@ -7987,6 +8097,7 @@ function bindScreen(){
   act("search", ()=> toast("o", L("Поиск инструментов будет добавлен позже")));
   act("langpick", openLangSheet);
   act("glassfeats", openGlassSheet);
+  act("dispset", openDispSheet);
   act("newticket", ()=> openTicket());
   act("appmenu", ()=> openAppMenu());
   act("gotocal", ()=> nav("calendar"));
@@ -9143,7 +9254,7 @@ function sheetDrag(m){
   const sh = m.querySelector(".sheet"); if(!sh) return;
   const horiz = m.classList.contains("amodal");
   let d = null;
-  const NOPE = ".lgs, .lotwheel, .lw-wrap, input, textarea, select, canvas, .ot-vol, .ctp-lot, .seg, [data-lgui], [data-lgth]";
+  const NOPE = ".lgs, .lotwheel, .lw-wrap, input, textarea, select, canvas, .ot-vol, .ctp-lot, .seg, [data-lgui], [data-lgth], .disp-demo";
   sh.addEventListener("pointerdown", e => {
     if(e.button > 0 || (e.target.closest && e.target.closest(NOPE))) return;
     if(!horiz && (sh.scrollTop > 4 || e.clientY - sh.getBoundingClientRect().top > 64)) return;   // its head only
@@ -9825,7 +9936,7 @@ function lgMap(w, h, rad, rim){
 // disperses at any setting, and its fringe is the width of a letter stroke. A TENTH apart, not the fifth I had:
 // the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
 // noise instead of a word with a coloured edge.
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp || .20)) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp != null ? dm._sp : dispDropSp())) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){
   for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
   if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
@@ -9851,7 +9962,7 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
   // the rim-only lenses (the iOS glass) split their colour wider than the tab drops do: on the video the edge
   // squeezes what is under it into a line and fans it out into a plain rainbow
-  const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : .20; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
+  const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : null; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
   if(!chroma) dm(0, "o");
   else {
     // the split below adds three alphas together, so it needs an opaque backdrop or it darkens everything it
@@ -9886,15 +9997,51 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   return id;
 }
 const _lgEls = new Set();
-/* THE RAINBOW ONLY WHILE SOMETHING MOVES (user: «радуга не должна постоянно быть, она только в движении работает»).
-   On the two panels that carry it, the three colour passes are held together - one scale, no split - and fan apart
-   as the page scrolls under them, by as much as it is moving, then close back up as the scroll dies away: quick
-   in, a sixth of a second out. The same rule as the tab drops' clearing, applied to the colour. */
+/* ДИСПЕРСИЯ - the glass's rainbow, a function of its own with its own settings («Ещё» → «Дисперсия»; user
+   2026-09-25: «Почему-то не работает на телефоне, сделайте отдельную функцию радуги (только название правильное)
+   и что бы ее можно было настраивать»). Dispersion is the right name for it: glass bends blue a little harder than
+   red, so at a curved edge the colours of whatever is behind come apart. Here that is the same lens run three
+   times at three strengths, held together at rest and fanned apart while something moves under the glass (user:
+   «радуга не должна постоянно быть, она только в движении работает»).
+   Why the phone had none: the panels only asked for it on a "strong" device (LG_LOW - four cores or 2 GB, and
+   Android Chrome rounds its memory DOWN to a power of two, so a 3 GB phone reads as 2), and every path that laid a
+   lens again - a press on «Новый ордер» or «‹», a resize when the address bar slides away - forgot that colour had
+   been asked for at all. Now no caller asks: DISP decides, by the element, every time a lens is laid. */
+const DISP0 = Object.freeze({ on: true, str: 50, sens: 50, fade: 50, tabs: true, order: true, head: true, drops: true });
+const DISP = Object.assign({}, DISP0);
+const DISP_PLACES = [["tabs", "Капсула вкладок"], ["order", "Кнопка «Новый ордер»"], ["head", "Заголовок и «назад»"], ["drops", "Капли вкладок"]];
+(function dispLoad(){
+  try{
+    const j = JSON.parse(localStorage.getItem("xc_disp") || "null");
+    if(j) for(const k in DISP0){
+      const v = j[k];
+      if(typeof DISP0[k] === "boolean" ? typeof v === "boolean" : (typeof v === "number" && v >= 0 && v <= 100)) DISP[k] = v;
+    }
+  }catch(e){}
+})();
+function dispSave(){ try{ localStorage.setItem("xc_disp", JSON.stringify(DISP)); }catch(e){} }
+// where a piece of glass stands, as far as the rainbow is concerned (null: it never splits its colour)
+function dispPlace(el){
+  if(el.matches(".disp-lens")) return "demo";                    // the sample on the settings sheet
+  if(el.matches(".sub-glass")) return "tabs";
+  if(el.matches(".bignew, .fabnew")) return "order";
+  if(el.matches(".appbar .ttl, .appbar .iconbtn")) return "head";
+  return null;
+}
+function dispWants(el){ const p = DISP.on && dispPlace(el); return !!p && (p === "demo" || !!DISP[p]); }
+// how far apart the three passes go at full motion: the panels wide, the title and «‹» a little («чуть-чуть»).
+// Never past .95 - beyond 1 one channel would bend the wrong way
+const dispSpread = p => Math.min(.95, (p === "head" ? .35 : .6) * DISP.str / 50);
+const dispVFull = () => 2400 * Math.pow(2, -DISP.sens / 25);   // px/s of scroll that fans it fully: 600 at the middle
+const dispFade = () => .04 * Math.pow(2, DISP.fade / 25);       // s to close back up: 0.16 at the middle
+// the tab drops split on their own (while they travel); their strength and their switch are these
+const dispDropSp = () => DISP.on && DISP.drops ? .20 * DISP.str / 50 : 0;
 const _lgRain = new Set();
-let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainY = null;
+let _rainK = 0, _rainRaf = 0, _rainT = 0, _rainY = null, _rainSrc = null;
+const rainTop = () => _rainSrc && _rainSrc !== document ? _rainSrc.scrollTop : window.scrollY;
 function lgRainApply(el){
   if(!el._rdm) return;
-  const sp = el._rainSp || .6;
+  const sp = dispSpread(el._dispP);
   for(const d of el._rdm) d.setAttribute("scale", (d._base * (1 + d._c * sp * _rainK)).toFixed(2));
 }
 function lgRainBind(el){
@@ -9903,24 +10050,42 @@ function lgRainBind(el){
   el._rdm = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
   if(!el._rdm) return;
   for(const d of el._rdm) d._base = d._s * Math.min(1.5, LG_UI.refract);
-  // the two panels fan wide; the title and the back button only a little (user: «чуть-чуть»)
-  el._rainSp = el.matches(".appbar .ttl, .appbar .iconbtn") ? .35 : .6;
+  el._dispP = dispPlace(el);
   _lgRain.add(el); lgRainApply(el);
 }
 function rainFrame(now){
   _rainRaf = 0;
   const dt = _rainT ? Math.min(Math.max((now - _rainT) / 1000, 0), 1 / 30) : 1 / 60;
   _rainT = now;
-  const y = window.scrollY, v = _rainY == null ? 0 : (y - _rainY) / dt;
+  const y = rainTop(), v = _rainY == null ? 0 : (y - _rainY) / dt;
   _rainY = y;
-  const want = Math.min(1, Math.abs(v) / 600);
-  _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : .16)));
+  const want = Math.min(1, Math.abs(v) / dispVFull());
+  _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
   for(const el of _lgRain){ if(!el.isConnected){ _lgRain.delete(el); continue; } lgRainApply(el); }
   if(_rainK > .005 || Math.abs(v) > 1){ _rainRaf = requestAnimationFrame(rainFrame); return; }
   _rainK = 0; _rainT = 0; _rainY = null;
   for(const el of _lgRain) lgRainApply(el);
 }
-addEventListener("scroll", () => { if(!_rainRaf){ _rainT = 0; _rainY = window.scrollY; _rainRaf = requestAnimationFrame(rainFrame); } }, { passive: true });
+// open it all the way now and let it close at its own pace: a setting changed, show what it does
+function rainKick(full){
+  if(full) _rainK = 1;
+  for(const el of _lgRain) lgRainApply(el);
+  if(!_rainRaf){ _rainT = 0; _rainY = null; _rainRaf = requestAnimationFrame(rainFrame); }
+}
+// ANY scroll moves what is under the glass - the page, and the ones that scroll inside themselves (the wallet, the
+// sample on the settings sheet): caught on the way down. A sheet scrolling carries its own glass with it, so not that.
+document.addEventListener("scroll", e => {
+  if(!_lgRain.size) return;
+  const t = e.target, src = !t || t === document || t === document.documentElement || t === document.body ? document : t;
+  if(src !== document && src.matches && src.matches(".sheet")) return;
+  if(src !== _rainSrc){ _rainSrc = src; _rainY = rainTop(); }
+  if(!_rainRaf){ _rainT = 0; _rainY = rainTop(); _rainRaf = requestAnimationFrame(rainFrame); }
+}, { capture: true, passive: true });
+// a setting changed: every lens asks again whether it splits (hard), and every split takes the new strength
+function dispApply(hard){
+  if(hard) lgRefresh();
+  lgScaleAll();
+}
 // no colour fringes any more: a channel-split lens darkened what it sat on inside a see-through sheet (the slider
 // went grey at «Кристалл»), and the user wanted them smaller twice. `fixed`: a bend the clarity does not scale
 function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
@@ -9942,9 +10107,9 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
     rm = Math.max(4, Math.round(r * .3));
     // CRYSTAL inside, as asked: through the pulled-down sheet on the video everything reads sharp - no frost
     bl = 0;
-    // the rainbow belongs to two panels only - the tab capsule and «Новый ордер» - which ask for it, and even
-    // there it only shows while something moves under them (lgRain)
-    ch = chroma === true && !LG_LOW && w * h <= 60000;
+    // the rainbow is DISPERSION's to give, by the element - not the caller's to ask for (a press or a resize laid
+    // the lens again without asking, and it was gone), and not held back from a phone that reads as "weak"
+    ch = dispWants(el) && w * h <= 60000;
     ios = true;
     fixed = true;                                // the strength is the size's, so the clarity must not rescale it
   }
@@ -10073,7 +10238,7 @@ function lgReflow(){
     const a = el._lga;
     if(!el.isConnected || !a) continue;
     const w = el.offsetWidth, h = el.offsetHeight;
-    if(w > 0 && h > 0 && (Math.abs(a[0] - w) > 4 || Math.abs(a[1] - h) > 4)) lgGlass(el, w, h, a[2], a[3], a[4], a[5], a[6], a[7]);
+    if(w > 0 && h > 0 && (Math.abs(a[0] - w) > 4 || Math.abs(a[1] - h) > 4)) lgGlass(el, w, h, a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
   }
 }
 addEventListener("resize", () => { clearTimeout(_lgRz); _lgRz = setTimeout(lgReflow, 180); }, { passive: true });
