@@ -57,7 +57,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   --scrim:rgba(0,0,0,.4);    /* modal backdrop */
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-w1:rgba(0,0,0,.07); --ripple-w2:rgba(0,0,0,.03); --ripple-bg:rgba(0,0,0,.05);
-  --chart-cross:rgba(235,235,245,.5); --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
+  --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
   --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .16 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
   /* the depth tokens exist even with the mode OFF: a few rules that only ever show in glass are not gated by the
@@ -68,7 +68,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
   --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
-  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#0a84ff; --nav-ic:rgba(235,235,245,.6); --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -81,7 +81,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#ff4a45; --nav-ic:#78787e; --nav-hole:#000; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
-  --buy-line:rgba(48,209,88,.5); --sell-line:rgba(255,69,58,.5);
+  --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
@@ -280,6 +280,12 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .bottomnav button.on{color:var(--nav-on)}
 .bottomnav .ic svg{width:26px;height:26px}
 .nav-bub,.nav-lens,.nav-red{display:none}
+/* the drop's own tokens, declared again ON THE BAR: they carry var(--dk), which is substituted where a token is
+   declared, so declared here they read the bar's --dk - and the drop's clearing no longer writes <html> (every
+   write there restyled the whole document, thirty frames of it per tab change) */
+.bottomnav{--nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1)));--nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1)))))}
+:root[data-theme="dark"] .bottomnav{--nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1)));--nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3)))}
+:root[data-theme="dark"][data-tone="aurora"] .bottomnav{--nav-bub:rgba(195,207,230,calc(.15 * var(--dk,1)));--nav-lip:rgba(12,13,25,calc(.46 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(189,216,226,calc(.7 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(207,189,226,calc(.42 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(199,211,231,calc(.14 * (1 + (1 - var(--dk,1)) * 3)))}
 /* liquid glass ON (the default; «Ещё» → «Жидкое стекло») — iOS 26's floating tab bar (user 2026-09-18, an Apple
    Music recording): a frosted capsule the page scrolls under; the current tab sits on a soft drop (.nav-bub).
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
@@ -2168,6 +2174,102 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"] .godpanel button:not(.on){background:#2c2c3a;border-color:rgba(235,235,245,.2)}
 :root[data-tone="aurora"] .godpanel button:not(.on):active{background:#3a3a4a}
 :root[data-tone="aurora"] .godpanel input{background:#15162a;border-color:rgba(235,235,245,.2)}
+
+/* ── «Аврора», the screens' audit (2026-09-26, every item measured on a 3× phone capture) ── */
+/* tertiary text was iOS's .44 - the sub-tab labels on the clear capsule read at 2.7:1; a step up everywhere, and the
+   inactive tabs a step more */
+:root[data-theme="dark"][data-tone="aurora"]{--ink3:rgba(235,235,245,.56);
+  --nav-on:#409cff; --nav-ic:rgba(235,235,245,.6); --chart-cross:rgba(235,235,245,.5); --chart-tag:#2c2c3a; --chart-glass:rgba(28,28,40,.86);
+  --chart-btn:rgba(28,28,40,.72); --chart-btn-edge:rgba(235,235,245,.24); --bar:rgba(17,20,38,.97);
+  --buy-line:rgba(48,209,88,.5); --sell-line:rgba(255,69,58,.5)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button:not(.near){color:rgba(235,235,245,.72)}
+/* big blue fills a tone deeper, as red and green are (text and small marks keep the system blue) */
+:root[data-tone="aurora"] :is(.btn.dark:not(.sheet-dark *),.bignew,.wl-addbtn){--blue:#2f78c6}
+:root[data-theme="dark"][data-tone="aurora"] .fabnew{--fab-bg:#2f78c6;color:#fff}
+/* the plain toast, the menus and the sheets: dense enough that what is behind stays behind (at «Кристалл» the bright
+   controls under them bled through as coloured blobs; the plain toast read word for word) */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--toast-glass:rgba(36,38,56,.8);
+  --pop-glass:rgba(36,38,56,calc(.5 + .3 * var(--lgs,1))); --sheet-glass:rgba(30,33,53,calc(.5 + .3 * var(--lgs,1)))}
+/* the lot field: the see-through field of iOS, its caption inside it (a solid caption over the border was a dark notch
+   in a clear card) */
+:root[data-tone="aurora"] .ctp-lot{background:var(--field-bg);border-color:var(--edge)}
+:root[data-tone="aurora"] .ctp-lot-cap{top:4px;left:12px;padding:0;background:none;font-size:10.5px;line-height:13px}
+:root[data-tone="aurora"] .ctp-lot input.ctp-lot-val{padding-top:12px}
+:root[data-tone="aurora"] .ctp-lot.editing{border-color:var(--ink2)}
+/* the glass «Новый ордер»: still clear, a dim pooled under its label so the page passing under it does not read
+   through the words */
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{background:radial-gradient(46% 70% at 50% 50%,rgba(14,16,30,.5),rgba(14,16,30,0) 100%),
+  linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 46%),linear-gradient(100deg,rgba(106,128,191,.38) 0%,rgba(133,130,201,.32) 38%,rgba(158,134,203,.34) 66%,rgba(144,166,207,.4) 100%)}
+/* the wallet's sheets keep their own dark: the gold card showed through the clear sheet right under «СУММА» */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.sheet-dark{--sheet-glass:rgba(26,23,19,.9)}
+/* flat: the bars frost what passes under them instead of ghosting it */
+:root[data-tone="aurora"]:not([data-glass="on"]) :is(.appbar,.subtabs,.wl-topbar,.bottomnav){-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2)}
+:root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .appbar.auth-bar .ttl{background:rgba(118,118,128,.24);-webkit-backdrop-filter:blur(16px) saturate(1.1);backdrop-filter:blur(16px) saturate(1.1);
+  box-shadow:0 0 0 .5px rgba(235,235,245,.2),0 6px 18px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.25)}
+/* the labels on the clear header capsules: a firmer halo, the glass stays clear */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="headers"]) .subtabs button,:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{text-shadow:0 0 2px rgba(12,13,26,.95),0 0 7px rgba(12,13,26,.8)}
+:root[data-tone="aurora"] .disp-demo{background:rgba(22,22,30,.6)}
+
+/* ===================== «АВРОРА» IS WATER ======================================================================
+   (user 2026-09-26: «более водяной, что бы много чего на каплю было похоже … намного лучше нужны эффекты капли»).
+   What a bead of water on dark glass shows, and so what every drop here is made of:
+     a GLINT - the light source seen in its curved top, sharp and small, top left where the light is, with a second
+       smaller one beside it;
+     a CAUSTIC - the light that went through it gathered on the far side, a bright crescent low in the bead;
+     a DARK EDGE - where its surface turns away from the eye the bead goes dark (refraction), a soft ring inside it;
+     a LIT LIP along the top, and the soft SHADOW it throws.
+   All of it background layers and inset shadows - nothing that costs a frame, nothing that needs a new filter. */
+:root[data-theme="dark"][data-tone="aurora"]{
+  /* the glint is the light source's reflection: its size is the source's, not the drop's - a small bead and a wide one
+     show the same small spark, so it is sized in pixels (a percentage made a white cloud on a wide drop; min() is not allowed in a gradient's size) */
+  --wd-glint:radial-gradient(12px 5.5px at min(18%,22px) min(26%,9px),rgba(255,255,255,.92) 0%,rgba(255,255,255,.5) 40%,rgba(255,255,255,0) 100%),
+    radial-gradient(3.5px 2.2px at min(30%,36px) min(19%,6.5px),rgba(255,255,255,.8) 0%,rgba(255,255,255,0) 100%);
+  --wd-caustic:radial-gradient(58% 46% at 60% 102%,rgba(178,218,255,.36) 0%,rgba(178,218,255,.12) 55%,rgba(178,218,255,0) 100%);
+  --wd-sheen:linear-gradient(180deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,0) 44%);
+  --wd-body:rgba(255,255,255,.06);
+  --wd-sh:0 7px 16px -6px rgba(0,0,0,.5),0 2px 4px -1px rgba(0,0,0,.22),
+    inset 0 0 0 .6px rgba(255,255,255,.3),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.66),
+    inset 0 -2.5px 4px -1.5px rgba(185,220,255,.46),inset 0 0 9px -2px rgba(4,6,20,.42);
+  /* the moving lenses keep their bend; they take the same light (their shadow is the drops' own token) */
+  --drop-sh:0 8px 18px -6px rgba(0,0,0,.5),0 2px 4px -1px rgba(0,0,0,.22),
+    inset 0 0 0 .6px rgba(255,255,255,.32),inset 1.2px 1.6px 1.4px -.6px rgba(255,255,255,.72),
+    inset 0 -2.5px 4px -1.5px rgba(185,220,255,.5),inset 0 0 10px -2px rgba(4,6,20,.4)}
+/* 1. THE RESTING DROPS - the chosen tab below, above, in every segmented control, in the ticket */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),var(--wd-body);box-shadow:var(--wd-sh)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.1);box-shadow:var(--wd-sh)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy.seg-drag>.seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),color-mix(in srgb,var(--green) 38%,transparent);box-shadow:var(--wd-sh),0 0 0 1px color-mix(in srgb,var(--green) 55%,transparent)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell.seg-drag>.seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),color-mix(in srgb,var(--red) 38%,transparent);box-shadow:var(--wd-sh),0 0 0 1px color-mix(in srgb,var(--red) 55%,transparent)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(195,207,230,calc(.12 * var(--sdk,1)));
+  box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
+    inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),var(--nav-bub);
+  box-shadow:0 6px 14px -6px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--dk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.62),
+    inset 0 -3px 5px -2px rgba(185,220,255,.44),inset 0 0 10px -2px rgba(4,6,20,calc(.42 * var(--dk,1)))}
+/* 2. THE LENSES THAT FOLLOW A FINGER - over their bend, the same glint and gathered light */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.035)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.04);box-shadow:var(--drop-sh)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::before{display:none}   /* its glint is the layer above now */
+/* 3. THE KNOBS - a bead of water on the track: what is under it shows through, lit and bent at its edge */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
+:root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle]:not(.press) .knob{
+  background:var(--wd-glint),var(--wd-caustic),linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.16) 60%,rgba(255,255,255,.26));
+  box-shadow:0 3px 8px -2px rgba(0,0,0,.5),inset 0 0 0 .6px rgba(255,255,255,.55),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.8),
+    inset 0 -2.5px 4px -1.5px rgba(200,228,255,.6),inset 0 0 7px -2px rgba(4,6,20,.35)}
+:root[data-theme="dark"][data-tone="aurora"] .lgs:not(.press):not(.rel) .lgs-knob,:root[data-theme="dark"][data-tone="aurora"] .lgs.rel.frost .lgs-knob{
+  background:var(--wd-glint),var(--wd-caustic),linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.2) 60%,rgba(255,255,255,.3));
+  box-shadow:0 3px 8px -2px rgba(0,0,0,.5),inset 0 0 0 .6px rgba(255,255,255,.55),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.8),
+    inset 0 -2.5px 4px -1.5px rgba(200,228,255,.6),inset 0 0 7px -2px rgba(4,6,20,.35)}
+/* 4. THE LOTS AND THE SMALL PILLS - flat beads sitting on the card */
+:root[data-theme="dark"][data-tone="aurora"] .miniquick button,:root[data-theme="dark"][data-tone="aurora"] .spreadchip{
+  background:radial-gradient(10% 26% at 16% 26%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 100%),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.055);
+  box-shadow:0 3px 7px -4px rgba(0,0,0,.5),inset 0 0 0 .6px rgba(255,255,255,.18),inset 0 1px 1px -.3px rgba(255,255,255,.42),inset 0 -2px 3px -1.5px rgba(185,220,255,.32);
+  color:var(--ink)}
+:root[data-theme="dark"][data-tone="aurora"] .miniquick button{border-radius:999px}
 </style>
 
 <div id="app"></div>
@@ -8316,7 +8418,7 @@ function navBubFrame(now){
   // and --nav-edge all carry var(--dk) - has that var substituted where the TOKEN is declared, which is :root,
   // not where it is used. Setting --dk on the bar left :root without one, the fallback of 1 won every time, and
   // the drop stayed fully grey through the whole flight however far the number fell.
-  document.documentElement.style.setProperty("--dk", (1 - NB.clear).toFixed(3));
+  bar.style.setProperty("--dk", (1 - NB.clear).toFixed(3));   // on the bar: its tokens are declared there too
   bar.style.setProperty("--u", left.toFixed(4));
   bar.style.setProperty("--sx", sx.toFixed(4));
   bar.style.setProperty("--sy", sy.toFixed(3));
@@ -8343,7 +8445,7 @@ function navBubFrame(now){
   // last frame. The frame keeps running until the fill has burnt down as well.
   if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01 && Math.abs(NB.bx) < .05){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
-    NB._pm = null; NB.clear = 0; NB.bx = 0; bar.style.setProperty("--bx", "0px"); document.documentElement.style.setProperty("--dk", "1");
+    NB._pm = null; NB.clear = 0; NB.bx = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
     navLens(0);                                // and it is written once more here, where the frames stop
     const r = navBox(NB.target, NB.target + 1, 0);
     // --sy comes from navBox as well: it carries the ball-up on the end tabs, and a hard 1 here threw it away
@@ -8618,7 +8720,8 @@ function glassDrops(root){
     if(!lens){ lens = document.createElement("span"); lens.className = (sub ? "sub-lens" : "seg-lens") + " idle"; bar.appendChild(lens); }
     const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
     const key = dropKey(bar), mem = _dropMem[key];
-    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big };
+    const bs = [...bar.querySelectorAll(":scope > button")], cw = bs.length ? bs.reduce((a, b) => a + b.offsetWidth, 0) / bs.length - 2 * inset : 0;
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big, cw };
     bar._st = st; bar._bub = bub;
     _drops.set(bub, st);
     dropApply(bub, st);
@@ -8959,8 +9062,9 @@ function mqApply(s){
   // a real lens, as the tab bar's drop is: a capsule that magnifies its middle and bends at its rim (a band a third of
   // its height), no blur, so the lot under it is bigger and sharp - the iOS glass the user asked for (a size-picked
   // lens of strength 4 bent nothing one could see: «нету даже эффекта стекла»). Maps per 2 px of size, cached
-  if(!idle){ const w = Math.max(8, Math.round(s.w / 2) * 2), h = Math.max(8, Math.round(s.h / 2) * 2);
-    if(l._lw !== w || l._lh !== h){ l._lw = w; l._lh = h; lgGlass(l, w, h, 9, 0, false, true, 0, -Math.max(4, Math.round(h * .32)), false); } }
+  // one map, drawn for the first chip it shows on and stretched over every other (it was one per 2 px of size)
+  if(!idle && !l._lgOn){ const w = Math.max(8, Math.round(s.tw / 2) * 2), h = Math.max(8, Math.round(s.th / 2) * 2);
+    l._lgOn = true; l._lgStretch = true; lgGlass(l, w, h, 9, 0, false, true, 0, -Math.max(4, Math.round(h * .32)), false); }
 }
 function mqFrame(now){
   _mqRaf = 0;
@@ -8970,12 +9074,15 @@ function mqFrame(now){
     s.t = now;
     // it flows to the number it is going to: the edge that leads is stiffer than the one that follows, so the
     // lens stretches on its way and gathers itself again when it lands — one drop, not a lamp being switched
-    const l = s.x, r = s.x + s.w, tl = s.tx, tr = s.tx + s.tw, right = (tl + tr) > (l + r);
+    const l = s.x, r = s.x + s.w, tl = s.tx, tr = s.tx + s.tw;
+    if(s._tk !== tl + tr){ s._tk = tl + tr; s._rt = (tl + tr) > (l + r); }
+    const right = s._rt;
     let vl = s.vl || 0, vr = s.vr || 0;
     vl = MO.sp(vl, l, tl, right ? MO.P.trail : MO.P.lead, dt);
     vr = MO.sp(vr, r, tr, right ? MO.P.lead : MO.P.trail, dt);
     let nl = l + vl * dt, nr = r + vr * dt;
-    if(nr - nl < 10){ const c = (nl + nr) / 2; nl = c - 5; nr = c + 5; }
+    const mw = Math.max(10, s.tw * .6);                            // never a stick: 60 % of the chip, round its middle
+    if(nr - nl < mw){ const c = (nl + nr) / 2; nl = c - mw / 2; nr = c + mw / 2; }
     s.vl = vl; s.vr = vr; s.x = nl; s.w = nr - nl;
     s.vy = MO.sp(s.vy || 0, s.y, s.ty, MO.P.fluid, dt); s.y += s.vy * dt;
     s.vh = MO.sp(s.vh || 0, s.h, s.th, MO.P.fluid, dt); s.h += s.vh * dt;
@@ -9105,11 +9212,13 @@ function pkFrame(now){
     if(!s.host.isConnected || !s.lens){ _pk.delete(s); continue; }
     const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : MO.dt0;
     s.t = now;
-    const down = (s.tt + s.tb) > (s.top + s.bot);
+    if(s._tk !== s.tt + s.tb){ s._tk = s.tt + s.tb; s._dn = (s.tt + s.tb) > (s.top + s.bot); }
+    const down = s._dn;
     s.vt = MO.sp(s.vt, s.top, s.tt, down ? MO.P.trail : MO.P.lead, dt);
     s.vb = MO.sp(s.vb, s.bot, s.tb, down ? MO.P.lead : MO.P.trail, dt);
     let nt = s.top + s.vt * dt, nb = s.bot + s.vb * dt;
-    if(nb - nt < 12){ const c = (nt + nb) / 2; nt = c - 6; nb = c + 6; }
+    const mh = Math.max(12, (s.tb - s.tt) * .6);
+    if(nb - nt < mh){ const c = (nt + nb) / 2; nt = c - mh / 2; nb = c + mh / 2; }
     s.top = nt; s.bot = nb;
     s.vx = MO.sp(s.vx, s.x, s.tx, MO.P.fluid, dt); s.x += s.vx * dt;
     s.vw = MO.sp(s.vw, s.w, s.tw, MO.P.fluid, dt); s.w += s.vw * dt;
@@ -9138,7 +9247,9 @@ function dropApply(bub, st){
   if(L){
     const idle = (st.lf || 0) < .01;
     if(L._idle !== idle){ L._idle = idle; L.classList.toggle("idle", idle); }
-    if(!idle) lgFit(L, st.r - st.l, L._h || (L._h = L.offsetHeight) || 30, 10, 0);   // mild: labels stay readable under it
+    // mild (labels stay readable under it); ONE map for the bar, drawn at its tabs' mean width and stretched to
+    // whatever width the drop has - never rebuilt while it moves
+    if(!idle && !L._lgOn){ L._lgStretch = true; L._lgOn = true; lgFit(L, st.cw || (st.tr - st.tl), L._h || (L._h = L.offsetHeight) || 30, 10, 0); }
   }
 }
 const SEG_DRAG_LEAD = { k: 1250, z: .82 }, SEG_DRAG_TRAIL = { k: 820, z: .86 };
@@ -9170,7 +9281,10 @@ function dropFrame(now){
     if(!bub.isConnected){ _drops.delete(bub); continue; }
     const dt = st.t ? Math.min(Math.max((now - st.t) / 1000, 0), 1 / 30) : MO.dt0;
     st.t = now;
-    const right = (st.tl + st.tr) > (st.l + st.r);                 // moving right: the right edge leads
+    // moving right: the right edge leads. Decided when the target changes, not re-read every frame: read every
+    // frame it flipped each time an overshoot crossed the middle, the two edges swapped springs and pumped each other
+    if(st._tk !== st.tl + st.tr){ st._tk = st.tl + st.tr; st._rt = (st.tl + st.tr) > (st.l + st.r); }
+    const right = st._rt;
     const dr = !!st.drag;                                           // under the finger: a soft spring that lags and stretches (the video); let go: the flowing drop
     // under a finger these small drops (the order ticket's) follow it closely - with the tab bar's soft drag springs
     // the finger was a whole tab ahead on the recording (user: «плохо видно … когда водим»); let go, they flow
@@ -9216,7 +9330,7 @@ function bottomNav(){
   const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b, NB.lift);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     ${row}
   </div>`;
 }
@@ -11196,10 +11310,15 @@ function lgScaleAll(){
   // and the two rainbow panels close their colour back up, or a move of the slider would leave it split at rest
   // (the rainbow places' ready filters carry the bend in their ids: lgRefresh builds them again)
 }
-function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
+/* stretch: the map is drawn once for a size and laid over the WHOLE box, whatever size the box is at (feImage at
+   100 %), so a drop that changes its width as it flows keeps one filter. Drawn per size, a drop in flight made a
+   new map and a new filter every 4 px - measured in the preview, three quick sweeps over the order types built 18
+   of each and swapped the filter 121 times, frames of 50-100 ms: the jerks and the dropped frames (user 2026-09-26:
+   «проседает в фпс и может как-то дергаться»). Stretched, its bend band widens with it, as a stretched drop's would. */
+function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "") + (stretch ? "S" : "");
   if(_lgIds.has(id)) return id;
   if(!_lgDefs){
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -11211,7 +11330,7 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim){
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
-  el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: stretch ? "100%" : w, height: stretch ? "100%" : h, preserveAspectRatio: "none", result: "m" });
   // the rim-only lenses (the iOS glass) split their colour wider than the tab drops do: on the video the edge
   // squeezes what is under it into a line and fans it out into a plain rainbow
   const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : null; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
@@ -11441,7 +11560,7 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // «Аврора»: the sky under the glass is colour enough - pushed further it went vivid blue plastic, not crystal
   const aur = document.documentElement.dataset.tone === "aurora";
   const tail = " blur(" + bl.toFixed(2) + "px) saturate(" + (aur ? (bl > 2 ? 1.25 : 1.12) : (blur > 2 ? 1.8 : 1.35)) + ") brightness(" + (aur ? 1.07 : 1.03) + ")";
-  const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm) + ")" + tail;
+  const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm, !!el._lgStretch) + ")" + tail;
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
@@ -11537,8 +11656,11 @@ function litFinger(e){
   litTo(e.clientX / (innerWidth || 1) * 100, e.clientY / (innerHeight || 1) * 100);
   clearTimeout(_litIdle); _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000);   // then it drifts back to where the device is held
 }
-document.addEventListener("pointerdown", litFinger, { passive: true, capture: true });
-document.addEventListener("pointermove", litFinger, { passive: true, capture: true });
+/* (the light no longer follows the finger. Every move of it wrote --lit-a/x/y on <html>, and a custom property
+   written on the root restyles the WHOLE document: a trace of one drag over the order types spent ~960 ms of 1.5 s
+   in style recalculation, ~10 ms a frame, and every tap cost ~25 such frames going to the finger and ~25 coming back
+   two seconds later - the dropped frames and the jerks (user 2026-09-26: «проседает в фпс и может как-то
+   дергаться»). The light rests where it rests; the tilt switch in «Настройки стекла» still moves it.) */
 /* the device's own tilt sets where the light RESTS — the finger only borrows it for a moment. iOS needs a gesture
    to allow the sensor, so it is a switch in «Настройки стекла»; Android grants it and it just works. */
 let _tiltOn = false;
