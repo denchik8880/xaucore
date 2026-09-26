@@ -1950,6 +1950,16 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"] .ctp{--red:#c83c3a;--green:#2aa453}
 :root[data-tone="aurora"] .ctp-cap{box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 :root[data-tone="aurora"] .ctp-px{margin-top:-1px}   /* the two halves overlap a pixel: no seam of the night between them */
+/* EVERY BIG FILLED BUTTON takes the deeper red and green of SELL / BUY (user: «везде есть проблема с насыщенностью»,
+   the agent's shots): the symbol's «График» trade bar, the order book's buttons, «Закрыть позиции», «Сохранить /
+   Сбросить», the ticket's «Разместить ордер». iOS's full red and green stay for text, candles and small marks. */
+:root[data-tone="aurora"] :is(.cht,.btn.green,.btn.red,.ot-go){--green:#2aa453;--red:#c83c3a}
+:root[data-tone="aurora"] .ot-g .ot-go{background-image:linear-gradient(180deg,rgba(255,255,255,.14),transparent 62%)}
+/* toasts: the iOS hues, dense enough to stay clean over the night (thin, the orange went a muddy brown) */
+:root[data-tone="aurora"] .toast.g{background:#23864a}:root[data-tone="aurora"] .toast.r{background:#b23a36}:root[data-tone="aurora"] .toast.o{background:#b8741c}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.g{background:rgba(36,140,76,.86)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(186,58,54,.86)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(196,124,30,.86)}
 /* the chart's trade bar: the same red and green, less of them in the glass */
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#c83c3a 62%,transparent)}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#2aa453 62%,transparent)}
@@ -8682,10 +8692,10 @@ function subFrame(now){
   if(!bar || !glassOn("drops") || SB.l == null){ SB.t = 0; return; }
   const dt = SB.t ? Math.min(Math.max((now - SB.t) / 1000, 0), 1 / 30) : MO.dt0;
   SB.t = now;
-  if(SB.drag){                                   // under a finger: soft springs toward it, the back one slower
-    const d = SB.drag, right = d.tl + d.tr > SB.l + SB.r;
-    SB.va = MO.sp(SB.va, SB.l, d.tl, right ? MO.P.trailDrag : MO.P.leadDrag, dt); SB.l += SB.va * dt;
-    SB.vr = MO.sp(SB.vr, SB.r, d.tr, right ? MO.P.leadDrag : MO.P.trailDrag, dt); SB.r += SB.vr * dt;
+  if(SB.drag){                                   // under a finger: a centre on a firm spring, stretched by its speed
+    const d = SB.drag;
+    dropUnderFinger(SB, d.tl, d.tr, dt, 0, bar.clientWidth);
+    SB.va = SB.vr = SB.vc;
     SB.wRest = d.tr - d.tl; SB.tw = null;
   }else if(SB.tw){                               // in flight: the curve, not a spring
     const w = SB.tw, e = now - w.t0, pa = navEase(e / w.dl), pb = navEase(e / w.dr), pm = (pa + pb) / 2;
@@ -8696,7 +8706,7 @@ function subFrame(now){
     SB.va = SB.vr = 0;
     if(e >= w.end){ SB.l = SB.tl; SB.r = SB.tr; SB.tw = null; SB.wRest = SB.tr - SB.tl; }
   }else{ SB.l = SB.tl; SB.r = SB.tr; SB.wRest = SB.tr - SB.tl; SB.va = SB.vr = 0; }
-  if(SB.r - SB.l < 12) SB.r = SB.l + 12;
+  if(SB.r - SB.l < 12){ const m = (SB.l + SB.r) / 2; SB.l = m - 6; SB.r = m + 6; }
   const mid = (SB.l + SB.r) / 2, vmid = SB.pm != null && dt > 0 ? (mid - SB.pm) / dt : 0;
   SB.pm = mid;
   // crystal while it moves or a finger is on it, grey again an eighth of a second after it lands
@@ -9132,6 +9142,28 @@ function dropApply(bub, st){
   }
 }
 const SEG_DRAG_LEAD = { k: 1250, z: .82 }, SEG_DRAG_TRAIL = { k: 820, z: .86 };
+/* UNDER A FINGER A DROP IS A CENTRE AND A WIDTH (user video 2026-09-26: a quick sweep over Рыночный … Стоп-лимит
+   and back threw the lens past the end of the capsule, then pinched it into an 8 px stick). Two edges on springs
+   of their own swapped stiffness each time the drop's middle crossed its target, and pumped each other: one
+   overshot, the other caught up past it. Now the middle follows the finger on a firm spring that does not
+   overshoot, and the body is the tab's own width plus a stretch that grows with the speed - two thirds of it
+   ahead, a third behind - so it reads as liquid pulled along and can never be narrower than the tab. It stays
+   inside its track (it squashes against the end instead of flying past it). Let go, the flow takes over from
+   the same speed. */
+const DROP_GRAB = { k: 900, z: 1 };
+function dropUnderFinger(o, tl, tr, dt, lo, hi){
+  const tw = tr - tl, tc = (tl + tr) / 2;
+  let c = (o.l + o.r) / 2;
+  o.vc = MO.sp(o.vc || 0, c, tc, DROP_GRAB, dt); c += o.vc * dt;
+  const sT = Math.min(tw * .55, Math.abs(o.vc) * .05);
+  o.s = (o.s || 0) + (sT - (o.s || 0)) * (1 - Math.exp(-dt / .05));
+  const fwd = o.vc >= 0;
+  let l = c - tw / 2 - o.s * (fwd ? .34 : .66), r = c + tw / 2 + o.s * (fwd ? .66 : .34);
+  if(lo != null && l < lo) l = lo;
+  if(hi != null && r > hi) r = hi;
+  if(r - l < tw * .9){ const m = (l + r) / 2; l = m - tw * .45; r = m + tw * .45; }
+  o.l = l; o.r = r;
+}
 function dropFrame(now){
   _dropRaf = 0;
   for(const [bub, st] of _drops){
@@ -9144,9 +9176,18 @@ function dropFrame(now){
     // the finger was a whole tab ahead on the recording (user: «плохо видно … когда водим»); let go, they flow
     const Pf = dr ? SEG_DRAG_LEAD : MO.P.lead, Ps = dr ? SEG_DRAG_TRAIL : MO.P.trail;   // a bounce on landing
     const Pl = right ? Ps : Pf, Pr = right ? Pf : Ps;
-    st.vl = MO.sp(st.vl, st.l, st.tl, Pl, dt); st.l += st.vl * dt;
-    st.vr = MO.sp(st.vr, st.r, st.tr, Pr, dt); st.r += st.vr * dt;
-    if(st.r - st.l < 8) st.r = st.l + 8;
+    if(dr){
+      if(st.bw == null) st.bw = st.bar ? st.bar.clientWidth : null;
+      dropUnderFinger(st, st.tl, st.tr, dt, st.bw != null ? -3 : null, st.bw != null ? st.bw + 3 : null);
+      st.vl = st.vr = st.vc;                                        // the flow after the finger starts at this speed
+    }else{
+      st.vl = MO.sp(st.vl, st.l, st.tl, Pl, dt); st.l += st.vl * dt;
+      st.vr = MO.sp(st.vr, st.r, st.tr, Pr, dt); st.r += st.vr * dt;
+      st.vc = (st.vl + st.vr) / 2; st.s = 0;
+    }
+    // never a stick: at least 60 % of its tab, kept round its own middle
+    const mw = Math.max(8, (st.tr - st.tl) * .6);
+    if(st.r - st.l < mw){ const m = (st.l + st.r) / 2; st.l = m - mw / 2; st.r = m + mw / 2; }
     // the lens rides the speed: up fast while the drop flows, melting back as it lands
     const flf = st.drag ? 1 : Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
     st.lf += (flf - st.lf) * (1 - Math.exp(-dt / (flf > st.lf ? .05 : .16)));
