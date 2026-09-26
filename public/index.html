@@ -1559,6 +1559,9 @@ body.amenu-open .wl-logo{opacity:0}
   --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 24%,rgba(0,0,0,.2) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.45) 100%);
   --drop-sheen:rgba(255,255,255,.1)}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens{border-radius:999px;background:linear-gradient(180deg,var(--drop-sheen) 0%,transparent 50%),rgba(255,255,255,.03)}
+/* the lots are capsules as their drop is (they were 9 px boxes under a round drop: «сами цифры квадратные чуть-чуть,
+   а капля круглая») */
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .miniquick > button{border-radius:999px}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
@@ -8593,7 +8596,7 @@ function quickLens(root){
     box.addEventListener("pointerdown", e => {
       if(!glassOn("lots") || e.button > 0) return;
       const s = _mq.get(box) || box._mqSt || st; box._mqSt = s;
-      if(s.f < .05){ s.cur = null; s.p = s.pv = 0; }                  // a fresh press: it appears on the chip under the finger
+      if(s.f < .05 || s.melt){ s.cur = null; s.p = s.pv = 0; s.melt = false; }   // a fresh press (or one on a drop dissolving): it comes up on the chip under the finger
       const c = aim(s, e.clientX, e.clientY, true); if(!c) return;
       s.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false }; s.tf = 1;
       try{ box.setPointerCapture(e.pointerId); }catch(_){}
@@ -8658,8 +8661,12 @@ function mqFrame(now){
     const home = Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25 && Math.abs(s.y - s.ty) < .25 && Math.abs(s.h - s.th) < .25
       && Math.abs(s.vl || 0) < 4 && Math.abs(s.vr || 0) < 4 && Math.abs(s.vy || 0) < 4 && Math.abs(s.vh || 0) < 4;
     if(home){ s.x = s.tx; s.y = s.ty; s.w = s.tw; s.h = s.th; s.vl = s.vr = s.vy = s.vh = 0; }
-    if(s.hold && home){ s.hold = false; s.tf = 0; }                // landed on the number: now it may fade
-    s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .2)));
+    // landed on the number: now it DISSOLVES INTO it - drawing in to the lot's own capsule as it fades, instead of
+    // fading where it stood (user 2026-09-26: «чуть лучше растворение капли»)
+    if(s.hold && home){ s.hold = false; s.tf = 0; if(!s.melt){ s.melt = true; s.meltT = now; s.f0 = s.f; s.tx += 3; s.ty += 3; s.tw -= 6; s.th -= 6; } }
+    // and it is gone in a third of a second on an eased curve - on the old exponential it hung on at a fifth for most of a second
+    if(s.melt && !s.drag && !s.tf){ const u = clamp((now - s.meltT) / 320, 0, 1); s.f = (s.f0 || 1) * (1 - u * u * (3 - 2 * u)); }
+    else s.f += ((s.tf || 0) - s.f) * (1 - Math.exp(-dt / ((s.tf || 0) > s.f ? .05 : .22)));
     if(_mqMem) _mqMem.f = s.f;
     mqApply(s);
     const still = home && Math.abs(s.p || 0) < .004 && Math.abs(s.pv || 0) < .05;
