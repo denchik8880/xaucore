@@ -5217,7 +5217,21 @@ function lqRun(pop, open, done){
     const dt = t0 ? Math.min(Math.max((now - t0) / 1000, 0), 1 / 30) : MO.dt0; t0 = now;
     Q.v = MO.sp(Q.v, Q.p, to, P, dt); Q.p += Q.v * dt;
     if(!open && Q.p < 0){ Q.p = 0; Q.v = 0; }
-    const end = open ? Math.abs(Q.p - 1) < .002 && Math.abs(Q.v) < .02 : Q.p < .03;
+    // ON ITS WAY BACK IT AIMS AT WHERE ITS BUTTON IS NOW, every frame (user video 2026-09-26, the language menu:
+    // «Анимация закрывается не там где нужно»). A pick that re-renders the screen - a new language re-lays the whole
+    // «Ещё» page, its scroll is put back a frame or two later - moved the button after the drop had taken its aim,
+    // so the drop drained into the middle of the page and only then, on the scroll event, turned toward the button,
+    // landing a row short of it.
+    if(!open && Q.home){
+      const h = Q.home();
+      if(h){
+        const a = h.style.transform ? lgRestRect(h) : h.getBoundingClientRect();
+        if(a.width > 0){ const A = Q.A; A.l = a.left; A.t = a.top; A.w = Math.max(4, a.width); A.h = Math.max(4, a.height); Q.dn = (Q.F.t + Q.F.h / 2) >= (a.top + a.height / 2); }
+        if(!Q.keep && h !== Q.anc) lqAnc(Q, h);
+      }
+    }
+    // back: to within a hundredth - stopped at .03 its last frame still hung 8 px below the button it had gone into
+    const end = open ? Math.abs(Q.p - 1) < .002 && Math.abs(Q.v) < .02 : Q.p < .01;
     if(end){
       Q.p = to; Q.v = 0;
       if(open) lqRest(pop); else lqPut(pop, 0);
@@ -5308,6 +5322,7 @@ function lqMenu(key, anchor, o){
     const tmp = document.createElement("div"); o.build(tmp);      // its writing as it is now: the pick that sent it
     M0.pop._lq.inner.replaceChildren(...tmp.childNodes);          // back may have changed what is ticked
     M0.pop.style.pointerEvents = "";
+    M0.pop._lq.home = null;
     if(!M0.keep) lqAnc(M0.pop._lq, anchor);
     lqAnchor(M0.pop, anchor);
     lqRun(M0.pop, true);
@@ -5352,6 +5367,7 @@ function lqMenuClose(key, now){
   M.pop.style.pointerEvents = "none";                              // a tap on it falls to the catcher, which swallows it
   lqAnchor(M.pop, home);
   if(!M.keep) lqAnc(M.pop._lq, home);                             // it comes back under the drop as the drop sinks into it
+  M.pop._lq.home = () => lqHome(M); M.pop._lq.keep = M.keep;      // and the drop follows it there, frame by frame (lqRun)
   lqRun(M.pop, false, kill);
 }
 // after a render: a button rebuilt while its menu is out (or on its way back) stays hidden, and the way back aims at it
