@@ -1511,6 +1511,30 @@ body.amenu-open .wl-logo{opacity:0}
 .lg-pop button b{font-weight:600;color:var(--ink2)}
 .lg-pop button.on,.lg-pop button.on b{color:var(--blue-ink)}
 .lg-pop button:active{background:var(--press)}
+/* the drop under the finger in a menu (pickDrop): CRYSTAL, the bottom bar's clear lens (.nav-lens) - no tint at all;
+   a hairline, a soft lift under it, the glass's own inner shade (--lg-body: it reads convex) and the lit specular
+   rim - a capsule, in front of the row, a lens (lgGlass writes its backdrop-filter: it bends the writing at its rim
+   and magnifies a hair; the one here is for a browser without it). Every token is the theme's own, so both themes
+   get their glass. Box, scale, corners and opacity: pkPut.
+   (Two cuts the user turned down: a grey band under the rows, «не похоже на каплю … надо как стекло»; a grey pill,
+   «В белой теме тоже плохая кристальная чистота». And a clear box with a thin ring read as an outline in the dark:
+   «В темной теме это вообще на каплю не похоже» - the capsule and the inner shade are what make it a drop.) */
+.pk-drop{display:none}
+:root[data-glass="on"] .pk>.pk-drop{display:block;position:absolute;left:0;top:0;z-index:3;pointer-events:none;transform-origin:0 0;opacity:0;will-change:transform,opacity;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.03);   /* the glossy top every lens here has */
+  -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
+  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
+:root[data-glass="on"] .pk>.pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;pointer-events:none;
+  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 28%,var(--lg-rimd) 50%,transparent 72%,var(--lg-rim2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+/* what is under the drop swells a little, as under the bar's (its icons are magnified under it) */
+:root[data-glass="on"] .pk .am-it>*,:root[data-glass="on"] .pk button>*{transition:transform .14s cubic-bezier(.2,.8,.3,1)}
+:root[data-glass="on"] .pk .pk-on>*:not(.lg-milk){transform:scale(1.06)}
+:root[data-glass="on"] .pk .am-it>span,:root[data-glass="on"] .pk button>span{transform-origin:0 50%}   /* a word grows from where it starts, not sliding left */
+:root[data-glass="on"] .pk button>b{transform-origin:100% 50%}
+.pk>.pk-drop.idle{visibility:hidden}
+:root[data-glass="on"] .pk .am-it:active,:root[data-glass="on"] .pk button:active{background:none}   /* the drop is the press */
+:root[data-glass="on"] .am-sheet.pk:not(.pk-scroll) .am-grp{touch-action:none}                     /* a slide along the rows is the drop's, not a pan */
 /* LIQUID MENUS (lqPut): the menu is the drop. Its glass comes in with --lqg - a clear, bright lens while it pours out
    (the scene behind lit and saturated through it, a bright rim), the menu's frost and shadow when it lands - and its
    writing is a layer of its own, clipped by it */
@@ -5253,6 +5277,8 @@ function lqMenu(key, anchor, o){
   // a tap on the drop while it is still pouring out - its writing not yet there, its body over the button - closes it
   pop.addEventListener("pointerdown", e => { if(_lqM[key] === M && !M.closing && pop._lq && pop._lq.p < .5){ e.preventDefault(); lqMenuClose(key); } });
   if(glassOn("morph")){ lqInit(pop, anchor); if(!M.keep) lqHide(M, anchor); lqRun(pop, true); }
+  // the drop under the finger, once it has poured out (a press while it pours closes it - above)
+  pickDrop(pop._lq ? pop._lq.inner : pop, "button", () => _lqM[key] === M && !M.closing && (!pop._lq || pop._lq.p > .5));
   lqFocus(M);
   return M;
 }
@@ -6125,6 +6151,8 @@ function openAppMenu(){
     amLiquid(modalEl, mark, true);                                 // (measures the mark before it stands down)
     mark.style.opacity = "0";                                      // the drop and its X are the mark from this frame
   }else amEnter(modalEl);
+  { const m = modalEl, sh = m.querySelector(".am-sheet");         // the drop under the finger, once it is open and still
+    pickDrop(sh, ".am-it", () => modalEl === m && !sh.classList.contains("lqa") && !sh.style.transform); }
   const funds = kind => { closeModal(true); acctFundsModal(kind); };   // (not `money` — that is the formatter)
   const acts = {
     deposit:  () => funds("deposit"),
@@ -8527,6 +8555,146 @@ function mqFrame(now){
   }
   if(_mq.size){ _mqRaf = 1; moAdd(mqFrame); }
 }
+/* THE DROP UNDER THE FINGER IN A MENU - iOS 26.2 (user 2026-09-26, video of the drawer: «анимацию iOS26.2 когда так
+   водим вкладки … должна как капля работать супер чистая, логики для обеих тем … Эту каплю нужно сделать для всех
+   вкладок, которые так открываются»). Pressed, a clear drop comes up on the row under the finger; slid, it flows from
+   row to row after it - the edge that leads is stiffer than the one that follows, so it draws out on the way (a
+   little narrower, rounder, as a drop is) and gathers itself as it lands; slid off the menu it melts and nothing is
+   picked; let go on a row, that row is picked. The drawer from the logo and every liquid menu (the symbol's, the
+   timeframe, the language, the ticket's lists) carry one.
+   IT IS GLASS, THE BOTTOM BAR'S (user, on a first cut that was a grey band under the rows: «Это не похоже на каплю,
+   должна быть кристальная чистота, как у нас на нижней панеле … надо как стекло»): the bar's drop as it travels -
+   no tint, a bright ring and a lit rim, its lips shaded - and IN FRONT of the row, a lens (lgGlass) that bends the
+   writing under it at its rim and splits it into colour there, sharp in the middle. Built as the bar's is: a box
+   of the row's own size, so its displacement map is drawn once for it, stretched into place by a scale, the
+   corners divided back out by it so they come out round on screen. */
+const _pk = new Set();
+let _pkRaf = 0;
+function pickDrop(host, rowSel, ready){
+  if(!host || !glassOn()) return;
+  if(host._pk){ host._pk.ready = ready; return; }
+  const s = host._pk = { host, rowSel, ready, lens: null, t: 0, f: 0, tf: 0, top: 0, bot: 0, x: 0, w: 0, vt: 0, vb: 0, vx: 0, vw: 0,
+                         tt: 0, tb: 0, tx: 0, tw: 0, th: 1, rad: 14, cur: null, drag: null, hold: false, pickT: 0, self: false };
+  host.classList.add("pk");
+  host.classList.toggle("pk-scroll", host.scrollHeight > host.clientHeight + 2);   // a list that scrolls keeps its pan
+  host.addEventListener("pointerdown", e => pkDown(s, e));
+  host.addEventListener("pointermove", e => pkMove(s, e));
+  host.addEventListener("pointerup", e => pkUp(s, e, true));
+  host.addEventListener("pointercancel", e => pkUp(s, e, false));
+  // the browser's own click after the release would pick the row a second time (ours is the one that picked it)
+  host.addEventListener("click", e => { if(!s.self && performance.now() - s.pickT < 450){ e.stopPropagation(); e.preventDefault(); } }, true);
+  // its lens drawn ahead, once the menu has settled: drawn on the first press, it cost that press a frame or two
+  setTimeout(() => {
+    const row = host.isConnected && !s.drag && host.querySelector(rowSel);
+    if(!row) return;
+    const r = row.getBoundingClientRect();
+    if(!s.bw){ pkLens(s); s.tw = r.width; s.th = r.height; s.tt = s.top = 0; s.tb = s.bot = r.height; s.w = r.width; s.f = 0; pkPut(s); }
+  }, 420);
+}
+function pkKick(){ if(!_pkRaf){ _pkRaf = 1; moAdd(pkFrame); } }
+function pkLens(s){
+  if(!s.lens){ s.lens = document.createElement("span"); s.lens.className = "pk-drop idle"; s.lens.setAttribute("aria-hidden", "true"); }
+  if(s.lens.parentNode !== s.host){ s.host.appendChild(s.lens); s.bw = 0; }   // last: over the rows it bends (a menu rebuilt on its way back drops it)
+  return s.lens;
+}
+// the row under the finger. The one it is on keeps it 10 px past its edges (the gap between two cards, a separator);
+// null: off the rows, or off the menu - the drop melts
+function pkRow(s, x, y){
+  const hr = s.host.getBoundingClientRect();
+  if(x < hr.left - 12 || x > hr.right + 12 || y < hr.top - 12 || y > hr.bottom + 12) return null;
+  const inR = (el, m) => { const r = el.getBoundingClientRect(); return r.width > 0 && x >= r.left - m && x <= r.right + m && y >= r.top - m && y <= r.bottom + m; };
+  if(s.cur && s.cur.isConnected && inR(s.cur, 10)) return s.cur;
+  for(const r of s.host.querySelectorAll(s.rowSel)) if(!r.disabled && inR(r, 0)) return r;
+  return null;
+}
+function pkAim(s, row){
+  const h = s.host, hr = h.getBoundingClientRect(), r = row.getBoundingClientRect();
+  const x = r.left - hr.left - h.clientLeft + h.scrollLeft, y = r.top - hr.top - h.clientTop + h.scrollTop;
+  s.tx = x; s.tw = r.width; s.tt = y; s.tb = y + r.height; s.th = r.height;
+  if(s.f < .05){                                                   // from nothing: it comes up out of the row, a hair smaller
+    s.top = y + 3; s.bot = y + r.height - 3; s.x = x + 5; s.w = r.width - 10; s.vt = s.vb = s.vx = s.vw = 0;
+  }
+  pkOn(s, row); s.tf = 1; s.hold = false;
+}
+// the row the drop is on: what is written on it swells under the glass
+function pkOn(s, row){
+  if(s.cur === row) return;
+  if(s.cur) s.cur.classList.remove("pk-on");
+  s.cur = row;
+  if(row) row.classList.add("pk-on");
+}
+function pkDown(s, e){
+  if(e.button > 0 || !glassOn() || (s.ready && !s.ready())) return;
+  const row = e.target.closest && e.target.closest(s.rowSel);
+  if(!row || !s.host.contains(row) || row.disabled) return;
+  pkLens(s);
+  s.drag = { id: e.pointerId };
+  pkAim(s, row);
+  try{ s.host.setPointerCapture(e.pointerId); }catch(_){}         // it follows the finger past the row it was pressed on
+  _pk.add(s); pkKick();
+}
+function pkMove(s, e){
+  const d = s.drag; if(!d || e.pointerId !== d.id) return;
+  if(SHD.drag && SHD.drag.on && SHD.sh === s.host){ s.drag = null; s.tf = 0; pkOn(s, null); pkKick(); return; }   // the panel is being swiped away
+  const row = pkRow(s, e.clientX, e.clientY);
+  if(!row){ if(s.tf){ s.tf = 0; pkOn(s, null); pkKick(); } return; }
+  if(row !== s.cur || !s.tf){ pkAim(s, row); pkKick(); }
+}
+function pkUp(s, e, go){
+  const d = s.drag; if(!d || e.pointerId !== d.id) return;
+  s.drag = null;
+  const row = go && s.tf ? pkRow(s, e.clientX, e.clientY) : null;
+  if(row){
+    if(row !== s.cur) pkAim(s, row);
+    s.hold = true;                                                 // it lands on the row, then melts
+    s.pickT = performance.now(); s.self = true;
+    try{ row.click(); } finally { s.self = false; }
+  } else { s.tf = 0; pkOn(s, null); }
+  pkKick();
+}
+function pkPut(s){
+  const lens = s.lens, l = lens.style, h = Math.max(1, s.bot - s.top);
+  // its box: the row's own size, and its lens drawn for that box (once per size - every row of a menu is one)
+  const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
+  if(bw !== s.bw || bh !== s.bh){
+    s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px";
+    lgGlass(lens, bw, bh, 22, 0);
+  }
+  // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
+  const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14), w = Math.max(1, s.w - nw);
+  const rad = Math.min(w, h) / 2, sx = w / bw, sy = h / bh;
+  l.transform = "translate(" + (s.x + nw / 2).toFixed(2) + "px," + s.top.toFixed(2) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
+  l.borderRadius = (rad / sx).toFixed(2) + "px / " + (rad / sy).toFixed(2) + "px";   // round on screen, after the scale
+  l.opacity = s.f.toFixed(3);
+  const idle = s.f < .005; if(lens._idle !== idle){ lens._idle = idle; lens.classList.toggle("idle", idle); }
+}
+function pkFrame(now){
+  _pkRaf = 0;
+  let busy = false;
+  for(const s of _pk){
+    if(!s.host.isConnected || !s.lens){ _pk.delete(s); continue; }
+    const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : MO.dt0;
+    s.t = now;
+    const down = (s.tt + s.tb) > (s.top + s.bot);
+    s.vt = MO.sp(s.vt, s.top, s.tt, down ? MO.P.trail : MO.P.lead, dt);
+    s.vb = MO.sp(s.vb, s.bot, s.tb, down ? MO.P.lead : MO.P.trail, dt);
+    let nt = s.top + s.vt * dt, nb = s.bot + s.vb * dt;
+    if(nb - nt < 12){ const c = (nt + nb) / 2; nt = c - 6; nb = c + 6; }
+    s.top = nt; s.bot = nb;
+    s.vx = MO.sp(s.vx, s.x, s.tx, MO.P.fluid, dt); s.x += s.vx * dt;
+    s.vw = MO.sp(s.vw, s.w, s.tw, MO.P.fluid, dt); s.w += s.vw * dt;
+    const home = Math.abs(s.top - s.tt) < .25 && Math.abs(s.bot - s.tb) < .25 && Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25
+      && Math.abs(s.vt) < 4 && Math.abs(s.vb) < 4 && Math.abs(s.vx) < 4 && Math.abs(s.vw) < 4;
+    if(home){ s.top = s.tt; s.bot = s.tb; s.x = s.tx; s.w = s.tw; s.vt = s.vb = s.vx = s.vw = 0; }
+    if(s.hold && home){ s.hold = false; s.tf = 0; pkOn(s, null); }  // landed on what was picked: now it melts
+    s.f += (s.tf - s.f) * (1 - Math.exp(-dt / (s.tf > s.f ? .045 : .11)));
+    if(!s.tf && s.f < .005) s.f = 0;
+    pkPut(s);
+    if(!s.drag && !s.tf && !s.f && home){ s.t = 0; _pk.delete(s); continue; }
+    if(!home || Math.abs(s.f - s.tf) > .002) busy = true; else s.t = 0;
+  }
+  if(busy){ _pkRaf = 1; moAdd(pkFrame); }
+}
 function dropApply(bub, st){
   const el = st.bar || bub;                                        // on the bar: the drop and its lens both read them
   el.style.setProperty("--bx", st.l.toFixed(2) + "px");
@@ -9833,7 +10001,9 @@ function sheetDrag(m){
     if(!d.on){
       if(Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
       const ok = horiz ? (Math.abs(dx) > Math.abs(dy) * 1.4 && dx < 0) : (Math.abs(dy) > Math.abs(dx) * 1.2 && dy > 0);
-      if(!ok){ d = null; SHD.drag = null; return; }
+      // not a throw: it lets go of the panel as well (left holding it, the next close saw a swipe in progress and slid
+      // the drawer off to its edge instead of gathering it into the logo - user video 2026-09-26)
+      if(!ok){ d = null; SHD.drag = null; if(!SHD.raf) shdClear(); return; }
       d.on = true;
     }
     let o = d.o0 + (horiz ? -dx : dy);
@@ -9913,7 +10083,9 @@ function closeModal(now){
   if(m.contains(document.activeElement)) document.activeElement.blur();   // no keyboard riding down with it
   if(m.classList.contains("amodal")){                             // a panel goes back to its edge, at the speed it has
     const sh = m.querySelector(".am-sheet");
-    const mk = m._amMark;
+    // the mark it came out of - or the one a render put in its place while it was open
+    const mk = m._amMark && m._amMark.isConnected ? m._amMark : m._amMark && document.querySelector("#app .wl-logo");
+    if(sh && sh._lq && mk && mk !== m._amMark) sh._lq.mark = mk;
     if(sh && sh._lq && SHD.sh !== sh && mk && mk.isConnected && glassOn("morph")){   // out of the mark: back into it
       m.style.pointerEvents = "none";
       document.body.classList.remove("amenu-open");                // it comes back by its own opacity, as the drop drains
@@ -10999,7 +11171,8 @@ function jellyFrame(now){
    swell; a segment of a bar, a row of a menu or a tab cannot — deforming one piece of a continuous capsule breaks
    the capsule, and the user already told us the bars must hold still. Those answer with LIGHT instead: the glass
    lifts where it is touched and settles back. Three tiers, one spring system. */
-const LG_CALM = ".cht, .cht-lot, .am-it, .lg-pop button, .seg button, .lw-bar button";
+// (a menu's rows - the drawer's, a liquid menu's - answer with the drop under the finger instead: pickDrop)
+const LG_CALM = ".cht, .cht-lot, .seg button, .lw-bar button";
 const LG_SOFTB = ".af-quick button, .sheet .btn, .ot-g .ot-st, .ot-g .ot-go, .lang-row";
 const GLASS_SEL = ".chfs, .chzoom button, .chpill, .chlast, .bignew, .fabnew, .appbar .iconbtn, .mini-tools button, .sheet .close, .wl-logo, " + LG_CALM + ", " + LG_SOFTB;
 const _glass = new Set();
