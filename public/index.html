@@ -1558,9 +1558,11 @@ body.amenu-open .wl-logo{opacity:0}
 /* LIQUID MENUS (lqPut): the menu is the drop. Its glass comes in with --lqg - a clear, bright lens while it pours out
    (the scene behind lit and saturated through it, a bright rim), the menu's frost and shadow when it lands - and its
    writing is a layer of its own, clipped by it */
+/* --lqc, the lens: 0 where the drop is its button's size (plain clear glass - it brightened a white page to solid
+   white and hid the button's writing under it: «накладывается как будто на текст»), 1 once it is pouring */
 .lg-pop.lq{padding:0;overflow:hidden;background:transparent!important;background-image:none!important;
-  -webkit-backdrop-filter:blur(calc(1.5px + (8px + 16px * var(--lgsb,1)) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)));
-  backdrop-filter:blur(calc(1.5px + (8px + 16px * var(--lgsb,1)) * var(--lqg,1))) saturate(calc(1.9 - .5 * var(--lqg,1))) brightness(calc(1.12 - .1 * var(--lqg,1)));
+  -webkit-backdrop-filter:blur(calc(1.5px * var(--lqc,1) + (8px + 16px * var(--lgsb,1)) * var(--lqg,1))) saturate(calc(1 + .9 * var(--lqc,1) - .5 * var(--lqg,1))) brightness(calc(1 + .12 * var(--lqc,1) - .1 * var(--lqg,1)));
+  backdrop-filter:blur(calc(1.5px * var(--lqc,1) + (8px + 16px * var(--lgsb,1)) * var(--lqg,1))) saturate(calc(1 + .9 * var(--lqc,1) - .5 * var(--lqg,1))) brightness(calc(1 + .12 * var(--lqc,1) - .1 * var(--lqg,1)));
   box-shadow:0 3px 12px rgba(0,0,0,calc(.1 * var(--lqg,1))),0 12px 32px rgba(0,0,0,calc(.08 * var(--lqg,1))),
     inset 0 -2px 6px rgba(0,0,0,calc(.08 * (1 - var(--lqg,1))))}
 /* on a light page a white rim on white is nothing: the drop is drawn by a hairline and a soft shadow from its first frame */
@@ -3458,7 +3460,7 @@ function finishFrame(nowR, newsOn){
   // the quote breathes between price ticks (quoteFlicker) — not while news / an impulse / manual
   // control / a closed market own the price and the spread
   if(!newsOn && !S.news.active && !S.manual.enabled && !S.manual.impulse && !(S.news.decayUntil && nowR < S.news.decayUntil)
-     && !marketClosed() && Math.random() < RT_MS / 1000 * QUOTE_FLICKER_HZ) quoteFlicker();
+     && !marketClosed() && Math.random() < RT_MS / 1000 * QUOTE_FLICKER_HZ * simSpeed()) quoteFlicker();   // the spread breathes faster too
   if(Math.random() < 0.02) checkEvents();
   recalcAccount();
   checkStopOut();
@@ -3466,12 +3468,18 @@ function finishFrame(nowR, newsOn){
 }
 
 /* ---- ordinary-market tick generator — its own timer at exactly 1000 / ticksPerSecond ms ---- */
-let normalTickTimer = null;
+/* THE ACCELERATOR SPEEDS UP THE TICKS, not only the clock (user 2026-09-26: «когда ускоряли симулятор, то все
+   ускорялось, вместе с золотом и тиками … свечи тоже вместе со спредом»). It used to leave the ticks at their rate
+   and only stretch the game time each one covered, so at ×10 the price still moved twice a second, just in bigger
+   jumps, and nothing on screen looked faster. Now ×N brings the ticks N times as often (as often as the timer can
+   go - one every 40 ms; past that each one covers the rest of the time), each moving the price as an ordinary tick
+   does: the gold, the ticks, the candles and the spread's breathing all run N times as fast. */
+let normalTickTimer = null, _normalTickMs = 500;
 function restartNormalTicks(){
   if(normalTickTimer){ clearInterval(normalTickTimer); normalTickTimer = null; }
   if(!_loopRunning || XC.follower) return;         // don't run ticks while paused / hidden / mirroring
-  const ms = Math.max(50, Math.round(1000 / normalTps()));
-  normalTickTimer = setInterval(normalTickFire, ms);
+  _normalTickMs = Math.max(40, Math.round(1000 / (normalTps() * simSpeed())));
+  normalTickTimer = setInterval(normalTickFire, _normalTickMs);
 }
 function normalTickFire(){
   try{
@@ -3486,8 +3494,9 @@ function normalTickFire(){
       pushTick();
       updateCandles();
     }else{
-      const tps = normalTps();
-      const gameMs = (1000 / tps) * daySpeedNow() * simSpeed();     // game-time advanced per real tick (× accelerator)
+      // game time advanced per tick: the real time between two ticks at the game's pace × the accelerator - the
+      // same as an ordinary tick's whenever the timer keeps up with the accelerator (see restartNormalTicks)
+      const gameMs = _normalTickMs * daySpeedNow() * simSpeed();
       // keep each price sub-step small (~<=14 game-sec) so candles stay smooth at any TPS / accelerator
       let sub = clamp(Math.round(gameMs / 14000), 1, 40);
       if(sub < 2 && marketActivity() > 2.6 && Math.random() < 0.18) sub = 2;   // occasional micro-burst
@@ -5151,7 +5160,9 @@ const lqS = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * 
 const lqE = (p, a, b) => clamp((p - a) / (b - a), 0, 1);
 function lqShape(Q, p){
   const A = Q.A, F = Q.F, dn = Q.dn;
-  const eh = lqE(p, 0, .72), ew = lqE(p, .06, .84), ey = lqE(p, 0, .62);
+  // eased in at the button: its last hundredths on the way back no longer cover a dozen pixels, so it is the
+  // button's own size where it melts (it hung below «Русский ›» as a pale pill, user video 2026-09-26)
+  const eh = Math.pow(lqE(p, 0, .72), 1.35), ew = Math.pow(lqE(p, .06, .84), 1.35), ey = Math.pow(lqE(p, 0, .62), 1.35);
   const w = Math.max(4, A.w + (F.w - A.w) * ew), h = Math.max(4, A.h + (F.h - A.h) * eh);
   // it hangs from the button: its near edge travels from the button's near edge to the menu's
   const near = dn ? A.t + (F.t - A.t) * ey : (A.t + A.h) + ((F.t + F.h) - (A.t + A.h)) * ey;
@@ -5176,6 +5187,7 @@ function lqPut(pop, p){
   // появление текста» - it kept its frost and its rim to the last frame and was gone in one, the label under it
   // snapping from blurred to sharp)
   st.setProperty("--lqg", (.3 * lqS(0, .22, p) + .7 * lqS(.28, .86, p)).toFixed(3));
+  st.setProperty("--lqc", lqS(0, .22, p).toFixed(3));
   if(p < .08) st.opacity = lqS(0, .08, p).toFixed(3); else st.removeProperty("opacity");
   // the writing: last in, first out, out of a blur - over a wide band, or the quick close put it out in 20 ms. The
   // blur stays a blur to the last frame of the motion (a filter switched off mid-motion is what Android drew huge)
@@ -5189,7 +5201,7 @@ function lqPut(pop, p){
 function lqRest(pop){
   const Q = pop._lq, F = Q.F, st = pop.style;
   st.left = F.l + "px"; st.top = F.t + "px"; st.width = F.w + "px"; st.height = F.h + "px"; st.borderRadius = Q.R + "px";
-  st.setProperty("--lqg", "1"); st.removeProperty("opacity");
+  st.setProperty("--lqg", "1"); st.setProperty("--lqc", "1"); st.removeProperty("opacity");
   Q.inner.style.transform = "none"; Q.inner.style.opacity = "1"; Q.inner.style.filter = "none";   // at rest: no filter at all
   if(Q.anc){ Q.anc.style.removeProperty("opacity"); Q.anc.classList.add("lg-hid"); }
 }
@@ -5417,10 +5429,13 @@ function openTFPop(pill){
 }
 function closeTFPop(now, outside){ lqMenuClose("tf", now, outside); }
 // «Ещё» → «Язык»: the languages pour out of the one on show
+// it pours out of the whole row, «Язык … Русский ›», and gathers back into it (user 2026-09-26: «на всю плашку как
+// надо»; poured out of the word alone it came back as a blob over «Русский» - «накладывается как будто на текст»).
+// A row of a settings list stays where it is while its menu is out (keep), as the ticket's fields do
 function openLangMenu(row){
   const v = row && row.querySelector(".v");
   if(!v) return openLangSheet();
-  lqMenu("lang", v, { sel: '[data-act="langpick"] .v',
+  lqMenu("lang", row, { sel: '[data-act="langpick"]', keep: true,
     build: pop => {
       pop.innerHTML = LANGS.map(k => `<button type="button" role="menuitemradio" aria-checked="${LANG === k}" data-langpick="${k}" class="${LANG === k ? "on" : ""}"><span>${langName(k)}</span><b>${LANG === k ? "✓" : ""}</b></button>`).join("");
       pop.querySelectorAll("[data-langpick]").forEach(b => b.onclick = () => { const k = b.dataset.langpick; if(k !== LANG) setLang(k); lqMenuClose("lang"); });
@@ -10290,6 +10305,7 @@ function setTimeScale(v){
   v = TIME_SCALES.includes(+v) ? +v : 1;
   if(v === S.market.timeScale) return;
   S.market.timeScale = v;
+  restartNormalTicks();                                            // the ticks at the new pace, at once
   const tsEl = document.getElementById("set_ts"); if(tsEl) tsEl.value = v;
   document.querySelectorAll("[data-ts]").forEach(b=> b.classList.toggle("on", +b.dataset.ts === v));
   saveNow();
