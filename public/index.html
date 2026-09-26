@@ -10,6 +10,11 @@
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
 function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.15,1+lo*.5-hi*.978),b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
+<script>/* ONCE per device: the glass settings back to the design's (user 2026-09-26: «возможно у меня что-то с настройками,
+   деплойте со своими настройками жидкого стекла») - the clarity of each theme, the dials, the parts switched off and
+   «Дисперсия». The mode itself and the theme are left alone; after this they are the user's to change again. */
+try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_glass_clear_dark","xc_glass_clear","xc_lg_ui","xc_glass_off","xc_disp"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("xc_glass_v","2");}}catch(e){}
+</script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1511,25 +1516,40 @@ body.amenu-open .wl-logo{opacity:0}
 .lg-pop button b{font-weight:600;color:var(--ink2)}
 .lg-pop button.on,.lg-pop button.on b{color:var(--blue-ink)}
 .lg-pop button:active{background:var(--press)}
-/* the drop under the finger in a menu (pickDrop): CRYSTAL, the bottom bar's clear lens (.nav-lens) - no tint at all;
-   a hairline, a soft lift under it, the glass's own inner shade (--lg-body: it reads convex) and the lit specular
-   rim - a capsule, in front of the row, a lens (lgGlass writes its backdrop-filter: it bends the writing at its rim
-   and magnifies a hair; the one here is for a browser without it). Every token is the theme's own, so both themes
-   get their glass. Box, scale, corners and opacity: pkPut.
-   (Two cuts the user turned down: a grey band under the rows, «не похоже на каплю … надо как стекло»; a grey pill,
-   «В белой теме тоже плохая кристальная чистота». And a clear box with a thin ring read as an outline in the dark:
-   «В темной теме это вообще на каплю не похоже» - the capsule and the inner shade are what make it a drop.) */
+/* the drop under the finger in a menu (pickDrop): A REAL DROP (user 2026-09-26: «капля должна выглядеть как настоящая
+   капля … в белой теме почти не видно капли, возможно у меня что-то с настройками, деплойте со своими настройками
+   жидкого стекла»). Its own numbers, written out: nothing here runs through the glass dials (clarity, light, shadow,
+   line), which at «Кристалл» had faded the hairline and the lift it was drawn with to nothing on a white menu. What
+   a drop of clear glass on a page shows: a glossy top, the light it gathers pooled in its lower half, a lit upper
+   lip and a glowing lower one, its lower inside shaded - it is round - and the shadow it throws. It is a capsule,
+   in front of the row. NO LENS FILTER: the bend at its rim swept over the letters as it moved and they twitched for
+   a moment (user: «буквы на милисекунды искажаются»); the magnifying is done by the row under it, which grows a
+   little, so the writing stays sharp. Box, scale, corners and opacity: pkPut. */
 .pk-drop{display:none}
 :root[data-glass="on"] .pk>.pk-drop{display:block;position:absolute;left:0;top:0;z-index:3;pointer-events:none;transform-origin:0 0;opacity:0;will-change:transform,opacity;
-  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),rgba(255,255,255,.03);   /* the glossy top every lens here has */
-  -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
-  box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
-:root[data-glass="on"] .pk>.pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;pointer-events:none;
-  background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 28%,var(--lg-rimd) 50%,transparent 72%,var(--lg-rim2) 100%);
+  background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.14) 24%,rgba(255,255,255,0) 36%),
+    radial-gradient(58% 40% at 50% 100%,rgba(255,255,255,.34) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.03);   /* clear across the writing's band */
+  box-shadow:0 0 0 .5px rgba(16,24,40,.2),0 1px 2px rgba(16,24,40,.1),0 7px 18px -6px rgba(16,24,40,.3),
+    inset 0 1.5px 1px -.2px #fff,inset 0 -2px 2px -1px rgba(255,255,255,.9),inset 0 0 0 1px rgba(255,255,255,.35),
+    inset 0 -9px 14px -12px rgba(16,24,40,.42),inset 0 6px 10px -9px rgba(16,24,40,.16)}
+/* its rim, lit from the one light the whole app is lit from (the brightest at the top left and the bottom right) */
+:root[data-glass="on"] .pk>.pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:linear-gradient(var(--lit-a,151deg),#fff 0%,rgba(255,255,255,0) 28%,rgba(16,24,40,.2) 52%,rgba(255,255,255,0) 74%,rgba(255,255,255,.95) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* what is under the drop swells a little, as under the bar's (its icons are magnified under it) */
+/* and the glint on its crown */
+:root[data-glass="on"] .pk>.pk-drop::before{content:"";position:absolute;left:6%;top:9%;width:24%;height:26%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,255,255,0))}
+:root[data-theme="dark"][data-glass="on"] .pk>.pk-drop{
+  background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,0) 44%),
+    radial-gradient(58% 46% at 50% 100%,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.06);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.3),0 10px 22px -8px rgba(0,0,0,.75),
+    inset 0 1.5px 1px -.2px rgba(255,255,255,.75),inset 0 -2px 2px -1px rgba(255,255,255,.38),inset 0 0 0 1px rgba(255,255,255,.08),
+    inset 0 -9px 14px -12px rgba(0,0,0,.7),inset 0 6px 10px -9px rgba(0,0,0,.35)}
+:root[data-theme="dark"][data-glass="on"] .pk>.pk-drop::after{background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.9) 0%,rgba(255,255,255,0) 28%,rgba(0,0,0,.4) 52%,rgba(255,255,255,0) 74%,rgba(255,255,255,.6) 100%)}
+:root[data-theme="dark"][data-glass="on"] .pk>.pk-drop::before{background:radial-gradient(closest-side,rgba(255,255,255,.7),rgba(255,255,255,0))}
+/* what is under the drop is magnified by it, as under a real one (and under the bar's) - sharp, not bent */
 :root[data-glass="on"] .pk .am-it>*,:root[data-glass="on"] .pk button>*{transition:transform .14s cubic-bezier(.2,.8,.3,1)}
-:root[data-glass="on"] .pk .pk-on>*:not(.lg-milk){transform:scale(1.06)}
+:root[data-glass="on"] .pk .pk-on>*:not(.lg-milk){transform:scale(1.08)}
 :root[data-glass="on"] .pk .am-it>span,:root[data-glass="on"] .pk button>span{transform-origin:0 50%}   /* a word grows from where it starts, not sliding left */
 :root[data-glass="on"] .pk button>b{transform-origin:100% 50%}
 .pk>.pk-drop.idle{visibility:hidden}
@@ -8562,12 +8582,9 @@ function mqFrame(now){
    little narrower, rounder, as a drop is) and gathers itself as it lands; slid off the menu it melts and nothing is
    picked; let go on a row, that row is picked. The drawer from the logo and every liquid menu (the symbol's, the
    timeframe, the language, the ticket's lists) carry one.
-   IT IS GLASS, THE BOTTOM BAR'S (user, on a first cut that was a grey band under the rows: «Это не похоже на каплю,
-   должна быть кристальная чистота, как у нас на нижней панеле … надо как стекло»): the bar's drop as it travels -
-   no tint, a bright ring and a lit rim, its lips shaded - and IN FRONT of the row, a lens (lgGlass) that bends the
-   writing under it at its rim and splits it into colour there, sharp in the middle. Built as the bar's is: a box
-   of the row's own size, so its displacement map is drawn once for it, stretched into place by a scale, the
-   corners divided back out by it so they come out round on screen. */
+   IT IS A DROP OF GLASS, in front of the row (its look: .pk-drop in the CSS, its own numbers, not the glass dials').
+   Built as the bottom bar's drop is: a box of the row's own size stretched into place by a scale, the corners
+   divided back out by it so they come out round on screen. */
 const _pk = new Set();
 let _pkRaf = 0;
 function pickDrop(host, rowSel, ready){
@@ -8583,13 +8600,6 @@ function pickDrop(host, rowSel, ready){
   host.addEventListener("pointercancel", e => pkUp(s, e, false));
   // the browser's own click after the release would pick the row a second time (ours is the one that picked it)
   host.addEventListener("click", e => { if(!s.self && performance.now() - s.pickT < 450){ e.stopPropagation(); e.preventDefault(); } }, true);
-  // its lens drawn ahead, once the menu has settled: drawn on the first press, it cost that press a frame or two
-  setTimeout(() => {
-    const row = host.isConnected && !s.drag && host.querySelector(rowSel);
-    if(!row) return;
-    const r = row.getBoundingClientRect();
-    if(!s.bw){ pkLens(s); s.tw = r.width; s.th = r.height; s.tt = s.top = 0; s.tb = s.bot = r.height; s.w = r.width; s.f = 0; pkPut(s); }
-  }, 420);
 }
 function pkKick(){ if(!_pkRaf){ _pkRaf = 1; moAdd(pkFrame); } }
 function pkLens(s){
@@ -8654,12 +8664,9 @@ function pkUp(s, e, go){
 }
 function pkPut(s){
   const lens = s.lens, l = lens.style, h = Math.max(1, s.bot - s.top);
-  // its box: the row's own size, and its lens drawn for that box (once per size - every row of a menu is one)
+  // its box: the row's own size (laid out once per size - every row of a menu is one), a scale does the rest
   const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
-  if(bw !== s.bw || bh !== s.bh){
-    s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px";
-    lgGlass(lens, bw, bh, 22, 0);
-  }
+  if(bw !== s.bw || bh !== s.bh){ s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px"; }
   // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
   const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14), w = Math.max(1, s.w - nw);
   const rad = Math.min(w, h) / 2, sx = w / bw, sy = h / bh;
