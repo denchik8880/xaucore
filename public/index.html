@@ -15,9 +15,10 @@ function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=M
    «Дисперсия». The mode itself and the theme are left alone; after this they are the user's to change again. */
 try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_glass_clear_dark","xc_glass_clear","xc_lg_ui","xc_glass_off","xc_disp"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("xc_glass_v","2");}}catch(e){}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{if(localStorage.getItem("xc_theme")==="dark")document.documentElement.dataset.theme="dark";var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="XAUCORE">
@@ -26,6 +27,14 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
    Windows, Roboto on Android) for a native, lighter feel. Open Sans stays
    self-hosted as a deep fallback for devices without a clean system sans —
    no longer preloaded since it is rarely the active face. */
+/* INTER wherever SF Pro is not (user 2026-09-26: «лучший шрифт … как у iOS 26.2»). SF Pro may not ship outside
+   Apple's own systems, so an iPhone and a Mac keep it (-apple-system comes first) and Android and Windows get the
+   face closest to it - Inter, SIL Open Font License, self-hosted: latin, latin-ext (Turkish), cyrillic,
+   cyrillic-ext, one variable file each, weights 300-800. The browser fetches only the subsets a page uses. */
+@font-face{font-family:'Inter';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/inter-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Inter';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/inter-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Inter';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/inter-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'Inter';font-style:normal;font-weight:300 800;font-display:swap;src:url(/fonts/inter-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:swap;ascent-override:103.8%;descent-override:32.4%;line-gap-override:0%;src:url(/fonts/opensans-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
@@ -38,7 +47,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   /* TEXT in green / red / orange: the fills (--green …) read at 2.4–3.1:1 as text on white, so text
      takes a deeper shade of the same hue (≥4.5:1); --edge is a field / input border that shows */
   --green-ink:#07874b; --red-ink:#d42b22; --orange-ink:#b35a00; --blue-ink:#1d63d8; --edge:#d3d7dd;
-  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue","Open Sans",Arial,sans-serif;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,"Segoe UI",Roboto,"Helvetica Neue","Open Sans",Arial,sans-serif;
   /* --- theming tokens (see [data-theme="dark"] below) --- */
   --field-bg:#fbfbfc;        /* inputs / sunken surfaces */
   --press:#eef0f2;           /* :active / hover background */
@@ -48,7 +57,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   --scrim:rgba(0,0,0,.4);    /* modal backdrop */
   --buy-line:#b7e6cf; --sell-line:#f6c9c4;
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-w1:rgba(0,0,0,.07); --ripple-w2:rgba(0,0,0,.03); --ripple-bg:rgba(0,0,0,.05);
-  --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
+  --chart-cross:rgba(235,235,245,.5); --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
   --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .16 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
   /* the depth tokens exist even with the mode OFF: a few rules that only ever show in glass are not gated by the
@@ -59,7 +68,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
   --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
-  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
+  --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#0a84ff; --nav-ic:rgba(235,235,245,.6); --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
    text and axis labels, a barely-there chart grid, cTrader's green and orange-red. */
@@ -72,7 +81,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
   --field-bg:#0b0b0b; --press:#232323; --raise:#2c2c2c; --bar:#0a0a0a; --wl-div:#3a3a3a; --nav-on:#ff4a45; --nav-ic:#78787e; --nav-hole:#000; --lw-bg:#161616; --lw-bar:#222; --lw-band:#2c2c2e; --lw-edge:#2e2e2e;
   --invert:#1c1c1c; --invert-ink:#ffffff;
   --scrim:rgba(0,0,0,.7);
-  --buy-line:rgba(0,161,82,.55); --sell-line:rgba(242,90,35,.55);
+  --buy-line:rgba(48,209,88,.5); --sell-line:rgba(255,69,58,.5);
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
@@ -121,7 +130,7 @@ body{max-width:520px;margin:0 auto;min-height:100vh;position:relative;background
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
 input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
 img,canvas,svg,video{max-width:100%}
-.mono{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1,"ss01" 1,"cv01" 1;letter-spacing:-.012em;font-synthesis-weight:none}
+.mono{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1;letter-spacing:-.012em;font-synthesis-weight:none}
 #app{padding-bottom:calc(var(--nav-top) + 26px);overflow-x:clip;max-width:100%}
 #app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 78px)}   /* the floating «Новый ордер» must not cover the last card */
 /* the Charts tab fills the screen (chart height is fitted in chartTabHeight); ⛶ hides the tab bar too */
@@ -517,10 +526,17 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root{--th-tr:rgba(118,122,134,.20);--th-hole:rgba(118,122,134,.42);--th-ink:var(--ink2)}
 :root[data-theme="dark"]{--th-tr:rgba(8,8,10,.66);--th-hole:rgba(0,0,0,.82);--th-ink:#c9c9cf}
 .thsw{--thk:0;position:relative;display:block;width:186px;height:58px;margin:10px 0 2px;padding:0;border:0;background:none}
-.thsw.dark{--thk:1}
+.thsw.th-dark{--thk:.5}
+.thsw.th-aurora{--thk:1}
 .thsw-tr{position:absolute;left:0;right:0;top:9px;height:40px;border-radius:20px;background:var(--th-tr)}
-.thsw-lb{position:absolute;left:0;right:0;top:9px;height:40px;display:flex;align-items:center;justify-content:center;
-  font-size:15px;font-weight:600;color:var(--th-ink);transform:translateX(calc(31px - 62px * var(--thk)))}
+.thsw-dot{position:absolute;top:0;width:58px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--th-ink);opacity:.62}
+.thsw-dot:nth-child(2){left:64px}
+.thsw-dot:nth-child(3){left:128px}
+.thsw-dot svg{display:block;width:19px;height:19px}
+.thsw-st{position:absolute;top:0;left:0;width:58px;height:58px;padding:0;border:0;border-radius:50%;background:none;z-index:2}
+.thsw-st:nth-of-type(2){left:64px}
+.thsw-st:nth-of-type(3){left:128px}
+.thv{font-weight:600}
 .thsw-kb{position:absolute;left:0;top:0;width:58px;height:58px;border-radius:50%;isolation:isolate;
   transform:translateX(calc(128px * var(--thk)));
   background:radial-gradient(44px circle at 36% 26%,rgba(255,255,255,.55),transparent 68%),linear-gradient(var(--lg-tint),var(--lg-tint));
@@ -1865,6 +1881,283 @@ body.amenu-open .wl-logo{opacity:0}
    custom properties set on every element - but it sat below the broken line above and never ran, and the app was
    tuned for four days without it on a phone that has Reduce Motion on and whose owner asks for smoother, not
    shorter, motion. The JS springs still soften under it: MO.soft.) */
+
+/* ===================== «АВРОРА», THE THIRD THEME ==============================================================
+   (user 2026-09-26, an iOS 26 iMessage screenshot: «на скрине подано как она должна выглядеть … особенно жидкое
+   стекло … там не кристальная чистота»). A night sky: deep navy, a cyan light breaking in at the top left, violet
+   pooling on the right, a blue core. The glass is CLEAR - its colour is the sky it bends, never a paint - and it
+   is lit the way the screenshot's is: cyan on the lit side of the rim, lilac on the far side. It sits on the dark
+   theme (html[data-theme=dark][data-tone=aurora]), so this block only says what differs. */
+:root[data-theme="dark"][data-tone="aurora"]{
+  /* iOS 26's dark palette (user: «цвета использовать как у iOS 26.2»): label white; the secondary and tertiary
+     labels are white at 62 / 44 % - iOS's vibrancy, they take a breath of the sky under them; separators and fills
+     the same way; the system blue, green, red and orange as iOS draws them on dark */
+  --bg:#10142e; --card:#1d1f33; --ink:#ffffff; --ink2:rgba(235,235,245,.62); --ink3:rgba(235,235,245,.44);
+  --line:rgba(235,235,245,.12); --edge:rgba(235,235,245,.24);
+  --green:#30d158; --green-ink:#30d158; --green-bg:rgba(48,209,88,.16);
+  --red:#ff453a; --red-ink:#ff6961; --red-bg:rgba(255,69,58,.16);
+  --orange:#ff9f0a; --orange-ink:#ffb340; --orange-bg:rgba(255,159,10,.16);
+  --blue:#0a84ff; --blue-ink:#409cff;
+  /* the cells: a pane of night over the sky, not a slab (the sky shows through, dimmed), and a hairline of light */
+  --aur-card:rgba(22,22,30,.42); --aur-hi:rgba(235,235,245,.07);
+  --field-bg:rgba(118,118,128,.18); --press:rgba(118,118,128,.24); --raise:rgba(118,118,128,.36);
+  --bar:rgba(17,21,46,.94); --wl-div:rgba(235,235,245,.12);
+  --nav-on:#b5d2f0; --nav-ic:#98a0c1; --nav-hole:#151d3e;
+  --lw-bg:rgba(19,21,34,.5); --lw-bar:rgba(255,255,255,.05); --lw-band:rgba(189,199,226,.07); --lw-edge:rgba(182,193,223,.15);
+  --invert:#323654; --invert-ink:#fff; --scrim:rgba(10,12,21,.58);
+  --buy-line:rgba(67,161,130,.55); --sell-line:rgba(206,116,134,.55);
+  --chart-bg:rgba(0,0,0,0); --chart-card:rgba(0,0,0,0); --chart-tagbg:#242840;
+  --chart-grid:rgba(235,235,245,.07); --chart-axis:rgba(235,235,245,.86); --chart-btn:rgba(22,27,58,.72); --chart-btn-edge:rgba(168,186,237,.32);
+  --chart-cross:#a7b0d2; --chart-tag:#2b3365; --chart-glass:rgba(18,22,48,.86); --exec-bg:rgba(136,147,198,.34);
+  --ripple:rgba(195,206,230,.14); --ripple-w1:rgba(195,206,230,.15); --ripple-w2:rgba(195,206,230,.06); --ripple-bg:rgba(195,206,230,.08);
+  --nav-glass:rgba(30,33,53,calc(.86 + .1 * var(--lgk,1))); --nav-shadow:rgba(10,11,20,.6);
+  --nav-bub:rgba(195,207,230,calc(.15 * var(--dk,1))); --nav-lip:rgba(12,13,25,calc(.46 * (1 + (1 - var(--dk,1)) * .7)));
+  --nav-spec:rgba(189,216,226,calc(.7 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(207,189,226,calc(.42 * (1 + (1 - var(--dk,1)))));
+  --nav-specd:rgba(58,50,90,.3); --nav-edge:rgba(199,211,231,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(195,207,230,calc(.05 * var(--lgk,1)));
+  /* THE LIGHT IN THE GLASS: cyan where the light falls, lilac where it leaves, a violet dusk between - the
+     screenshot's rim. Everything that wears the rim (buttons, capsules, sheets, lenses) takes it from here. */
+  --lg-tint:rgba(73,81,123,calc(.24 * var(--lgk,1))); --lg-line:rgba(195,207,230,calc((.13 + .2 * (1 - var(--lgk,1))) * var(--lgln,1)));
+  --lg-shadow:rgba(11,11,21,calc(.5 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(232,239,245,calc(.36 + .34 * (1 - var(--lgk,1))));
+  --lg-sheen:rgba(195,211,230,.14); --lg-rim:rgba(182,212,223,calc((.82 + .18 * (1 - var(--lgk,1))) * var(--lgln,1)));
+  --lg-rim2:rgba(207,186,225,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(192,182,223,calc(.2 + .2 * (1 - var(--lgk,1))));
+  --nb-sheen:rgba(195,211,230,.08); --lg-text-shadow:0 1px 6px rgba(15,15,29,.7);
+  --th-tr:rgba(9,12,31,.5); --th-hole:linear-gradient(135deg,#0a84ff,#5e5ce6); --th-ink:#d1d8f6;
+  --sc-ind:rgba(210,217,235,.42); --ot-edge:rgba(182,193,223,.3); --ot-idle:rgba(182,190,223,.12);
+  --lg-drop-shadow:rgba(11,11,21,.45); --lg-drop-rim:rgba(195,213,230,.2); --lg-drop-line:rgba(195,207,230,.06); --lg-fly:28,33,68;
+  --mc:calc(.42 * var(--lgh,1));
+}
+/* THE SKY. The page's own ground is let go and a fixed layer paints the night behind everything (fixed: the list
+   scrolls over a still sky, as a phone's wallpaper stays put under its icons). Soft gradients only - the glass
+   above it bends and blurs it, and a sky with no hard edge never shows the bend as a scribble. */
+:root[data-tone="aurora"]{background:#1c2134}
+:root[data-tone="aurora"] body,:root[data-tone="aurora"] body.route-chart{background:transparent}
+/* a grain of noise over it, too fine to see: a phone draws a dark gradient in 8-bit steps, and without it the
+   violet shows rings */
+:root[data-tone="aurora"] body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(75% 38% at 20% -4%,rgba(74,146,196,.42) 0%,rgba(74,146,196,.14) 42%,rgba(74,146,196,0) 72%),
+    radial-gradient(40% 30% at 52% 6%,rgba(120,176,214,.12) 0%,rgba(120,176,214,0) 70%),
+    radial-gradient(85% 55% at 108% 34%,rgba(112,86,190,.44) 0%,rgba(112,86,190,.15) 45%,rgba(112,86,190,0) 72%),
+    radial-gradient(95% 55% at 26% 58%,rgba(56,82,166,.36) 0%,rgba(56,82,166,.11) 50%,rgba(56,82,166,0) 76%),
+    radial-gradient(80% 45% at 96% 100%,rgba(98,72,168,.38) 0%,rgba(98,72,168,0) 72%),
+    radial-gradient(90% 40% at -8% 102%,rgba(8,26,66,.7) 0%,rgba(8,26,66,0) 70%),
+    linear-gradient(168deg,#0c1a3c 0%,#0f1946 38%,#18174e 72%,#1e1956 100%);
+  background-size:160px 160px,100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,100% 100%}
+/* SELL / BUY: the big blocks a shade deeper still - the colour they took as a fifth-clear glass over the night
+   (a see-through fill showed a hairline where the two halves of a button meet, so it is written out solid); the
+   concave corners are drawn in the same colour (they read var(--red/--green)) */
+:root[data-tone="aurora"] .ctp{--red:#c83c3a;--green:#2aa453}
+:root[data-tone="aurora"] .ctp-cap{box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+:root[data-tone="aurora"] .ctp-px{margin-top:-1px}   /* the two halves overlap a pixel: no seam of the night between them */
+/* the chart's trade bar: the same red and green, less of them in the glass */
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#c83c3a 62%,transparent)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#2aa453 62%,transparent)}
+/* the cells */
+:root[data-tone="aurora"] .card,:root[data-tone="aurora"] .lrow,:root[data-tone="aurora"] .menu-item{background:var(--aur-card);
+  box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--aur-hi)}
+:root[data-tone="aurora"] .card.minichart,:root[data-tone="aurora"] .chartwrap{background:var(--aur-card)}
+/* ---- the glass under «Аврора» ---- */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{
+  --nav-hole:#2b3048;
+  --bar-glass:rgba(26,27,45,calc(.5 * var(--lgk,1))); --bg-glass:rgba(20,21,36,calc(.46 * var(--lgk,1))); --sheet-glass:rgba(30,33,53,calc(.8 * var(--lgs,1)));
+  --seg-track:rgba(182,190,223,.1); --ctl-glass:rgba(33,36,56,calc(.9 + .08 * var(--lgs,1))); --seg-bub:rgba(168,175,217,calc(.2 + .5 * var(--lgs,1))); --sub-bub:rgba(161,176,214,.2);
+  --info-glass:rgba(24,27,44,calc(.4 * var(--lgk,1))); --toast-glass:rgba(45,48,73,calc(.6 * max(.75, var(--lgs,1))));
+  --bn-glass:rgba(245,246,250,calc(.66 * var(--lgk,1))); --fab-glass:rgba(110,115,178,calc(.6 * var(--lgk,1)));
+  --lw-bar:rgba(195,206,230,.05); --lw-band:rgba(195,206,230,.05); --sheet-rim:rgba(195,210,230,.2);
+  --cap-glass:rgba(45,50,77,calc(.5 * var(--lgk,1))); --edge-fade:rgba(27,32,51,.8); --pop-glass:rgba(41,44,67,calc(.16 + .55 * var(--lgs,1)));
+  --crys-cap:rgba(54,60,92,calc(.16 * var(--lgk,1))); --crys:69,74,115;
+  --lg-rimd:rgba(97,86,145,calc(.3 * var(--lgdk,1)));
+  /* the thickness is a shade of the night, not black: black inside a blue pane reads as a stain */
+  --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
+    inset 0 0 0 .7px rgba(210,220,235,calc(.11 * var(--lgh,1))),
+    inset 0 0 12px -5px rgba(15,15,29,calc(.45 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(15,15,29,calc(.5 * var(--lgdk,1))),
+    inset 0 -12px 18px -15px rgba(64,56,104,calc(.4 * var(--lgdk,1))),
+    inset 0 5px 11px -7px rgba(15,15,29,calc(.5 * var(--pk,0)));
+  /* it floats in light: a navy shadow under it and a faint halo of the sky's own blue round it, the glow the
+     screenshot's field sits in */
+  --lg-lift1:0 1px 2px rgba(11,11,21,calc(.3 * var(--lgsh,1))),0 8px 20px -6px rgba(11,11,21,calc(.42 * var(--lgsh,1))),0 0 16px -6px rgba(154,170,211,calc(.34 * var(--lgh,1)));
+  --lg-lift2:0 1.5px 3px rgba(11,11,21,calc(.32 * var(--lgsh,1))),0 16px 34px -8px rgba(11,11,21,calc(.48 * var(--lgsh,1))),0 0 22px -6px rgba(154,170,211,calc(.36 * var(--lgh,1)));
+  --lg-lift3:0 2px 5px rgba(11,11,21,calc(.32 * var(--lgsh,1))),0 28px 62px -14px rgba(11,11,21,calc(.54 * var(--lgsh,1))),0 0 30px -8px rgba(154,170,211,calc(.3 * var(--lgh,1)));
+  --lg-spot:rgba(199,218,231,calc(.22 * var(--lgh,1))); --lg-foot:rgba(64,56,104,calc(.22 * var(--lgdk,1)));
+  --crys-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),inset 0 0 0 .7px rgba(210,220,235,calc(.16 * var(--lgh,1)));
+}
+/* «НОВЫЙ ОРДЕР» is the screenshot's message field: the one lit thing on the screen. Still clear - the page shows
+   through it, bent at its rim - but the light in it is the aurora's: blue at the ends, violet across the middle */
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{--lg-sheen:rgba(216,227,239,.12);
+  color:#fff;text-shadow:0 1px 3px rgba(19,20,37,.7),0 0 10px rgba(54,50,90,.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 46%),linear-gradient(100deg,rgba(106,128,191,.38) 0%,rgba(133,130,201,.32) 38%,rgba(158,134,203,.34) 66%,rgba(144,166,207,.4) 100%);
+  box-shadow:0 0 0 .5px rgba(203,215,232,.4),var(--lg-lift2),0 0 26px -6px rgba(155,147,208,.55),inset 0 1.5px 1px rgba(224,233,241,.7),inset 0 -1.5px 2px rgba(205,189,226,.35),inset 0 0 0 1px rgba(216,225,239,.1)}
+/* THE DROPS under the aurora: the same lenses (tabs, lots, menus, the tab bar), lit by it - a cyan glint where the
+   light falls, a lilac one where it leaves, a halo of the sky's own blue round them. No white ring, no grey. */
+:root[data-theme="dark"][data-tone="aurora"]{--drop-sh:0 6px 16px -4px rgba(11,11,21,.5),0 0 14px -4px rgba(161,173,214,.32),inset 0 0 0 .6px rgba(210,222,235,.24),
+    inset 1.2px 1.6px 1.2px -.8px rgba(194,221,229,.72),inset -1.2px -1.6px 1.4px -.8px rgba(212,193,228,.48),inset 0 0 8px -2px rgba(15,15,29,.3);
+  --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,.85) 0%,rgba(189,217,226,0) 24%,rgba(97,86,145,.2) 50%,rgba(210,189,226,0) 76%,rgba(210,189,226,.62) 100%);
+  --drop-sheen:rgba(210,222,235,.12)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{
+  background:linear-gradient(180deg,var(--drop-sheen) 0%,rgba(210,222,235,0) 40%),
+    radial-gradient(58% 46% at 50% 100%,rgba(183,175,220,.16) 0%,rgba(183,175,220,0) 100%),rgba(195,207,230,.05)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::before{background:radial-gradient(closest-side,rgba(221,234,240,.75),rgba(221,234,240,0))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:rgba(189,202,226,calc(.14 * var(--sdk,1)));
+  box-shadow:inset 0 6px 7px -6px rgba(15,15,29,calc(.45 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(64,56,104,calc(.4 * (1 + (1 - var(--sdk,1)) * .7))),
+    inset 0 0 0 1px rgba(203,215,232,calc(.14 * (1 + (1 - var(--sdk,1)) * 3))),0 0 12px rgba(154,170,211,.18)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{
+  background:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,calc(.66 * (1 + (1 - var(--sdk,1))))) 0%,transparent 26%,rgba(97,86,145,.28) 50%,transparent 74%,rgba(210,189,226,calc(.4 * (1 + (1 - var(--sdk,1))))) 100%)}
+
+/* ===================== «АВРОРА» — the dark theme's leftovers, re-lit ======================================
+   Paste at the END of the first <style> block (after the «АВРОРА» block). Every rule is the original dark /
+   theme-agnostic selector with [data-tone="aurora"] inserted right after :root[data-theme="dark"] (or
+   :root[data-tone="aurora"] prefixed to a theme-agnostic one), so its specificity is >= the original's.
+   "was Lnnnn" = the rule it re-colours (CSS line numbers of the audited snapshot: 13,194 lines, style block ends at line 2026).
+   Three deliberate deviations, each explained where it is used:
+     · FLAT-ONLY rules — a dark rule that the glass version beats only by SOURCE ORDER (same specificity, later
+       line) would, re-stated at the end, beat the glass again. Those are scoped to the flat state the original
+       really shows in: :not([data-glass="on"]) OR [data-lgoff~="<feature>"] (the exact negation of the glass
+       rule's own condition).
+     · .btn.dark skips the wallet's gold transfer button (.sheet-dark), which the original yields to by order.
+     · .seg button.on skips the theme picker (.seg.theme, blue) and the ticket's buy/sell (.ot-side, green/red),
+       which the original also yields to by order.
+   Palette: navy panes rgba(13..24,20..34,70..100,a) · shadows rgba(2,4,30,a) · text halos rgba(4,6,40,a) ·
+   lit rims cyan rgba(150..205,215..240,255,a) → dusk rgba(70,40,190,a) → lilac rgba(210..214,156..166,255,a) ·
+   whites become sky-white rgba(190,215,255,a). No neutral greys, no black.
+   (Then brought to iOS 26 the same day - «цвета использовать как у iOS 26.2»: the controls take iOS's own grey
+   fills rgba(118,118,128,a), its system blue for the primary buttons, its green for a switch that is on; the
+   materials stay a hair of the night - rgba(26,27,44,a) - so the sky under them is felt, not painted.) */
+
+/* ── ORDER TICKET («Новый ордер», the glass sheet .ot-g): the sheet itself, the order-type switch
+      (Рыночный / Лимит / Стоп), its selected drop, the buy / sell drops and the drag lens ── */
+/* was L1808: the whole ticket sheet was rgba(26,26,29) — a grey slab */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.ot-g{background-color:rgba(26,27,44,max(.86,calc(.6 * var(--lgs,1))))}
+/* was L1810: the order-type track, grey rgba(118,118,128) + black inset */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag{background:rgba(118,118,128,.24);box-shadow:inset 0 .5px 1px rgba(2,4,30,.4)}
+/* was L1814: the selected order type, a grey gradient rgba(132,132,140)→rgba(100,100,108) + black drop */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(140,140,156,.62),rgba(110,110,124,.52));
+  box-shadow:0 3px 8px rgba(2,4,30,.45),0 0 0 .5px rgba(180,210,255,.18),inset 0 1px 0 rgba(205,232,255,.3)}
+/* was L1821 / L1823: buy / sell keep their colour (re-stated: the rule above ties with the dark originals and
+   would win by order); only the black drop and the white sheen change */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(205,232,255,.16),rgba(205,232,255,0) 70%),color-mix(in srgb,var(--green) 40%,transparent);
+  box-shadow:0 3px 10px rgba(2,4,30,.42),0 0 0 1px color-mix(in srgb,var(--green) 60%,transparent),inset 0 1px 0 rgba(205,232,255,.22)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell.seg-drag>.seg-bub{background:linear-gradient(180deg,rgba(205,232,255,.16),rgba(205,232,255,0) 70%),color-mix(in srgb,var(--red) 40%,transparent);
+  box-shadow:0 3px 10px rgba(2,4,30,.42),0 0 0 1px color-mix(in srgb,var(--red) 60%,transparent),inset 0 1px 0 rgba(205,232,255,.22)}
+/* was L1836: the lens that follows the finger while dragging — black drops, white rim */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{box-shadow:0 9px 22px rgba(2,4,30,.55),0 2px 5px rgba(2,4,30,.35),0 0 16px -6px rgba(110,150,255,.35),
+  inset 0 0 0 1.2px rgba(170,215,255,.55),inset 0 1.5px 1px rgba(200,236,255,.62),inset 0 -2px 3px rgba(40,20,140,.3)}
+
+/* ── GLASS SHEETS, CARDS IN THEM, MENUS: the cards and fields inside every glass sheet (ticket options, settings
+      groups, «Пополнить», app-menu groups), the sheets' white film, «О приложении», the app menu, the popups ── */
+/* was L1417: --sheet-card / --sheet-field were white .18 / .09-.21 — a grey-lavender slab inside navy glass
+   (L1417 is (0,4,0) with :not(sheets); the Aurora glass block's (0,4,0) never re-defines these two) */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-card:rgba(235,235,245,calc(.04 + .1 * var(--lgs,1)));--sheet-field:rgba(118,118,128,calc(.18 + .1 * var(--lgs,1)))}
+/* was L1469: «О приложении» — its own grey glass rgba(24,24,27,.9) on the element, so the root token never reaches it */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:rgba(26,27,44,.9);--sheet-card:rgba(235,235,245,.08)}
+/* was L1418 / L1512 / L1419 / L1601: the white film over sheets, the app menu and popups → sky-white, lilac at the foot */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{background-image:linear-gradient(180deg,rgba(190,215,255,calc(.1 * var(--lgs,1))),rgba(190,215,255,calc(.062 * var(--lgs,1))) 34%,rgba(170,150,255,calc(.05 * var(--lgs,1))))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(190,215,255,.1),rgba(190,215,255,.062) 34%,rgba(170,150,255,.05))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop{background-image:linear-gradient(180deg,rgba(190,215,255,calc(.12 * var(--lgs,1))),rgba(190,215,255,calc(.075 * var(--lgs,1))) 40%,rgba(170,150,255,calc(.06 * var(--lgs,1))))}
+:root[data-theme="dark"][data-tone="aurora"] .lg-pop.lq::before{background-image:linear-gradient(180deg,rgba(190,215,255,calc(.12 * var(--lgs,1))),rgba(190,215,255,calc(.075 * var(--lgs,1))) 40%,rgba(170,150,255,calc(.06 * var(--lgs,1))))}
+/* was L1518 / L1592 / L1472 / L1268 (theme-agnostic): black drops under popups, liquid menus, the app menu
+   (flat), the lot drum — same strength, night-blue. .lg-pop.lq is restated because the .lg-pop line would
+   otherwise out-rank it (0,3,0 > 0,2,0). */
+:root[data-tone="aurora"] .lg-pop{box-shadow:0 3px 12px rgba(2,4,30,calc(.09 * var(--shw,1))),var(--lg-body)}
+:root[data-tone="aurora"] .lg-pop.lq{box-shadow:0 3px 12px rgba(2,4,30,calc(.1 * var(--lqg,1))),0 12px 32px rgba(2,4,30,calc(.08 * var(--lqg,1))),inset 0 -2px 6px rgba(4,6,40,calc(.08 * (1 - var(--lqg,1))))}
+:root[data-tone="aurora"] .amodal .sheet.am-sheet{box-shadow:0 0 40px rgba(2,4,30,.35)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .lotwheel{box-shadow:0 -10px 32px rgba(2,4,30,.18),var(--lg-body)}
+
+/* ── EXECUTION PILL (.xpill, «Исполнение: … лот» / «ордер исполнен ›» at the top) ── */
+/* was L1648 (+ L1644's black drop / white rim): grey glass rgba(44,44,48) */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill{background:rgba(32,33,50,calc(.74 * max(.75, var(--lgs,1))));color:#fff;
+  box-shadow:0 0 0 .5px rgba(170,205,255,.22),0 10px 30px rgba(2,4,30,.35),0 0 18px -6px rgba(110,150,255,.3),inset 0 1px 1px rgba(200,230,255,.24)}
+/* was L249 (+ L245's black drop), flat (glass or «Плашка исполнения» off): a neutral light-grey pill #e9e7ec /
+   #1f1f23 → moonlight. In glass the line above (0,6,0) out-ranks this one, so it does not leak into glass. */
+:root[data-theme="dark"][data-tone="aurora"] .xpill{background:#2c2c36;color:#fff;box-shadow:0 8px 24px rgba(2,4,30,.35)}
+/* JS L9646/9647 (HOURGLASS / CHECK strokes are hard-coded #f5820d / #1faa5b in the markup): the theme's own
+   orange / green on the glass pill. The flat moonlight pill keeps the originals (they read on light). */
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill svg path[stroke="#f5820d"]{stroke:var(--orange)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="xpill"]) .xpill svg path[stroke="#1faa5b"]{stroke:var(--green)}
+
+/* ── «НОВЫЙ ОРДЕР» (.bignew, symbol screen) and the FAB (.fabnew, watchlist) ── */
+/* was L1087 --crys-hole rgba(22,22,26,.92): NOT dead — the FAB's clipboard lines are stroke="var(--fab-bg)" and
+   glass sets --fab-bg:var(--crys-hole), so they draw near-black inside the white icon. --crys-ink / --crys-halo
+   are masked today by the Aurora «НОВЫЙ ОРДЕР» rule (color / text-shadow) but are re-said for completeness. */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]){--crys-ink:#fff;--crys-halo:0 1px 3px rgba(4,6,40,.75),0 0 8px rgba(4,6,40,.45);--crys-hole:rgba(10,132,255,.92)}
+/* was L1094 (theme-agnostic): the FAB icon's black drop */
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew svg{filter:drop-shadow(0 1px 2px rgba(4,6,40,.45))}
+/* was L263, flat (glass or «Кнопка "Новый ордер"» off): a neutral #efefef slab with #2b2b2b text + black drop →
+   the aurora's lit field made solid. In glass the Aurora «НОВЫЙ ОРДЕР» rule (0,5,0) out-ranks this (0,4,0). */
+:root[data-theme="dark"][data-tone="aurora"] .bignew{background:var(--blue);color:#fff;box-shadow:0 8px 24px rgba(2,4,30,.5)}
+/* was L782 (theme-agnostic) flat FAB: only its black drop. Its #0d47a1 face (L783) is already a night blue, and
+   --fab-bg must stay a plain colour — the icon strokes with it (a gradient there would blank the lines). */
+:root[data-theme="dark"][data-tone="aurora"] .fabnew{box-shadow:0 4px 14px rgba(2,4,30,.4)}
+
+/* ── PRIMARY SHEET BUTTONS (.btn.dark: «Готово», «Сохранить», «Создать событие», «OK», «+ Создать новость»…) ── */
+/* was L548: #efefef / #1a1a1a — a neutral light-grey slab. Skips the wallet's gold «Перевести» (.sheet-dark),
+   which the original yields to by source order (L956). */
+:root[data-theme="dark"][data-tone="aurora"] .btn.dark:not(.sheet-dark *){background:var(--blue);color:#fff}
+
+/* ── SWITCHES AND SLIDERS («Ещё», «Настройки стекла», «Дисперсия», ticket options) ── */
+/* was L1657: the off track #39393d. .switch.on is restated (L1658 ties with this and would lose by order). */
+:root[data-theme="dark"][data-tone="aurora"] .switch{background:rgba(120,120,128,.36)}
+:root[data-theme="dark"][data-tone="aurora"] .switch.on{background:var(--green)}
+/* was L1641: the pressed knob (a clear lens) — black drop and black foot */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch.press .knob,:root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle].press .knob{box-shadow:0 0 0 .5px rgba(190,225,255,.24),0 5px 14px rgba(2,4,30,.45),inset 0 0 0 1px rgba(190,228,255,.55),inset 0 2px 2px rgba(210,238,255,.42),inset 0 -2px 5px rgba(40,20,140,.25)}
+/* was L1356: the slider track rgba(120,120,128,.38) */
+:root[data-theme="dark"][data-tone="aurora"] .lgs-track{background:rgba(120,120,128,.36)}
+/* was L1376: the pressed slider knob — black drop and black insets */
+:root[data-theme="dark"][data-tone="aurora"] .lgs.press .lgs-knob{box-shadow:0 0 0 .5px rgba(190,225,255,.28),0 7px 16px rgba(2,4,30,.5),inset 0 0 0 1px rgba(190,228,255,.7),inset 0 1.5px 1px rgba(215,240,255,.85),inset 0 0 7px rgba(4,6,40,.14),inset 0 -3px 6px rgba(40,20,140,.14)}
+/* was L1396: the sample lens on the «Дисперсия» sheet — black drop, white rim */
+:root[data-theme="dark"][data-tone="aurora"] .disp-lens{background:rgba(170,200,255,.05);box-shadow:inset 0 0 0 1px rgba(170,215,255,.3),inset 0 1px 1px rgba(205,236,255,.42),0 4px 14px rgba(2,4,30,.45)}
+/* was L720 (theme-agnostic): the thumb of the settings range slider («Тиков в секунду») */
+:root[data-tone="aurora"] input[type=range]::-webkit-slider-thumb{box-shadow:0 1px 5px rgba(2,4,30,.4)}
+
+/* ── HEADER CAPSULES (glass): the black halo round the subtab labels (ОБЗОР / ПОЗИЦИИ / ОРДЕРА / ГРАФИК) and
+      the app-bar titles ── */
+/* was L1141 */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="headers"]) .subtabs button,:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{text-shadow:0 0 1px rgba(4,6,40,.9),0 0 3px rgba(4,6,40,.6)}
+
+/* ── SIGN-IN SCREEN title capsule «XAUCORE» (.appbar.auth-bar .ttl), FLAT ONLY ── */
+/* was L1000 / L1002: grey capsule rgba(62,62,69,.62), black drop, white/black rim. FLAT-ONLY: in glass the
+   header rules (L1258 / L1076, same specificity as the originals, later) draw it; re-stated at the end this
+   (0,7,0) would beat them, so it is scoped to glass off / «Верхние капсулы» off. */
+:root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .appbar.auth-bar .ttl,:root[data-theme="dark"][data-tone="aurora"][data-lgoff~="headers"] .appbar.auth-bar .ttl{background:rgba(20,30,96,.62);
+  box-shadow:0 0 0 .5px rgba(170,205,255,.24),0 6px 18px rgba(2,4,30,.6),inset 0 1px 1px rgba(200,230,255,.4),inset 0 -1px 2px rgba(200,170,255,.18)}
+:root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .appbar.auth-bar .ttl::after,:root[data-theme="dark"][data-tone="aurora"][data-lgoff~="headers"] .appbar.auth-bar .ttl::after{background:linear-gradient(var(--lit-a,151deg),rgba(160,232,255,.55) 0%,transparent 28%,rgba(70,40,190,.3) 50%,transparent 72%,rgba(214,160,255,.4) 100%)}
+
+/* ── SEGMENTED CONTROLS, FLAT ONLY (glass off / «Подвкладки и кнопки выбора» off): Регистрация | Вход, the theme
+      picker's track, the ticket's order types / buy-sell track ── */
+/* was L507: the track #141414. FLAT-ONLY: the glass .seg (L1143) ties with the original and wins by order. */
+:root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .seg,:root[data-theme="dark"][data-tone="aurora"][data-lgoff~="drops"] .seg{background:rgba(118,118,128,.24);box-shadow:inset 0 0 0 1px var(--line)}
+/* was L508: the selected segment #3a3a3c + black drop. FLAT-ONLY (glass L1149 transparent), and skips the theme
+   picker (.seg.theme, L511 blue) and the ticket's buy / sell (.ot-side, L1783/L1784 green/red). */
+:root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .seg:not(.theme):not(.ot-side) button.on,:root[data-theme="dark"][data-tone="aurora"][data-lgoff~="drops"] .seg:not(.theme):not(.ot-side) button.on{background:rgba(118,118,128,.42);color:#fff;box-shadow:0 1px 3px rgba(2,4,30,.6)}
+
+/* ── LOTS / TICKET MENUS, FLAT (glass or «Лоты и барабан» off; ticket as a page): the lot dropdown and the
+      ticket's dropdown menus ── */
+/* was L1849 / L1852 / L1853: the list #1f2023 + black drop, the current lot #454850, the pressed row grey */
+:root[data-theme="dark"][data-tone="aurora"] .lot-list{background:var(--card);box-shadow:0 8px 24px rgba(2,4,30,.6),0 0 0 1px var(--line)}
+:root[data-theme="dark"][data-tone="aurora"] .lot-list button.on{background:rgba(118,118,128,.3)}
+:root[data-tone="aurora"] .lot-list button:active{background:rgba(118,118,128,.24)}
+/* was L1735 (theme-agnostic): the ticket's dropdown menu (.ot-mp) — black drop */
+:root[data-tone="aurora"] .ot-mp{box-shadow:0 10px 30px rgba(2,4,30,.5),0 0 0 1px var(--line)}
+
+/* ── TOASTS: the black drop (flat) and the black text shadow (glass) ── */
+/* was L595 (flat; the glass .toast L1169 is (0,4,0) and still wins in glass) and L1169's text-shadow */
+:root[data-tone="aurora"] .toast{box-shadow:0 6px 18px rgba(2,4,30,.3)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast{text-shadow:0 1px 2px rgba(4,6,40,.4)}
+
+/* ── WATCHLIST LOGO, FLAT (JS xcLogoSVG draws its disc fill="#111418"; glass hides that circle) ── */
+:root[data-tone="aurora"] .wl-logo svg circle:first-child{fill:#1d1f33}
+
+/* ── OPTIONAL: accents that are not grey but are cTrader blues, and the owner-only manual-market panel ── */
+/* was L183 / L781: the ★ in the overview header #5b8def, «Добавить инструменты» #2a6bd0 */
+:root[data-theme="dark"][data-tone="aurora"] .ovh-ico.star{color:var(--blue-ink)}
+:root[data-theme="dark"][data-tone="aurora"] .wl-addbtn{background:var(--blue)}
+/* was L729 / L738-739 / L742 (theme-agnostic, only with S.manual.enabled): slate #1b1f24 / #2b3138 / #12151a.
+   Buttons skip .on (L740 orange), which a plain re-statement would out-rank. */
+:root[data-tone="aurora"] .godpanel{background:#1d1f33;box-shadow:0 6px 20px rgba(2,4,30,.45)}
+:root[data-tone="aurora"] .godpanel button:not(.on){background:#2c2c3a;border-color:rgba(235,235,245,.2)}
+:root[data-tone="aurora"] .godpanel button:not(.on):active{background:#3a3a4a}
+:root[data-tone="aurora"] .godpanel input{background:#15162a;border-color:rgba(235,235,245,.2)}
 </style>
 
 <div id="app"></div>
@@ -2034,6 +2327,10 @@ const I18N = {
 "Светлая":["Light","Світла","Clair","Açık"],
 "Тёмная":["Dark","Темна","Sombre","Koyu"],
 "🌙 Тёмная":["🌙 Dark","🌙 Темна","🌙 Sombre","🌙 Koyu"],
+"Аврора":["Aurora","Аврора","Aurore","Aurora"],
+"🌌 Аврора":["🌌 Aurora","🌌 Аврора","🌌 Aurore","🌌 Aurora"],
+"🌌 Тема «Аврора»":["🌌 Aurora theme","🌌 Тема «Аврора»","🌌 Thème Aurore","🌌 Aurora teması"],
+"Тема «Аврора»":["Aurora theme","Тема «Аврора»","Thème Aurore","Aurora teması"],
 "💧 Жидкое стекло":["💧 Liquid Glass","💧 Рідке скло","💧 Verre liquide","💧 Sıvı Cam"],
 "Жидкое стекло":["Liquid Glass","Рідке скло","Verre liquide","Sıvı Cam"],
 "💳 Брокерский кошелёк":["💳 Broker wallet","💳 Брокерський гаманець","💳 Portefeuille courtier","💳 Aracı kurum cüzdanı"],
@@ -5568,18 +5865,25 @@ function nav(tab, subtab){
 }
 
 /* =========================================================================
-   THEME (light / dark) — one set of CSS tokens on <html data-theme>.
+   THEME (light / dark / «Аврора») — one set of CSS tokens on <html data-theme>. «Аврора» (user 2026-09-26, an
+   iOS 26 iMessage screenshot: a deep blue → violet ground, glass lit cyan and lilac at its rim) is the dark theme
+   with a tone on top: data-theme="dark" + data-tone="aurora", so everything that reads on black reads on it and
+   its own block only says what is different.
    Switching only flips the attribute + S.ui.theme; it never touches the
    simulator state (price, engine, positions, orders all live in S).
    ========================================================================= */
 let _themeColors = null;                // cache; cleared by applyTheme()
-function currentTheme(){ return (S && S.ui && S.ui.theme === "dark") ? "dark" : "light"; }
+const TH_LIST = ["light", "dark", "aurora"];
+const thOk = t => TH_LIST.includes(t) ? t : "light";
+function currentTheme(){ return thOk(S && S.ui && S.ui.theme); }
 function applyTheme(t){
-  t = (t === "dark") ? "dark" : "light";
-  document.documentElement.dataset.theme = t;
+  t = thOk(t);
+  const d = document.documentElement.dataset;
+  d.theme = t === "light" ? "light" : "dark";
+  if(t === "aurora") d.tone = "aurora"; else delete d.tone;
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
-  if(mc) mc.setAttribute("content", t === "dark" ? "#000000" : "#eff1f4");
+  if(mc) mc.setAttribute("content", t === "aurora" ? "#142141" : t === "dark" ? "#000000" : "#eff1f4");
   try{ localStorage.setItem("xc_theme", t); }catch(e){}
 }
 /* LIQUID GLASS mode («Ещё» → «Жидкое стекло», on by default): html[data-glass] gates every glass style; off,
@@ -5637,7 +5941,7 @@ function openGlassSheet(){
       `<div class="lgs" data-lgui="${k}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div></div>`;
   };
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
-    row("light", "Светлая тема") + row("dark", "Тёмная тема") +
+    row("light", "Светлая тема") + row("dark", "Тёмная тема") + row("aurora", "Тема «Аврора»") +
     `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
     dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Затемнение") + dial("shadow", "Тень") +
     `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
@@ -5876,22 +6180,29 @@ function setGlass(on){
    screen, so the node that animates is the NEW one: it is placed where the old one stood and springs across) */
 const TH_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1" fill="currentColor"/><g stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 2.4v2.7M12 18.9v2.7M2.4 12h2.7M18.9 12h2.7M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></g></svg>';
 const TH_MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 15.1A8.7 8.7 0 0 1 8.9 3.4a8.7 8.7 0 1 0 11.7 11.7Z" fill="currentColor"/></svg>';
-let _thSlide = false;
+// «Аврора»: the northern lights - three curtains of light rising, a star over them
+const TH_AUR = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.6 20.6c.3-5.2 2.1-9.8 5-14"/><path d="M10.3 20.6c.3-4.7 2-8.8 4.9-12"/><path d="M16 20.6c.4-3.7 1.8-6.8 4-9"/></g><circle cx="18.7" cy="4.7" r="1.5" fill="currentColor"/></svg>';
+const TH_ICO = { light: TH_SUN, dark: TH_MOON, aurora: TH_AUR };
+const TH_NAME = { light: "Светлая", dark: "Тёмная", aurora: "Аврора" };
+let _thSlide = null;                    // the stop (0 … 1) the knob left, while a switch is under way
 function themeSwitchMarkup(){
-  const d = currentTheme() === "dark";
-  return `<button type="button" class="thsw${d ? " dark" : ""}" role="switch" aria-checked="${d}" aria-label="${L("Тема оформления")}">
-    <span class="thsw-tr" aria-hidden="true"></span>
-    <span class="thsw-lb">${d ? L("Тёмная") : L("Светлая")}</span>
-    <span class="thsw-kb" aria-hidden="true"><span class="thsw-ic">${d ? TH_MOON : TH_SUN}</span></span>
-  </button>`;
+  const t = currentTheme();
+  return `<div class="thsw th-${t}" role="radiogroup" aria-label="${L("Тема оформления")}">
+    <span class="thsw-tr" aria-hidden="true">${TH_LIST.map(k => `<span class="thsw-dot">${TH_ICO[k]}</span>`).join("")}</span>
+    ${TH_LIST.map(k => `<button type="button" class="thsw-st" role="radio" aria-checked="${k === t}" aria-label="${L(TH_NAME[k])}" data-th="${k}"></button>`).join("")}
+    <span class="thsw-kb" aria-hidden="true"><span class="thsw-ic">${TH_ICO[t]}</span></span>
+  </div>`;
 }
 function themeSwitchWire(root){
   const sw = root.querySelector(".thsw"); if(!sw) return;
-  sw.onclick = () => { _thSlide = true; setTheme(currentTheme() === "dark" ? "light" : "dark"); };
-  if(!_thSlide) return;
-  _thSlide = false;
-  const to = sw.classList.contains("dark") ? 1 : 0;
-  let x = 1 - to, v = 0, t0 = performance.now();
+  sw.querySelectorAll(".thsw-st").forEach(b => b.onclick = () => {
+    if(b.dataset.th === currentTheme()) return;
+    _thSlide = TH_LIST.indexOf(currentTheme()) / 2; setTheme(b.dataset.th);
+  });
+  if(_thSlide == null) return;
+  const to = TH_LIST.indexOf(currentTheme()) / 2;
+  let x = _thSlide, v = 0, t0 = performance.now();
+  _thSlide = null;
   sw.style.setProperty("--thk", x.toFixed(4));
   const step = now => {
     if(!sw.isConnected) return;
@@ -5905,10 +6216,10 @@ function themeSwitchWire(root){
 }
 function setTheme(t){
   if(!S.ui) S.ui = {};
-  S.ui.theme = (t === "dark") ? "dark" : "light";
+  S.ui.theme = thOk(t);
   smoothSwap(() => { applyTheme(S.ui.theme); applyClarity(glassClarity()); render(); });   // the theme's own clarity comes with it
   save();
-  toast("", S.ui.theme === "dark" ? L("🌙 Тёмная тема") : L("☀️ Светлая тема"));
+  toast("", S.ui.theme === "aurora" ? L("🌌 Тема «Аврора»") : S.ui.theme === "dark" ? L("🌙 Тёмная тема") : L("☀️ Светлая тема"));
 }
 /* canvas can't read CSS vars directly — resolve them once per theme */
 function themeColors(){
@@ -5917,8 +6228,9 @@ function themeColors(){
   const g = (n, fb) => { const v = cs.getPropertyValue(n).trim(); return v || fb; };
   _themeColors = {
     bg:    g("--chart-bg", "#ffffff"),
+    tagBg: g("--chart-tagbg", "") || g("--chart-bg", "#ffffff"),     // under a price tag's figures: always solid
     ink:   g("--ink", "#111418"),
-    card:  g("--card", "#ffffff"),
+    card:  g("--chart-card", "") || g("--card", "#ffffff"),
     grid:  g("--chart-grid", "#eef0f2"),
     axis:  g("--chart-axis", "#9aa1ab"),
     cross: g("--chart-cross", "#9aa1ab"),
@@ -6809,10 +7121,11 @@ function screenMore(){
     </div>
     <div class="card">
       <button type="button" class="row lang-row" data-act="langpick"><span class="k">${L("Язык")}</span><span class="v">${langName(LANG)}<span class="chev" aria-hidden="true">›</span></span></button>
-      <div class="row" style="margin-top:10px"><span class="k">${L("Тема оформления")}</span></div>
+      <div class="row" style="margin-top:10px"><span class="k">${L("Тема оформления")}</span>${glassOn("switches") ? `<span class="v thv">${L(TH_NAME[currentTheme()])}</span>` : ""}</div>
       ${glassOn("switches") ? themeSwitchMarkup() : `<div class="seg theme" id="themeSeg" style="margin-top:8px">
         <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}" aria-pressed="${currentTheme()==="light"}"><span>${L("☀️ Светлая")}</span><span class="ck" aria-hidden="true">✓</span></button>
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
+        <button data-theme-set="aurora" class="${currentTheme()==="aurora"?"on":""}" aria-pressed="${currentTheme()==="aurora"}"><span>${L("🌌 Аврора")}</span><span class="ck" aria-hidden="true">✓</span></button>
       </div>`}
       <div class="sw-row"><span class="k">${L("💧 Жидкое стекло")}</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
@@ -9274,7 +9587,7 @@ function openLotWheel(o){
   const ctx = cv.getContext("2d"), sx = cv.width / W, sy = cv.height / VH;
   const css = getComputedStyle(document.documentElement);
   const INK = css.getPropertyValue("--ink").trim() || "#111", BANDC = css.getPropertyValue("--lw-band").trim() || "#f1f1f3";
-  const FONT = FS + "px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
+  const FONT = FS + "px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
   const LENS_MAG = glassOn("lots") ? 1.14 : 1;   // one font a frame — rows scale by transform
   const BX = 10, BY = MID - BH / 2, BW = W - 20;                       // the selection band
   ctx.font = FONT;
@@ -10383,7 +10696,7 @@ function fitText(el, minPx){
 function liveDrawKey(tf){
   const a = S.candles[tf] || [], b = a[a.length - 1] || {};
   let k = S.price.bid + "|" + S.price.ask + "|" + a.length + "|" + b.t + "|" + b.o + "|" + b.h + "|" + b.l + "|" + b.c
-        + "|" + Math.floor(S.simClock / 1000) + "|" + (document.documentElement.dataset.theme || "");
+        + "|" + Math.floor(S.simClock / 1000) + "|" + (document.documentElement.dataset.theme || "") + (document.documentElement.dataset.tone || "");
   for(const p of S.positions) k += "|" + p.id + ":" + p.side + ":" + p.entry + ":" + p.sl + ":" + p.tp + ":" + p.volume;
   for(const o of S.pendings) k += "|" + o.id + ":" + o.type + ":" + o.price + ":" + o.sl + ":" + o.tp + ":" + o.volume;
   return k;
@@ -11084,7 +11397,9 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
     fixed = true;                                // the strength is the size's, so the clarity must not rescale it
   }
   // a rainbow place rests on the plain lens (one pass): its colour lives in the ready filters it switches to in motion
-  const tail = " blur(" + bl.toFixed(2) + "px) saturate(" + (blur > 2 ? 1.8 : 1.35) + ") brightness(1.03)";
+  // «Аврора»: the sky under the glass is colour enough - pushed further it went vivid blue plastic, not crystal
+  const aur = document.documentElement.dataset.tone === "aurora";
+  const tail = " blur(" + bl.toFixed(2) + "px) saturate(" + (aur ? (bl > 2 ? 1.25 : 1.12) : (blur > 2 ? 1.8 : 1.35)) + ") brightness(" + (aur ? 1.07 : 1.03) + ")";
   const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm) + ")" + tail;
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
@@ -11636,7 +11951,7 @@ function axisTag(ctx, x, yc, w, h, text, col, bg){
   if(ctx.roundRect) ctx.roundRect(x + 0.5, top, w - 1, h - 1, r); else ctx.rect(x + 0.5, top, w - 1, h - 1);
   ctx.fillStyle = bg; ctx.fill();
   ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.stroke(); ctx.lineWidth = 1;   // callers leave the dash solid
-  ctx.font = tagFontSize(ctx, text, w, h).toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  ctx.font = tagFontSize(ctx, text, w, h).toFixed(1) + "px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
   ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(text, x + w/2, yc + 0.5);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
@@ -11650,7 +11965,7 @@ function tagFontSize(ctx, text, w, h){
   const key = w + "|" + h + "|" + text.length;
   let fs = _tagFs.get(key);
   if(fs === undefined){
-    ctx.font = "10px system-ui,'Open Sans',sans-serif";
+    ctx.font = "10px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
     fs = Math.max(9, Math.min(h * 0.88, 10 * (w - 5) / (ctx.measureText(text).width || 1)));
     _tagFs.set(key, fs);
   }
@@ -11674,12 +11989,12 @@ function textWidth(ctx, font, text){
    outline = pending order (arrow-and-bar icon) or ТП / СЛ: drawn like a tag, coloured text */
 /* the width chartPill() gives a pill — to fit one into a gap before it is drawn */
 function chartPillWidth(ctx, fs, text, icon){
-  const font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  const font = fs.toFixed(1) + "px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
   return Math.ceil(fs * (icon ? 0.66 : 0.55) + textWidth(ctx, font, text) + (icon ? fs * (0.66 + 0.56) : 0) + fs * (icon ? 0.6 : 0.55));
 }
 function chartPill(ctx, x, yc, h, fs, text, icon, col, o){
   const padL = fs * (icon ? 0.66 : 0.55), gapI = fs * 0.66, iw = fs * 0.56, padR = fs * (icon ? 0.6 : 0.55);
-  const font = fs.toFixed(1) + "px system-ui,'Open Sans',sans-serif";
+  const font = fs.toFixed(1) + "px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
   const tw = textWidth(ctx, font, text);
   ctx.font = font;
   const w = Math.ceil(padL + tw + (icon ? gapI + iw : 0) + padR), top = yc - h/2 + 0.5;
@@ -11862,7 +12177,7 @@ function drawChart(){
   // grid + price scale — cTrader's: a line every ~33 px on a ROUND step (4295.00 / 4295.50), the
   // labels in the ink colour right-aligned 12 px from the edge. The horizontal lines and the time
   // axis' vertical ones go out as a single stroke.
-  const AXF = "13px system-ui,'Open Sans',sans-serif";
+  const AXF = "13px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
   const yCount = H - padB - 7.5 - RB;                                  // the bar countdown, at the foot of the scale
   ctx.fillStyle = TC.axis; ctx.font = AXF; ctx.textAlign = "right"; ctx.textBaseline = "middle";
   const gridFrom = Math.ceil(lo / sc.step) * sc.step;
@@ -11953,7 +12268,7 @@ function drawChart(){
   priceLine(yAsk, CL_ASK);
   priceLine(yBid, CL_BID);
   // right-scale Bid/Ask tags: centred on their lines, drawn at the very end (on top)
-  const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 18, label, col, TC.bg);
+  const priceTag = (yTag, col, label)=> axisTag(ctx, plotW + 2, yTag, padR - 4, 18, label, col, TC.tagBg);
 
   /* ---- OPEN POSITIONS + PENDING ORDERS ----------------------------------
      Bound directly to S.positions / S.pendings — no separate viz state.
@@ -12175,7 +12490,7 @@ function drawChart(){
   ctx.globalAlpha = 1;
   for(const m of marks){
     if(m.a <= 0.001) continue;
-    const x = snapPx(pillX(m)), po = { filled: m.filled, bg: TC.bg };
+    const x = snapPx(pillX(m)), po = { filled: m.filled, bg: TC.tagBg };
     ctx.globalAlpha = m.a;
     if(m.s < 0.999){                                              // squeezed into the bottom row: scaled about its left end
       ctx.save(); ctx.translate(x, m.y); ctx.scale(m.s, m.s);
@@ -12186,7 +12501,7 @@ function drawChart(){
   ctx.globalAlpha = 1;
   // right-axis tags, centred on their own line like cTrader (overlapping rather than
   // nudged apart); the live Bid/Ask tags go on last so they stay on top
-  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 18, chartPx(m.price), m.col, TC.bg); }
+  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 18, chartPx(m.price), m.col, TC.tagBg); }
   ctx.globalAlpha = 1;
   priceTag(tAsk, CL_ASK, chartPx(S.price.ask));
   priceTag(tBid, CL_BID, chartPx(S.price.bid));
@@ -12263,7 +12578,7 @@ function drawMini(){
   // gridlines (one stroke) + price labels on the right + the date / time axis
   const step = niceStep(hi - lo, clamp(Math.round(plotH / 42), 3, 8));
   ctx.beginPath();
-  ctx.font = "12.5px system-ui,'Open Sans',sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = TC.ink;
+  ctx.font = "12.5px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = TC.ink;
   for(let p = Math.ceil(lo / step) * step; p <= hi; p += step){
     const yy = crispY(y(p));
     ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
@@ -12272,10 +12587,10 @@ function drawMini(){
   const DAYS = DAYS_L[LANG], MON = MON_L[LANG];
   const intraday = tfSec < 14400, d0 = new Date(data[0].t * 1000);
   const dateLbl = intraday ? `${DAYS[d0.getDay()]} ${d0.getDate()} ${MON[d0.getMonth()]}` : `${MON[d0.getUTCMonth()]} ${d0.getUTCFullYear()}`;
-  ctx.font = "bold 13px system-ui,'Open Sans',sans-serif";
+  ctx.font = "bold 13px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
   const dateW = ctx.measureText(dateLbl).width;
   ctx.fillText(dateLbl, 4, H - 9);
-  ctx.font = "12.5px system-ui,'Open Sans',sans-serif"; ctx.textAlign = "center";
+  ctx.font = "12.5px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif"; ctx.textAlign = "center";
   const every = Math.max(1, Math.ceil(72 / unit));                    // a time label ~every 72 px, pinned to bar time (50 × M1 → 14 min, as in cTrader)
   for(let i = 0; i < data.length; i++){
     if(Math.round(data[i].t / tfSec) % every) continue;
@@ -12313,8 +12628,8 @@ function drawMini(){
   ctx.strokeStyle = TC.up; ctx.beginPath(); ctx.moveTo(0, yAsk); ctx.lineTo(plotW + 6, yAsk); ctx.stroke();
   ctx.strokeStyle = TC.down; ctx.beginPath(); ctx.moveTo(0, yBid); ctx.lineTo(plotW + 6, yBid); ctx.stroke();
   ctx.lineWidth = 1;
-  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.card);
-  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.card);
+  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.tagBg);
+  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.tagBg);
 }
 
 /* =========================================================================
@@ -12846,7 +13161,7 @@ function normalizeState(){
   if(S.ui.marketOpen == null) S.ui.marketOpen = false;   // land on the "Рынки" watchlist
   // theme: a local override (last used on THIS device) wins, else the saved state, else light
   { let lt = null; try{ lt = localStorage.getItem("xc_theme"); }catch(e){}
-    S.ui.theme = (lt === "dark" || lt === "light") ? lt : (S.ui.theme === "dark" ? "dark" : "light");
+    S.ui.theme = TH_LIST.includes(lt) ? lt : thOk(S.ui.theme);
     applyTheme(S.ui.theme); }
   // liquid glass: the same — this device's last choice, else the saved state, else on
   { let lg = null; try{ lg = localStorage.getItem("xc_glass"); }catch(e){}
