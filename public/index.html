@@ -1528,25 +1528,34 @@ body.amenu-open .wl-logo{opacity:0}
 .pk-drop{display:none}
 :root[data-glass="on"] .pk>.pk-drop{display:block;position:absolute;left:0;top:0;z-index:3;pointer-events:none;transform-origin:0 0;opacity:0;will-change:transform,opacity;
   background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.14) 24%,rgba(255,255,255,0) 36%),
-    radial-gradient(58% 40% at 50% 100%,rgba(255,255,255,.34) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.03);   /* clear across the writing's band */
-  box-shadow:0 0 0 .5px rgba(16,24,40,.2),0 1px 2px rgba(16,24,40,.1),0 7px 18px -6px rgba(16,24,40,.3),
-    inset 0 1.5px 1px -.2px #fff,inset 0 -2px 2px -1px rgba(255,255,255,.9),inset 0 0 0 1px rgba(255,255,255,.35),
-    inset 0 -9px 14px -12px rgba(16,24,40,.42),inset 0 6px 10px -9px rgba(16,24,40,.16)}
+    radial-gradient(58% 40% at 50% 100%,rgba(255,255,255,.34) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.03)}   /* clear across the writing's band; its edge: --drop-sh */
 /* its rim, lit from the one light the whole app is lit from (the brightest at the top left and the bottom right) */
 :root[data-glass="on"] .pk>.pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  background:linear-gradient(var(--lit-a,151deg),#fff 0%,rgba(255,255,255,0) 28%,rgba(16,24,40,.2) 52%,rgba(255,255,255,0) 74%,rgba(255,255,255,.95) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* and the glint on its crown */
 :root[data-glass="on"] .pk>.pk-drop::before{content:"";position:absolute;left:6%;top:9%;width:24%;height:26%;border-radius:50%;pointer-events:none;
   background:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,255,255,0))}
 :root[data-theme="dark"][data-glass="on"] .pk>.pk-drop{
   background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,0) 44%),
-    radial-gradient(58% 46% at 50% 100%,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.06);
-  box-shadow:0 0 0 .5px rgba(255,255,255,.3),0 10px 22px -8px rgba(0,0,0,.75),
-    inset 0 1.5px 1px -.2px rgba(255,255,255,.75),inset 0 -2px 2px -1px rgba(255,255,255,.38),inset 0 0 0 1px rgba(255,255,255,.08),
-    inset 0 -9px 14px -12px rgba(0,0,0,.7),inset 0 6px 10px -9px rgba(0,0,0,.35)}
-:root[data-theme="dark"][data-glass="on"] .pk>.pk-drop::after{background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.9) 0%,rgba(255,255,255,0) 28%,rgba(0,0,0,.4) 52%,rgba(255,255,255,0) 74%,rgba(255,255,255,.6) 100%)}
+    radial-gradient(58% 46% at 50% 100%,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.06)}
 :root[data-theme="dark"][data-glass="on"] .pk>.pk-drop::before{background:radial-gradient(closest-side,rgba(255,255,255,.7),rgba(255,255,255,0))}
+/* EVERY DROP, ONE CLEAN EDGE (user 2026-09-26, the lot lens over «MAX 30»: «Очень много лишней серой обводки, это не
+   дает эффект капли, это касается всего, где есть такая капля»). The drops wore the glass PANELS' edge: a grey
+   hairline outside, grey bands inside top and bottom (--lg-body) and a rim whose middle is grey (--lg-rimd) -
+   three greys on top of each other, a grey frame round a drop. A drop is its light: the ticket's switch drop (the
+   one signed off) - a white ring, a bright top edge, a glint at the foot, a soft lift under it, and a rim lit white
+   only. Written out here, not through the glass dials, so no setting can grey it again. */
+:root{--drop-sh:0 6px 16px -3px rgba(16,24,40,.2),0 1.5px 4px rgba(16,24,40,.08),inset 0 0 0 1.2px rgba(255,255,255,.92),inset 0 1.5px 1px #fff,inset 0 -1.5px 1.5px rgba(255,255,255,.7);
+  --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 70%,rgba(255,255,255,.65) 100%)}
+:root[data-theme="dark"]{--drop-sh:0 6px 16px -3px rgba(0,0,0,.55),0 1.5px 4px rgba(0,0,0,.3),inset 0 0 0 1.2px rgba(255,255,255,.5),inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -1.5px 1.5px rgba(255,255,255,.22);
+  --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 70%,rgba(255,255,255,.4) 100%)}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
+:root[data-glass="on"] .pk>.pk-drop{box-shadow:var(--drop-sh)}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after,:root[data-glass="on"] .pk>.pk-drop::after{background:var(--drop-rim)}
 /* what is under the drop is magnified by it, as under a real one (and under the bar's) - sharp, not bent */
 :root[data-glass="on"] .pk .am-it>*,:root[data-glass="on"] .pk button>*{transition:transform .14s cubic-bezier(.2,.8,.3,1)}
 :root[data-glass="on"] .pk .pk-on>*:not(.lg-milk){transform:scale(1.08)}
