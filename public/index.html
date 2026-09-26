@@ -5143,7 +5143,8 @@ function morphClose(m){
    writing sits in an inner layer at its final place, clipped by the drop. No scale anywhere: a backdrop-filtered
    layer under a scale paints a phantom square. */
 // timed against the recording: full size at ~0.18 s and settled with its 3 % landing by ~0.3 s; back in ~0.18 s
-const LQ_OPEN = { k: 230, z: .74 }, LQ_CLOSE = { k: 1100, z: 1 };
+// (closing a touch softer than it was, 1100: its writing had 20 ms to go out in)
+const LQ_OPEN = { k: 230, z: .74 }, LQ_CLOSE = { k: 800, z: 1 };
 const lqS = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 // how far along one part of the drop is at p. It lands ON its size: carried past it by the spring's overshoot, the
 // box grew a pixel or two and came back - a twitch as it landed (user: «когда появляются что-то дергаются чуть-чуть»)
@@ -5169,21 +5170,27 @@ function lqPut(pop, p){
   const st = pop.style;
   st.left = left.toFixed(2) + "px"; st.top = top.toFixed(2) + "px"; st.width = w.toFixed(2) + "px"; st.height = h.toFixed(2) + "px";
   st.borderRadius = X + "px " + X + "px " + X + "px " + X + "px / " + yt + "px " + yt + "px " + yb + "px " + yb + "px";
-  // the glass: a body like the button's from the first frame (it IS the button), clearest while it pours, the menu's
-  // frost at the end
-  st.setProperty("--lqg", (.3 + .7 * lqS(.28, .86, p)).toFixed(3));
-  const c = lqS(.5, .88, p), ist = Q.inner.style;                 // the writing: last, out of a blur
+  // the glass: a body like the button's as it leaves it, clearest while it pours, the menu's frost at the end - and
+  // CLEAR where it is the button's size again, the drop itself melting away in its last hundredths, so the button's
+  // writing comes up out of it sharp by degrees (user 2026-09-26: «текст видно резко, нужно плавное затухание и
+  // появление текста» - it kept its frost and its rim to the last frame and was gone in one, the label under it
+  // snapping from blurred to sharp)
+  st.setProperty("--lqg", (.3 * lqS(0, .22, p) + .7 * lqS(.28, .86, p)).toFixed(3));
+  if(p < .08) st.opacity = lqS(0, .08, p).toFixed(3); else st.removeProperty("opacity");
+  // the writing: last in, first out, out of a blur - over a wide band, or the quick close put it out in 20 ms. The
+  // blur stays a blur to the last frame of the motion (a filter switched off mid-motion is what Android drew huge)
+  const c = lqS(.25, .93, p), ist = Q.inner.style;                // ~0.1 s either way
   ist.transform = "translate(" + (F.l - left).toFixed(2) + "px," + (F.t - top).toFixed(2) + "px)";
   ist.opacity = c.toFixed(3);
-  ist.filter = c < .995 ? "blur(" + ((1 - c) * 9).toFixed(2) + "px)" : "none";
+  ist.filter = "blur(" + ((1 - c) * 9).toFixed(2) + "px)";
   if(Q.anc){ Q.p = p; lqAncPut(Q); }                              // its button, on the same progress
 }
 // the menu at rest, exactly as it was laid out
 function lqRest(pop){
   const Q = pop._lq, F = Q.F, st = pop.style;
   st.left = F.l + "px"; st.top = F.t + "px"; st.width = F.w + "px"; st.height = F.h + "px"; st.borderRadius = Q.R + "px";
-  st.setProperty("--lqg", "1");
-  Q.inner.style.transform = "none"; Q.inner.style.opacity = "1"; Q.inner.style.filter = "none";
+  st.setProperty("--lqg", "1"); st.removeProperty("opacity");
+  Q.inner.style.transform = "none"; Q.inner.style.opacity = "1"; Q.inner.style.filter = "none";   // at rest: no filter at all
   if(Q.anc){ Q.anc.style.removeProperty("opacity"); Q.anc.classList.add("lg-hid"); }
 }
 // the drop's glass and box are taken over from the laid-out menu; its writing moves into a layer of its own
@@ -5296,7 +5303,7 @@ function lqAnc(Q, el){
 }
 function lqAncPut(Q){
   const el = Q.anc; if(!el) return;
-  const o = 1 - lqS(.02, .14, Q.p);
+  const o = 1 - lqS(0, .28, Q.p);                                 // over a good part of the way: a fade, not a switch
   if(o < .002){ el.classList.add("lg-hid"); el.style.removeProperty("opacity"); }
   else { el.classList.remove("lg-hid"); if(o > .998) el.style.removeProperty("opacity"); else el.style.opacity = o.toFixed(3); }
 }
@@ -6163,7 +6170,7 @@ function amLiquid(m, mark, open, done){
     const f = v => v.toFixed(1) + "px ";
     const rad = f(g.X) + f(g.X) + f(g.X) + f(g.X) + "/ " + f(g.yt) + f(g.yt) + f(g.yb) + f(g.yb);
     sh.style.clipPath = "inset(" + T.toFixed(2) + "px " + Rr.toFixed(2) + "px " + B.toFixed(2) + "px " + L.toFixed(2) + "px round " + rad + ")";
-    sh.style.setProperty("--amc", lqS(.5, .88, p).toFixed(3));  // the writing: last, out of a blur - as «XAUUSD ▾» does
+    sh.style.setProperty("--amc", lqS(.25, .93, p).toFixed(3)); // the writing: last, out of a blur - as «XAUUSD ▾» does
     sh.style.setProperty("--lqg", lqS(.1, .86, p).toFixed(3));   // its glass: the mark's own bubble first, the panel's own glass at the end
     m.style.setProperty("--shd", clamp(p, 0, 1).toFixed(3));
     const rs = Q.rim.style;
