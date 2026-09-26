@@ -1472,15 +1472,17 @@ body.amenu-open .wl-logo{opacity:0}
    «И опять серое с опозданием появляется») */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--lqg,1) * 100%),var(--lg-tint));
   -webkit-backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
-  backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)))}
+  backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
+  box-shadow:none}                                                /* its edge is the rim layer's alone (below) */
 .lqa-x{position:fixed;left:0;top:0;pointer-events:none;z-index:3;transform-origin:50% 50%;will-change:transform,opacity}
 .lqa-x svg{width:100%;height:100%;display:block}
 .lqa-x svg circle{display:none}                                   /* the ball is the drop's; only the X rides in it */
-/* the drop's edge (the clip cuts off the panel's own): the panel's own inset rim and body, so that at rest the two
-   are the same pixels and the hand-over cannot be seen; outside it (::after) the mark's hairline and lift, which
-   make a clear ball read as a drop over a light page, fading out as it becomes the panel (which has neither) */
+/* the drop's edge: ONE edge, the panel's own (its inset rim and body), from the first frame to the last - the user
+   filmed it changing (2026-09-26: «при открытии обводка меняется, так не должно быть»). It had two: a hairline and
+   a lift that faded out as it landed, and, once the drop filled the panel's box, the panel's own edge showing
+   through the clip under this one - twice as bright for a few frames, then halved at rest. Now the panel's own is
+   off while it pours (above) and this one is the same pixels, so at rest nothing changes. */
 .lqa-rim{position:fixed;pointer-events:none;z-index:2;opacity:0;box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
-.lqa-rim::after{content:"";position:absolute;inset:0;border-radius:inherit;opacity:var(--rimo,0);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1)}
 .am-brand{font-size:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .am-acct{padding:0 18px 16px 18px;line-height:1.35}
 .am-acct b{display:block;font-size:14.5px;font-weight:400;color:var(--ink);overflow-wrap:anywhere}
@@ -6085,9 +6087,7 @@ function amLiquid(m, mark, open, done){
     const xcx = g.left + g.w / 2, xcy = g.top + Math.min(g.h, g.w) / 2;
     xs.transform = "translate(" + (xcx - A.w / 2).toFixed(2) + "px," + (xcy - A.h / 2).toFixed(2) + "px) scale(" + s.toFixed(3) + ")";
     xs.opacity = xk.toFixed(3);
-    // its edge: the panel's own from the first frame to the last (it hands over at rest without a seam); the mark's
-    // hairline and lift around it only while it is still a drop
-    rs.borderRadius = rad; rs.opacity = "1"; rs.setProperty("--rimo", (1 - lqS(.5, 1, p)).toFixed(3));
+    rs.borderRadius = rad; rs.opacity = "1";                        // its edge: the panel's own, first frame to last
   };
   const rest = () => {
     sh.style.removeProperty("clip-path"); sh.style.removeProperty("--amc"); sh.style.removeProperty("--lqg"); sh.style.removeProperty("opacity"); sh.classList.remove("lqa");
