@@ -1843,7 +1843,12 @@ body.amenu-open .wl-logo{opacity:0}
   transform:translateX(var(--bx,0px));     /* no scale on a backdrop-filtered layer: it paints a phantom square */
   background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%,rgba(255,255,255,.07));
   box-shadow:0 9px 22px rgba(16,24,40,.2),0 2px 5px rgba(16,24,40,.1),inset 0 0 0 1.2px rgba(255,255,255,.92),inset 0 1.5px 1px #fff,inset 0 -2px 3px rgba(16,24,40,.07)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{transform:translateX(var(--dlx,var(--bx,0px)));width:var(--dlw,var(--bw,0px))}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{transform:translateX(var(--dlx,var(--bx,0px)));width:var(--dlw,var(--bw,0px));
+  /* lifted, it is a little larger than the drop; as it melts back it draws in to EXACTLY the drop (--lf 1 → 0), so the
+     two never show as two outlines while they cross (user 2026-09-27: «наложения слоев … когда останавливаем») */
+  top:calc(3px - 5px * max(0, (var(--lf,0) - .6) / .4));bottom:calc(3px - 5px * max(0, (var(--lf,0) - .6) / .4));border-radius:calc(9px + 3px * max(0, (var(--lf,0) - .6) / .4))}
+/* and the drop comes up only once the lens has drawn in to its shape: the two outlines are one outline while they cross */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{opacity:calc((.6 - var(--lf,0)) / .6)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag.dragging{overflow:visible}   /* the lens may lift past it while it is held */
 /* the side's lens stays clear (tinted, it wore the side it was leaving - green over «Продать»), and a label under the
    finger keeps its own colour instead of going black */
@@ -2211,6 +2216,11 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="headers"]) .subtabs button,:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="headers"]) .appbar .ttl{text-shadow:0 0 2px rgba(12,13,26,.95),0 0 7px rgba(12,13,26,.8)}
 :root[data-tone="aurora"] .disp-demo{background:rgba(22,22,30,.6)}
 
+/* A SHEET OVER THE PAGE: the tab capsule under it steps back. Its lit top edge sat six pixels above the order ticket
+   and ran along the ticket's own top - two rims, read as the sheet's glass doubled (user screenshot 2026-09-27:
+   «стекло разве должно так выходить?»). The page is behind the scrim anyway; only the capsule that lines up goes. */
+:root[data-glass="on"] #app .subtabs{transition:opacity var(--mo-std)}
+:root[data-glass="on"] body:has(> .modal:not(.closing):not(.amodal)) #app .subtabs{opacity:0}
 /* ===================== «АВРОРА» IS WATER ======================================================================
    (user 2026-09-26: «более водяной, что бы много чего на каплю было похоже … намного лучше нужны эффекты капли»).
    What a bead of water on dark glass shows, and so what every drop here is made of:
@@ -5343,6 +5353,12 @@ MO.hz = 60; MO.dt0 = 1 / 60;
 })();
 // one integration step of a preset. v is the velocity, x where it is now, to where it wants to be
 MO.sp = (v, x, to, p, dt) => v + (-p.k * (x - to) - 2 * Math.sqrt(p.k) * p.z * v) * dt;
+/* A STIFF SPRING TAKEN IN ONE STEP OVERSHOOTS. The drops' edges under a finger are stiff (k 820-1250); a frame that
+   ran long (a phone busy for 30 ms) stepped them a whole 1/30 s at once, and one step flung an edge 300 px past its
+   target - the next step flung it back: the drop jumped back and forth across the ticket's types (user video
+   2026-09-27, «оно скачет туда-сюда»; reproduced: 253 → 17 → 5 → 38 → -16 → 95 → -87 px on consecutive frames).
+   The motion is the same; it is integrated in steps of at most 1/240 s whatever the frame did. */
+MO.steps = dt => Math.max(1, Math.ceil(dt * 240 - 1e-6));
 // ONE rAF for every spring in the app. Each loop keeps its own state and its own dt; this only owns the frame,
 // so seven concurrent loops became one callback, one batch of reads and one batch of writes.
 let _moA = [], _moB = [], _moRaf = 0;
@@ -8804,11 +8820,13 @@ function subFrame(now){
     // the two edges pumped each other into a stick)
     if(SB._tk !== tk){ if(SB._tk != null) SB._rt = tk > SB._tk; else SB._rt = tk > SB.l + SB.r; SB._tk = tk; }
     const right = SB._rt;
-    SB.va = MO.sp(SB.va, SB.l, d.tl, right ? MO.P.trailDrag : MO.P.leadDrag, dt); SB.l += SB.va * dt;
-    SB.vr = MO.sp(SB.vr, SB.r, d.tr, right ? MO.P.leadDrag : MO.P.trailDrag, dt); SB.r += SB.vr * dt;
-    SB.wRest = d.tr - d.tl; SB.tw = null;
     const mw = (d.tr - d.tl) * .6;
-    if(SB.r - SB.l < mw){ const m = (SB.l + SB.r) / 2; SB.l = m - mw / 2; SB.r = m + mw / 2; }
+    for(let n = MO.steps(dt), h = dt / n; n > 0; n--){
+      SB.va = MO.sp(SB.va, SB.l, d.tl, right ? MO.P.trailDrag : MO.P.leadDrag, h); SB.l += SB.va * h;
+      SB.vr = MO.sp(SB.vr, SB.r, d.tr, right ? MO.P.leadDrag : MO.P.trailDrag, h); SB.r += SB.vr * h;
+      if(SB.r - SB.l < mw){ const m = (SB.l + SB.r) / 2, v = (SB.va + SB.vr) / 2; SB.l = m - mw / 2; SB.r = m + mw / 2; SB.va = SB.vr = v; }
+    }
+    SB.wRest = d.tr - d.tl; SB.tw = null;
   }else if(SB.tw){                               // in flight: the curve, not a spring
     const w = SB.tw, e = now - w.t0, pa = navEase(e / w.dl), pb = navEase(e / w.dr), pm = (pa + pb) / 2;
     SB.l = w.l0 + (SB.tl - w.l0) * pa; SB.r = w.r0 + (SB.tr - w.r0) * pb;
@@ -9085,12 +9103,13 @@ function mqFrame(now){
     const l = s.x, r = s.x + s.w, tl = s.tx, tr = s.tx + s.tw;
     if(s._tk !== tl + tr){ s._tk = tl + tr; s._rt = (tl + tr) > (l + r); }
     const right = s._rt;
-    let vl = s.vl || 0, vr = s.vr || 0;
-    vl = MO.sp(vl, l, tl, right ? MO.P.trail : MO.P.lead, dt);
-    vr = MO.sp(vr, r, tr, right ? MO.P.lead : MO.P.trail, dt);
-    let nl = l + vl * dt, nr = r + vr * dt;
+    let vl = s.vl || 0, vr = s.vr || 0, nl = l, nr = r;
     const mw = Math.max(10, s.tw * .6);                            // never a stick: 60 % of the chip, round its middle
-    if(nr - nl < mw){ const c = (nl + nr) / 2; nl = c - mw / 2; nr = c + mw / 2; }
+    for(let n = MO.steps(dt), h = dt / n; n > 0; n--){
+      vl = MO.sp(vl, nl, tl, right ? MO.P.trail : MO.P.lead, h); nl += vl * h;
+      vr = MO.sp(vr, nr, tr, right ? MO.P.lead : MO.P.trail, h); nr += vr * h;
+      if(nr - nl < mw){ const c = (nl + nr) / 2, v = (vl + vr) / 2; nl = c - mw / 2; nr = c + mw / 2; vl = vr = v; }
+    }
     s.vl = vl; s.vr = vr; s.x = nl; s.w = nr - nl;
     s.vy = MO.sp(s.vy || 0, s.y, s.ty, MO.P.fluid, dt); s.y += s.vy * dt;
     s.vh = MO.sp(s.vh || 0, s.h, s.th, MO.P.fluid, dt); s.h += s.vh * dt;
@@ -9222,11 +9241,13 @@ function pkFrame(now){
     s.t = now;
     if(s._tk !== s.tt + s.tb){ s._tk = s.tt + s.tb; s._dn = (s.tt + s.tb) > (s.top + s.bot); }
     const down = s._dn;
-    s.vt = MO.sp(s.vt, s.top, s.tt, down ? MO.P.trail : MO.P.lead, dt);
-    s.vb = MO.sp(s.vb, s.bot, s.tb, down ? MO.P.lead : MO.P.trail, dt);
-    let nt = s.top + s.vt * dt, nb = s.bot + s.vb * dt;
+    let nt = s.top, nb = s.bot;
     const mh = Math.max(12, (s.tb - s.tt) * .6);
-    if(nb - nt < mh){ const c = (nt + nb) / 2; nt = c - mh / 2; nb = c + mh / 2; }
+    for(let n = MO.steps(dt), h = dt / n; n > 0; n--){
+      s.vt = MO.sp(s.vt, nt, s.tt, down ? MO.P.trail : MO.P.lead, h); nt += s.vt * h;
+      s.vb = MO.sp(s.vb, nb, s.tb, down ? MO.P.lead : MO.P.trail, h); nb += s.vb * h;
+      if(nb - nt < mh){ const c = (nt + nb) / 2, v = (s.vt + s.vb) / 2; nt = c - mh / 2; nb = c + mh / 2; s.vt = s.vb = v; }
+    }
     s.top = nt; s.bot = nb;
     s.vx = MO.sp(s.vx, s.x, s.tx, MO.P.fluid, dt); s.x += s.vx * dt;
     s.vw = MO.sp(s.vw, s.w, s.tw, MO.P.fluid, dt); s.w += s.vw * dt;
@@ -9256,11 +9277,14 @@ function dropApply(bub, st){
   if(L){
     const idle = (st.lf || 0) < .01;
     if(L._idle !== idle){ L._idle = idle; L.classList.toggle("idle", idle); }
-    // mild: labels stay readable under it. In the ticket the lens is ONE size - the tabs' mean width, riding the
-    // drop's middle - so its map is drawn once: a filter rebuilt as it moved left a phone drawing nothing or a grey
+    // mild: labels stay readable under it. In the ticket the lens is the size of a TAB, riding the drop's middle, so
+    // its map is drawn once per tab: rebuilt every few pixels as it moved, it left a phone drawing nothing or a grey
     // square there (user videos 2026-09-26/27)
     if(st.flat){
-      const cw = Math.round(st.cw || (st.tr - st.tl)), m = (st.l + st.r) / 2;
+      // the size of the tab it is on (four sizes, each map drawn once and kept), so when it lands it is exactly the
+      // drop it melts into - at one mean size it lay over a drop of another size as the two crossed (user 2026-09-27:
+      // «странные наложения слоев видно когда останавливаем»)
+      const cw = Math.round(st.tr - st.tl), m = (st.l + st.r) / 2;
       el.style.setProperty("--dlx", (m - cw / 2).toFixed(2) + "px"); el.style.setProperty("--dlw", cw + "px");
       // and a full-strength lens (22, the iOS glass for its size - the mild 10 of a per-size lens bent too little to
       // read as glass: «эффекта жидкого стекла нету»); the word under it grows 10 % as well
@@ -9309,13 +9333,16 @@ function dropFrame(now){
     // the finger was a whole tab ahead on the recording (user: «плохо видно … когда водим»); let go, they flow
     const Pf = dr ? SEG_DRAG_LEAD : MO.P.lead, Ps = dr ? SEG_DRAG_TRAIL : MO.P.trail;   // a bounce on landing
     const Pl = right ? Ps : Pf, Pr = right ? Pf : Ps;
-    st.vl = MO.sp(st.vl, st.l, st.tl, Pl, dt); st.l += st.vl * dt;
-    st.vr = MO.sp(st.vr, st.r, st.tr, Pr, dt); st.r += st.vr * dt;
-    // inside its track: pressed into an end it squashes against it (flew past it on the user's video)
-    if(st.bw){ if(st.l < -2){ st.l = -2; if(st.vl < 0) st.vl = 0; } if(st.r > st.bw + 2){ st.r = st.bw + 2; if(st.vr > 0) st.vr = 0; } }
-    // never a stick: at least 60 % of its tab, kept round its own middle
     const mw = Math.max(8, (st.tr - st.tl) * .6);
-    if(st.r - st.l < mw){ const m = (st.l + st.r) / 2; st.l = m - mw / 2; st.r = m + mw / 2; }
+    for(let n = MO.steps(dt), h = dt / n; n > 0; n--){
+      st.vl = MO.sp(st.vl, st.l, st.tl, Pl, h); st.l += st.vl * h;
+      st.vr = MO.sp(st.vr, st.r, st.tr, Pr, h); st.r += st.vr * h;
+      // inside its track: pressed into an end it squashes against it (flew past it on the user's video)
+      if(st.bw){ if(st.l < -2){ st.l = -2; if(st.vl < 0) st.vl = 0; } if(st.r > st.bw + 2){ st.r = st.bw + 2; if(st.vr > 0) st.vr = 0; } }
+      // never a stick: at least 60 % of its tab, kept round its own middle - and the two edges then move as one,
+      // or their speeds pulled them apart again the next step
+      if(st.r - st.l < mw){ const m = (st.l + st.r) / 2, v = (st.vl + st.vr) / 2; st.l = m - mw / 2; st.r = m + mw / 2; st.vl = st.vr = v; }
+    }
     // the lens rides the speed: up fast while the drop flows, melting back as it lands
     const flf = st.drag ? 1 : Math.min(1, (Math.abs(st.vl) + Math.abs(st.vr)) / 700);
     st.lf += (flf - st.lf) * (1 - Math.exp(-dt / (flf > st.lf ? .05 : .16)));
