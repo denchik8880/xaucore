@@ -2280,6 +2280,27 @@ body.amenu-open .wl-logo{opacity:0}
   box-shadow:0 3px 7px -4px rgba(0,0,0,.5),inset 0 0 0 .6px rgba(255,255,255,.18),inset 0 1px 1px -.3px rgba(255,255,255,.42),inset 0 -2px 3px -1.5px rgba(185,220,255,.32);
   color:var(--ink)}
 :root[data-theme="dark"][data-tone="aurora"] .miniquick button{border-radius:999px}
+
+/* the ticket's segmented drops: the writing lit through the drop (segLit) */
+.seg-lit{display:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit{display:flex;position:absolute;inset:0;z-index:4;pointer-events:none;
+  gap:inherit;padding:inherit;align-items:inherit;justify-content:inherit;
+  --lk:max(0, (var(--lf,0) - .6) / .4);
+  clip-path:inset(calc(3px - 5px * var(--lk)) calc(100% - var(--dlx,var(--bx,0px)) - var(--dlw,var(--bw,0px))) calc(3px - 5px * var(--lk)) var(--dlx,var(--bx,0px)) round calc(9px + 3px * var(--lk)))}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit>button{background:none!important;box-shadow:none!important}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.ot-types>.seg-lit>button{color:var(--ink)!important}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag>.seg-lit>button{color:#fff!important}
+/* the row never lights up by itself - the nearest word, the chosen one while the drop is still on its way */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.ot-types>button,:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.ot-types>button.on,
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.ot-types.dragging>button.near,:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.ot-types.dragging>button.on:not(.near){color:var(--ink2)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag>button.on[data-otside="buy"]{color:var(--green-ink)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag>button.on[data-otside="sell"]{color:var(--red-ink)}
+/* the drop is the press: no milky light left behind on the word the finger came down on (it stayed grey on «Рыночный»
+   while the drop had moved on: «серое загорается раньше, чем надо»), and nothing on the row moves on its own, or the
+   lit copy over it would show double */
+:root[data-glass="on"] .seg.seg-drag button .lg-milk{display:none}
+:root[data-glass="on"] .seg.seg-drag .pressing>span,:root[data-glass="on"] .seg.seg-drag .pressing>b{transform:none}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>button:active:not(.near){transform:none}
 </style>
 
 <div id="app"></div>
@@ -8741,11 +8762,38 @@ function glassDrops(root){
     const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big, cw,
       flat: !!bar.closest(".ot-g"), bw: bar.clientWidth };
     bar._st = st; bar._bub = bub;
+    if(bar.classList.contains("seg-drag")) segLit(bar);
     _drops.set(bub, st);
     dropApply(bub, st);
     if(big) subDragBind(bar);
   });
   if(_drops.size && !_dropRaf) _dropRaf = requestAnimationFrame(dropFrame);
+}
+/* THE WRITING IS LIT BY THE DROP, as on the tab bar: a copy of the row in the chosen colour lies over it and shows only
+   through the drop's own shape (.seg-lit, clipped in CSS to the lens as it moves and to the drop at rest), so a word
+   half inside the drop is lit half way - letter by letter, not the whole word when it becomes the nearest (user
+   2026-09-27: «почему буквы не светятся белым хотя часть текста уже в капле? нужна такая же логика как у нижней
+   панели»). The row itself never changes colour: the drop carries it. */
+function segLit(bar){
+  let lit = bar.querySelector(":scope > .seg-lit");
+  if(!lit){ lit = document.createElement("span"); lit.className = "seg-lit"; lit.setAttribute("aria-hidden", "true"); lit.inert = true; bar.appendChild(lit); }
+  const sync = () => {
+    lit.innerHTML = [...bar.querySelectorAll(":scope > button")].map(b => {
+      const c = b.cloneNode(true);
+      c.removeAttribute("id"); c.removeAttribute("role"); c.removeAttribute("aria-selected"); c.removeAttribute("data-ottype");
+      c.classList.remove("on", "pressing"); c.tabIndex = -1;
+      c.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
+      c.querySelectorAll(".lg-milk").forEach(x => x.remove());
+      return c.outerHTML;
+    }).join("");
+  };
+  sync();
+  // the prices in «Продать / Купить» are written by id every tick: the copy follows whatever changes in the row
+  if(!bar._litObs){
+    bar._litObs = new MutationObserver(ms => { if(ms.some(m => m.target !== lit && !lit.contains(m.target) && !(m.target.classList && m.target.classList.contains("seg-lit")))) sync(); });
+    bar._litObs.observe(bar, { subtree: true, characterData: true, childList: true });
+  }
+  bar._lit = lit;
 }
 /* THE TOP TABS, DRIVEN THE WAY THE BOTTOM BAR IS (user 2026-09-25: «то что мы сделали внизу, должно быть и
    сверху … та же схема … кристальная чистота должна работать»). Everything the bottom bar learned carries over:
@@ -8959,6 +9007,7 @@ function subDragBind(bar){
     const cx = h.lx < c0 ? c0 - 9 * Math.tanh((c0 - h.lx) / 24) : h.lx > c1 ? c1 + 9 * Math.tanh((h.lx - c1) / 24) : h.lx;
     st.tl = cx - w / 2; st.tr = cx + w / 2;
     btns().forEach(b => b.classList.toggle("near", b === h.b));
+    if(bar._lit) { const bs = btns(); [...bar._lit.children].forEach((c, i) => c.classList.toggle("near", bs[i] === h.b)); }
     return h;
   };
   const end = (e, go) => {
@@ -8966,6 +9015,7 @@ function subDragBind(bar){
     if(!d || e.pointerId !== d.id) return;
     st.drag = null; bar.classList.remove("dragging");
     btns().forEach(b => b.classList.remove("near"));
+    if(bar._lit) [...bar._lit.children].forEach(c => c.classList.remove("near"));
     const h = hit(e.clientX), on = bar.querySelector(":scope > button.on");
     if(go && h.b && h.b !== on){                                 // a drag or a tap: the bar holds the finger, so it picks
       _subByDrag = performance.now();
