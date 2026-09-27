@@ -12598,8 +12598,7 @@ function spreadYs(items, gap, top, bot){
    lurch the whole chart) so the LIVE bar's close sits exactly ON the Bid line —
    no floating gap, any direction or size — and so a bar doesn't hop when it
    stops being the live one. OHLC only shifts; bars stay chained (no gaps). The
-   Ask line is kept off the live down-bar's *body* by a draw-time cap in the
-   candle loop, not here. Raw S.candles / Price Engine / spread / P&L untouched;
+   live bar is drawn whole; the Bid / Ask lines run under the candles. Raw S.candles / Price Engine / spread / P&L untouched;
    the two lines still anchor to the real S.price.bid / S.price.ask. */
 function bidCandles(vis){
   const base = (SPREAD_MIN + SPREAD_MAX) / 2;                  // centre of the auto spread
@@ -12797,7 +12796,6 @@ function drawChart(){
   // a stroke plus a fillStyle change per bar — ~130 of them zoomed out).
   const bodyW = Math.max(px1, snapPx(bw));
   const wickOff = snapPx((bodyW - hairX) / 2);
-  const yAskCap = y(S.price.ask);
   ctx.save();
   ctx.beginPath(); ctx.rect(0, 0, barsW, H); ctx.clip();
   for(const upPass of [true, false]){
@@ -12810,13 +12808,9 @@ function drawChart(){
       const yh = snapPy(y(b.h)), yl = snapPy(y(b.l));
       ctx.rect(x0 + wickOff, yh, hairX, Math.max(py1, yl - yh));
       let yo = y(b.o), yc = y(b.c);
-      // live DOWN bar: stop the FILLED body at the Ask line so the Ask isn't buried
-      // in the block — the wick above already shows the true open, and the OHLC is
-      // untouched so the bar still chains to its neighbours (no gap).
-      // (the OPEN side is what is cut, and only when the open really is above the Ask: cutting the close to the Ask
-      // drew every fresh bar that ticked down as a red block from its open UP to the Ask line - a spread-sized candle
-      // out of one tick, user screenshot 2026-09-27: «когда идет тик вниз, рисуется красная свеча, так не должно быть»)
-      if(i === liveIdx && !upPass && yo < yAskCap) yo = Math.min(yAskCap, yc);
+      // the live bar is drawn whole, open to close, as cTrader draws it (user videos 2026-09-27: cut at the Ask line it
+      // was a hair above it and a block only below it, «свеча не правильно толстеет»). The Bid / Ask lines run under the
+      // candles now, so a body over the Ask hides nothing that matters.
       const top = snapPy(Math.min(yo, yc)), bot = snapPy(Math.max(yo, yc));
       ctx.rect(x0, top, bodyW, Math.max(hair, bot - top));
     }
@@ -13159,9 +13153,14 @@ function drawMini(){
   }
   ctx.strokeStyle = TC.grid; ctx.lineWidth = hairY; ctx.stroke(); ctx.lineWidth = 1;
 
+  // the Bid / Ask lines UNDER the candles, as on the Charts tab (and cTrader)
+  ctx.lineWidth = hairY;
+  // GREEN Ask on top, RED Bid below, solid into the middle of their tags (centred, overlapping)
+  ctx.strokeStyle = TC.up; ctx.beginPath(); ctx.moveTo(0, yAsk); ctx.lineTo(plotW + 6, yAsk); ctx.stroke();
+  ctx.strokeStyle = TC.down; ctx.beginPath(); ctx.moveTo(0, yBid); ctx.lineTo(plotW + 6, yBid); ctx.stroke();
+  ctx.lineWidth = 1;
   // candles: pixel-aligned wick + body rects, one fill per colour
   const bodyW = Math.max(1 / pxr, snapX(unit * 0.62)), wickOff = snapX((bodyW - hairX) / 2);
-  const yAskCap = y(S.price.ask), last = data.length - 1;
   for(const upPass of [true, false]){
     ctx.beginPath();
     for(let i = 0; i < data.length; i++){
@@ -13171,7 +13170,6 @@ function drawMini(){
       const yh = snapY(y(b.h)), yl = snapY(y(b.l));
       ctx.rect(xb + wickOff, yh, hairX, Math.max(1 / pyr, yl - yh));
       let yo = y(b.o), yc = y(b.c);
-      if(i === last && !upPass) yc = Math.min(yc, yAskCap);           // live down bar: body stops at the Ask
       const top = snapY(Math.min(yo, yc)), bot = snapY(Math.max(yo, yc));
       ctx.rect(xb, top, bodyW, Math.max(hairY, bot - top));
     }
@@ -13180,11 +13178,6 @@ function drawMini(){
 
   // no position / order lines here: cTrader's overview chart has none (user 2026-09-18: a lone dash-dot line
   // «такого в cTrade нету») — they live on the Charts tab with their labels
-  ctx.lineWidth = hairY;
-  // GREEN Ask on top, RED Bid below, solid into the middle of their tags (centred, overlapping)
-  ctx.strokeStyle = TC.up; ctx.beginPath(); ctx.moveTo(0, yAsk); ctx.lineTo(plotW + 6, yAsk); ctx.stroke();
-  ctx.strokeStyle = TC.down; ctx.beginPath(); ctx.moveTo(0, yBid); ctx.lineTo(plotW + 6, yBid); ctx.stroke();
-  ctx.lineWidth = 1;
   axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.tagBg);
   axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.tagBg);
 }
