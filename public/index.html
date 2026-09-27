@@ -2293,6 +2293,16 @@ body.amenu-open .wl-logo{opacity:0}
   color:var(--ink)}
 :root[data-theme="dark"][data-tone="aurora"] .miniquick button{border-radius:999px}
 
+/* THE MENU DROP IN «АВРОРА» IS GLASS YOU SEE (user 2026-09-27, the drawer: a thin outline hopping between the rows).
+   Clear, as the tab bar's lens is - no tint over the writing - but it gathers light: what is under it comes up
+   brighter and a little richer, a sheen lies over its top, the light it gathers pools low in it, and its rim is lit.
+   Not a lens that bends: its bend swept over the letters as it moved (user 2026-09-26: «буквы на милисекунды
+   искажаются») - the writing under it is magnified whole instead (.pk-on). */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{
+  background:var(--wd-glint),linear-gradient(180deg,rgba(226,236,255,.12) 0%,rgba(226,236,255,0) 46%),
+    radial-gradient(62% 52% at 50% 104%,rgba(168,204,255,.13) 0%,rgba(168,204,255,0) 100%),rgba(255,255,255,.035);
+  -webkit-backdrop-filter:saturate(1.5) brightness(1.22);backdrop-filter:saturate(1.5) brightness(1.22)}
+
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit{display:flex;position:absolute;inset:0;z-index:4;pointer-events:none;
@@ -3019,9 +3029,9 @@ const I18N = {
 "Стоп":["Stop","Стоп","Stop","Stop"],
 "Стоп-лимит":["Stop limit","Стоп-ліміт","Stop limite","Stop limit"],
 "Сторона сделки":["Trade side","Сторона угоди","Côté de l’opération","İşlem tarafı"],
-"Противоположная сторона":["Opposite side","Протилежна сторона","Côté opposé","Karşı taraf"],
-"Двойная сторона сделки":["Double trade side","Подвійна сторона угоди","Double côté de l’opération","Çift işlem tarafı"],
-"Двойная противоположная сторона":["Double opposite side","Подвійна протилежна сторона","Double côté opposé","Çift karşı taraf"],
+"Противоположная":["Opposite side","Протилежна","Côté opposé","Karşı taraf"],
+"Сторона сделки (2 проверки)":["Double trade side","Сторона угоди (2 перевірки)","Côté de l’opération (2 vérifications)","İşlem tarafı (2 kontrol)"],
+"Противоположная (2 проверки)":["Double opposite side","Протилежна (2 перевірки)","Côté opposé (2 vérifications)","Karşı taraf (2 kontrol)"],
 "Меню":["Menu","Меню","Menu","Menü"],
 "Пополнить счёт":["Deposit funds","Поповнити рахунок","Alimenter le compte","Hesaba para yatır"],
 "Снять средства":["Withdraw funds","Зняти кошти","Retirer des fonds","Para çek"],
@@ -5217,7 +5227,11 @@ function processPendings(){
       if(!o.armed){
         const tr = o.trig || "trade", opp = tr === "opp" || tr === "dopp";
         const q = buy ? (opp ? bid : ask) : (opp ? ask : bid), past = buy ? q >= o.price : q <= o.price;
-        if(tr === "dtrade" || tr === "dopp"){ o.hits = past ? (o.hits || 0) + 1 : 0; if(o.hits < 2) continue; }
+        if(tr === "dtrade" || tr === "dopp"){
+          const qk = S.simClock + ":" + bid + ":" + ask;               // this quote - counted once however often we look at it
+          if(o.qk !== qk){ o.qk = qk; o.hits = past ? (o.hits || 0) + 1 : 0; }
+          if((o.hits || 0) < 2) continue;
+        }
         else if(!past) continue;
         if(stopLimit) o.armed = true;
         else { const sl = slippage(); px = roundTo((buy ? ask : bid) + dir * sl, S.symbol.digits); }
@@ -9599,12 +9613,29 @@ function pkRow(s, x, y){
   for(const r of s.host.querySelectorAll(s.rowSel)) if(!r.disabled && inR(r, 0)) return r;
   return null;
 }
-function pkAim(s, row){
+/* UNDER A SLIDING FINGER IT IS THE FINGER'S (user 2026-09-27 video of the drawer: «анимацию стекла при свайпе … как у
+   iOS 26.2 … на видео ее нету» - the drop hopped from row to row as an outline). As the tab bar's lens does, while the
+   finger is down the drop's middle goes where the finger is, held to the rows' span (a rubber band past the first and
+   the last); its size is the row it is over, so it takes each row's height as it crosses it. Let go, it springs onto
+   the row and sinks into it. fy: the finger, in the host's own coordinates. */
+function pkAim(s, row, fy){
   const h = s.host, hr = h.getBoundingClientRect(), r = row.getBoundingClientRect();
   const x = r.left - hr.left - h.clientLeft + h.scrollLeft, y = r.top - hr.top - h.clientTop + h.scrollTop;
-  s.tx = x; s.tw = r.width; s.tt = y; s.tb = y + r.height; s.th = r.height;
+  let c = y + r.height / 2;
+  if(fy != null){
+    let lo = c, hi = c;
+    for(const e of h.querySelectorAll(s.rowSel)){
+      if(e.disabled) continue;
+      const b = e.getBoundingClientRect(); if(!b.height) continue;
+      const m = b.top - hr.top - h.clientTop + h.scrollTop + b.height / 2;
+      if(m < lo) lo = m; if(m > hi) hi = m;
+    }
+    const rb = d => 14 * Math.tanh(d / 28);
+    c = fy < lo ? lo - rb(lo - fy) : fy > hi ? hi + rb(fy - hi) : fy;
+  }
+  s.tx = x; s.tw = r.width; s.tt = c - r.height / 2; s.tb = c + r.height / 2; s.th = r.height;
   if(s.f < .05){                                                   // from nothing: it comes up out of the row, a hair smaller
-    s.top = y + 3; s.bot = y + r.height - 3; s.x = x + 5; s.w = r.width - 10; s.vt = s.vb = s.vx = s.vw = 0;
+    s.top = s.tt + 3; s.bot = s.tb - 3; s.x = x + 5; s.w = r.width - 10; s.vt = s.vb = s.vx = s.vw = 0;   // where it is aimed (under the finger)
   }
   pkOn(s, row); s.tf = 1; s.hold = false;
 }
@@ -9621,7 +9652,7 @@ function pkDown(s, e){
   if(!row || !s.host.contains(row) || row.disabled) return;
   pkLens(s);
   s.drag = { id: e.pointerId };
-  pkAim(s, row);
+  pkAim(s, row, pkFy(s, e));
   try{ s.host.setPointerCapture(e.pointerId); }catch(_){}         // it follows the finger past the row it was pressed on
   _pk.add(s); pkKick();
 }
@@ -9630,14 +9661,15 @@ function pkMove(s, e){
   if(SHD.drag && SHD.drag.on && SHD.sh === s.host){ s.drag = null; s.tf = 0; pkOn(s, null); pkKick(); return; }   // the panel is being swiped away
   const row = pkRow(s, e.clientX, e.clientY);
   if(!row){ if(s.tf){ s.tf = 0; pkOn(s, null); pkKick(); } return; }
-  if(row !== s.cur || !s.tf){ pkAim(s, row); pkKick(); }
+  pkAim(s, row, pkFy(s, e)); pkKick();                             // every move: it goes with the finger, not row by row
 }
+const pkFy = (s, e) => e.clientY - s.host.getBoundingClientRect().top - s.host.clientTop + s.host.scrollTop;
 function pkUp(s, e, go){
   const d = s.drag; if(!d || e.pointerId !== d.id) return;
   s.drag = null;
   const row = go && s.tf ? pkRow(s, e.clientX, e.clientY) : null;
   if(row){
-    if(row !== s.cur) pkAim(s, row);
+    pkAim(s, row);                                                 // onto the row, centred - it was under the finger
     s.hold = true;                                                 // it lands on the row, then melts
     s.pickT = performance.now(); s.self = true;
     try{ row.click(); } finally { s.self = false; }
@@ -9650,9 +9682,12 @@ function pkPut(s){
   const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
   if(bw !== s.bw || bh !== s.bh){ s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px"; }
   // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
-  const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14), w = Math.max(1, s.w - nw);
-  const rad = Math.min(w, h) / 2, sx = w / bw, sy = h / bh;
-  l.transform = "translate(" + (s.x + nw / 2).toFixed(2) + "px," + s.top.toFixed(2) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
+  const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14);
+  // lifted it stands a little past its row - taller more than wider, a drop not a plate; sinking it squashes
+  const p = s.pop || 0, ph = h * (p >= 0 ? .13 * p : .09 * p), pw = s.w * (p >= 0 ? .025 * p : -.035 * p);
+  const w = Math.max(1, s.w - nw + pw), hh = Math.max(1, h + ph);
+  const rad = Math.min(w, hh) / 2, sx = w / bw, sy = hh / bh;
+  l.transform = "translate(" + (s.x + (nw - pw) / 2).toFixed(2) + "px," + (s.top - ph / 2).toFixed(2) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
   l.borderRadius = (rad / sx).toFixed(2) + "px / " + (rad / sy).toFixed(2) + "px";   // round on screen, after the scale
   l.opacity = s.f.toFixed(3);
   const idle = s.f < .005; if(lens._idle !== idle){ lens._idle = idle; lens.classList.toggle("idle", idle); }
@@ -9674,6 +9709,7 @@ function pkFrame(now){
       if(nb - nt < mh){ const c = (nt + nb) / 2, v = (s.vt + s.vb) / 2; nt = c - mh / 2; nb = c + mh / 2; s.vt = s.vb = v; }
     }
     s.top = nt; s.bot = nb;
+    for(let n = MO.steps(dt), h = dt / n; n > 0; n--){ s.pv = MO.sp(s.pv || 0, s.pop || 0, s.drag ? 1 : 0, SEG_LIFT, h); s.pop = (s.pop || 0) + s.pv * h; }
     s.vx = MO.sp(s.vx, s.x, s.tx, MO.P.fluid, dt); s.x += s.vx * dt;
     s.vw = MO.sp(s.vw, s.w, s.tw, MO.P.fluid, dt); s.w += s.vw * dt;
     const home = Math.abs(s.top - s.tt) < .25 && Math.abs(s.bot - s.tb) < .25 && Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25
@@ -9683,8 +9719,9 @@ function pkFrame(now){
     s.f += (s.tf - s.f) * (1 - Math.exp(-dt / (s.tf > s.f ? .045 : .11)));
     if(!s.tf && s.f < .005) s.f = 0;
     pkPut(s);
-    if(!s.drag && !s.tf && !s.f && home){ s.t = 0; _pk.delete(s); continue; }
-    if(!home || Math.abs(s.f - s.tf) > .002) busy = true; else s.t = 0;
+    const calm = Math.abs(s.pop || 0) < .003 && Math.abs(s.pv || 0) < .05;
+    if(!s.drag && !s.tf && !s.f && home && calm){ s.t = 0; s.pop = s.pv = 0; _pk.delete(s); continue; }
+    if(!home || !calm || Math.abs(s.f - s.tf) > .002) busy = true; else s.t = 0;
   }
   if(busy){ _pkRaf = 1; moAdd(pkFrame); }
 }
@@ -10483,7 +10520,11 @@ function confirmMarket(side){
    (the side's drop takes its colour), iOS switches instead of check boxes, glass menus that grow out of their
    field, a glass capsule to place the order. OT holds the ticket; the DOM is built once per type and synced. */
 const OT_TYPES = [["market", "Рыночный"], ["limit", "Лимитный"], ["stop", "Стоп"], ["stoplimit", "Стоп-лимит"]];
-const OT_TRIG = [["trade", "Сторона сделки"], ["opp", "Противоположная сторона"], ["dtrade", "Двойная сторона сделки"], ["dopp", "Двойная противоположная сторона"]];
+/* the stop's TRIGGER, cTrader's four (user 2026-09-27, a cTrader screenshot; help.ctrader.com StopTriggerMethod):
+     «Сторона сделки» - a buy stop goes off when the Ask reaches its price, a sell stop when the Bid does (the default);
+     «Противоположная» - the other price: a buy stop on the Bid, a sell stop on the Ask;
+     «… (2 проверки)» - the same, but only on the SECOND quote in a row past the price (a lone spike does not set it off) */
+const OT_TRIG = [["trade", "Сторона сделки"], ["opp", "Противоположная"], ["dtrade", "Сторона сделки (2 проверки)"], ["dopp", "Противоположная (2 проверки)"]];
 const OT_PEND = { limit: "limit", stop: "stop", stoplimit: "stop_limit" };
 const OT_MINUS = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 const OT_PLUS = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
@@ -10565,7 +10606,6 @@ function otBody(){
     ${t === "stop" || t === "stoplimit" ? `<button type="button" class="otf otf-dd" id="otTrig" data-otmenu="trig"><span class="otf-l">${L("Триггер")}</span><span class="otf-v" id="otTrigV">${L(trig)}</span>${caret}</button>` : ""}
     ${t === "stoplimit" ? otNum("otLim", L("Макс. проскальзывание (пункты)"), "numeric", "lim") + `<div class="ot-err" id="otLimE"></div>` : ""}
     <div class="ot-opts">
-      ${pend ? "" : otOpt("range", L("Макс. проскальзывание"), otNum("otRange", L("Пункты"), "numeric", "range") + `<div class="ot-err" id="otRangeE"></div>`)}
       ${otOpt("tp1", L(OT.tpSeen ? "Тейк-профит 1" : "Тейк-профит"), otLevel("tp1"))}
       <div class="ot-coll${OT.tpSeen ? " open" : ""}" id="otTp2W"><div class="ot-in">${otOpt("tp2", L("Тейк-профит 2"), otLevel("tp2"))}</div></div>
       ${otOpt("sl", L("Стоп-лосс"), otLevel("sl"))}
@@ -10597,7 +10637,7 @@ function otCalc(){
         ? L(buy ? "Цена входа {0} на покупку должна быть ниже текущей цены покупки ({1})" : "Цена входа {0} на продажу должна быть выше текущей цены продажи ({1})", nm, cp)
         : L(buy ? "Цена входа {0} на покупку должна быть выше текущей цены покупки ({1})" : "Цена входа {0} на продажу должна быть ниже текущей цены продажи ({1})", nm, cp);
     if(t === "stoplimit" && !(OT.lim >= 0)) E.lim = L("Укажите число пунктов");
-  }else if(OT.rangeOn && !(OT.range >= 0)) E.range = L("Укажите число пунктов");
+  }
   const ok = ent > 0;
   // the levels in points from the entry (a market order's from the market — filled, they are set from its fill) or a price
   const lv = (o, s) => {
@@ -10833,7 +10873,7 @@ function otPlace(){
   if(S.ui.lot !== vol){ S.ui.lot = vol; save(); }
   if(t === "market"){
     const opts = { quiet: true, ref: buy ? S.price.ask : S.price.bid };
-    if(OT.rangeOn) opts.range = OT.range;
+    // (no market range any more: the ticket's maximum slippage is the stop-limit's alone, as in cTrader)
     if(OT.sl.on){ const l = lvl(OT.sl); if(l.pips != null) opts.slPips = l.pips; else opts.sl = l.price; }
     if(main){ const l = lvl(main); if(l.pips != null) opts.tpPips = l.pips; else opts.tp = l.price; }
     if(both) opts.tp1 = Object.assign(lvl(OT.tp1), { volume: R.v1 });
