@@ -1843,12 +1843,12 @@ body.amenu-open .wl-logo{opacity:0}
   transform:translateX(var(--bx,0px));     /* no scale on a backdrop-filtered layer: it paints a phantom square */
   background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%,rgba(255,255,255,.07));
   box-shadow:0 9px 22px rgba(16,24,40,.2),0 2px 5px rgba(16,24,40,.1),inset 0 0 0 1.2px rgba(255,255,255,.92),inset 0 1.5px 1px #fff,inset 0 -2px 3px rgba(16,24,40,.07)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{transform:translateX(var(--dlx,var(--bx,0px)));width:var(--dlw,var(--bw,0px));
-  /* lifted, it is a little larger than the drop; as it melts back it draws in to EXACTLY the drop (--lf 1 → 0), so the
-     two never show as two outlines while they cross (user 2026-09-27: «наложения слоев … когда останавливаем») */
-  top:calc(3px - 5px * max(0, (var(--lf,0) - .6) / .4));bottom:calc(3px - 5px * max(0, (var(--lf,0) - .6) / .4));border-radius:calc(9px + 3px * max(0, (var(--lf,0) - .6) / .4))}
-/* and the drop comes up only once the lens has drawn in to its shape: the two outlines are one outline while they cross */
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{opacity:calc((.6 - var(--lf,0)) / .6)}
+/* the lens: the drop's own box (top 3, bottom 3), the width of the tab it is over, SCALED to the drop's stretch, lift
+   and jelly (dropApply); its corners divided back by the scale, so they come out round after it */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{top:3px;bottom:3px;width:var(--dlw,var(--bw,0px));transform-origin:50% 50%;
+  transform:translateX(var(--dlx,var(--bx,0px))) scale(var(--lsx,1),var(--lsy,1));
+  border-radius:calc(var(--lr,9px) / var(--lsx,1)) / calc(var(--lr,9px) / var(--lsy,1))}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{border-radius:calc(var(--lr,9px) / var(--dsx,1)) / calc(var(--lr,9px) / var(--dsy,1))}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag.dragging{overflow:visible}   /* the lens may lift past it while it is held */
 /* the side's lens stays clear (tinted, it wore the side it was leaving - green over «Продать»), and a label under the
    finger keeps its own colour instead of going black */
@@ -2285,8 +2285,7 @@ body.amenu-open .wl-logo{opacity:0}
 .seg-lit{display:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit{display:flex;position:absolute;inset:0;z-index:4;pointer-events:none;
   gap:inherit;padding:inherit;align-items:inherit;justify-content:inherit;
-  --lk:max(0, (var(--lf,0) - .6) / .4);
-  clip-path:inset(calc(3px - 5px * var(--lk)) calc(100% - var(--dlx,var(--bx,0px)) - var(--dlw,var(--bw,0px))) calc(3px - 5px * var(--lk)) var(--dlx,var(--bx,0px)) round calc(9px + 3px * var(--lk)))}
+  clip-path:inset(var(--clt,3px) calc(100% - var(--clx,0px) - var(--clw,0px)) var(--clt,3px) var(--clx,0px) round var(--lr,9px))}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit>button{background:none!important;box-shadow:none!important}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.ot-types>.seg-lit>button{color:var(--ink)!important}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag>.seg-lit>button{color:#fff!important}
@@ -8760,6 +8759,7 @@ function glassDrops(root){
     const key = dropKey(bar), mem = _dropMem[key];
     const bs = [...bar.querySelectorAll(":scope > button")], cw = bs.length ? bs.reduce((a, b) => a + b.offsetWidth, 0) / bs.length - 2 * inset : 0;
     const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big, cw,
+      pop: mem ? mem.pop || 0 : 0, pv: mem ? mem.pv || 0 : 0,
       flat: !!bar.closest(".ot-g"), bw: bar.clientWidth };
     bar._st = st; bar._bub = bub;
     if(bar.classList.contains("seg-drag")) segLit(bar);
@@ -9019,7 +9019,7 @@ function subDragBind(bar){
     const h = hit(e.clientX), on = bar.querySelector(":scope > button.on");
     if(go && h.b && h.b !== on){                                 // a drag or a tap: the bar holds the finger, so it picks
       _subByDrag = performance.now();
-      _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv };
+      _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv, pop: st.pop || 0, pv: st.pv || 0 };
       if(bar._pick){ bar._pick(h.b); return; }                    // a seg of its own (the order types): it moves its drop on
       S.ui.subtab = h.b.dataset.sub; render(); save();
       return;
@@ -9331,11 +9331,20 @@ function dropApply(bub, st){
     // its map is drawn once per tab: rebuilt every few pixels as it moved, it left a phone drawing nothing or a grey
     // square there (user videos 2026-09-26/27)
     if(st.flat){
-      // the size of the tab it is on (four sizes, each map drawn once and kept), so when it lands it is exactly the
-      // drop it melts into - at one mean size it lay over a drop of another size as the two crossed (user 2026-09-27:
-      // «странные наложения слоев видно когда останавливаем»)
-      const cw = Math.round(st.tr - st.tl), m = (st.l + st.r) / 2;
+      // ONE SHAPE for the lens and the drop, all the way: the lens is a box the size of the tab it is over (four sizes,
+      // each map drawn once and kept) SCALED to the drop - its stretch (the two edges apart), the lift and the jelly -
+      // and the drop takes the very same scale; so as they cross-fade there is one outline, never two («наложения
+      // слоев … когда останавливаем»), and the lit writing is clipped to that same outline
+      const cw = Math.max(8, Math.round(st.tr - st.tl)), W = Math.max(8, st.r - st.l), m = (st.l + st.r) / 2;
+      const pop = st.pop || 0, jj = (st.j || 0) * WATER, stretch = W / cw;
+      const sx = 1 + .1 * pop + .25 * jj, sy = (1 + .2 * pop - jj) / Math.sqrt(Math.max(1, stretch));
+      const hh = st.bh || (st.bh = Math.max(8, (st.bar ? st.bar.clientHeight : 44) - 6)), rr = 9 + 3 * Math.max(0, pop);
       el.style.setProperty("--dlx", (m - cw / 2).toFixed(2) + "px"); el.style.setProperty("--dlw", cw + "px");
+      el.style.setProperty("--lsx", (stretch * sx).toFixed(4)); el.style.setProperty("--lsy", sy.toFixed(4));
+      el.style.setProperty("--dsx", sx.toFixed(4)); el.style.setProperty("--dsy", sy.toFixed(4));
+      el.style.setProperty("--lr", rr.toFixed(2) + "px");
+      el.style.setProperty("--clx", (m - W * sx / 2).toFixed(2) + "px"); el.style.setProperty("--clw", (W * sx).toFixed(2) + "px");
+      el.style.setProperty("--clt", (3 + hh * (1 - sy) / 2).toFixed(2) + "px");
       // and a full-strength lens (22, the iOS glass for its size - the mild 10 of a per-size lens bent too little to
       // read as glass: «эффекта жидкого стекла нету»); the word under it grows 10 % as well
       if(!idle && L._cw !== cw){ L._cw = cw; lgFit(L, cw, L._h || (L._h = L.offsetHeight) || 30, 22, 0); }
@@ -9343,6 +9352,11 @@ function dropApply(bub, st){
   }
 }
 const SEG_DRAG_LEAD = { k: 1250, z: .82 }, SEG_DRAG_TRAIL = { k: 820, z: .86 };
+/* THE LIFT, as iOS 26.2 does it (user 2026-09-27: «нету анимации пружинности жидкого стекла, нужна как на iOS26.2»):
+   touched, the drop swells up into a lens past its size and settles back a little; let go, it sinks into the drop
+   past it - squashed a moment - and comes back up. One underdamped spring (ζ .36: two visible bounces), kept as it
+   is under «reduce motion», where every other spring softens: here the bounce is the thing asked for. */
+const SEG_LIFT = { k: 420, z: .36 };
 /* UNDER A FINGER A DROP IS A CENTRE AND A WIDTH (user video 2026-09-26: a quick sweep over Рыночный … Стоп-лимит
    and back threw the lens past the end of the capsule, then pinched it into an 8 px stick). Two edges on springs
    of their own swapped stiffness each time the drop's middle crossed its target, and pumped each other: one
@@ -9385,6 +9399,7 @@ function dropFrame(now){
     const Pl = right ? Ps : Pf, Pr = right ? Pf : Ps;
     const mw = Math.max(8, (st.tr - st.tl) * .6);
     for(let n = MO.steps(dt), h = dt / n; n > 0; n--){
+      if(st.flat){ st.pv = MO.sp(st.pv || 0, st.pop || 0, st.drag ? 1 : 0, SEG_LIFT, h); st.pop = (st.pop || 0) + st.pv * h; }
       st.vl = MO.sp(st.vl, st.l, st.tl, Pl, h); st.l += st.vl * h;
       st.vr = MO.sp(st.vr, st.r, st.tr, Pr, h); st.r += st.vr * h;
       // inside its track: pressed into an end it squashes against it (flew past it on the user's video)
@@ -9399,9 +9414,10 @@ function dropFrame(now){
     // the jelly: squashed by its speed, an underdamped spring (K 260, ζ .3) — it wobbles a couple of times after it stops
     const jt = Math.min((Math.abs(st.vl) + Math.abs(st.vr)) / 3200, .14);
     st.jv = MO.sp(st.jv, st.j, jt, MO.P.jelly, dt); st.j += st.jv * dt;
-    const done = !st.drag && Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01 && Math.abs(st.j) < .003 && Math.abs(st.jv) < .05;
-    if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; st.j = st.jv = 0; }
-    _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv };
+    const done = !st.drag && Math.abs(st.l - st.tl) < .2 && Math.abs(st.r - st.tr) < .2 && Math.abs(st.vl) < 3 && Math.abs(st.vr) < 3 && st.lf < .01 && Math.abs(st.j) < .003 && Math.abs(st.jv) < .05
+      && Math.abs(st.pop || 0) < .003 && Math.abs(st.pv || 0) < .05;
+    if(done){ st.l = st.tl; st.r = st.tr; st.lf = 0; st.j = st.jv = 0; st.pop = st.pv = 0; }
+    _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv, pop: st.pop || 0, pv: st.pv || 0 };
     dropApply(bub, st);
     if(done) _drops.delete(bub);
   }
