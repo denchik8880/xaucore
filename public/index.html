@@ -1632,19 +1632,21 @@ body.amenu-open .wl-logo{opacity:0}
 .lg-pop .lq-sep{height:.5px;margin:4px 10px;background:var(--line)}
 .lg-pop .lq-n{font-style:normal;font-size:12px;font-weight:600;margin-left:8px;padding:1px 7px;border-radius:9px;background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue-ink)}
 .appbar .ttl[data-act="symmenu"]{cursor:pointer}
+/* (and the symbol's «График» wears the very same glass bar, in its card: user 2026-09-28 «сделайте одинаковые везде
+   в жидкой теме выбор лотов с графиками, что бы не были один такой, второй такой» - only the Charts tab's floats) */
 /* 3. the Charts tab's trade bar floats over the chart as a glass capsule — the candles run on under it (drawChart
    keeps the auto range clear of it, chartTabHeight measures it); the time axis stays visible below it */
 :root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart:not(.chart-full) .chtrade-wrap{position:fixed;left:50%;transform:translateX(-50%);width:min(504px,calc(100% - 16px));
   bottom:calc(var(--nav-top) + 27px);padding:0;background:transparent;z-index:6}
-:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade{height:52px;border-radius:26px;isolation:isolate;
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .chtrade{height:52px;border-radius:26px;isolation:isolate;
   -webkit-backdrop-filter:blur(calc(12px * var(--lgb,1))) saturate(1.7);backdrop-filter:blur(calc(12px * var(--lgb,1))) saturate(1.7);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift2),var(--lg-body)}
-:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .chtrade::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .chtrade::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:3;
   background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 27%,var(--lg-rimd) 50%,transparent 73%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--red) 76%,transparent)}
-:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--green) 76%,transparent)}
-:root[data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht-lot{top:6px;height:40px;border-radius:20px;padding-top:2px;background:var(--cap-glass);
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--red) 76%,transparent)}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 58%),color-mix(in srgb,var(--green) 76%,transparent)}
+:root[data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht-lot{top:6px;height:40px;border-radius:20px;padding-top:2px;background:var(--cap-glass);
   -webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec)}
 /* 4. switches, iOS 26 — one to one with the user's video (2026-09-19, «сделайте 1 в 1 ползунки как на видео»),
    measured frame by frame: a 62×28 track, a 37×24 PILL knob (60 % of the track). Pressed, the knob becomes a clear
@@ -1989,8 +1991,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(186,58,54,.86)}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(196,124,30,.86)}
 /* the chart's trade bar: the same red and green, less of them in the glass */
-:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#c83c3a 62%,transparent)}
-:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) body.route-chart .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#2aa453 62%,transparent)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#c83c3a 62%,transparent)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#2aa453 62%,transparent)}
 /* the cells */
 :root[data-tone="aurora"] .card,:root[data-tone="aurora"] .lrow,:root[data-tone="aurora"] .menu-item{background:var(--aur-card);
   box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--aur-hi)}
