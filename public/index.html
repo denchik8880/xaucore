@@ -1188,7 +1188,7 @@ html:has(body.route-wallet){background:#0c0a08}
 @keyframes tinG{from{opacity:0;transform:translateY(-16px) scale(.84)}55%{opacity:1}to{transform:none}}
 /* 5. sheets: dense glass floating off the edges, like iOS 26 — the fields keep their solid ground */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{width:calc(100% - 16px);max-width:504px;margin:0 8px calc(8px + env(safe-area-inset-bottom));border-radius:28px;max-height:calc(92vh - 8px);
-  background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(22px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));
+  background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(22px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:var(--lgp,) blur(calc(22px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));
   box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal .sheet{animation:shInG var(--mo-t4) var(--mo-e4)}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing .sheet{transform:translateY(calc(100% + 40px))}
@@ -1434,7 +1434,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.12 * var(--lgs,1))),rgba(255,255,255,calc(.075 * var(--lgs,1))) 40%,rgba(255,255,255,calc(.06 * var(--lgs,1))))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:transparent}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.closing{background:transparent}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{-webkit-backdrop-filter:blur(calc(26px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(26px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{-webkit-backdrop-filter:blur(calc(26px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:var(--lgp,) blur(calc(26px * var(--lgsb,1) * var(--lgfb,1))) saturate(var(--lgsat,1.4))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet .card{background:var(--sheet-card);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet input,:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet select{background:var(--sheet-field)}
 /* 2. a button morphs into its sheet / menu, iOS 26 (user: «Кнопка превращается в окно»): a glass ghost grows from
@@ -1499,7 +1499,7 @@ body.amenu-open .wl-logo{opacity:0}
    «И опять серое с опозданием появляется») */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--lqg,1) * 100%),var(--lg-tint));
   -webkit-backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
-  backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
+  backdrop-filter:var(--lgp,) blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
   box-shadow:none}                                                /* its edge is the rim layer's alone (below) */
 .lqa-x{position:fixed;left:0;top:0;pointer-events:none;z-index:3;transform-origin:50% 50%;will-change:transform,opacity}
 .lqa-x svg{width:100%;height:100%;display:block}
@@ -1522,7 +1522,7 @@ body.amenu-open .wl-logo{opacity:0}
 .am-it:active{background:var(--press)}
 /* with glass on: the same drawer as a pane of glass, its groups floating cards, and it flows out of the logo */
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{width:min(86%,348px);height:calc(100% - 16px);max-height:none;margin:8px;border-radius:28px;
-  background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
+  background:var(--sheet-glass);-webkit-backdrop-filter:blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:var(--lgp,) blur(calc(24px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
   box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.062) 34%,rgba(255,255,255,.05))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-grp{margin:8px;padding:2px 0;border-top:0;border-radius:20px;background:var(--sheet-card);box-shadow:none}
@@ -1956,6 +1956,13 @@ body.amenu-open .wl-logo{opacity:0}
     radial-gradient(90% 40% at -8% 102%,rgba(8,26,66,.7) 0%,rgba(8,26,66,0) 70%),
     linear-gradient(168deg,#0c1a3c 0%,#0f1946 38%,#18174e 72%,#1e1956 100%);
   background-size:160px 160px,100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,100% 100%}
+/* THE NORTHERN LIGHTS (user 2026-09-27: «саму тему сделайте чуть более логичней с северным сиянием»): painted once
+   (auroraSky) and laid over the gradients above as a still picture, which comes up slowly the first time - the
+   lights coming out. Still: a sky that moved would make every piece of glass over it work again every frame. */
+:root[data-tone="aurora"] body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity 1.1s ease;
+  background:var(--aur-noise) 0 0/160px 160px,var(--aur-sky,none) 50% 0/cover no-repeat}
+:root[data-tone="aurora"][data-sky] body::after{opacity:1}
+:root[data-tone="aurora"]{--aur-noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 /* SELL / BUY: the big blocks a shade deeper still - the colour they took as a fifth-clear glass over the night
    (a see-through fill showed a hairline where the two halves of a button meet, so it is written out solid); the
    concave corners are drawn in the same colour (they read var(--red/--green)) */
@@ -2233,7 +2240,12 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"]{
   /* the glint is the light source's reflection: its size is the source's, not the drop's - a small bead and a wide one
      show the same small spark, so it is sized in pixels (a percentage made a white cloud on a wide drop; min() is not allowed in a gradient's size) */
-  --wd-glint:radial-gradient(5px 2.2px at min(18%,20px) min(24%,7px),rgba(255,255,255,.62) 0%,rgba(255,255,255,.22) 45%,rgba(255,255,255,0) 100%);
+  /* (2026-09-27: the 5 px spark read as a scratch inside the drop - user screenshots of «Рыночный», «Купить», the
+     drawer's drop, the knobs.) iOS's glint is the light source seen ALONG the rim: a thin bright arc on the top edge
+     toward the light, a fainter one on the bottom edge away from it. Each is an ellipse centred ON the edge, so only
+     its inner half shows - a line that hugs the rim and fades at both ends - and the rounded ends clip it round. */
+  --wd-glint:radial-gradient(34% 2.4px at 30% 0,rgba(255,255,255,.5) 0%,rgba(255,255,255,.16) 55%,rgba(255,255,255,0) 100%),
+    radial-gradient(26% 2px at 72% 100%,rgba(200,226,255,.26) 0%,rgba(200,226,255,0) 100%);
   --wd-caustic:radial-gradient(58% 46% at 60% 102%,rgba(178,218,255,.36) 0%,rgba(178,218,255,.12) 55%,rgba(178,218,255,0) 100%);
   --wd-sheen:linear-gradient(180deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,0) 44%);
   --wd-body:rgba(255,255,255,.06);
@@ -6308,11 +6320,90 @@ let _themeColors = null;                // cache; cleared by applyTheme()
 const TH_LIST = ["light", "dark", "aurora"];
 const thOk = t => TH_LIST.includes(t) ? t : "light";
 function currentTheme(){ return thOk(S && S.ui && S.ui.theme); }
+/* THE NORTHERN LIGHTS, painted once a launch (user 2026-09-27: «саму тему сделайте чуть более логичней с северным
+   сиянием»). What a night of aurora shows, and so what the sky is made of:
+     the NIGHT - deep navy overhead, the theme's violet pooled low on the right, blue at the foot;
+     the CURTAIN - a band of green light falling across the upper sky, its LOWER edge sharp and brightest (where the
+       particles stop), fading upward through teal into the violet of the thin air above; it is made of RAYS -
+       streaks of brighter and darker light side by side - and it folds as it crosses;
+     a fainter, bluer curtain higher up and further off, and a third low on the right, seen from afar;
+     a few STARS where the sky is dark.
+   Every launch a little different (the folds and rays come from a seed), always in the same place and colours.
+   Soft light only - the glass over it bends it, and a sky with no hard edge never shows that bend as a scribble;
+   the stars are the one point of detail, faint, and under a lens they bend as they would. On a small canvas (light
+   this soft loses nothing scaled up) and laid in as a still picture. */
+let _aurSky = null;
+function auroraPaint(vw, vh, seed){
+  const W = 420, H = Math.max(600, Math.min(1400, Math.round(W * (vh / Math.max(1, vw)))));
+  let sd = (seed >>> 0) || 1;
+  const rnd = () => { sd ^= sd << 13; sd ^= sd >>> 17; sd ^= sd << 5; return ((sd >>> 0) % 100000) / 100000; };
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  const sky = g.createLinearGradient(0, 0, W * .25, H);
+  sky.addColorStop(0, "#060b1f"); sky.addColorStop(.4, "#0a1331"); sky.addColorStop(.75, "#12143b"); sky.addColorStop(1, "#1b1646");
+  g.fillStyle = sky; g.fillRect(0, 0, W, H);
+  const haze = (x, y, rx, ry, c, a) => { g.save(); g.translate(x, y); g.scale(1, ry / rx); const r = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+    r.addColorStop(0, "rgba(" + c + "," + a + ")"); r.addColorStop(1, "rgba(" + c + ",0)"); g.fillStyle = r; g.beginPath(); g.arc(0, 0, rx, 0, 7); g.fill(); g.restore(); };
+  haze(W * 1.08, H * .7, W * .85, H * .3, "92,66,168", .32);
+  haze(W * -.1, H, W * .9, H * .2, "40,70,150", .2);
+  for(let i = 0; i < 60; i++){
+    const x = rnd() * W, y = Math.pow(rnd(), 1.35) * H * .9, a = .1 + rnd() * .34, r = .35 + rnd() * .45;
+    g.fillStyle = "rgba(225,232,255," + a.toFixed(2) + ")"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  }
+  const L = document.createElement("canvas"); L.width = W; L.height = H;
+  const c = L.getContext("2d");
+  c.globalCompositeOperation = "lighter";
+  const ph = [0, 0, 0, 0, 0].map(() => rnd() * 6.28);
+  // the rays: waves of many widths summed - a fine comb of streaks over broad folds
+  const rays = (x, k) => clamp(.55 + .22 * (Math.sin(x * .19 + ph[0] * k) * .5 + Math.sin(x * .071 + ph[1] * k) * .8 + Math.sin(x * .43 + ph[2] * k) * .35 + Math.sin(x * .027 + ph[3] * k) * .9), 0, 1);
+  // y0: where its lower edge starts on the left (a share of the height), dy: how far it falls by the right, amp: its
+  // folds, len: how tall its rays stand, then its colour at the edge, in the middle and at the top
+  const curtain = (y0, dy, amp, len, alpha, low, mid, top, k, x0, x1) => {
+    for(let x = Math.round(x0); x < x1; x++){
+      const t = x / W;
+      const yb = H * (y0 + dy * t + amp * Math.sin(t * 3.4 + ph[1] * k) + amp * .4 * Math.sin(t * 8.1 + ph[4] * k));
+      const r = rays(x, k), l = H * len * (.5 + .75 * r);
+      const e = Math.min(1, (x - x0) / (W * .2), (x1 - x) / (W * .2));   // it fades out at its ends, never a wall
+      const a = alpha * (.3 + .7 * r) * Math.max(0, e);
+      if(a < .003) continue;
+      const gr = c.createLinearGradient(0, yb + H * .014, 0, yb - l);
+      gr.addColorStop(0, "rgba(" + low + ",0)");
+      gr.addColorStop(.07, "rgba(" + low + "," + a.toFixed(3) + ")");
+      gr.addColorStop(.28, "rgba(" + mid + "," + (a * .6).toFixed(3) + ")");
+      gr.addColorStop(.6, "rgba(" + top + "," + (a * .3).toFixed(3) + ")");
+      gr.addColorStop(1, "rgba(" + top + ",0)");
+      c.fillStyle = gr; c.fillRect(x, yb - l, 1.2, l + H * .014);
+    }
+  };
+  curtain(.12, .06, .02, .12, .15, "88,190,196", "96,150,206", "126,96,206", 1.9, -30, W * .72);
+  curtain(.2, .16, .035, .19, .3, "80,218,150", "64,190,170", "136,94,204", 1, -30, W + 30);
+  curtain(.5, .06, .025, .14, .1, "92,200,170", "110,140,210", "176,100,200", 2.6, W * .35, W + 30);
+  // softened: down to a third and back up (a blur every browser does alike), with a little of the sharp rays kept
+  const q = document.createElement("canvas"); q.width = Math.round(W / 3); q.height = Math.round(H / 3);
+  const qc = q.getContext("2d"); qc.imageSmoothingEnabled = true; qc.drawImage(L, 0, 0, q.width, q.height);
+  g.save(); g.globalCompositeOperation = "lighter"; g.imageSmoothingEnabled = true;
+  g.globalAlpha = .7; g.drawImage(q, 0, 0, W, H);
+  g.globalAlpha = .45; g.drawImage(L, 0, 0);
+  g.restore();
+  return cv;
+}
+function auroraSky(){
+  const root = document.documentElement;
+  if(_aurSky){ root.dataset.sky = ""; return; }
+  let cv;
+  try{ cv = auroraPaint(innerWidth, innerHeight, (Math.random() * 4294967295) >>> 0); }catch(e){ return; }
+  const done = url => { _aurSky = url; root.style.setProperty("--aur-sky", "url(" + url + ")");
+    // the next frame, so the picture is in before it fades up
+    requestAnimationFrame(() => requestAnimationFrame(() => { if(root.dataset.tone === "aurora") root.dataset.sky = ""; })); };
+  if(cv.toBlob) cv.toBlob(b => { if(b) done(URL.createObjectURL(b)); }, "image/png");
+  else done(cv.toDataURL("image/png"));
+}
 function applyTheme(t){
   t = thOk(t);
   const d = document.documentElement.dataset;
   d.theme = t === "light" ? "light" : "dark";
   if(t === "aurora") d.tone = "aurora"; else delete d.tone;
+  if(t === "aurora") auroraSky(); else delete d.sky;
   WATER = t === "aurora" ? 1.35 : 1;                                // «Аврора» is water: the drops stretch and wobble more
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
@@ -6339,7 +6430,7 @@ function setGlassFeat(f, on){
   if(on) off.delete(f); else off.add(f);
   const v = [...off].join(" ");
   try{ localStorage.setItem("xc_glass_off", v); }catch(e){}
-  smoothSwap(() => { if(v) d.lgoff = v; else delete d.lgoff; render(); otReform(); });
+  smoothSwap(() => { if(v) d.lgoff = v; else delete d.lgoff; render(); otReform(); lgRefresh(); });   // an open sheet takes its edge lens or loses it at once
 }
 // the feature a glass element belongs to (its lens, its press)
 function lgFeat(el){
@@ -11012,6 +11103,7 @@ function openSheet(html, sheetCls, modalCls){
   quickLens(modalEl);                                             // the lot sheet's quick chips
   scrollInd(modalEl.querySelector(".sheet"), modalEl);
   sheetDrag(modalEl);                                             // the finger owns the way out
+  if(glassOn("sheets")) lgPanel(modalEl.querySelector(".sheet"), 15, 24, 0);   // its edge bends the page, all the way up
   if(from && !swap && !modalCls){ modalEl.classList.add("morph"); morphOpen(from, modalEl); }   // a full-screen page (and the drawer, which morphs itself) opens its own way
 }
 /* a sheet's scroll indicator of its own — the browser's overlay bar ran past their rounded corners (user: «ползунок
@@ -11593,6 +11685,32 @@ function glassClarity(th){
 }
 function saveClarity(th, v){ try{ localStorage.setItem(clarityKey(th), String(Math.round(v))); }catch(e){} }
 let LGQ = lgq(glassClarity());
+/* THE RIM CATCHES THE LIGHT (user 2026-09-27: «дорогой стиль жидкого стекла с переломами как в айос»). At its edge
+   real glass gathers the light of what is behind it into a thin bright line - in the colour of what it bends, never
+   a painted white: over the night almost nothing, over a price or a green button a line of that colour. The maps
+   carry how near the rim each point is in their blue channel (the bend reads red and green only): full at the edge,
+   gone a few pixels in. There the bent picture is lifted and saturated a little and laid over itself (lgGlowStage). */
+const lgGlowAt = e => { e = Math.max(0, e); return Math.min(255, Math.round(255 * (.82 * Math.exp(-e / 1.35) + .2 * Math.exp(-e / 4.2)))); };
+const _lgGlowK = new Set();
+const lgGlowA = k => Math.min(1, .5 * (k || 1) * Math.min(1.6, LG_UI.light)).toFixed(3);   // «Блики» turns it up and down
+/* PRESSED, THE GLASS LIGHTS UP (iOS 26: under a finger it «illuminates from within» and flexes with light): the rim of
+   a pressed lens gathers about twice the light - its own filter (the press lays a deeper lens anyway, lgGlass on
+   pointerdown), so pressing costs no switch it did not already make */
+function lgGlowStage(fl, el, k){
+  const gm = el("feColorMatrix", { in: "m", type: "matrix", values: "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k) + " 0 0", result: "gm" });
+  gm._gk = k || 1; _lgGlowK.add(gm);
+  const S = 1.5, G = 1.36, a = (1 - S) * .2126, b = (1 - S) * .7152, c = (1 - S) * .0722;
+  el("feColorMatrix", { in: "o", type: "matrix", values: [[a + S, b, c], [a, b + S, c], [a, b, c + S]].map(r => r.map(v => (v * G).toFixed(4)).join(" ") + " 0 .012").join(" ") + " 0 0 0 1 0", result: "ob" });
+  el("feComposite", { in: "ob", in2: "gm", operator: "in", result: "gl" });
+  el("feComposite", { in: "gl", in2: "o", operator: "over" });
+}
+function lgDefsReady(){
+  if(_lgDefs) return;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
+  svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;color:var(--card)";   // feFlood reads it as currentColor
+  _lgDefs = document.createElementNS(svg.namespaceURI, "defs"); svg.appendChild(_lgDefs); document.body.appendChild(svg);
+}
 // the displacement map of a w×h drop (its rim bends toward the core), drawn once per size
 // rim: a bend only in a narrow band at the rim (px), none inside — the slider's drop (its track shows through its middle
 // undistorted and bends only along its ends, as in the user's reference)
@@ -11630,7 +11748,7 @@ function lgMap(w, h, rad, rim){
     const mm = Math.hypot(mx, my);
     if(mm > 1){ mx /= mm; my /= mm; }
     const i = (y * w + x) * 4;
-    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = 128; d[i + 3] = 255;
+    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = lgGlowAt(edge); d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
   const url = cv.toDataURL();
@@ -11680,7 +11798,7 @@ function lgMotionMap(w, h, rad, rim, edge, k){
     const mm = Math.hypot(mx, my);
     if(mm > 1){ mx /= mm; my /= mm; }
     const i = (y * w + x) * 4;
-    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = 128; d[i + 3] = 255;
+    d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = lgGlowAt(edg); d[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
   const url = cv.toDataURL();
@@ -11707,17 +11825,12 @@ function lgScaleAll(){
    new map and a new filter every 4 px - measured in the preview, three quick sweeps over the order types built 18
    of each and swapped the filter 121 times, frames of 50-100 ms: the jerks and the dropped frames (user 2026-09-26:
    «проседает в фпс и может как-то дергаться»). Stretched, its bend band widens with it, as a stretched drop's would. */
-function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch){
+function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch, glow){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "") + (stretch ? "S" : "");
+  const id = "lg" + w + "x" + h + (scale === 22 ? "" : "s" + scale) + (chroma ? "c" : "") + (fixed ? "f" : "") + (rad ? "r" + rad : "") + (rim ? "b" + rim : "") + (stretch ? "S" : "") + (glow ? "g" + (glow > 1 ? glow : "") : "");
   if(_lgIds.has(id)) return id;
-  if(!_lgDefs){
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
-    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;color:var(--card)";   // feFlood reads it as currentColor
-    _lgDefs = document.createElementNS(svg.namespaceURI, "defs"); svg.appendChild(_lgDefs); document.body.appendChild(svg);
-  }
+  lgDefsReady();
   const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
@@ -11755,6 +11868,7 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch){
     el("feComposite", { in: "rg", in2: "b", operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "rgb" });
     el("feComposite", { in: "rgb", in2: "dg", operator: "in" });
   }
+  if(glow){ fl.lastElementChild.setAttribute("result", "o"); lgGlowStage(fl, el, glow); }
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
   return id;
@@ -11770,7 +11884,7 @@ const DISP_SPEC = [[1, 0, .05], [.9, .6, 0], [.15, 1, .2], [0, .55, 1], [.6, 0, 
 function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
   const base = (sc || 22) * Math.min(1.5, LG_UI.refract), m = dispMotion(place);
-  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2);
+  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2) + "g";
   if(_lgIds.has(id) || !_lgDefs) return id;
   const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const a in at) e.setAttribute(a, at[a]); fl.appendChild(e); return e; };
@@ -11785,7 +11899,8 @@ function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
     el("feColorMatrix", { in: "d" + i, type: "matrix", values: `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, result: "c" + i });
     if(i) el("feComposite", { in: i === 1 ? "c0" : "s" + (i - 1), in2: "c" + i, operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "s" + i });
   });
-  el("feComposite", { in: "s4", in2: "d2", operator: "in" });
+  el("feComposite", { in: "s4", in2: "d2", operator: "in", result: "o" });
+  lgGlowStage(fl, el);
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
   return id;
@@ -11952,7 +12067,9 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // «Аврора»: the sky under the glass is colour enough - pushed further it went vivid blue plastic, not crystal
   const aur = document.documentElement.dataset.tone === "aurora";
   const tail = " blur(" + bl.toFixed(2) + "px) saturate(" + (aur ? (bl > 2 ? 1.25 : 1.12) : (blur > 2 ? 1.8 : 1.35)) + ") brightness(" + (aur ? 1.07 : 1.03) + ")";
-  const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm, !!el._lgStretch) + ")" + tail;
+  // the drops that travel (the tab bars', the knob) keep the rim they were tuned with; the buttons and capsules of
+  // iOS glass take the lit one
+  const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm, !!el._lgStretch, ios ? (el.classList.contains("pressing") ? 2 : 1) : 0) + ")" + tail;
   if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
@@ -11966,6 +12083,91 @@ function lgRefresh(){
     if(!el.isConnected || !el._lga || !el._lg){ _lgEls.delete(el); continue; }
     lgGlass(el, ...el._lga);
   }
+  for(const el of _lgPanels){
+    if(!el.isConnected){ _lgPanels.delete(el); continue; }
+    if(glassOn("refract") && glassOn("sheets")) lgPanelBuild(el); else el.style.removeProperty("--lgp");
+  }
+}
+/* THE BIG GLASS BENDS AT ITS EDGE TOO (user 2026-09-27: «дорогой стиль жидкого стекла с переломами как в айос»).
+   iOS's sheets and side panels are the same glass as its buttons, only thicker: what lies under their edge is drawn
+   in toward it along a narrow band, and the rim catches its light. Their frost stays the CSS's own (the clarity
+   drives it); the lens goes in front of it through --lgp, one custom property on the panel itself, so nothing else
+   restyles. A lens of another size doubles a strip along the edge, so while a panel changes size it has none and a
+   new one comes once it has settled. Only the band at the edge is computed: the middle of a panel is flat glass. */
+const _lgPanels = new Set();
+let _lgPanelRO = null;
+function lgPanelMap(w, h, rad, band){
+  const key = "P" + w + "x" + h + "r" + rad + "b" + band;
+  if(_lgMaps.has(key)) return _lgMaps.get(key);
+  const r = Math.max(1, Math.min(rad, Math.min(w, h) / 2)), M = Math.max(r, band + 14);   // past this, flat glass
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
+  new Uint32Array(d.buffer).fill(new Uint32Array(new Uint8ClampedArray([128, 128, 0, 255]).buffer)[0]);
+  for(let y = 0; y < h; y++){
+    const row = y < M || y >= h - M;
+    for(let x = 0; x < w; x++){
+      if(!row && x === M){ x = w - M - 1; continue; }             // the middle of the row: flat
+      const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
+      const dx = cx - px, dy = cy - py, dist = Math.hypot(dx, dy), edge = r - dist;
+      let mx = 0, my = 0;
+      if(dist > 0){
+        const t = edge < band ? 1 - Math.max(edge, 0) / band : 0;
+        const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;   // lgMap's wall: the same glass
+        mx = dx / dist * wall; my = dy / dist * wall;
+        const mm = Math.hypot(mx, my); if(mm > 1){ mx /= mm; my /= mm; }
+      }
+      const i = (y * w + x) * 4;
+      d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = lgGlowAt(edge);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const url = cv.toDataURL();
+  _lgMaps.set(key, url);
+  return url;
+}
+function lgPanelFilter(w, h, rad, band, scale){
+  const id = "lgP" + w + "x" + h + "r" + rad + "b" + band + "s" + scale;
+  if(_lgIds.has(id)) return id;
+  lgDefsReady();
+  const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
+  fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
+  fl.setAttribute("color-interpolation-filters", "sRGB");
+  el("feImage", { href: lgPanelMap(w, h, rad, band), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: "o" });
+  d._s = scale; d._c = 0; d._fixed = true; d._sp = 0; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d);   // «Преломление» scales it like the rest
+  lgGlowStage(fl, el);
+  _lgDefs.appendChild(fl);
+  _lgIds.add(id);
+  return id;
+}
+function lgPanelBuild(el){
+  const p = el._lgp; if(!p) return;
+  clearTimeout(p.t); p.t = 0;
+  if(!el.isConnected){ _lgPanels.delete(el); if(_lgPanelRO) _lgPanelRO.unobserve(el); return; }
+  const w = el.offsetWidth, h = el.offsetHeight;
+  p.w = w; p.h = h;
+  if(w < 40 || h < 40 || !glassOn("refract") || !glassOn("sheets")){ el.style.removeProperty("--lgp"); return; }
+  const rad = Math.round(Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, Math.min(w, h) / 2));
+  el.style.setProperty("--lgp", "url(#" + lgPanelFilter(Math.ceil(w), Math.ceil(h), rad, p.band, p.scale) + ")");
+}
+// band: how wide the bent edge is; scale: how far it draws the page in (px ×2); wait: how long it lets the panel arrive
+function lgPanel(el, band, scale, wait){
+  if(!LG_LENS || !el || el._lgp) return;
+  el._lgp = { band, scale, wait: wait || 0, w: 0, h: 0, t: 0 };
+  _lgPanels.add(el);
+  if(!_lgPanelRO && window.ResizeObserver) _lgPanelRO = new ResizeObserver(es => {
+    for(const e of es){
+      const el = e.target, p = el._lgp; if(!p) continue;
+      const w = el.offsetWidth, h = el.offsetHeight;
+      if(p.w && Math.abs(w - p.w) < .5 && Math.abs(h - p.h) < .5) continue;
+      if(!p.w && !p.wait){ lgPanelBuild(el); continue; }          // its first frame: at once, before it paints
+      if(p.w) el.style.removeProperty("--lgp");                   // no lens of the wrong size, not for one frame
+      clearTimeout(p.t); p.t = setTimeout(() => lgPanelBuild(el), p.w ? 170 : p.wait);
+    }
+  });
+  if(_lgPanelRO) _lgPanelRO.observe(el);
+  else el._lgp.t = setTimeout(() => lgPanelBuild(el), el._lgp.wait);
 }
 /* THE DIALS. The clarity slider says how much glass; these say what KIND of glass — how thick it reads, how hard
    it bends, how bright its light, how far it floats off the page. 50 on each slider is the design, 100 is twice
@@ -11982,6 +12184,11 @@ function lgUiApply(hard){
   st.setProperty("--lgln", LG_UI.line.toFixed(2));                 // the drawn edge: all the way down to none
   st.setProperty("--lgdk", LG_UI.dark.toFixed(2));                 // every grey the glass casts into itself
   LG_UI.chroma = !LG_LOW && LG_UI.refract >= 1.4;                  // dispersion at the rim: the top of the slider only
+  for(const k of _lgGlowK){
+    if(!k.isConnected){ _lgGlowK.delete(k); continue; }
+    const gv = "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k._gk) + " 0 0";
+    if(k.getAttribute("values") !== gv) k.setAttribute("values", gv);
+  }
   if(hard){ lgScaleAll(); lgRefresh(); }
   if(!LG_UI.light) litHome();
 }
