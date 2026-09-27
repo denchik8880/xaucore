@@ -568,6 +568,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    and the 72 × 40 lots tab notched into its top edge between the halves (tap it to pick the volume) */
 .chtrade-wrap{padding:8px 8px 7px}
 body.route-chart .chtrade-wrap{background:var(--chart-bg)}
+/* THE CHART CARD IS ONE SURFACE (user 2026-09-28, the symbol's «График»: «неверные края с графиком»). Under the chart
+   the trade bar's strip wore the CARD's colour while the chart above it wore the chart's - on dark a grey box with
+   square top corners round the bar under a black chart - and a card's edge drawn as an inset shadow was painted over
+   by the canvas along the chart and showed only round the bar. The strip takes the chart's ground, and the edge is
+   drawn over everything in the card, all the way round. */
+.card.chartcard{position:relative}
+.card.chartcard .chtrade-wrap{background:var(--chart-bg)}
+.card.chartcard::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6}
 .chtrade{position:relative;display:grid;grid-template-columns:1fr 1fr;height:48px;border-radius:10px;overflow:hidden}
 .cht{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:rgba(255,255,255,.95);font-weight:400;padding:0 24px}
 .cht.sell{background:var(--red);align-items:flex-start;padding-right:42px}
@@ -1987,6 +1995,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"] .card,:root[data-tone="aurora"] .lrow,:root[data-tone="aurora"] .menu-item{background:var(--aur-card);
   box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--aur-hi)}
 :root[data-tone="aurora"] .card.minichart,:root[data-tone="aurora"] .chartwrap{background:var(--aur-card)}
+:root[data-tone="aurora"] .card.chartcard{box-shadow:none}
+:root[data-tone="aurora"] .card.chartcard::after{box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--aur-hi)}
 /* ---- the glass under «Аврора» ---- */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{
   --nav-hole:#2b3048;
@@ -2296,10 +2306,11 @@ body.amenu-open .wl-logo{opacity:0}
 
 /* CRYSTAL (user 2026-09-27, the drawer's drop: «это вообще не жидкие переключатели, просто белое с серым, а надо
    кристально чистое»). The brightening and the sheen I gave it read as a grey-white pill. Crystal is what the tab
-   bar's lens is: NOTHING over what it covers - no fill, no frost, no grey edge inside - only what glass does at its
-   edge: the rim bends what is under it (a narrow band, its middle true: the writing under it stays whole, magnified
-   by .pk-on), a thin light along the top rim toward the light and a fainter one along the bottom, a hairline, and
-   the shadow it throws. The same for the switches' knobs. */
+   bar's lens is: NOTHING over what it covers - no fill, no frost, no grey edge inside - only the light glass has at
+   its edge: a thin line along the top rim toward the light and a fainter one along the bottom, a hairline, and the
+   shadow it throws. And NOTHING BENT (2026-09-28: «искажаются буквы … это касается всего, где можно выбирать по
+   пунктам»): the drop goes with the finger, so its rim is always crossing a line of writing, and a bend there broke
+   the letters. The writing under it is magnified whole instead (.pk-on). The same for the switches' knobs. */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),rgba(255,255,255,.01);
   box-shadow:0 9px 20px -9px rgba(3,5,18,.6),0 2px 5px -2px rgba(3,5,18,.3),
     inset 0 0 0 .6px rgba(228,238,255,.3),inset 1px 1.3px 1px -.6px rgba(240,247,255,.78),inset -1px -1.3px 1.1px -.6px rgba(205,218,255,.34)}
@@ -6507,7 +6518,7 @@ function openGlassSheet(){
   const cur = currentTheme();
   const row = (th, ttl) => {
     const v = Math.round(glassClarity(th));
-    return `<div class="lgc-row${th === cur ? " now" : ""}"><div class="lgc-t"><span>${L(ttl)}</span>${th === cur ? `<b class="lgc-now">${L("сейчас")}</b>` : ""}</div>` +
+    return `<div class="lgc-row now"><div class="lgc-t"><span>${L(ttl)}</span></div>` +
       `<div class="lgs" data-lgth="${th}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
       `<div class="lgc-ends"><span>${LG_DROP_ICO} ${L("Минимум")}</span><span>${L("Кристалл")} ${LG_SUN_ICO}</span></div></div>`;
   };
@@ -6516,8 +6527,10 @@ function openGlassSheet(){
     return `<div class="lgc-row"><div class="lgc-t"><span>${L(ttl)}</span></div>` +
       `<div class="lgs" data-lgui="${k}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div></div>`;
   };
+  // ONLY THE THEME THAT IS ON (user 2026-09-28: «должна показываться и регулироваться только та тема, которая включена,
+  // а не 3 сразу»): each theme still keeps its own clarity, and switching themes brings that theme's slider here
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
-    row("light", "Светлая тема") + row("dark", "Тёмная тема") + row("aurora", "Тема «Аврора»") +
+    row(cur, cur === "light" ? "Светлая тема" : cur === "dark" ? "Тёмная тема" : "Тема «Аврора»") +
     `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
     dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Затемнение") + dial("shadow", "Тень") +
     `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
@@ -6581,11 +6594,19 @@ function openDispSheet(){
       `<div class="lgc-ends"><span>${L(lo)}</span><span>${L(hi)}</span></div></div>`;
   };
   const sw = (attr, on, ttl) => `<div class="sw-row"><span class="k">${L(ttl)}</span><button type="button" class="switch${on ? " on" : ""}" ${attr} role="switch" aria-checked="${on}" aria-label="${L(ttl)}"><span class="knob"></span></button></div>`;
-  let rows = "";
-  for(let i = 0; i < 16; i++){
-    const p = 2318.45 + Math.sin(i * 1.7) * 6.3 + i * .37;
-    rows += `<div class="disp-r"><b>XAUUSD</b><i class="dn">${p.toFixed(2)}</i><i class="up">${(p + .27).toFixed(2)}</i></div>`;
-  }
+  /* THE SAMPLE IS THE MARKET (user 2026-09-28: «пусть показываются реальные котировки золота (игровые)»): the last
+     sixteen quotes of the game's own gold, the newest on top - a tape that runs on while the sheet is open */
+  const tape = () => {
+    const q = [];
+    for(let i = _tickBuf.length - 1; i >= 0 && q.length < 16; i--){
+      const t = _tickBuf[i], p = q[q.length - 1];
+      if(!p || p.bid !== t.bid || p.ask !== t.ask) q.push(t);          // a quote once, not every repeat of it
+    }
+    while(q.length < 16) q.push({ bid: S.price.bid, ask: S.price.ask });
+    return q;
+  };
+  const rowsOf = q => q.map(t => `<div class="disp-r"><b>${S.symbol.name}</b><i class="dn">${chartPx(t.bid)}</i><i class="up">${chartPx(t.ask)}</i></div>`).join("");
+  const rows = rowsOf(tape());
   openSheet(`<h2>${L("Дисперсия")}</h2><div class="disp-note">${L("Радуга на краю стекла: цвета расходятся, только пока под стеклом что-то движется.")}</div>` +
     `<div class="disp-demo" aria-hidden="true"><div class="disp-sc">${rows}</div><span class="disp-lens"></span></div>` +
     `<div class="disp-play"><span>${L("Прокрутите образец пальцем")}</span><button type="button" class="btn ghost" data-disp-play>${L("Показать")}</button></div>` +
@@ -6598,6 +6619,16 @@ function openDispSheet(){
     `<button type="button" class="btn ghost disp-reset" data-disp-reset>${L("Сбросить")}</button>`, "disp-sheet");
   const m = modalEl; if(!m) return;
   const lens = m.querySelector(".disp-lens"), sc = m.querySelector(".disp-sc");
+  // the tape runs on: each new quote comes in on top (the rows are rewritten in place - the sample keeps its scroll)
+  let lastK = "";
+  m._live = () => {
+    if(!sc || !sc.isConnected) return;
+    const q = tape(), k = q[0].bid + "/" + q[0].ask;
+    if(k === lastK) return; lastK = k;
+    const rs = sc.children;
+    if(rs.length !== q.length){ sc.innerHTML = rowsOf(q); return; }
+    q.forEach((t, i) => { const c = rs[i].children; c[1].textContent = chartPx(t.bid); c[2].textContent = chartPx(t.ask); });
+  };
   // the sample's glass: the tab capsule's own (crystal, bent at the rim), laid once the sheet has its size. It obeys
   // «Преломление по краям» as the page does - a sample that splits while the page cannot was the lie behind "it
   // worked, then it went off" - and its rainbow line, like the page's, needs no lens at all
@@ -9720,8 +9751,6 @@ function pkPut(s){
   const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
   if(bw !== s.bw || bh !== s.bh){
     s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px";
-    // «Аврора»: crystal - the rim of the drop bends what is under it, a 6 px band; its middle stays true
-    if(document.documentElement.dataset.tone === "aurora" && glassOn("refract")){ lens._lgTail = " saturate(1.08)"; lgGlass(lens, bw, bh, 10, .2, false, true, undefined, 6); }
   }
   // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
   const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14);
