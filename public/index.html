@@ -265,7 +265,6 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .miniquick{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .miniquick button{background:var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:12px;color:var(--ink2)}
 .miniquick button:active{background:var(--press)}
-.miniquick button.on{background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--blue) 45%,transparent)}
 .loterr{color:var(--red-ink);font-size:12px;font-weight:600;margin-top:8px;min-height:0}
 
 /* «Новый ордер» over the Markets screens — cTrader's big pill: dark on the light theme, light on the dark one */
@@ -2373,42 +2372,6 @@ body.amenu-open .wl-logo{opacity:0}
   box-shadow:0 24px 60px rgba(0,0,0,.4),inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-theme="dark"][data-glass="on"] .xdlg{background-color:rgba(30,33,53,.82)}
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"] .xdlg{background-color:rgba(28,28,31,.82)}
-
-/* LIVE (user 2026-09-28: «как живую торговлю»): the flash of a quote that moved (tickFlash) */
-@keyframes tfA{from{background-color:color-mix(in srgb,currentColor 26%,transparent)}to{background-color:transparent}}
-@keyframes tfB{from{background-color:color-mix(in srgb,currentColor 26%,transparent)}to{background-color:transparent}}
-.wl-q.tfa{animation:tfA .55s ease-out}.wl-q.tfb{animation:tfB .55s ease-out}
-@keyframes tfPxA{from{filter:brightness(1.2) saturate(1.05)}to{filter:none}}
-@keyframes tfPxB{from{filter:brightness(1.2) saturate(1.05)}to{filter:none}}
-.ctp-px.tfa,.cht.tfa{animation:tfPxA .42s ease-out}.ctp-px.tfb,.cht.tfb{animation:tfPxB .42s ease-out}
-@media (prefers-reduced-motion:reduce){ .wl-q.tfa,.wl-q.tfb,.ctp-px.tfa,.ctp-px.tfb,.cht.tfa,.cht.tfb{animation:none} }
-/* …and the session says the market is live: a green point that breathes; grey and still when it is shut */
-#ovSess{display:inline-flex;align-items:center;gap:7px}
-#ovSess::before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--green-ink);
-  box-shadow:0 0 0 0 color-mix(in srgb,var(--green-ink) 55%,transparent);animation:liveDot 1.8s ease-out infinite}
-#ovSess.closed::before{background:var(--ink3);box-shadow:none;animation:none}
-@keyframes liveDot{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--green-ink) 55%,transparent)}70%,100%{box-shadow:0 0 0 6px color-mix(in srgb,var(--green-ink) 0%,transparent)}}
-@media (prefers-reduced-motion:reduce){ #ovSess::before{animation:none} }
-
-/* THE COLOURS OF A TERMINAL, in «Аврора» (user 2026-09-28: «поработайте с цветами … больше что бы на реальное было
-   похоже по цветам»). iOS's system green and red are made for switches and badges; as the colour of prices and candles
-   on a night-blue ground they read neon - the look of a mock-up. The figures and the candles take a trading screen's
-   green and red (a shade calmer, still clean), the UI keeps iOS's; and the glass stops glowing: the violet halo
-   round every lifted piece and round «Новый ордер» is what made the screen look painted - it keeps its shadow. */
-:root[data-theme="dark"][data-tone="aurora"]{--green-ink:#3cc98a;--red-ink:#f06a63;--candle-up:#29b77a;--candle-down:#e5534d}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{
-  --lg-lift1:0 1px 2px rgba(8,9,18,calc(.32 * var(--lgsh,1))),0 8px 20px -6px rgba(8,9,18,calc(.44 * var(--lgsh,1)));
-  --lg-lift2:0 1.5px 3px rgba(8,9,18,calc(.34 * var(--lgsh,1))),0 16px 34px -8px rgba(8,9,18,calc(.5 * var(--lgsh,1)));
-  --lg-lift3:0 2px 5px rgba(8,9,18,calc(.34 * var(--lgsh,1))),0 28px 62px -14px rgba(8,9,18,calc(.56 * var(--lgsh,1)))}
-:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{
-  box-shadow:0 0 0 .5px rgba(203,215,232,.34),var(--lg-lift2),inset 0 1.5px 1px rgba(224,233,241,.6),inset 0 -1.5px 2px rgba(205,189,226,.28),inset 0 0 0 1px rgba(216,225,239,.08)}
-/* THE DATA IS QUIET, THE FRAME IS GLASS (user 2026-09-28: «чтобы не прям всё было нарисовано»): the lot, spread and session
-   chips are plain terminal chips - a faint fill, no gloss, no rim light, no glint; the glass stays on the frame (the
-   capsules at the top, the tab bar, «Новый ордер»). The chosen lot is marked, as a terminal marks it. */
-:root[data-theme="dark"][data-tone="aurora"] .miniquick button,:root[data-theme="dark"][data-tone="aurora"] .spreadchip{background:rgba(235,235,245,.075);box-shadow:inset 0 0 0 .5px rgba(235,235,245,.1);color:var(--ink)}
-:root[data-theme="dark"][data-tone="aurora"] .miniquick button.on{background:rgba(10,132,255,.24);box-shadow:inset 0 0 0 1px rgba(64,156,255,.6);color:#fff}
-/* the sky behind the data: still the northern lights, a step further back */
-:root[data-tone="aurora"][data-sky] body::after{opacity:.78}
 
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
@@ -6906,8 +6869,8 @@ function themeColors(){
     axis:  g("--chart-axis", "#9aa1ab"),
     cross: g("--chart-cross", "#9aa1ab"),
     tag:   g("--chart-tag", "#111418"),
-    up:    g("--candle-up", "") || g("--green", "#0aa85f"),
-    down:  g("--candle-down", "") || g("--red", "#e5342b"),
+    up:    g("--green", "#0aa85f"),
+    down:  g("--red", "#e5342b"),
     blue:  g("--blue", "#2f7bf6"),
     orange:   g("--orange", "#f5820d"),
     orangeBg: g("--orange-bg", "#fff2e2"),
@@ -7076,20 +7039,10 @@ function abBalCls(){ const a = S._acc; if(!a) return ""; const v = (a.floating |
 const _tick = { b: null, a: null, bd: "up", ad: "up" };
 function tickDirs(){
   const k = Math.pow(10, S.symbol.digits), b = Math.round(S.price.bid * k), a = Math.round(S.price.ask * k);
-  _tick.bc = _tick.b !== null && b !== _tick.b; _tick.ac = _tick.a !== null && a !== _tick.a;   // did it change this time
-  if(_tick.bc) _tick.bd = b > _tick.b ? "up" : "dn";
-  if(_tick.ac) _tick.ad = a > _tick.a ? "up" : "dn";
+  if(_tick.b !== null && b !== _tick.b) _tick.bd = b > _tick.b ? "up" : "dn";
+  if(_tick.a !== null && a !== _tick.a) _tick.ad = a > _tick.a ? "up" : "dn";
   _tick.b = b; _tick.a = a;
   return _tick;
-}
-/* A QUOTE THAT CHANGES FLASHES (user 2026-09-28: «как живую торговлю, а не как симулятор»). On a live terminal the
-   eye is caught by the price that just moved: its box lights in the colour of the move and fades in half a second.
-   The outlined boxes of the watchlist fill with the move's colour; the solid SELL / BUY blocks brighten. Two
-   identical animations taken in turn (a / b) restart it with no layout forced to do it. */
-function tickFlash(el){
-  if(!el) return;
-  const a = el.classList.contains("tfa");
-  el.classList.toggle("tfa", !a); el.classList.toggle("tfb", a);
 }
 const dirArrow = d => d === "dn" ? "↓" : "↑";
 /* ---------- the app drawer (the logo opens it) ---------- */
@@ -7489,8 +7442,8 @@ function mktOverview(){
         <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${chartPx(S.price.ask)}</span></button>
       </div>
       <div class="miniquick">
-        ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}"${Math.abs(v - S.ui.lot) < 1e-9 ? ` class="on"` : ""}>${fmt(v,2)}</button>`).join("")}
-        <button data-lot="max"${S.ui.lot >= S.symbol.maxLot ? ` class="on"` : ""}>MAX ${fmt(S.symbol.maxLot,0)}</button>
+        ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
+        <button data-lot="max">MAX ${fmt(S.symbol.maxLot,0)}</button>
       </div>
       <div>
         <span class="spreadchip">${L("Спред")} <span class="mono" id="ovSpread">${pxfmt(S.price.spread)}</span></span>
@@ -11556,9 +11509,7 @@ function updateLive(){
   }
   fitText(document.getElementById("ovBid"), 13);
   fitText(document.getElementById("ovAsk"), 13);
-  if(!document.getElementById("lotWheel")) setTxt("ovLot", fmt(S.ui.lot, 2));
-  const mqb = document.querySelector("#app .miniquick");            // the chosen lot is marked, as on a terminal
-  if(mqb && mqb._lot !== S.ui.lot){ mqb._lot = S.ui.lot; mqb.querySelectorAll("[data-lot]").forEach(b => b.classList.toggle("on", b.dataset.lot === "max" ? S.ui.lot >= S.symbol.maxLot : Math.abs(+b.dataset.lot - S.ui.lot) < 1e-9)); }   // while the wheel is open it owns the field (it shows the value still rolling, not yet committed)
+  if(!document.getElementById("lotWheel")) setTxt("ovLot", fmt(S.ui.lot, 2));   // while the wheel is open it owns the field (it shows the value still rolling, not yet committed)
   setTxt("ovSpread", pxfmt(S.price.spread));
   setTxt("ovSess", sessL(" · "));
   setTxt("abBal", money(A.equity), abBalCls());
@@ -11596,20 +11547,14 @@ function updateLive(){
   // ▲/▼ of each price's last change — ПРОДАТЬ by the Bid, КУПИТЬ by the Ask: the Charts bar arrows,
   // the Markets panel triangles and the watchlist boxes
   const td = tickDirs();
-  if(td.bc){ tickFlash(document.getElementById("wlQS")); tickFlash(document.getElementById("btnSell")); tickFlash(document.querySelector(".chtrade .cht.sell")); }
-  if(td.ac){ tickFlash(document.getElementById("wlQB")); tickFlash(document.getElementById("btnBuy")); tickFlash(document.querySelector(".chtrade .cht.buy")); }
   if(document.getElementById("chLot")){                    // Charts tab trade bar
     setTxt("chLot", fmt(S.ui.lot, 2));
     setTxt("chDirS", dirArrow(td.bd)); setTxt("chDirB", dirArrow(td.ad));
   }
   for(const [id, cls] of [["ovDirS", "ctp-dir " + td.bd], ["ovDirB", "ctp-dir " + td.ad], ["wlQS", "wl-q sell " + td.bd], ["wlQB", "wl-q buy " + td.ad]]){
-    const el = document.getElementById(id); if(!el) continue;
-    const fl = el.classList.contains("tfa") ? " tfa" : el.classList.contains("tfb") ? " tfb" : "";
-    if(el.className !== cls + fl) el.className = cls + fl;
+    const el = document.getElementById(id);
+    if(el && el.className !== cls) el.className = cls;
   }
-  // the session: live while the market is open
-  const ss = document.getElementById("ovSess");
-  if(ss) ss.classList.toggle("closed", marketClosed());
   // positions summary
   setTxt("pBal", money(A.balance));
   setTxt("pEq", money(A.equity));
