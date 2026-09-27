@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>XAUCORE — DEMO XAUUSD Simulator</title>
+<title>XAUCORE — Simulator cTrade</title>
 <meta name="description" content="XAUCORE — fully synthetic DEMO XAUUSD trading simulator. No real quotes, brokers or accounts.">
 <meta name="theme-color" content="#eff1f4">
 <script>/* glass clarity 0…100 («Настройки стекла» → the slider): 0 the least glass there is (dense, frosted, no bend),
@@ -17,6 +17,7 @@ try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_gla
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
+<script>document.documentElement.classList.add("booting");(function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#0b0d12");})();</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2293,15 +2294,49 @@ body.amenu-open .wl-logo{opacity:0}
   color:var(--ink)}
 :root[data-theme="dark"][data-tone="aurora"] .miniquick button{border-radius:999px}
 
-/* THE MENU DROP IN «АВРОРА» IS GLASS YOU SEE (user 2026-09-27, the drawer: a thin outline hopping between the rows).
-   Clear, as the tab bar's lens is - no tint over the writing - but it gathers light: what is under it comes up
-   brighter and a little richer, a sheen lies over its top, the light it gathers pools low in it, and its rim is lit.
-   Not a lens that bends: its bend swept over the letters as it moved (user 2026-09-26: «буквы на милисекунды
-   искажаются») - the writing under it is magnified whole instead (.pk-on). */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{
-  background:var(--wd-glint),linear-gradient(180deg,rgba(226,236,255,.12) 0%,rgba(226,236,255,0) 46%),
-    radial-gradient(62% 52% at 50% 104%,rgba(168,204,255,.13) 0%,rgba(168,204,255,0) 100%),rgba(255,255,255,.035);
-  -webkit-backdrop-filter:saturate(1.5) brightness(1.22);backdrop-filter:saturate(1.5) brightness(1.22)}
+/* CRYSTAL (user 2026-09-27, the drawer's drop: «это вообще не жидкие переключатели, просто белое с серым, а надо
+   кристально чистое»). The brightening and the sheen I gave it read as a grey-white pill. Crystal is what the tab
+   bar's lens is: NOTHING over what it covers - no fill, no frost, no grey edge inside - only what glass does at its
+   edge: the rim bends what is under it (a narrow band, its middle true: the writing under it stays whole, magnified
+   by .pk-on), a thin light along the top rim toward the light and a fainter one along the bottom, a hairline, and
+   the shadow it throws. The same for the switches' knobs. */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),rgba(255,255,255,.01);
+  box-shadow:0 9px 20px -9px rgba(3,5,18,.6),0 2px 5px -2px rgba(3,5,18,.3),
+    inset 0 0 0 .6px rgba(228,238,255,.3),inset 1px 1.3px 1px -.6px rgba(240,247,255,.78),inset -1px -1.3px 1.1px -.6px rgba(205,218,255,.34)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::after{padding:1px;
+  background:linear-gradient(var(--lit-a,151deg),rgba(232,244,255,.7) 0%,rgba(232,244,255,0) 20%,rgba(232,244,255,0) 80%,rgba(214,204,255,.42) 100%)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
+:root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle]:not(.press) .knob{
+  background:var(--wd-glint),rgba(255,255,255,.035);
+  -webkit-backdrop-filter:saturate(1.06) brightness(1.03);backdrop-filter:saturate(1.06) brightness(1.03);   /* the track through it as it is (more lifted a green track to neon) */
+  box-shadow:0 4px 9px -3px rgba(3,5,18,.62),0 1px 2px rgba(3,5,18,.3),
+    inset 0 0 0 .7px rgba(232,241,255,.5),inset 1px 1.4px 1px -.5px rgba(245,250,255,.9),inset -1px -1.4px 1.2px -.5px rgba(205,220,255,.42)}
+
+/* THE OPENING (user 2026-09-27: «придумайте логику открытия правильную, как у приложения будет в будущем» - a white
+   splash, then an empty sky while the account loaded). As a phone app opens (Android 12's splash, iOS's launch):
+     1. the phone's own splash (the manifest: this colour, the mark, the name) hands over to the page's first frame,
+        which is the SAME picture - the mark in the middle, the name at the foot - so there is no seam;
+     2. while the account loads it stays, and if that takes a while a thin line runs under the mark;
+     3. the moment the first screen is drawn under it, it OPENS: a window grows out of the mark to the edges, the
+        mark swelling as it goes, and the app is simply there behind it (the app itself is never scaled or faded -
+        a fading page would cut every piece of glass on it off from the sky).
+   The phone's status bar keeps the opening's colour until then (applyTheme waits for it). */
+@property --bt-r{syntax:"<length>";inherits:false;initial-value:0px}
+#boot{position:fixed;inset:0;z-index:2147483000;background:#0b0d12;
+  -webkit-mask:radial-gradient(circle at 50% calc(50% - 22px),transparent calc(var(--bt-r) - 90px),#000 var(--bt-r));
+  mask:radial-gradient(circle at 50% calc(50% - 22px),transparent calc(var(--bt-r) - 90px),#000 var(--bt-r))}
+#boot .bt-ico{position:absolute;left:50%;top:calc(50% - 22px);width:110px;height:110px;margin:-55px 0 0 -55px;display:block;will-change:transform,opacity}
+#boot .bt-bar{position:absolute;left:50%;top:calc(50% + 58px);width:54px;height:3px;margin-left:-27px;border-radius:3px;overflow:hidden;
+  background:rgba(255,255,255,.1);opacity:0;animation:btShow .35s ease .75s forwards}
+#boot .bt-bar::after{content:"";position:absolute;top:0;bottom:0;left:0;width:42%;border-radius:inherit;background:#f5820d;animation:btRun 1.05s cubic-bezier(.45,0,.25,1) infinite}
+#boot .bt-name{position:absolute;left:0;right:0;bottom:calc(6.5% + env(safe-area-inset-bottom));padding:0 24px;text-align:center;
+  font:500 20px/1.3 var(--font,system-ui,sans-serif);letter-spacing:.01em;color:rgba(255,255,255,.9)}
+@keyframes btShow{to{opacity:1}}
+@keyframes btRun{from{transform:translateX(-100%)}to{transform:translateX(240%)}}
+#boot.out{--bt-r:170vmax;pointer-events:none;transition:--bt-r .66s cubic-bezier(.55,0,.25,1)}
+#boot.out .bt-ico{transform:scale(1.85);opacity:0;transition:transform .56s cubic-bezier(.3,0,.2,1),opacity .3s ease .12s}
+#boot.out .bt-bar,#boot.out .bt-name{opacity:0;transition:opacity .2s ease;animation:none}
+@media (prefers-reduced-motion:reduce){ #boot.out{--bt-r:0px;opacity:0;transition:opacity .3s ease} #boot.out .bt-ico{transform:none} }
 
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
@@ -2324,6 +2359,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>button:active:not(.near){transform:none}
 </style>
 
+<div id="boot" aria-hidden="true"><img class="bt-ico" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23111418'/%3E%3Ctext x='256' y='350' font-size='300' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E"><i class="bt-bar"></i><div class="bt-name">XAUCORE — Simulator cTrade</div></div>
 <div id="app"></div>
 <div class="toast-wrap" id="toasts"></div>
 
@@ -6331,6 +6367,7 @@ function nav(tab, subtab){
    simulator state (price, engine, positions, orders all live in S).
    ========================================================================= */
 let _themeColors = null;                // cache; cleared by applyTheme()
+let _themeTC = null;                    // the status bar's colour for the theme (set once the opening is over)
 const TH_LIST = ["light", "dark", "aurora"];
 const thOk = t => TH_LIST.includes(t) ? t : "light";
 function currentTheme(){ return thOk(S && S.ui && S.ui.theme); }
@@ -6421,7 +6458,8 @@ function applyTheme(t){
   WATER = t === "aurora" ? 1.35 : 1;                                // «Аврора» is water: the drops stretch and wobble more
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
-  if(mc) mc.setAttribute("content", t === "aurora" ? "#142141" : t === "dark" ? "#000000" : "#eff1f4");
+  _themeTC = t === "aurora" ? "#142141" : t === "dark" ? "#000000" : "#eff1f4";
+  if(mc && !document.documentElement.classList.contains("booting")) mc.setAttribute("content", _themeTC);   // opening: its own colour until it opens
   try{ localStorage.setItem("xc_theme", t); }catch(e){}
 }
 /* LIQUID GLASS mode («Ещё» → «Жидкое стекло», on by default): html[data-glass] gates every glass style; off,
@@ -9680,7 +9718,11 @@ function pkPut(s){
   const lens = s.lens, l = lens.style, h = Math.max(1, s.bot - s.top);
   // its box: the row's own size (laid out once per size - every row of a menu is one), a scale does the rest
   const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
-  if(bw !== s.bw || bh !== s.bh){ s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px"; }
+  if(bw !== s.bw || bh !== s.bh){
+    s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px";
+    // «Аврора»: crystal - the rim of the drop bends what is under it, a 6 px band; its middle stays true
+    if(document.documentElement.dataset.tone === "aurora" && glassOn("refract")){ lens._lgTail = " saturate(1.08)"; lgGlass(lens, bw, bh, 10, .2, false, true, undefined, 6); }
+  }
   // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
   const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14);
   // lifted it stands a little past its row - taller more than wider, a drop not a plate; sinking it squashes
@@ -12106,7 +12148,8 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // a rainbow place rests on the plain lens (one pass): its colour lives in the ready filters it switches to in motion
   // «Аврора»: the sky under the glass is colour enough - pushed further it went vivid blue plastic, not crystal
   const aur = document.documentElement.dataset.tone === "aurora";
-  const tail = " blur(" + bl.toFixed(2) + "px) saturate(" + (aur ? (bl > 2 ? 1.25 : 1.12) : (blur > 2 ? 1.8 : 1.35)) + ") brightness(" + (aur ? 1.07 : 1.03) + ")";
+  // (a lens may carry its own tail: the menu drop in «Аврора» is crystal - nothing lifted, nothing tinted)
+  const tail = el._lgTail || (" blur(" + bl.toFixed(2) + "px) saturate(" + (aur ? (bl > 2 ? 1.25 : 1.12) : (blur > 2 ? 1.8 : 1.35)) + ") brightness(" + (aur ? 1.07 : 1.03) + ")");
   // the drops that travel (the tab bars', the knob) keep the rim they were tuned with; the buttons and capsules of
   // iOS glass take the lit one
   const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm, !!el._lgStretch, ios ? (el.classList.contains("pressing") ? 2 : 1) : 0) + ")" + tail;
@@ -14029,6 +14072,8 @@ function startOffline(){
    pull ITS state. The server copy always wins — that is what makes two devices
    on one account show the same market instead of two drifting ones. */
 async function bootAfterAuth(){
+  const leaseP = xcClaimLease(false);                   // asked alongside /api/me: one round trip less before the app opens
+  leaseP.catch(() => {});                               // (its failure is read below, after /api/me)
   try{
     const me = await xcApi("GET", "/api/me");
     XC.email = me.email || null;
@@ -14038,7 +14083,7 @@ async function bootAfterAuth(){
     if(e.status === 401){ xcClearSession(); return screenAuth(L("Сессия истекла — войдите снова"), "err"); }
   }
 
-  try{ await xcClaimLease(false); }
+  try{ await leaseP; }
   catch(e){
     if(e.status === 409){
       // Another device drives this account: pull its full state once (chart
@@ -14102,6 +14147,27 @@ async function xcResync(){
 }
 
 /* ---------------- boot ---------------- */
+/* THE OPENING OPENS the moment the first screen - the app, the sign-in, a mirror - is in #app, two frames later (so
+   it has been drawn behind it); twelve seconds at most, whatever happens */
+(function bootOpen(){
+  const el = document.getElementById("boot"), host = document.getElementById("app");
+  if(!el || !host){ document.documentElement.classList.remove("booting"); return; }
+  let gone = false, mo = null, t = 0;
+  const go = () => {
+    if(gone) return; gone = true;
+    if(mo) mo.disconnect(); clearTimeout(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.documentElement.classList.remove("booting");
+      const mc = document.querySelector('meta[name="theme-color"]');
+      if(mc && _themeTC) mc.setAttribute("content", _themeTC);
+      el.classList.add("out");
+      setTimeout(() => el.remove(), 900);
+    }));
+  };
+  mo = new MutationObserver(() => { if(host.firstElementChild) go(); });
+  mo.observe(host, { childList: true });
+  t = setTimeout(go, 12000);
+})();
 walletProbePhoto();                    // use /wallet-bg.jpg if it exists, else the SVG fallback
 if(XC.token){
   bootAfterAuth().catch(()=>{ load(); finishBoot(); });
