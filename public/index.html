@@ -2470,6 +2470,9 @@ const I18N = {
 "Тёмная":["Dark","Темна","Sombre","Koyu"],
 "🌙 Тёмная":["🌙 Dark","🌙 Темна","🌙 Sombre","🌙 Koyu"],
 "Аврора":["Aurora","Аврора","Aurore","Aurora"],
+"FOMC: ставка повышена на {0}% → {1}%":["FOMC: rate hiked by {0}% → {1}%","FOMC: ставку підвищено на {0}% → {1}%","FOMC : taux relevé de {0} % → {1} %","FOMC: faiz {0}% artırıldı → %{1}"],
+"FOMC: ставка понижена на {0}% → {1}%":["FOMC: rate cut by {0}% → {1}%","FOMC: ставку знижено на {0}% → {1}%","FOMC : taux abaissé de {0} % → {1} %","FOMC: faiz {0}% indirildi → %{1}"],
+"FOMC: ставка без изменений — {0}%":["FOMC: rate unchanged — {0}%","FOMC: ставку не змінено — {0}%","FOMC : taux inchangé — {0} %","FOMC: faiz değişmedi — %{0}"],
 "🌌 Аврора":["🌌 Aurora","🌌 Аврора","🌌 Aurore","🌌 Aurora"],
 "🌌 Тема «Аврора»":["🌌 Aurora theme","🌌 Тема «Аврора»","🌌 Thème Aurore","🌌 Aurora teması"],
 "Тема «Аврора»":["Aurora theme","Тема «Аврора»","Thème Aurore","Aurora teması"],
@@ -3264,6 +3267,8 @@ const DEFAULTS = () => { const m0 = randomStartMid(); return {
           startPrice:0, high:0, low:0, progress:0, ticks:0, decayUntil:0, result:null,
           delta:0, _vel:0 },
   lock: { active:false, until:0 },
+  /* the Fed: its rate, the cycle it is in (+1 hiking, -1 cutting, 0 on hold) and how many more meetings that lasts */
+  fed: { rate: 4.50, cycle: 0, left: 3, last: null },
   newsLog: [],
   ui: { tab: "markets", subtab: "overview", lot: 0.10, chartTF: "M1", marketOpen: false, theme: "light", glass: false },
   seq: { pos: 1, ord: 1, evt: 1 },
@@ -3332,6 +3337,7 @@ function migrateState(){
   if(!S.dayLog) S.dayLog = [];
   if(S.daySeq === undefined) S.daySeq = 0;
   if(!S.newsLog) S.newsLog = [];
+  if(!S.fed || !(S.fed.rate >= 0)) S.fed = { rate: 4.50, cycle: Math.random() < .5 ? 0 : (Math.random() < .5 ? 1 : -1), left: 3, last: null };
   if(!S.news) S.news = d.news;
   if(S.news.delta === undefined){ S.news.delta = 0; S.news._vel = 0; }
   S.news.active = false;
@@ -3605,17 +3611,37 @@ function aggregateFrom(m1, sec){
    ONE event a day, at 15:30 game time, always in this order (user 2026-09-20): NFP → CPI → PPI → FOMC →
    FED Press Conference, then round again. Days the market is closed are skipped, and the day's event goes off
    by itself when its time comes (checkEvents) — with its own news candle. */
-/* One news day after another, in this order. FOMC keeps its own hour — the rate decision at 21:00 and ITS press
-   conference half an hour later, the same day (user 2026-09-20); everything else comes out at 15:30. */
+/* One news day after another, in this order, at 15:30. FOMC is not in the round any more: it meets EVERY OTHER
+   WEDNESDAY (user 2026-09-27: «фомк у нас должен быть раз в 2 недели по средам, так же пресс конференция раз в 2
+   недели после фомк») - the rate decision at 21:00, its press conference at 21:30 - and that day has no other news. */
 const NEWS_CYCLE = [
   [{ name:"NFP (Non-Farm Payrolls)", unit:"K", prev:180,  fc:190,  at:[15, 30] }],
   [{ name:"CPI y/y",                 unit:"%", prev:3.0,  fc:2.9,  at:[15, 30] }],
-  [{ name:"PPI m/m",                 unit:"%", prev:0.2,  fc:0.3,  at:[15, 30] }],
-  [{ name:"FOMC Rate Decision",      unit:"%", prev:4.50, fc:4.50, at:[21, 0] },
-   { name:"FED Press Conference",    unit:"",  prev:0,    fc:0,    at:[21, 30] }]
+  [{ name:"PPI m/m",                 unit:"%", prev:0.2,  fc:0.3,  at:[15, 30] }]
 ];
+const FOMC_DAY = [{ name:"FOMC Rate Decision", unit:"%", at:[21, 0] }, { name:"FED Press Conference", unit:"", prev:0, fc:0, at:[21, 30] }];
 const NEWS_SLOTS = {};                                             // name → its hour and minute
 for(const day of NEWS_CYCLE) for(const e of day) NEWS_SLOTS[e.name] = e.at;
+for(const e of FOMC_DAY) NEWS_SLOTS[e.name] = e.at;
+const isFomcName = n => /FOMC|Rate Decision|Press Conference/i.test(n || "");
+// FOMC weeks are the even weeks counted from a Wednesday (7 Jan 2026): every other Wednesday, the same for every account
+const FOMC_REF_WED = new Date(2026, 0, 7).getTime();
+function isFomcDay(t){
+  const d = new Date(t); if(d.getDay() !== 3) return false;
+  const w = Math.round((dayStart(t) - FOMC_REF_WED) / 604800000);
+  return ((w % 2) + 2) % 2 === 0;
+}
+const nextDay = t => dayStart(dayStart(t) + 36 * 3600000);          // the next calendar day, safe across a DST change
+function nextFomcDay(from){
+  let t = dayStart(from);
+  for(let i = 0; i < 40; i++, t = nextDay(t)){
+    if(!isFomcDay(t)) continue;
+    const a = atOn(t, FOMC_DAY[0].at), b = atOn(t, FOMC_DAY[1].at);
+    if(a - FOMC_PRE_MS > S.simClock && !marketClosedAt(a) && !marketClosedAt(b)) return t;
+  }
+  return null;
+}
+const FOMC_PRE_MS = 4 * 60000;                                    // the market starts to move 4 game-minutes before
 function marketClosedAt(t){
   if(S.market.forceOpen) return false;
   const d = new Date(t), wd = d.getUTCDay(), h = d.getUTCHours();
@@ -3626,10 +3652,11 @@ const dayStart = t => { const d = new Date(t); return new Date(d.getFullYear(), 
 // the first day from minDay on that trades at every hour this day's events need (the press conference too)
 function newsDayAfter(minDay, day){
   let t = atOn(minDay, day[0].at);
-  if(t <= S.simClock) t += 86400000;                               // never in the past
-  for(let i = 0; i < 9; i++){
-    if(!day.some(e => marketClosedAt(atOn(t, e.at)))) break;        // the whole day has to trade, the press conference too
-    t += 86400000;
+  if(t <= S.simClock) t = atOn(nextDay(t), day[0].at);             // never in the past
+  for(let i = 0; i < 12; i++){
+    // the whole day has to trade, and an FOMC Wednesday belongs to the Fed alone
+    if(!day.some(e => marketClosedAt(atOn(t, e.at))) && !isFomcDay(t)) break;
+    t = atOn(nextDay(t), day[0].at);
   }
   return t;
 }
@@ -3638,14 +3665,15 @@ function scheduleNews(keep){
   keep = keep || 6;
   // an older state (or an older build) may still hold events at other hours or with other names: if a single one of
   // them is off its slot the whole queue is rebuilt from the cycle, so it never ends up mixed (two CPIs in a row)
-  const onSlot = e => { const at = NEWS_SLOTS[e.name], d = new Date(e.time); return !!at && d.getHours() === at[0] && d.getMinutes() === at[1]; };
+  const onSlot = e => { const at = NEWS_SLOTS[e.name], d = new Date(e.time); return !!at && d.getHours() === at[0] && d.getMinutes() === at[1]
+                                                            && (isFomcName(e.name) ? isFomcDay(e.time) : !isFomcDay(e.time)); };
   if(S.events.some(e => !e.released && !e.manual && !onSlot(e))) S.events = S.events.filter(e => e.released || e.manual);
   // each news day takes a calendar day of its own — the next one starts the day after the last one queued
   let minDay = dayStart(S.simClock), n = 0;
   for(const e of S.events){
-    if(e.manual || e.released) continue;
+    if(e.manual || e.released || isFomcName(e.name)) continue;
     n++;
-    const nd = dayStart(e.time) + 86400000;
+    const nd = nextDay(e.time);
     if(nd > minDay) minDay = nd;
   }
   while(n < keep){
@@ -3657,8 +3685,22 @@ function scheduleNews(keep){
                       actual: null, impact: 3, time: atOn(t0, d.at), released: false, manual: false });
       n++;
     }
-    minDay = dayStart(t0) + 86400000;
+    minDay = nextDay(t0);
   }
+  // the next two Fed meetings, always queued: the decision (its forecast = what the market expects) and the press conference
+  let fq = S.events.filter(e => !e.manual && !e.released && /Rate Decision/i.test(e.name));
+  let from = fq.length ? nextDay(Math.max(...fq.map(e => e.time))) : S.simClock;
+  while(fq.length < 2){
+    const t0 = nextFomcDay(from); if(t0 == null) break;
+    const prev = fedRateAt(), dec = { id: S.seq.evt++, name: FOMC_DAY[0].name, unit: "%", previous: prev, forecast: roundTo(prev + fedExpect(), 2),
+                                      actual: null, impact: 3, time: atOn(t0, FOMC_DAY[0].at), released: false, manual: false };
+    S.events.push(dec,
+      { id: S.seq.evt++, name: FOMC_DAY[1].name, unit: "", previous: 0, forecast: 0, actual: null, impact: 3, time: atOn(t0, FOMC_DAY[1].at), released: false, manual: false });
+    fq.push(dec); from = nextDay(t0);
+  }
+  S.events.sort((a, b) => a.time - b.time);
+  // when the next thing has to start (an FOMC four minutes early): checkEvents runs then, not on its random beat
+  S._evNext = Math.min(...S.events.filter(e => !e.released && !e.manual).map(e => /Rate Decision/i.test(e.name) ? e.time - FOMC_PRE_MS : e.time), Infinity);
   if(S.events.length > 30) S.events.splice(0, S.events.length - 30);
 }
 function buildDefaultEvents(){
@@ -3884,7 +3926,7 @@ function engineFrame(){
     // NFP-style "one candle" release: sim-time HOLDS, only the news impulse drives price
     const oneShot = !manualCandles && newsOn && S.news.scenario && S.news.scenario.oneCandle;
     const hz = manualCandles ? normalTps()
-             : newsOn ? rnd(S.newsEngine.tickHzNewsMin, S.newsEngine.tickHzNewsMax) : rnd(18, 34);
+             : newsOn ? rnd(S.newsEngine.tickHzNewsMin, S.newsEngine.tickHzNewsMax) * (S.news.game ? Math.min(simSpeed(), 4) : 1) : rnd(18, 34);
     _tickAcc += hz * RT_MS / 1000;
     let nTicks = clamp(Math.floor(_tickAcc), 0, 60);
     _tickAcc -= Math.floor(_tickAcc);
@@ -3916,13 +3958,13 @@ function engineFrame(){
   finishFrame(nowR, newsOn);
 }
 function finishFrame(nowR, newsOn){
-  if(S.news.active && nowR >= S.news.endReal) endNews();
+  if(S.news.active && (S.news.game ? S.simClock >= S.news.endSim : nowR >= S.news.endReal)) endNews();
   if(S.lock.active && nowR >= S.lock.until){ S.lock.active = false; S._needRender = true; }
   // the quote breathes between price ticks (quoteFlicker) — not while news / an impulse / manual
   // control / a closed market own the price and the spread
   if(!newsOn && !S.news.active && !S.manual.enabled && !S.manual.impulse && !(S.news.decayUntil && nowR < S.news.decayUntil)
      && !marketClosed() && Math.random() < RT_MS / 1000 * QUOTE_FLICKER_HZ * simSpeed()) quoteFlicker();   // the spread breathes faster too
-  if(Math.random() < 0.02) checkEvents();
+  if(Math.random() < 0.02 || (S._evNext && S.simClock >= S._evNext)) checkEvents();
   recalcAccount();
   checkStopOut();
   save();
@@ -4021,7 +4063,11 @@ function priceStep(dt){
   const volMul = regVol * sf * P.volCluster * (M.intradayNoise || 1) / VOL_NORM;
   const perSec = dayStdev / Math.sqrt(86400) * volMul;            // $ per sqrt(game-second)
   const sigma = perSec * Math.sqrt(dt * (1 - SWING_SHARE));
-  let move = fatTail() * sigma;
+  // the hour after the Fed shakes the FAST part only - wide candles both ways, as on the video. Fed into the slow swing
+  // below it became a leg of one sign for an hour, and the calm-tick cap turned that into a straight staircase down
+  // («золото сломалось и стало как индексы», 2026-09-27)
+  const aft = newsAfterVol();
+  let move = fatTail() * sigma * aft;
 
   // swing legs — regimes with more momentum hold a leg longer (~50-95 game-min)
   const tau = 2400 + 4800 * clamp(RG.mom, 0, 0.9);
@@ -4068,7 +4114,7 @@ function priceStep(dt){
   // manual impulse own the price and are allowed their gap.
   const calmTick = !S.news.active && !S.manual.impulse;
   const tickSd = dayStdev * Math.sqrt(dt / 86400);                 // what ONE tick of this day is worth
-  const cap = Math.max(tickSd * (calmTick ? 3.6 : 13), 0.015 * ps);
+  const cap = Math.max(tickSd * (calmTick ? 3.6 : 13) * aft, 0.015 * ps);
   const want = move + (P.carry || 0), over = Math.abs(want) - cap;
   if(over > 0){                                                    // a knee, not a wall: past it a tick still grows, slower and slower
     move = Math.sign(want) * cap * (1 + 0.45 * (1 - Math.exp(-over / cap)));
@@ -4225,16 +4271,28 @@ function applyManualImpulse(){
 function stepNews(){
   const N = S.news, sc = N.scenario, P = S.price;
   if(!N.active || !sc) return;
+  let targetDelta, nsig;
+  if(sc.game){                                                    // FOMC / its press conference: the path in game minutes
+    const tm = (S.simClock - N.relSim) / 60000;
+    N.progress = clamp((S.simClock - N.startSim) / Math.max(1, N.endSim - N.startSim), 0, 1);
+    if(sc.type === "FOMC" && !N.revealed && S.simClock >= N.relSim) fomcReveal();
+    targetDelta = gameOffsetAt(sc.cp, tm);
+    nsig = gameNoiseAt(sc, tm);
+  }else{
   const p = clamp((Date.now() - N.startReal) / (sc.duration*1000), 0, 1);
   N.progress = p;
-  const targetDelta = pathOffsetAt(sc, p);
-  const nsig = sc.noiseBase * volCurveAt(sc, p);
+  targetDelta = pathOffsetAt(sc, p);
+  nsig = sc.noiseBase * volCurveAt(sc, p);
+  }
   N._vel = 0.45*(N._vel || 0) + gauss()*nsig;
   let nd = N.delta + (targetDelta - N.delta) * clamp(sc.pullStrength, 0.02, 0.6) + N._vel;
   if(Math.random() < 0.06) nd += gauss()*nsig*2.6;
   const applied = nd - N.delta;
   N.delta = nd;
   P.mid = Math.max(0.01, P.mid + applied);
+  // the Fed RE-PRICES gold: its move carries the market's equilibrium with it, or the consolidation pull dragged the
+  // price back to where it was before the decision (a -100 $ hike came out at -45 $ an hour later)
+  if(sc.game){ P.ema += applied; P.emaFast += applied; }
   N.high = Math.max(N.high, P.mid);
   N.low  = Math.min(N.low,  P.mid);
   N.ticks++;
@@ -4249,11 +4307,16 @@ function applyPriceDerived(){
   const mv = Math.abs(P.mid - (P.prevMid||P.mid));
   let spread = autoSpread();                                     // 0.16-0.24, generated tick by tick
   if(!S.manual.enabled){                                         // manual mode: never widened
-    if(S.news.active){
+    if(S.news.active && S.news.game){                           // FOMC: widest as the Fed speaks, easing over minutes
+      const cfg = S.newsEngine.perEvent[S.news.type];
+      spread = spread * gameSpreadAt(S.news.scenario, (S.simClock - S.news.relSim) / 60000, S.news.scenario.press ? 4.5 : Math.max(cfg.spreadMul, 9.5)) + mv * .3;
+    }else if(S.news.active){
       const cfg = S.newsEngine.perEvent[S.news.type];
       const p = S.news.progress || 0;
       const shape = clamp(Math.exp(-2.4*p) + 0.55*Math.exp(-26*Math.pow(p-0.5,2)) + 0.35, 0.1, 1.3);
       spread = spread * (1 + (cfg.spreadMul - 1) * shape) + mv * 3.2;   // news impulse spikes
+    }else if(S.news.after && S.simClock < S.news.after.until){
+      spread *= 1 + .45 * (newsAfterVol() - 1);                   // the hour after the Fed: wider, easing back
     }else if(S.news.decayUntil && Date.now() < S.news.decayUntil){
       const k = (S.news.decayUntil - Date.now()) / 4000;
       spread *= (1 + 3.0*k);                                     // gradual return after the news
@@ -4446,6 +4509,186 @@ function volCurveAt(sc, p){
   return 1 + sc.volA*Math.exp(-3.6*p) + sc.volB*Math.exp(-42*Math.pow(p-0.72,2));
 }
 
+
+/* =========================================================================
+   FOMC — the Fed's decision and gold's answer to it (user 2026-09-27, the real FOMC of 16 September 2026 on video:
+   «нужна такая же логика движения золота как на видео, но не делать 1 в 1, а что бы оно само как-то так считало,
+   каждый раз по-разному»).
+   THE DECISION. The Fed is in a cycle - hiking, cutting or on hold - that lasts several meetings; the calendar's
+   forecast is what the market expects from it. At the meeting it holds about four times in ten; when it moves, it is
+   0.25 two times in three, 0.50 one in five, 0.75 one in eleven, 1.00 one in thirty; now and then it does not do what
+   was expected. A hike → gold DOWN, a cut → gold UP (a higher rate, a stronger dollar, a dearer non-yielding metal);
+   0.25 moves it ~70-120 $, more for a bigger step, a surprise more again; a hold is a small move, like PPI - unless the
+   market had counted on a move, then it swings the other way.
+   THE SHAPE, in GAME minutes around the decision, off the video: four minutes of nerves, often a run AGAINST the coming
+   move (+20 $ into a hike); at the decision a knee-jerk the wrong way, then the big candle (half the move in a minute),
+   a bounce of a third to a half, a second leg, sometimes a third, the whole move in a quarter of an hour; then the
+   market stays wild for an hour. The press conference at 21:30 is a second wave: more of the same or a partial
+   reversal. Every number is drawn afresh each time.
+   ========================================================================= */
+const FOMC_REF_PX = 4300;                                         // the $ amounts are the video's, at gold near 4300
+function fedRateAt(){ return roundTo((S.fed && S.fed.rate >= 0) ? S.fed.rate : 4.5, 2); }
+// what the market expects from the next meeting, from the cycle the Fed is in
+function fedExpect(){
+  const c = (S.fed && S.fed.cycle) || 0;
+  if(c) return Math.random() < .7 ? c * .25 : 0;
+  return Math.random() < .8 ? 0 : (Math.random() < .5 ? .25 : -.25);
+}
+function fomcDecide(prev, fc){
+  prev = roundTo(prev, 2); fc = roundTo(fc == null ? prev : fc, 2);
+  const exp = roundTo(fc - prev, 2);
+  let ch = 0;
+  if(Math.random() >= (exp === 0 ? .62 : .24)){                   // a move (holds ~40 % over time)
+    const c = (S.fed && S.fed.cycle) || 0;
+    const dir = exp !== 0 ? (Math.random() < .85 ? Math.sign(exp) : -Math.sign(exp))
+              : c ? (Math.random() < .75 ? c : -c) : (Math.random() < .5 ? 1 : -1);
+    ch = dir * [.25, .5, .75, 1][weightedIdx([.66, .22, .09, .03])];
+    if(prev + ch < .25) ch = prev > .25 ? roundTo(.25 - prev, 2) : 0;      // no negative rates
+    if(prev + ch > 9) ch = 0;
+  }
+  return { prev, fc, exp, ch: roundTo(ch, 2), rate: roundTo(prev + ch, 2), surprise: roundTo(ch - exp, 2) };
+}
+// the Fed after a meeting: its cycle carries on, turns, or starts
+function fedAfter(d){
+  const F = S.fed;
+  F.rate = d.rate;
+  F.left = (F.left || 0) - 1;
+  if(d.ch !== 0 && !F.cycle){ F.cycle = Math.sign(d.ch); F.left = 3 + Math.floor(Math.random() * 5); }
+  if(F.left <= 0){
+    const up = clamp(.35 + (3.5 - F.rate) * .06, .12, .6), down = clamp(.35 + (F.rate - 3.5) * .06, .12, .6);
+    const r = Math.random();
+    F.cycle = r < up ? 1 : r < up + down ? -1 : 0;
+    F.left = 3 + Math.floor(Math.random() * 6);
+  }
+}
+// gold's move for a decision: its direction and size ($ at FOMC_REF_PX, scaled to the price)
+function fomcMove(d){
+  let dir, R;
+  if(d.ch !== 0){
+    dir = d.ch > 0 ? -1 : 1;
+    const a = Math.abs(d.ch);
+    R = a <= .25 ? rnd(70, 120) : a <= .5 ? rnd(110, 175) : a <= .75 ? rnd(150, 235) : rnd(200, 320);
+    const sur = Math.abs(d.surprise) / .25;
+    R *= sur ? Math.min(1.5, 1 + .18 * sur) : rnd(.85, 1.05);     // what was expected is partly priced in
+    if(Math.random() < .1) R *= rnd(.55, .75);                    // now and then the market shrugs
+  }else if(d.exp !== 0){                                          // a hold where a move was expected: it swings back
+    dir = d.exp > 0 ? 1 : -1; R = rnd(14, 32);
+  }else{                                                          // a hold, as expected: a PPI-sized move on the tone
+    dir = Math.random() < .5 ? 1 : -1; R = rnd(3, 14);
+  }
+  return { dir, R: R * clamp(S.price.mid / FOMC_REF_PX, .8, 1.25) };
+}
+/* the path: [game-minutes from the decision, $ from the start]. pre = minutes of nerves before it */
+function fomcPath(dir, R, pre){
+  const cp = [], d = dir, j = (a, b) => rnd(a, b);
+  if(pre > .05){
+    cp.push([-pre, 0]);
+    if(Math.random() < .55){                                      // the run against it: «buy the rumour»
+      cp.push([-Math.min(pre, 1.8), -d * R * j(.02, .07)], [-.15, -d * R * j(.12, .24)]);
+    }else cp.push([-pre / 2, (Math.random() < .5 ? 1 : -1) * R * j(.01, .04)], [-.15, (Math.random() < .5 ? 1 : -1) * R * j(.02, .06)]);
+  }else cp.push([0, 0]);
+  let o = cp[cp.length - 1][1], t = 0;
+  const fake = Math.random() < .6;
+  if(fake){ t = j(.15, .35); o = o - d * R * j(.06, .15); cp.push([t, o]); }      // the knee-jerk the wrong way
+  const leg1 = d * R * j(.42, .6); t += j(.8, 1.5); cp.push([t, leg1]);            // the big candle
+  const legs = Math.random() < .6 ? 3 : 2;
+  let b1 = leg1 * (1 - j(.35, .55)); t += j(1.5, 3); cp.push([t, b1]);             // the bounce
+  if(legs === 3){
+    const leg2 = d * R * j(.66, .82); t += j(2, 3.5); cp.push([t, leg2]);
+    const b2 = leg2 - (leg2 - b1) * j(.3, .45); t += j(1.5, 2.5); cp.push([t, b2]);
+    const leg3 = d * R * j(.95, 1.08); t += j(3, 5); cp.push([t, leg3]);
+  }else{
+    const leg2 = d * R * j(.93, 1.05); t += j(3.5, 6); cp.push([t, leg2]);
+  }
+  // and then it does not sit still: swings both ways round the new level until the press conference, as on the video
+  let lvl = d * R * j(.88, 1.0), tt = t + j(1.5, 3), sg = -1;
+  cp.push([tt, lvl]);
+  while(tt < 22){ tt += j(2, 3.5); sg = -sg; cp.push([Math.min(tt, 25), lvl + sg * d * R * j(.05, .13)]); }
+  cp.push([Math.min(Math.max(tt + 1.5, 21), 26), d * R * j(.86, 1.0)]);
+  return { cp, fake, legs };
+}
+function gameOffsetAt(cp, tm){
+  if(tm <= cp[0][0]) return cp[0][1];
+  for(let i = 1; i < cp.length; i++){
+    if(tm <= cp[i][0]){
+      const [ta, oa] = cp[i - 1], [tb, ob] = cp[i];
+      let u = (tm - ta) / (tb - ta || 1); u = u * u * (3 - 2 * u);
+      return oa + (ob - oa) * u;
+    }
+  }
+  return cp[cp.length - 1][1];
+}
+// how hard the price shakes around the path at a moment (per tick), and how wide the spread is
+function gameNoiseAt(sc, tm){
+  const R = sc.R;
+  return Math.max(.04, tm < 0 ? R * (.002 + .004 * Math.exp(tm / 1.2)) : R * (sc.nsA + sc.nsB * Math.exp(-tm / sc.nsT)));
+}
+/* THE SPREAD, off the video of the real FOMC (Ask − Bid read frame by frame): 0.8 → 1.2 → 1.5 → 1.8 over the minutes
+   before the decision, then pinned at the broker's ceiling - 2.06, about ten times the normal - through the decision and
+   the first minutes, then easing (1.45 …) over a quarter of an hour; wider than usual for the whole hour after
+   (newsAfterVol). mul = that ceiling as a multiple of the normal spread (user: «спред тоже должен растягиваться») */
+function gameSpreadAt(sc, tm, mul){
+  const pre = Math.max(sc.pre || 0, .5);
+  if(tm < -pre) return 1;
+  if(tm < -.4){ const u = clamp((tm + pre) / Math.max(.1, pre - .4), 0, 1); return 1 + (mul * .82 - 1) * u * u * (3 - 2 * u); }
+  if(tm < 3) return mul * rnd(.94, 1);                            // pinned at the ceiling
+  if(tm < 16){ const u = (tm - 3) / 13; return 2.2 + (mul - 2.2) * Math.pow(1 - u, 1.7); }
+  return 2.2;
+}
+function generateFOMCScenario(d, pre){
+  const mv = fomcMove(d), path = fomcPath(mv.dir, mv.R, pre);
+  const end = path.cp[path.cp.length - 1][0];
+  const lbl = d.ch > 0 ? "ПОВЫШЕНИЕ +" + d.ch.toFixed(2) + "%" : d.ch < 0 ? "ПОНИЖЕНИЕ " + d.ch.toFixed(2) + "%" : "БЕЗ ИЗМЕНЕНИЙ";
+  return {
+    type: "FOMC", game: true, dec: d, R: mv.R, mainDir: mv.dir, cp: path.cp, pre, endMin: end,
+    nsA: .007, nsB: .026, nsT: 2.2, afterMin: 60, afterK: clamp(1 + mv.R / 14, 1.3, 9),
+    oneCandle: false, fakeout: path.fake, reversal: false, twoWay: path.fake, impulses: path.legs,
+    duration: Math.round((pre + end) * 60), pullStrength: .18,
+    pattern: "FOMC " + lbl + " → " + d.rate.toFixed(2) + "% · золото " + (mv.dir > 0 ? "ВВЕРХ" : "ВНИЗ") + " ~" + Math.round(mv.R) + "$"
+      + (path.fake ? " · ложный прокол" : "") + " · " + path.legs + " волны" + (d.surprise ? " · СЮРПРИЗ" : "")
+  };
+}
+// the press conference, tied to the decision half an hour before: more of it, or part of it given back
+function generatePressScenario(){
+  const L = S.fed && S.fed.last;
+  if(!L || !(S.simClock - L.t < 3 * 3600000)) return null;
+  const cont = Math.random() < .55, scale = clamp(S.price.mid / FOMC_REF_PX, .8, 1.25);
+  let d2, R2;
+  if(L.ch === 0){ d2 = Math.random() < .6 ? L.dir : -L.dir; R2 = rnd(10, 30) * scale; }
+  else { d2 = cont ? L.dir : -L.dir; R2 = Math.max(8, Math.abs(L.move || L.R) * rnd(.2, .45)); }
+  const j = rnd, cp = [[0, 0], [j(.2, .5), -d2 * R2 * j(.1, .3)], [j(3, 6), d2 * R2 * j(.3, .5)], [j(8, 12), d2 * R2 * j(.1, .3)],
+                       [j(14, 20), d2 * R2 * j(.8, 1)], [28, d2 * R2 * j(.75, 1)]];
+  return { type: "FED_SPEECH", game: true, press: true, R: R2, mainDir: d2, cp, pre: 0, endMin: 28,
+    nsA: .009, nsB: .02, nsT: 3, afterMin: 45, afterK: clamp(1 + R2 / 10, 1.2, 6),
+    oneCandle: false, fakeout: false, reversal: !cont, twoWay: false, impulses: 3, duration: 28 * 60, pullStrength: .16,
+    pattern: "ПРЕСС-КОНФЕРЕНЦИЯ · " + (cont ? "продолжение" : "частичный разворот") + " · золото " + (d2 > 0 ? "ВВЕРХ" : "ВНИЗ") + " ~" + Math.round(R2) + "$" };
+}
+// the moment the Fed speaks: the new rate, the calendar, the next meeting's forecast, a short lock, a line on screen
+function fomcReveal(){
+  const N = S.news, sc = N.scenario, d = sc.dec;
+  N.revealed = true; N.relPrice = S.price.mid;
+  fedAfter(d);
+  S.fed.last = { t: S.simClock, ch: d.ch, dir: sc.mainDir, R: sc.R, move: 0, rate: d.rate };
+  const ev = N.evId != null && S.events.find(e => e.id === N.evId);
+  if(ev){ ev.previous = d.prev; ev.forecast = d.fc; ev.actual = d.rate; }
+  const nx = S.events.filter(e => !e.released && !e.manual && /Rate Decision/i.test(e.name)).sort((a, b) => a.time - b.time);
+  for(const e of nx){ e.previous = fedRateAt(); e.forecast = roundTo(e.previous + fedExpect(), 2); }
+  S.lock = { active: true, until: Date.now() + 4000 };
+  toast("o", d.ch > 0 ? L("FOMC: ставка повышена на {0}% → {1}%", d.ch.toFixed(2), d.rate.toFixed(2))
+           : d.ch < 0 ? L("FOMC: ставка понижена на {0}% → {1}%", Math.abs(d.ch).toFixed(2), d.rate.toFixed(2))
+           : L("FOMC: ставка без изменений — {0}%", d.rate.toFixed(2)));
+  S._needRender = true;
+}
+// what a game-time news event does to the ordinary market for a while after it: it stays wild, calming down
+function newsAfterVol(){
+  const a = S.news && S.news.after;
+  // only inside its hour: a clock that is behind it (a state brought back from before) must not read it as a
+  // factor of thousands - that ran gold from 4 900 to 1 800 in a test on 2026-09-27
+  if(!a || !(S.simClock < a.until) || !(S.simClock >= a.from)) return 1;
+  const u = clamp((a.until - S.simClock) / Math.max(1, a.until - a.from), 0, 1);
+  return clamp(1 + (a.k - 1) * u * u, 1, 9);
+}
+
 /* ---- trading lock ---- */
 function tradingLocked(){ return S.lock.active && Date.now() < S.lock.until; }
 function lockSecondsLeft(){ return Math.max(0, (S.lock.until - Date.now())/1000); }
@@ -4460,6 +4703,13 @@ function guardLock(){
 function startNews(type, ev){
   if(!NEWS_TYPES.includes(type)) return;
   if(S.news.active){ toast("o", L("Новость уже идёт — дождитесь завершения")); return; }
+  // FOMC, and the press conference that follows it, run in GAME time over many candles (startGameNews)
+  if(type === "FOMC"){
+    const prev = fedRateAt(), fc = ev && ev.forecast != null && ev.previous != null ? ev.forecast + (prev - ev.previous) : prev + fedExpect();
+    const rel = ev && !ev.manual ? Math.max(S.simClock, ev.time) : S.simClock + 30000;     // by hand: it speaks in half a minute
+    return startGameNews(type, generateFOMCScenario(fomcDecide(prev, fc), (rel - S.simClock) / 60000), ev, rel);
+  }
+  if(type === "FED_SPEECH"){ const ps = generatePressScenario(); if(ps) return startGameNews(type, ps, ev, S.simClock); }
   const cfg = S.newsEngine.perEvent[type];
   const sc = generateScenario(type);
   const now = Date.now();
@@ -4475,9 +4725,29 @@ function startNews(type, ev){
   closeModal();
   save();
 }
+function startGameNews(type, sc, ev, rel){
+  const now = Date.now();
+  S.news = {
+    active: true, type, scenario: sc, game: true,
+    startReal: now, endReal: Infinity, startSim: S.simClock, relSim: rel, endSim: rel + sc.endMin * 60000,
+    startPrice: S.price.mid, high: S.price.mid, low: S.price.mid, relPrice: S.price.mid, revealed: false, evId: ev ? ev.id : null,
+    progress: 0, ticks: 0, decayUntil: 0, result: null, delta: 0, _vel: 0, after: S.news && S.news.after
+  };
+  S.lock = sc.press ? { active: true, until: now + 3000 } : { active: false, until: 0 };
+  S._needRender = true;
+  if(ev) ev.released = true;
+  closeModal();
+  save();
+}
 function endNews(){
   const N = S.news, sc = N.scenario;
   N.active = false;
+  if(sc && sc.game){
+    // what it leaves behind: an hour of a wilder market, calming down; the move it made goes on the Fed's record
+    N.after = { from: S.simClock, until: S.simClock + sc.afterMin * 60000, k: sc.afterK };
+    if(sc.type === "FOMC" && S.fed && S.fed.last) S.fed.last.move = S.price.mid - (N.relPrice || N.startPrice);
+    if(sc.type === "FOMC" && !N.revealed) fomcReveal();
+  }
   S.lock = { active:false, until:0 };          // trading unlocks exactly when the event ends
   N.decayUntil = Date.now() + 4500;
   // seal a "one candle" release: nudge sim-time past the current M1 so the next
@@ -4514,6 +4784,19 @@ function endNews(){
 
 /* offline Monte-Carlo of a scenario (no timers) — used by the self-test */
 function simulateNewsOffline(type){
+  if(type === "FOMC"){
+    const sc = generateFOMCScenario(fomcDecide(fedRateAt(), fedRateAt() + fedExpect()), 4);
+    let mid = 4457.13, start = mid, hi = mid, lo = mid, vel = 0, delta = 0;
+    for(let tm = -sc.pre; tm <= sc.endMin; tm += 1 / 60){         // a tick a game-second
+      const nsig = gameNoiseAt(sc, tm);
+      vel = .45 * vel + gauss() * nsig;
+      const nd = delta + (gameOffsetAt(sc.cp, tm) - delta) * sc.pullStrength + vel;
+      mid += nd - delta; delta = nd;
+      hi = Math.max(hi, mid); lo = Math.min(lo, mid);
+    }
+    return { type, start, final: mid, high: hi, low: lo, totalRange: hi - lo, upExc: hi - start, downExc: lo - start, finalMove: mid - start,
+      pattern: sc.pattern, plannedR: sc.R, mainDir: sc.mainDir, fakeout: sc.fakeout, reversal: false, twoWay: sc.twoWay };
+  }
   const sc = generateScenario(type);
   const steps = sc.duration * 30;
   let mid = 4457.13, start = mid, hi = mid, lo = mid, vel = 0;
@@ -5023,8 +5306,9 @@ function synthActual(e){                                                // a pri
 }
 function checkEvents(){
   for(const e of S.events){
-    if(e.released || e.time > S.simClock) continue;
-    if(e.actual == null && e.unit) e.actual = synthActual(e);
+    const dec = /Rate Decision/i.test(e.name);
+    if(e.released || (dec && !e.manual ? e.time - FOMC_PRE_MS : e.time) > S.simClock) continue;
+    if(e.actual == null && e.unit && !dec) e.actual = synthActual(e);      // the Fed's decision is revealed by the Fed (fomcReveal)
     // the day's event releases itself at its time — the scenario runs and prints its news candle
     if(!e.manual && !S.news.active && !marketClosed()) releaseEvent(e);
     else e.released = true;                                       // a hand-made one still waits for «Выпустить»
@@ -12514,7 +12798,10 @@ function drawChart(){
       // live DOWN bar: stop the FILLED body at the Ask line so the Ask isn't buried
       // in the block — the wick above already shows the true open, and the OHLC is
       // untouched so the bar still chains to its neighbours (no gap).
-      if(i === liveIdx && !upPass) yc = Math.min(yc, yAskCap);
+      // (the OPEN side is what is cut, and only when the open really is above the Ask: cutting the close to the Ask
+      // drew every fresh bar that ticked down as a red block from its open UP to the Ask line - a spread-sized candle
+      // out of one tick, user screenshot 2026-09-27: «когда идет тик вниз, рисуется красная свеча, так не должно быть»)
+      if(i === liveIdx && !upPass && yo < yAskCap) yo = Math.min(yAskCap, yc);
       const top = snapPy(Math.min(yo, yc)), bot = snapPy(Math.max(yo, yc));
       ctx.rect(x0, top, bodyW, Math.max(hair, bot - top));
     }
