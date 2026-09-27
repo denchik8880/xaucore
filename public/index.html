@@ -1843,6 +1843,7 @@ body.amenu-open .wl-logo{opacity:0}
   transform:translateX(var(--bx,0px));     /* no scale on a backdrop-filtered layer: it paints a phantom square */
   background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%,rgba(255,255,255,.07));
   box-shadow:0 9px 22px rgba(16,24,40,.2),0 2px 5px rgba(16,24,40,.1),inset 0 0 0 1.2px rgba(255,255,255,.92),inset 0 1.5px 1px #fff,inset 0 -2px 3px rgba(16,24,40,.07)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{transform:translateX(var(--dlx,var(--bx,0px)));width:var(--dlw,var(--bw,0px))}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.seg-drag.dragging{overflow:visible}   /* the lens may lift past it while it is held */
 /* the side's lens stays clear (tinted, it wore the side it was leaving - green over «Продать»), and a label under the
    finger keeps its own colour instead of going black */
@@ -2222,8 +2223,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"]{
   /* the glint is the light source's reflection: its size is the source's, not the drop's - a small bead and a wide one
      show the same small spark, so it is sized in pixels (a percentage made a white cloud on a wide drop; min() is not allowed in a gradient's size) */
-  --wd-glint:radial-gradient(12px 5.5px at min(18%,22px) min(26%,9px),rgba(255,255,255,.92) 0%,rgba(255,255,255,.5) 40%,rgba(255,255,255,0) 100%),
-    radial-gradient(3.5px 2.2px at min(30%,36px) min(19%,6.5px),rgba(255,255,255,.8) 0%,rgba(255,255,255,0) 100%);
+  --wd-glint:radial-gradient(5px 2.2px at min(18%,20px) min(24%,7px),rgba(255,255,255,.62) 0%,rgba(255,255,255,.22) 45%,rgba(255,255,255,0) 100%);
   --wd-caustic:radial-gradient(58% 46% at 60% 102%,rgba(178,218,255,.36) 0%,rgba(178,218,255,.12) 55%,rgba(178,218,255,0) 100%);
   --wd-sheen:linear-gradient(180deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,0) 44%);
   --wd-body:rgba(255,255,255,.06);
@@ -2235,14 +2235,14 @@ body.amenu-open .wl-logo{opacity:0}
     inset 0 0 0 .6px rgba(255,255,255,.32),inset 1.2px 1.6px 1.4px -.6px rgba(255,255,255,.72),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.5),inset 0 0 10px -2px rgba(4,6,20,.4)}
 /* 1. THE RESTING DROPS - the chosen tab below, above, in every segmented control, in the ticket */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),var(--wd-body);box-shadow:var(--wd-sh)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.1);box-shadow:var(--wd-sh)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy.seg-drag>.seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),color-mix(in srgb,var(--green) 38%,transparent);box-shadow:var(--wd-sh),0 0 0 1px color-mix(in srgb,var(--green) 55%,transparent)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell.seg-drag>.seg-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),color-mix(in srgb,var(--red) 38%,transparent);box-shadow:var(--wd-sh),0 0 0 1px color-mix(in srgb,var(--red) 55%,transparent)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(195,207,230,calc(.12 * var(--sdk,1)));
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub{background:var(--wd-glint),var(--wd-body);box-shadow:var(--wd-sh)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-bub{background:var(--wd-glint),rgba(255,255,255,.1);box-shadow:var(--wd-sh)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.buy.seg-drag>.seg-bub{background:var(--wd-glint),color-mix(in srgb,var(--green) 38%,transparent);box-shadow:var(--wd-sh),0 0 0 1px color-mix(in srgb,var(--green) 55%,transparent)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side.sell.seg-drag>.seg-bub{background:var(--wd-glint),color-mix(in srgb,var(--red) 38%,transparent);box-shadow:var(--wd-sh),0 0 0 1px color-mix(in srgb,var(--red) 55%,transparent)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),rgba(195,207,230,calc(.12 * var(--sdk,1)));
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),var(--nav-bub);
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{background:var(--wd-glint),var(--nav-bub);
   box-shadow:0 6px 14px -6px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--dk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.62),
     inset 0 -3px 5px -2px rgba(185,220,255,.44),inset 0 0 10px -2px rgba(4,6,20,calc(.42 * var(--dk,1)))}
 /* 2. THE LENSES THAT FOLLOW A FINGER - over their bend, the same glint and gathered light */
@@ -2251,8 +2251,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.035)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.04);box-shadow:var(--drop-sh)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),rgba(255,255,255,.02)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{background:var(--wd-glint),rgba(255,255,255,.03);box-shadow:var(--drop-sh)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::before{display:none}   /* its glint is the layer above now */
 /* 3. THE KNOBS - a bead of water on the track: what is under it shows through, lit and bent at its edge */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
@@ -2266,7 +2266,7 @@ body.amenu-open .wl-logo{opacity:0}
     inset 0 -2.5px 4px -1.5px rgba(200,228,255,.6),inset 0 0 7px -2px rgba(4,6,20,.35)}
 /* 4. THE LOTS AND THE SMALL PILLS - flat beads sitting on the card */
 :root[data-theme="dark"][data-tone="aurora"] .miniquick button,:root[data-theme="dark"][data-tone="aurora"] .spreadchip{
-  background:radial-gradient(10% 26% at 16% 26%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 100%),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.055);
+  background:var(--wd-glint),var(--wd-caustic),var(--wd-sheen),rgba(255,255,255,.055);
   box-shadow:0 3px 7px -4px rgba(0,0,0,.5),inset 0 0 0 .6px rgba(255,255,255,.18),inset 0 1px 1px -.3px rgba(255,255,255,.42),inset 0 -2px 3px -1.5px rgba(185,220,255,.32);
   color:var(--ink)}
 :root[data-theme="dark"][data-tone="aurora"] .miniquick button{border-radius:999px}
@@ -5993,6 +5993,7 @@ function applyTheme(t){
   const d = document.documentElement.dataset;
   d.theme = t === "light" ? "light" : "dark";
   if(t === "aurora") d.tone = "aurora"; else delete d.tone;
+  WATER = t === "aurora" ? 1.35 : 1;                                // «Аврора» is water: the drops stretch and wobble more
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
   if(mc) mc.setAttribute("content", t === "aurora" ? "#142141" : t === "dark" ? "#000000" : "#eff1f4");
@@ -8298,7 +8299,7 @@ function navBox(a, b, lift){
   // the two edges still decide WHERE it is; how far that pulls it OUT is damped to what the reference does.
   // Measured there: 96 px of drop at rest and 125 at the peak of a four-tab flight, a third more - where the
   // raw gap between the edges would have given two thirds.
-  let sx = (1 + (span0 - 1) * .45) * wT * (1 + .32 * lift), left = mid - sx / 2;
+  let sx = (1 + (span0 - 1) * .45 * WATER) * wT * (1 + .32 * lift), left = mid - sx / 2;
   // pressed into an end it squashes AGAINST that end: the edge touching the wall stays where it is and the far
   // one comes in. Taking it off the far edge either way — which is what scaling from the left edge does by
   // itself — pulls the drop off the very wall it is pressed into, and the bulge comes out lopsided.
@@ -8721,7 +8722,8 @@ function glassDrops(root){
     const inset = sub ? 3 : 0, tl = on.offsetLeft + inset, tr = on.offsetLeft + on.offsetWidth - inset;
     const key = dropKey(bar), mem = _dropMem[key];
     const bs = [...bar.querySelectorAll(":scope > button")], cw = bs.length ? bs.reduce((a, b) => a + b.offsetWidth, 0) / bs.length - 2 * inset : 0;
-    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big, cw };
+    const st = { l: mem ? mem.l : tl, r: mem ? mem.r : tr, vl: 0, vr: 0, tl, tr, key, t: 0, lf: mem ? mem.lf || 0 : 0, j: mem ? mem.j || 0 : 0, jv: mem ? mem.jv || 0 : 0, bar, lens, inset, big, cw,
+      flat: !!bar.closest(".ot-g"), bw: bar.clientWidth };
     bar._st = st; bar._bub = bub;
     _drops.set(bub, st);
     dropApply(bub, st);
@@ -8776,7 +8778,7 @@ function subLens(clear){
 function subApply(bar){
   const wRest = Math.max(20, SB.wRest || (SB.tr - SB.tl));
   const span = Math.max(1, (SB.r - SB.l) / wRest), mid = (SB.l + SB.r) / 2;
-  const w = wRest * (1 + (span - 1) * .45), left = mid - w / 2, sy = Math.min(1.45, 1 + (span - 1) * .85);
+  const w = wRest * (1 + (span - 1) * .45 * WATER), left = mid - w / 2, sy = Math.min(1.45 + .1 * (WATER - 1), 1 + (span - 1) * .85 * WATER);
   const W0 = bar._sw0 || 80, h = bar._sh || 30;
   bar.style.setProperty("--sbl", left.toFixed(2) + "px");
   bar.style.setProperty("--ssx", (w / W0).toFixed(4));
@@ -9240,6 +9242,7 @@ function pkFrame(now){
   }
   if(busy){ _pkRaf = 1; moAdd(pkFrame); }
 }
+var WATER = 1;                                                     // «Аврора»: the drops are livelier (applyTheme)
 function dropApply(bub, st){
   const el = st.bar || bub;                                        // on the bar: the drop and its lens both read them
   el.style.setProperty("--bx", st.l.toFixed(2) + "px");
@@ -9247,13 +9250,22 @@ function dropApply(bub, st){
   el.style.setProperty("--lf", (st.lf || 0).toFixed(3));
   // its body: lifted a little as a lens, squashed while it flows, wobbling after it lands
   const lf = st.lf || 0, j = st.j || 0, sub = !!st.big;
-  el.style.setProperty("--dsx", (1 + (sub ? .12 : .03) * lf + .25 * j).toFixed(3));   // the subtabs' lens: bigger than the tab, taller than the capsule
-  el.style.setProperty("--dsy", (1 + (sub ? .42 : .1) * lf - j).toFixed(3));
+  el.style.setProperty("--dsx", (1 + (sub ? .12 : .03) * lf + .25 * j * WATER).toFixed(3));   // the subtabs' lens: bigger than the tab, taller than the capsule
+  el.style.setProperty("--dsy", (1 + (sub ? .42 : .1) * lf - j * WATER).toFixed(3));
   const L = st.lens;
   if(L){
     const idle = (st.lf || 0) < .01;
     if(L._idle !== idle){ L._idle = idle; L.classList.toggle("idle", idle); }
-    if(!idle) lgFit(L, st.r - st.l, L._h || (L._h = L.offsetHeight) || 30, 10, 0);   // mild: labels stay readable under it
+    // mild: labels stay readable under it. In the ticket the lens is ONE size - the tabs' mean width, riding the
+    // drop's middle - so its map is drawn once: a filter rebuilt as it moved left a phone drawing nothing or a grey
+    // square there (user videos 2026-09-26/27)
+    if(st.flat){
+      const cw = Math.round(st.cw || (st.tr - st.tl)), m = (st.l + st.r) / 2;
+      el.style.setProperty("--dlx", (m - cw / 2).toFixed(2) + "px"); el.style.setProperty("--dlw", cw + "px");
+      // and a full-strength lens (22, the iOS glass for its size - the mild 10 of a per-size lens bent too little to
+      // read as glass: «эффекта жидкого стекла нету»); the word under it grows 10 % as well
+      if(!idle && L._cw !== cw){ L._cw = cw; lgFit(L, cw, L._h || (L._h = L.offsetHeight) || 30, 22, 0); }
+    }else if(!idle) lgFit(L, st.r - st.l, L._h || (L._h = L.offsetHeight) || 30, 10, 0);
   }
 }
 const SEG_DRAG_LEAD = { k: 1250, z: .82 }, SEG_DRAG_TRAIL = { k: 820, z: .86 };
@@ -9299,6 +9311,8 @@ function dropFrame(now){
     const Pl = right ? Ps : Pf, Pr = right ? Pf : Ps;
     st.vl = MO.sp(st.vl, st.l, st.tl, Pl, dt); st.l += st.vl * dt;
     st.vr = MO.sp(st.vr, st.r, st.tr, Pr, dt); st.r += st.vr * dt;
+    // inside its track: pressed into an end it squashes against it (flew past it on the user's video)
+    if(st.bw){ if(st.l < -2){ st.l = -2; if(st.vl < 0) st.vl = 0; } if(st.r > st.bw + 2){ st.r = st.bw + 2; if(st.vr > 0) st.vr = 0; } }
     // never a stick: at least 60 % of its tab, kept round its own middle
     const mw = Math.max(8, (st.tr - st.tl) * .6);
     if(st.r - st.l < mw){ const m = (st.l + st.r) / 2; st.l = m - mw / 2; st.r = m + mw / 2; }
