@@ -1557,19 +1557,21 @@ body.amenu-open .wl-logo{opacity:0}
    a moment (user: «буквы на милисекунды искажаются»); the magnifying is done by the row under it, which grows a
    little, so the writing stays sharp. Box, scale, corners and opacity: pkPut. */
 .pk-drop{display:none}
-:root[data-glass="on"] .pk>.pk-drop{display:block;position:absolute;left:0;top:0;z-index:3;pointer-events:none;transform-origin:0 0;opacity:0;will-change:transform,opacity;
+/* (on the page, over its menu - pkLens: inside the menu's glass its lens saw only that glass's see-through paint, and the
+   bent writing lay over the straight writing still showing through it: every letter twice) */
+:root[data-glass="on"] .pk-drop{display:block;position:fixed;left:0;top:0;z-index:1500;pointer-events:none;transform-origin:0 0;opacity:0;will-change:transform,opacity;
   background:linear-gradient(180deg,var(--drop-sheen,rgba(255,255,255,.3)) 0%,rgba(255,255,255,0) 40%),
     radial-gradient(58% 40% at 50% 100%,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.03)}   /* clear across the writing's band; its edge: --drop-sh */
 /* its rim, lit from the one light the whole app is lit from (the brightest at the top left and the bottom right) */
-:root[data-glass="on"] .pk>.pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+:root[data-glass="on"] .pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* and the glint on its crown */
-:root[data-glass="on"] .pk>.pk-drop::before{content:"";position:absolute;left:6%;top:9%;width:24%;height:26%;border-radius:50%;pointer-events:none;
+:root[data-glass="on"] .pk-drop::before{content:"";position:absolute;left:6%;top:9%;width:24%;height:26%;border-radius:50%;pointer-events:none;
   background:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,255,255,0))}
-:root[data-theme="dark"][data-glass="on"] .pk>.pk-drop{
+:root[data-theme="dark"][data-glass="on"] .pk-drop{
   background:linear-gradient(180deg,var(--drop-sheen,rgba(255,255,255,.1)) 0%,rgba(255,255,255,0) 40%),
     radial-gradient(58% 46% at 50% 100%,rgba(255,255,255,.1) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.04)}
-:root[data-theme="dark"][data-glass="on"] .pk>.pk-drop::before{background:radial-gradient(closest-side,rgba(255,255,255,.7),rgba(255,255,255,0))}
+:root[data-theme="dark"][data-glass="on"] .pk-drop::before{background:radial-gradient(closest-side,rgba(255,255,255,.7),rgba(255,255,255,0))}
 /* EVERY DROP, ONE CLEAN EDGE (user 2026-09-26, the lot lens over «MAX 30»: «Очень много лишней серой обводки, это не
    дает эффект капли, это касается всего, где есть такая капля»). The drops wore the glass PANELS' edge: a grey
    hairline outside, grey bands inside top and bottom (--lg-body) and a rim whose middle is grey (--lg-rimd) -
@@ -1596,16 +1598,17 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
-:root[data-glass="on"] .pk>.pk-drop{box-shadow:var(--drop-sh)}
+:root[data-glass="on"] .pk-drop{box-shadow:var(--drop-sh)}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after,:root[data-glass="on"] .pk>.pk-drop::after{background:var(--drop-rim)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after,:root[data-glass="on"] .pk-drop::after{background:var(--drop-rim)}
 /* what is under the drop is magnified by it, as under a real one (and under the bar's) - sharp, not bent */
 :root[data-glass="on"] .pk .am-it>*,:root[data-glass="on"] .pk button>*{transition:transform .14s cubic-bezier(.2,.8,.3,1)}
 :root[data-glass="on"] .pk .pk-on>*:not(.lg-milk){transform:scale(1.08)}
+:root[data-glass="on"] .pk.pk-lens .pk-on>*:not(.lg-milk){transform:none}   /* the water drop magnifies it itself (pkPut) */
 :root[data-glass="on"] .pk .am-it>span,:root[data-glass="on"] .pk button>span{transform-origin:0 50%}   /* a word grows from where it starts, not sliding left */
 :root[data-glass="on"] .pk button>b{transform-origin:100% 50%}
-.pk>.pk-drop.idle{visibility:hidden}
+.pk-drop.idle{visibility:hidden}
 :root[data-glass="on"] .pk .am-it:active,:root[data-glass="on"] .pk button:active{background:none}   /* the drop is the press */
 :root[data-glass="on"] .am-sheet.pk:not(.pk-scroll) .am-grp{touch-action:none}                     /* a slide along the rows is the drop's, not a pan */
 /* LIQUID MENUS (lqPut): the menu is the drop. Its glass comes in with --lqg - a clear, bright lens while it pours out
@@ -2037,10 +2040,10 @@ body.amenu-open .wl-logo{opacity:0}
     inset 1.2px 1.6px 1.2px -.8px rgba(194,221,229,.72),inset -1.2px -1.6px 1.4px -.8px rgba(212,193,228,.48),inset 0 0 8px -2px rgba(15,15,29,.3);
   --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,.85) 0%,rgba(189,217,226,0) 24%,rgba(97,86,145,.2) 50%,rgba(210,189,226,0) 76%,rgba(210,189,226,.62) 100%);
   --drop-sheen:rgba(210,222,235,.12)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop{
   background:linear-gradient(180deg,var(--drop-sheen) 0%,rgba(210,222,235,0) 40%),
     radial-gradient(58% 46% at 50% 100%,rgba(183,175,220,.16) 0%,rgba(183,175,220,0) 100%),rgba(195,207,230,.05)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::before{background:radial-gradient(closest-side,rgba(221,234,240,.75),rgba(221,234,240,0))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop::before{background:radial-gradient(closest-side,rgba(221,234,240,.75),rgba(221,234,240,0))}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:rgba(189,202,226,calc(.14 * var(--sdk,1)));
   box-shadow:inset 0 6px 7px -6px rgba(15,15,29,calc(.45 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(64,56,104,calc(.4 * (1 + (1 - var(--sdk,1)) * .7))),
     inset 0 0 0 1px rgba(203,215,232,calc(.14 * (1 + (1 - var(--sdk,1)) * 3))),0 0 12px rgba(154,170,211,.18)}
@@ -2286,9 +2289,9 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),rgba(255,255,255,.02)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop{background:var(--wd-glint),rgba(255,255,255,.02)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{background:var(--wd-glint),rgba(255,255,255,.03);box-shadow:var(--drop-sh)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::before{display:none}   /* its glint is the layer above now */
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop::before{display:none}   /* its glint is the layer above now */
 /* 3. THE KNOBS - a bead of water on the track: what is under it shows through, lit and bent at its edge */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
 :root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle]:not(.press) .knob{
@@ -2313,10 +2316,10 @@ body.amenu-open .wl-logo{opacity:0}
    shadow it throws. And NOTHING BENT (2026-09-28: «искажаются буквы … это касается всего, где можно выбирать по
    пунктам»): the drop goes with the finger, so its rim is always crossing a line of writing, and a bend there broke
    the letters. The writing under it is magnified whole instead (.pk-on). The same for the switches' knobs. */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop{background:var(--wd-glint),rgba(255,255,255,.01);
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop{background:var(--wd-glint),rgba(255,255,255,.01);
   box-shadow:0 9px 20px -9px rgba(3,5,18,.6),0 2px 5px -2px rgba(3,5,18,.3),
     inset 0 0 0 .6px rgba(228,238,255,.3),inset 1px 1.3px 1px -.6px rgba(240,247,255,.78),inset -1px -1.3px 1.1px -.6px rgba(205,218,255,.34)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk>.pk-drop::after{padding:1px;
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop::after{padding:1px;
   background:linear-gradient(var(--lit-a,151deg),rgba(232,244,255,.7) 0%,rgba(232,244,255,0) 20%,rgba(232,244,255,0) 80%,rgba(214,204,255,.42) 100%)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
 :root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle]:not(.press) .knob{
@@ -2350,6 +2353,25 @@ body.amenu-open .wl-logo{opacity:0}
 #boot.out .bt-ico{transform:scale(1.85);opacity:0;transition:transform .56s cubic-bezier(.3,0,.2,1),opacity .3s ease .12s}
 #boot.out .bt-bar,#boot.out .bt-name{opacity:0;transition:opacity .2s ease;animation:none}
 @media (prefers-reduced-motion:reduce){ #boot.out{--bt-r:0px;opacity:0;transition:opacity .3s ease} #boot.out .bt-ico{transform:none} }
+
+/* «Выход из приложения» - the back button at the app's root asks first, as cTrader does (exitAsk) */
+.xdlg-scrim{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.42);opacity:0;transition:opacity .2s ease}
+.xdlg-scrim.on{opacity:1}
+.xdlg{width:min(100%,340px);border-radius:28px;padding:22px 20px 14px 24px;background:var(--card);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);
+  transform:scale(.88);opacity:.6;transition:transform .42s cubic-bezier(.3,1.4,.5,1),opacity .2s ease}
+.xdlg-scrim.on .xdlg{transform:none;opacity:1}
+.xdlg h3{margin:0 0 10px;font-size:20px;font-weight:600;line-height:1.25}
+.xdlg p{margin:0 0 20px;font-size:15px;line-height:1.4;color:var(--ink2)}
+.xdlg-b{display:flex;justify-content:flex-end;gap:8px}
+.xdlg-b button{min-width:82px;padding:11px 18px;border:0;border-radius:999px;font-size:15px;font-weight:600;background:none;color:var(--blue-ink)}
+.xdlg-b button[data-x="yes"]{background:var(--blue);color:#fff}
+.xdlg-b button:active{transform:scale(.96);transition:transform var(--mo-micro)}
+:root[data-glass="on"] .xdlg-scrim{background:rgba(0,0,0,.3)}
+:root[data-glass="on"] .xdlg{background:var(--sheet-glass);
+  -webkit-backdrop-filter:blur(calc(26px * var(--lgsb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc(26px * var(--lgsb,1))) saturate(var(--lgsat,1.4));
+  box-shadow:0 24px 60px rgba(0,0,0,.4),inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
+:root[data-theme="dark"][data-glass="on"] .xdlg{background-color:rgba(30,33,53,.82)}
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"] .xdlg{background-color:rgba(28,28,31,.82)}
 
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
@@ -2711,6 +2733,9 @@ const I18N = {
 "Разрешить экстремум":["Allow extreme","Дозволити екстремум","Autoriser l'extrême","Aşırıya izin ver"],
 "Да":["Yes","Так","Oui","Evet"],
 "Нет":["No","Ні","Non","Hayır"],
+"Выход из приложения":["Exit the app","Вихід із застосунку","Quitter l’application","Uygulamadan çıkış"],
+"Вы уверены, что хотите выйти из приложения?":["Are you sure you want to exit the app?","Ви впевнені, що хочете вийти із застосунку?","Voulez-vous vraiment quitter l’application ?","Uygulamadan çıkmak istediğinizden emin misiniz?"],
+"Нажмите «Назад» ещё раз, чтобы выйти":["Press Back again to exit","Натисніть «Назад» ще раз, щоб вийти","Appuyez encore sur Retour pour quitter","Çıkmak için Geri'ye tekrar basın"],
 "Запуск":["Run","Запуск","Lancer","Çalıştır"],
 "Мин. движение $":["Min move $","Мін. рух $","Mouvement min $","Min hareket $"],
 "Макс. движение $":["Max move $","Макс. рух $","Mouvement max $","Maks hareket $"],
@@ -5453,7 +5478,7 @@ document.addEventListener("pointerdown", e => {
   const inner = e.target.closest("button, a, input, select, textarea");
   if(inner && inner !== el && el.contains(inner)) return;
   const P = _rip = { el, id: e.pointerId, x: e.clientX, y: e.clientY, shown: null };
-  P.timer = setTimeout(() => { if(_rip === P && !P.shown) P.shown = rippleShow(el, P.x, P.y); }, 110);
+  P.timer = setTimeout(() => { if(_rip === P && !P.shown) P.shown = rippleShow(el, P.x, P.y); }, 60);   // (was 110: «долго заходит в золото»)
 }, { capture: true, passive: true });
 document.addEventListener("pointermove", e => {
   const P = _rip;
@@ -5493,7 +5518,7 @@ document.addEventListener("click", e => {                         // capture: be
         const m1 = modalEl;
         _ripReplay = el; el.click(); _ripReplay = null;
         if(!el.isConnected || (!!modalEl && modalEl !== m1) || el.closest(".modal.closing")) R.box.remove(); else rippleFade(R);
-      }, el.matches(RIPPLE_WAVE) ? 190 : 140);
+      }, el.matches(RIPPLE_WAVE) ? 80 : 70);                       // a quick tap shows its ripple for a few frames, then goes (was 190 / 140)
       return;
     }
   }
@@ -9669,9 +9694,16 @@ function pickDrop(host, rowSel, ready){
   host.addEventListener("click", e => { if(!s.self && performance.now() - s.pickT < 450){ e.stopPropagation(); e.preventDefault(); } }, true);
 }
 function pkKick(){ if(!_pkRaf){ _pkRaf = 1; moAdd(pkFrame); } }
+// where the menu's own coordinates (its content box, scrolled) are on the screen, this frame
+function pkOrigin(s){
+  const h = s.host, r = h.getBoundingClientRect();
+  return { x: r.left + h.clientLeft - h.scrollLeft, y: r.top + h.clientTop - h.scrollTop };
+}
+/* ON THE PAGE, over its menu (user 2026-09-28: a lens inside the menu's see-through glass showed every letter twice -
+   the bent one over the straight one): out here what it bends is the whole picture, solid, as the tab bar's drop sees */
 function pkLens(s){
   if(!s.lens){ s.lens = document.createElement("span"); s.lens.className = "pk-drop idle"; s.lens.setAttribute("aria-hidden", "true"); }
-  if(s.lens.parentNode !== s.host){ s.host.appendChild(s.lens); s.bw = 0; }   // last: over the rows it bends (a menu rebuilt on its way back drops it)
+  if(s.lens.parentNode !== document.body){ document.body.appendChild(s.lens); s.bw = 0; }
   return s.lens;
 }
 // the row under the finger. The one it is on keeps it 10 px past its edges (the gap between two cards, a separator);
@@ -9753,14 +9785,20 @@ function pkPut(s){
   const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
   if(bw !== s.bw || bh !== s.bh){
     s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px";
+    // water under it (Chromium): the row's writing is magnified by the drop itself, not by growing the row
+    const wl = LG_LENS && glassOn("refract");
+    l.backdropFilter = wl ? "url(#" + lgWaterFilter(bw, bh) + ") saturate(1.06)" : "";
+    s.host.classList.toggle("pk-lens", wl);
   }
   // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
   const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14);
   // lifted it stands a little past its row - taller more than wider, a drop not a plate; sinking it squashes
-  const p = s.pop || 0, ph = h * (p >= 0 ? .13 * p : .09 * p), pw = s.w * (p >= 0 ? .025 * p : -.035 * p);
+  const j = (s.j || 0) * WATER;                                  // the slosh: taller and narrower, then the other way
+  const p = s.pop || 0, ph = h * ((p >= 0 ? .13 * p : .09 * p) + j), pw = s.w * ((p >= 0 ? .025 * p : -.035 * p) - .3 * j);
   const w = Math.max(1, s.w - nw + pw), hh = Math.max(1, h + ph);
   const rad = Math.min(w, hh) / 2, sx = w / bw, sy = hh / bh;
-  l.transform = "translate(" + (s.x + (nw - pw) / 2).toFixed(2) + "px," + (s.top - ph / 2).toFixed(2) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
+  const o = pkOrigin(s);
+  l.transform = "translate(" + (o.x + s.x + (nw - pw) / 2).toFixed(2) + "px," + (o.y + s.top - ph / 2).toFixed(2) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
   l.borderRadius = (rad / sx).toFixed(2) + "px / " + (rad / sy).toFixed(2) + "px";   // round on screen, after the scale
   l.opacity = s.f.toFixed(3);
   const idle = s.f < .005; if(lens._idle !== idle){ lens._idle = idle; lens.classList.toggle("idle", idle); }
@@ -9769,7 +9807,7 @@ function pkFrame(now){
   _pkRaf = 0;
   let busy = false;
   for(const s of _pk){
-    if(!s.host.isConnected || !s.lens){ _pk.delete(s); continue; }
+    if(!s.host.isConnected || !s.lens){ if(s.lens) s.lens.remove(); _pk.delete(s); continue; }
     const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : MO.dt0;
     s.t = now;
     if(s._tk !== s.tt + s.tb){ s._tk = s.tt + s.tb; s._dn = (s.tt + s.tb) > (s.top + s.bot); }
@@ -9783,6 +9821,8 @@ function pkFrame(now){
     }
     s.top = nt; s.bot = nb;
     for(let n = MO.steps(dt), h = dt / n; n > 0; n--){ s.pv = MO.sp(s.pv || 0, s.pop || 0, s.drag ? 1 : 0, SEG_LIFT, h); s.pop = (s.pop || 0) + s.pv * h; }
+    const vc = ((s.vt || 0) + (s.vb || 0)) / 2, jt = Math.min(Math.abs(vc) * .0004, .14);
+    s.jv = MO.sp(s.jv || 0, s.j || 0, jt, MO.P.jelly, dt); s.j = (s.j || 0) + s.jv * dt;
     s.vx = MO.sp(s.vx, s.x, s.tx, MO.P.fluid, dt); s.x += s.vx * dt;
     s.vw = MO.sp(s.vw, s.w, s.tw, MO.P.fluid, dt); s.w += s.vw * dt;
     const home = Math.abs(s.top - s.tt) < .25 && Math.abs(s.bot - s.tb) < .25 && Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25
@@ -9792,8 +9832,8 @@ function pkFrame(now){
     s.f += (s.tf - s.f) * (1 - Math.exp(-dt / (s.tf > s.f ? .045 : .11)));
     if(!s.tf && s.f < .005) s.f = 0;
     pkPut(s);
-    const calm = Math.abs(s.pop || 0) < .003 && Math.abs(s.pv || 0) < .05;
-    if(!s.drag && !s.tf && !s.f && home && calm){ s.t = 0; s.pop = s.pv = 0; _pk.delete(s); continue; }
+    const calm = Math.abs(s.pop || 0) < .003 && Math.abs(s.pv || 0) < .05 && Math.abs(s.j || 0) < .002 && Math.abs(s.jv || 0) < .02;
+    if(!s.drag && !s.tf && !s.f && home && calm){ s.t = 0; s.pop = s.pv = 0; s.lens.remove(); _pk.delete(s); continue; }
     if(!home || !calm || Math.abs(s.f - s.tf) > .002) busy = true; else s.t = 0;
   }
   if(busy){ _pkRaf = 1; moAdd(pkFrame); }
@@ -12097,9 +12137,16 @@ function dispLive(v){
 function lgRainBind(el, w, h, sc, rad, rm, tail){
   el._dispP = dispPlace(el);
   const edge = DISP.top ? "t" : "b";
-  el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, el._dispP) + ")" + tail : null);
-  el._dispL = -1;
-  _lgRain.add(el); lgRainApply(el);
+  el._dispF = null; el._dispL = -1;
+  _lgRain.add(el);
+  clearTimeout(el._dispT);
+  const build = () => {
+    if(!el.isConnected) return;
+    if(_rainRaf){ el._dispT = setTimeout(build, 200); return; }     // not in the middle of a scroll
+    el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, el._dispP) + ")" + tail : null);
+    el._dispL = -1; lgRainApply(el);
+  };
+  el._dispT = setTimeout(build, 280);
 }
 /* THE SPEED COMES FROM THE SCROLL EVENTS THEMSELVES - where the page is and when (user's video 2026-09-25: the
    readout said «Скорость 0 px/с» while a finger ran the sample). It used to come from the frames: the scroll event
@@ -12238,6 +12285,57 @@ function lgPanelMap(w, h, rad, band){
   const url = cv.toDataURL();
   _lgMaps.set(key, url);
   return url;
+}
+/* WATER (user 2026-09-28: «самого эффекта стекла опять нету, я же просил сделать анимацию как в воде, что бы был эффект
+   жидкого стекла»). The menu drop is a lens again - but a drop of WATER, not glass with a hard rim: like a bead on a
+   pane it magnifies what is under its middle (a quarter taller, a tenth wider), and draws it in smoothly toward its
+   edge, where it lets go of it at exactly nothing. The rim lens before it broke the letters it crossed («искажаются
+   буквы»): it moved the picture most AT the rim and nothing just past it, so a letter half under the edge was torn in
+   two. Here the move is nought at the rim, all the way round (the local half-height at the round ends too): a letter
+   crossing it is squeezed toward the edge and joins itself outside. Its rim also catches the light (lgGlowStage).
+   Offsets per axis, s = y(1-k) + k·y³/b²: ×1/(1-k) in the middle, ×1/(1+2k) at the edge. */
+function lgWaterMap(w, h){
+  const key = "W" + w + "x" + h;
+  if(_lgMaps.has(key)) return _lgMaps.get(key);
+  const r = h / 2, a = w / 2, KY = .2, KX = .08, n = w * h;
+  const ox = new Float32Array(n), oy = new Float32Array(n), ed = new Float32Array(n);
+  let S = .01;
+  for(let y = 0; y < h; y++){
+    const Y = y + .5 - r, al = a - r + Math.sqrt(Math.max(0, r * r - Y * Y));        // this row's half-length
+    for(let x = 0; x < w; x++){
+      const X = x + .5 - a, i = y * w + x;
+      const ex = Math.max(0, Math.abs(X) - (a - r)), bl = ex > 0 ? Math.sqrt(Math.max(0, r * r - ex * ex)) : r;   // this column's half-height
+      let dx = 0, dy = 0;
+      if(Math.abs(Y) < bl){ const q = Y / bl; dy = -Y * KY * (1 - q * q); }
+      if(Math.abs(X) < al){ const q = X / al; dx = -X * KX * (1 - q * q); }
+      ox[i] = dx; oy[i] = dy; ed[i] = r - Math.hypot(ex, Y);                        // how far in from the rim
+      S = Math.max(S, Math.abs(dx), Math.abs(dy));
+    }
+  }
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
+  for(let i = 0; i < n; i++){ const j = i * 4; d[j] = 128 + 127 * ox[i] / S; d[j + 1] = 128 + 127 * oy[i] / S; d[j + 2] = lgGlowAt(ed[i]); d[j + 3] = 255; }
+  g.putImageData(img, 0, 0);
+  const out = { url: cv.toDataURL(), scale: 2 * S };
+  _lgMaps.set(key, out);
+  return out;
+}
+function lgWaterFilter(w, h){
+  w = Math.max(8, Math.round(w)); h = Math.max(8, Math.round(h));
+  const id = "lgW" + w + "x" + h;
+  if(_lgIds.has(id)) return id;
+  lgDefsReady();
+  const m = lgWaterMap(w, h), NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
+  fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
+  fl.setAttribute("color-interpolation-filters", "sRGB");
+  el("feImage", { href: m.url, x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
+  const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: "o" });
+  d._s = m.scale; d._c = 0; d._fixed = true; d._sp = 0; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d);
+  lgGlowStage(fl, el);
+  _lgDefs.appendChild(fl);
+  _lgIds.add(id);
+  return id;
 }
 function lgPanelFilter(w, h, rad, band, scale){
   const id = "lgP" + w + "x" + h + "r" + rad + "b" + band + "s" + scale;
@@ -14178,6 +14276,61 @@ async function xcResync(){
 }
 
 /* ---------------- boot ---------------- */
+/* THE BACK BUTTON - Android's gesture or key (user 2026-09-28: «нужно реализовать систему выхода, у нас это сразу
+   выходит, а у cTrade спрашивает»). The page keeps one step of history in hand, so a back comes to us instead of
+   leaving: it closes what is open first (a menu, a sheet, the drawer, a full-screen chart), then walks back the way
+   a person came (the symbol → «Рынки», a tab → «Рынки»), and only at the root does it leave - in the installed app
+   after asking, «Выход из приложения»; in a browser tab it just leaves, as a web page does. */
+const BACK_SA = !!((window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone);
+let _backOn = false, _exitDlg = null;
+function backArm(){ try{ history.pushState({ xcb: 1 }, ""); }catch(e){} }
+function backInit(){
+  if(_backOn) return; _backOn = true;
+  try{ if(!(history.state && history.state.xcb === 1)){ history.replaceState({ xcb: 0 }, ""); backArm(); } }catch(e){ return; }   // (a reload keeps the step it had)
+  addEventListener("popstate", e => {
+    if(e.state && e.state.xcb === 1) return;
+    if(backStep()){ backArm(); return; }
+    if(BACK_SA) exitAsk();
+    else history.back();
+  });
+}
+function backStep(){
+  if(_exitDlg){ exitClose(); return true; }
+  const lq = Object.keys(_lqM);
+  if(lq.length){ lq.forEach(k => lqMenuClose(k)); return true; }
+  if(_otMenu){ otMenuClose(); return true; }
+  if(_lotList){ closeLotList(); return true; }
+  if(modalEl){ closeModal(); return true; }
+  if(_chartFull){ _chartFull = false; chartStopFling(); render(); return true; }
+  const bk = document.querySelector('#app [data-act="back"]');
+  if(bk){ bk.click(); return true; }
+  if(typeof S !== "undefined" && S && S.ui && S.ui.tab && S.ui.tab !== "markets" && XC.booted){ nav("markets"); return true; }
+  return false;
+}
+function exitAsk(){
+  if(_exitDlg) return;
+  const sc = _exitDlg = document.createElement("div");
+  sc.className = "xdlg-scrim";
+  sc.innerHTML = `<div class="xdlg" role="alertdialog" aria-modal="true" aria-labelledby="xdlgT"><h3 id="xdlgT">${L("Выход из приложения")}</h3><p>${L("Вы уверены, что хотите выйти из приложения?")}</p><div class="xdlg-b"><button type="button" data-x="no">${L("Нет")}</button><button type="button" data-x="yes">${L("Да")}</button></div></div>`;
+  document.body.appendChild(sc);
+  requestAnimationFrame(() => requestAnimationFrame(() => sc.classList.add("on")));
+  const no = () => { exitClose(); backArm(); };
+  sc.addEventListener("click", e => { if(e.target === sc) no(); });
+  sc.querySelector('[data-x="no"]').onclick = no;
+  sc.querySelector('[data-x="yes"]').onclick = () => {
+    exitClose();
+    try{ window.close(); }catch(e){}
+    // a page cannot always close its own window: then the step in hand is already spent, and the next back leaves
+    setTimeout(() => { if(document.visibilityState === "visible") toast("", L("Нажмите «Назад» ещё раз, чтобы выйти")); }, 300);
+  };
+}
+function exitClose(){
+  const sc = _exitDlg; if(!sc) return;
+  _exitDlg = null;
+  sc.classList.remove("on");
+  setTimeout(() => sc.remove(), 240);
+}
+backInit();
 /* THE OPENING OPENS the moment the first screen - the app, the sign-in, a mirror - is in #app, two frames later (so
    it has been drawn behind it); twelve seconds at most, whatever happens */
 (function bootOpen(){
