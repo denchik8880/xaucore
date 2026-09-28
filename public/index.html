@@ -12029,8 +12029,10 @@ function lgDefsReady(){
 // the displacement map of a w×h drop (its rim bends toward the core), drawn once per size
 // rim: a bend only in a narrow band at the rim (px), none inside — the slider's drop (its track shows through its middle
 // undistorted and bends only along its ends, as in the user's reference)
-function lgMap(w, h, rad, rim){
-  const key = w + "x" + h + (rad ? "r" + rad : "") + (rim ? "b" + rim : "");
+// part: "m" the face's magnifier alone, "w" the rim's wall alone (the tab drops lay them one after the other, so only
+// the wall splits the colour - see lgFilterId); nothing: both together, as every other lens has them
+function lgMap(w, h, rad, rim, part){
+  const key = w + "x" + h + (rad ? "r" + rad : "") + (rim ? "b" + rim : "") + (part || "");
   if(_lgMaps.has(key)) return _lgMaps.get(key);
   // a capsule / circle (r = half the short side) unless a corner radius is given (the slider's rounded-rectangle drop)
   // rim: the width of the band that carries the hard wall. POSITIVE also turns the whole-face magnifier off
@@ -12048,9 +12050,10 @@ function lgMap(w, h, rad, rim){
       // the wall of a rounded glass edge: gentle where the face turns over, running away in the last fraction of
       // a millimetre. That last stretch is what squeezes what is behind real glass into a bright ring.
       const wall = t <= 0 ? 0 : t * t * (3 - 2 * t) * .52 + Math.pow(t, 5) * .62;
-      mx = dx / dist * wall; my = dy / dist * wall;
+      if(part !== "m"){ mx = dx / dist * wall; my = dy / dist * wall; }
     }
-    if(rim < 0){
+    if(part === "w"){}
+    else if(rim < 0){
       // the lens itself, about the drop's own CENTRE, so the middle of the face swells too. Aiming at the core
       // alone leaves a capsule with no sideways bend at all through its middle - the one part of the drop the
       // label actually lives under.
@@ -12126,7 +12129,7 @@ function lgMotionMap(w, h, rad, rim, edge, k){
 // disperses at any setting, and its fringe is the width of a letter stroke. A TENTH apart, not the fifth I had:
 // the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
 // noise instead of a word with a coloured edge.
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp != null ? dm._sp : dispDropSp())) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp != null ? dm._sp : dispDropSp() * (dm._spk || 1))) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){
   for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
   if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
@@ -12140,6 +12143,9 @@ function lgScaleAll(){
    new map and a new filter every 4 px - measured in the preview, three quick sweeps over the order types built 18
    of each and swapped the filter 121 times, frames of 50-100 ms: the jerks and the dropped frames (user 2026-09-26:
    «проседает в фпс и может как-то дергаться»). Stretched, its bend band widens with it, as a stretched drop's would. */
+// the tab drops' rim: how much harder than the face it bends (its wall is a pass of its own now), and how much wider
+// than the old whole-face split it fans the colour (it only does so in the band at the rim)
+const LG_TAB_RIM = 1.8, LG_TAB_SP = 1.6;
 function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch, glow){
   scale = scale || 22;
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
@@ -12150,10 +12156,22 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch, glow){
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
-  el("feImage", { href: lgMap(w, h, rad, rim), x: 0, y: 0, width: stretch ? "100%" : w, height: stretch ? "100%" : h, preserveAspectRatio: "none", result: "m" });
+  // THE TAB DROPS (a chroma lens with its magnifier kept, rim < 0): the face is magnified in one pass, every colour
+  // alike, and only then does the rim's wall bend it - in three passes, harder than before, and those three are the
+  // ones that come apart. On the real cTrader (iOS 26, user's frame) the word under a travelling drop is red and
+  // clean in the middle and bent round the curve at the rim, where the colour fans out; ours split the whole face
+  // and outlined every letter in yellow and magenta.
+  const rimSplit = !!chroma && rim < 0;
+  if(rimSplit){
+    el("feImage", { href: lgMap(w, h, rad, rim, "m"), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "mm" });
+    const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "mm", xChannelSelector: "R", yChannelSelector: "G", result: "mg" });
+    d._s = scale; d._c = 0; d._fixed = !!fixed; d._sp = 0; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d);
+  }
+  el("feImage", { href: rimSplit ? lgMap(w, h, rad, rim, "w") : lgMap(w, h, rad, rim), x: 0, y: 0, width: stretch ? "100%" : w, height: stretch ? "100%" : h, preserveAspectRatio: "none", result: "m" });
+  const SRC = rimSplit ? "mg" : "SourceGraphic", RIMK = rimSplit ? LG_TAB_RIM : 1;
   // the rim-only lenses (the iOS glass) split their colour wider than the tab drops do: on the video the edge
   // squeezes what is under it into a line and fans it out into a plain rainbow
-  const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : null; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
+  const dm = (c, res, src) => { const d = el("feDisplacementMap", { in: SRC, in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: res }); d._s = scale * RIMK; d._c = c; d._fixed = !!fixed; d._sp = rim > 0 ? .35 : null; d._spk = rimSplit ? LG_TAB_SP : 1; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d); return d; };
   if(!chroma) dm(0, "o");
   else {
     // the split below adds three alphas together, so it needs an opaque backdrop or it darkens everything it
