@@ -354,10 +354,18 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    self-shadow) and the one we never had. It follows the same distant light the rest of the app uses, so the
    drop is lit from where everything else is lit, and it brightens as the drop clears: on glass this is what
    reads as glass. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;pointer-events:none;
+/* ITS LOOK IS DRAWN AT ITS REAL SIZE (user 2026-09-28: «выпуклость капельки … по краям чуть-чуть нарушилась, пропорционально
+   надо»). The drop is a box of one size scaled into shape - its lens map is drawn for that box - so whatever it painted
+   was scaled with it: on an end tab (x0.86 across, x1.12 down) the lit rim, the lip and the inner shade came out
+   thinner at the sides and thicker at the top and bottom, and the bulge read lopsided. They live on a skin inside it
+   now, scaled back out (1/sx, 1/sy) to the drop's size on screen, so every band keeps its width all the way round. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{position:absolute;left:0;top:0;width:calc(100% * var(--sx,1));height:calc(100% * var(--sy,1));
+  transform-origin:0 0;transform:scale(calc(1 / var(--sx,1)),calc(1 / var(--sy,1)));border-radius:999px;pointer-events:none}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;pointer-events:none;
   background:linear-gradient(var(--lit-a,151deg),var(--nav-spec) 0%,transparent 26%,var(--nav-specd) 50%,transparent 74%,var(--nav-spec2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc(1 - var(--lf,0));background:var(--nav-bub);
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc(1 - var(--lf,0))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:var(--nav-bub);
   /* the bright line runs the whole way round, not just down the sides - measured on the reference at the top
      and bottom rims too, four or five levels over the body */
   box-shadow:inset 0 7px 8px -7px var(--nav-lip),inset 0 -7px 8px -7px var(--nav-lip),
@@ -2291,7 +2299,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),rgba(195,207,230,calc(.12 * var(--sdk,1)));
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{background:var(--wd-glint),var(--nav-bub);
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:var(--wd-glint),var(--nav-bub);
   box-shadow:0 6px 14px -6px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--dk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.62),
     inset 0 -3px 5px -2px rgba(185,220,255,.44),inset 0 0 10px -2px rgba(4,6,20,calc(.42 * var(--dk,1)))}
 /* 2. THE LENSES THAT FOLLOW A FINGER - over their bend, the same glint and gathered light */
@@ -10374,7 +10382,7 @@ function bottomNav(){
   const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b, NB.lift);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     ${row}
   </div>`;
 }
