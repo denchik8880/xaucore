@@ -2607,13 +2607,13 @@ const I18N = {
 "Светлая":["Light","Світла","Clair","Açık"],
 "Тёмная":["Dark","Темна","Sombre","Koyu"],
 "🌙 Тёмная":["🌙 Dark","🌙 Темна","🌙 Sombre","🌙 Koyu"],
-"Аврора":["Aurora","Аврора","Aurore","Aurora"],
+"Сияние":["Glow","Сяйво","Lueur","Işıltı"],
 "FOMC: ставка повышена на {0}% → {1}%":["FOMC: rate hiked by {0}% → {1}%","FOMC: ставку підвищено на {0}% → {1}%","FOMC : taux relevé de {0} % → {1} %","FOMC: faiz {0}% artırıldı → %{1}"],
 "FOMC: ставка понижена на {0}% → {1}%":["FOMC: rate cut by {0}% → {1}%","FOMC: ставку знижено на {0}% → {1}%","FOMC : taux abaissé de {0} % → {1} %","FOMC: faiz {0}% indirildi → %{1}"],
 "FOMC: ставка без изменений — {0}%":["FOMC: rate unchanged — {0}%","FOMC: ставку не змінено — {0}%","FOMC : taux inchangé — {0} %","FOMC: faiz değişmedi — %{0}"],
-"🌌 Аврора":["🌌 Aurora","🌌 Аврора","🌌 Aurore","🌌 Aurora"],
-"🌌 Тема «Аврора»":["🌌 Aurora theme","🌌 Тема «Аврора»","🌌 Thème Aurore","🌌 Aurora teması"],
-"Тема «Аврора»":["Aurora theme","Тема «Аврора»","Thème Aurore","Aurora teması"],
+"🌌 Сияние":["🌌 Glow","🌌 Сяйво","🌌 Lueur","🌌 Işıltı"],
+"🌌 Тема «Сияние»":["🌌 Glow theme","🌌 Тема «Сяйво»","🌌 Thème Lueur","🌌 Işıltı teması"],
+"Тема «Сияние»":["Glow theme","Тема «Сяйво»","Thème Lueur","Işıltı teması"],
 "💧 Жидкое стекло":["💧 Liquid Glass","💧 Рідке скло","💧 Verre liquide","💧 Sıvı Cam"],
 "Жидкое стекло":["Liquid Glass","Рідке скло","Verre liquide","Sıvı Cam"],
 "💳 Брокерский кошелёк":["💳 Broker wallet","💳 Брокерський гаманець","💳 Portefeuille courtier","💳 Aracı kurum cüzdanı"],
@@ -6635,7 +6635,7 @@ function openGlassSheet(){
   // ONLY THE THEME THAT IS ON (user 2026-09-28: «должна показываться и регулироваться только та тема, которая включена,
   // а не 3 сразу»): each theme still keeps its own clarity, and switching themes brings that theme's slider here
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
-    row(cur, cur === "light" ? "Светлая тема" : cur === "dark" ? "Тёмная тема" : "Тема «Аврора»") +
+    row(cur, cur === "light" ? "Светлая тема" : cur === "dark" ? "Тёмная тема" : "Тема «Сияние»") +
     `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
     dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Затемнение") + dial("shadow", "Тень") +
     `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
@@ -6895,7 +6895,7 @@ const TH_MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 15.1
 // «Аврора»: the northern lights - three curtains of light rising, a star over them
 const TH_AUR = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.6 20.6c.3-5.2 2.1-9.8 5-14"/><path d="M10.3 20.6c.3-4.7 2-8.8 4.9-12"/><path d="M16 20.6c.4-3.7 1.8-6.8 4-9"/></g><circle cx="18.7" cy="4.7" r="1.5" fill="currentColor"/></svg>';
 const TH_ICO = { light: TH_SUN, dark: TH_MOON, aurora: TH_AUR };
-const TH_NAME = { light: "Светлая", dark: "Тёмная", aurora: "Аврора" };
+const TH_NAME = { light: "Светлая", dark: "Тёмная", aurora: "Сияние" };   // (the theme was «Аврора» until 2026-09-28; its key stays)
 let _thSlide = null;                    // the stop (0 … 1) the knob left, while a switch is under way
 function themeSwitchMarkup(){
   const t = currentTheme();
@@ -6931,7 +6931,7 @@ function setTheme(t){
   S.ui.theme = thOk(t);
   smoothSwap(() => { applyTheme(S.ui.theme); applyClarity(glassClarity()); render(); });   // the theme's own clarity comes with it
   save();
-  toast("", S.ui.theme === "aurora" ? L("🌌 Тема «Аврора»") : S.ui.theme === "dark" ? L("🌙 Тёмная тема") : L("☀️ Светлая тема"));
+  toast("", S.ui.theme === "aurora" ? L("🌌 Тема «Сияние»") : S.ui.theme === "dark" ? L("🌙 Тёмная тема") : L("☀️ Светлая тема"));
 }
 /* canvas can't read CSS vars directly — resolve them once per theme */
 function themeColors(){
@@ -7841,7 +7841,7 @@ function screenMore(){
       ${glassOn("switches") ? themeSwitchMarkup() : `<div class="seg theme" id="themeSeg" style="margin-top:8px">
         <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}" aria-pressed="${currentTheme()==="light"}"><span>${L("☀️ Светлая")}</span><span class="ck" aria-hidden="true">✓</span></button>
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
-        <button data-theme-set="aurora" class="${currentTheme()==="aurora"?"on":""}" aria-pressed="${currentTheme()==="aurora"}"><span>${L("🌌 Аврора")}</span><span class="ck" aria-hidden="true">✓</span></button>
+        <button data-theme-set="aurora" class="${currentTheme()==="aurora"?"on":""}" aria-pressed="${currentTheme()==="aurora"}"><span>${L("🌌 Сияние")}</span><span class="ck" aria-hidden="true">✓</span></button>
       </div>`}
       <div class="sw-row"><span class="k">${L("💧 Жидкое стекло")}</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
