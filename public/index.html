@@ -1980,13 +1980,13 @@ body.amenu-open .wl-logo{opacity:0}
 /* SELL / BUY: the big blocks a shade deeper still - the colour they took as a fifth-clear glass over the night
    (a see-through fill showed a hairline where the two halves of a button meet, so it is written out solid); the
    concave corners are drawn in the same colour (they read var(--red/--green)) */
-:root[data-tone="aurora"] .ctp{--red:#c83c3a;--green:#2aa453}
+:root[data-tone="aurora"] .ctp{--red:#c8414b;--green:#1f9e69}
 :root[data-tone="aurora"] .ctp-cap{box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 :root[data-tone="aurora"] .ctp-px{margin-top:-1px}   /* the two halves overlap a pixel: no seam of the night between them */
 /* EVERY BIG FILLED BUTTON takes the deeper red and green of SELL / BUY (user: «везде есть проблема с насыщенностью»,
    the agent's shots): the symbol's «График» trade bar, the order book's buttons, «Закрыть позиции», «Сохранить /
    Сбросить», the ticket's «Разместить ордер». iOS's full red and green stay for text, candles and small marks. */
-:root[data-tone="aurora"] :is(.cht,.btn.green,.btn.red,.ot-go){--green:#2aa453;--red:#c83c3a}
+:root[data-tone="aurora"] :is(.cht,.btn.green,.btn.red,.ot-go){--green:#1f9e69;--red:#c8414b}
 :root[data-tone="aurora"] .ot-g .ot-go{background-image:linear-gradient(180deg,rgba(255,255,255,.14),transparent 62%)}
 /* toasts: the iOS hues, dense enough to stay clean over the night (thin, the orange went a muddy brown) */
 :root[data-tone="aurora"] .toast.g{background:#23864a}:root[data-tone="aurora"] .toast.r{background:#b23a36}:root[data-tone="aurora"] .toast.o{background:#b8741c}
@@ -1994,8 +1994,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.r{background:rgba(186,58,54,.86)}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="toasts"]) .toast.o{background:rgba(196,124,30,.86)}
 /* the chart's trade bar: the same red and green, less of them in the glass */
-:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#c83c3a 62%,transparent)}
-:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#2aa453 62%,transparent)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.sell{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#c8414b 62%,transparent)}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="tradebar"]) :is(body.route-chart,.chartcard) .cht.buy{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 58%),color-mix(in srgb,#1f9e69 62%,transparent)}
 /* the cells */
 :root[data-tone="aurora"] .card,:root[data-tone="aurora"] .lrow,:root[data-tone="aurora"] .menu-item{background:var(--aur-card);
   box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--aur-hi)}
@@ -2372,6 +2372,24 @@ body.amenu-open .wl-logo{opacity:0}
   box-shadow:0 24px 60px rgba(0,0,0,.4),inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 :root[data-theme="dark"][data-glass="on"] .xdlg{background-color:rgba(30,33,53,.82)}
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"] .xdlg{background-color:rgba(28,28,31,.82)}
+
+/* THE COLOURS OF A TERMINAL, in «Аврора» (user 2026-09-28: «интерфейс … сделать лучше по цветам», «больше что бы на
+   реальное было похоже»). iOS's system green and red are made for switches and badges; on prices and candles over a
+   night-blue ground they read neon - the look of a mock-up. The figures, the candles and the big SELL / BUY take a
+   trading screen's green and red (calmer, still clean; the UI keeps iOS's blue). The glass keeps its shadow but loses
+   the violet halo that made every piece look painted, and the lot / spread / session chips are plain terminal chips.
+   Colours only: nothing here moves, flashes or ticks. */
+:root[data-theme="dark"][data-tone="aurora"]{--green-ink:#35c98b;--red-ink:#f0626a;--candle-up:#2bb880;--candle-down:#e8505a;
+  --green-bg:rgba(53,201,139,.14);--red-bg:rgba(240,98,106,.14)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{
+  --lg-lift1:0 1px 2px rgba(8,9,18,calc(.32 * var(--lgsh,1))),0 8px 20px -6px rgba(8,9,18,calc(.44 * var(--lgsh,1)));
+  --lg-lift2:0 1.5px 3px rgba(8,9,18,calc(.34 * var(--lgsh,1))),0 16px 34px -8px rgba(8,9,18,calc(.5 * var(--lgsh,1)));
+  --lg-lift3:0 2px 5px rgba(8,9,18,calc(.34 * var(--lgsh,1))),0 28px 62px -14px rgba(8,9,18,calc(.56 * var(--lgsh,1)))}
+:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew,:root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew{
+  box-shadow:0 0 0 .5px rgba(203,215,232,.34),var(--lg-lift2),inset 0 1.5px 1px rgba(224,233,241,.6),inset 0 -1.5px 2px rgba(205,189,226,.28),inset 0 0 0 1px rgba(216,225,239,.08)}
+:root[data-theme="dark"][data-tone="aurora"] .miniquick button,:root[data-theme="dark"][data-tone="aurora"] .spreadchip{background:rgba(235,235,245,.075);box-shadow:inset 0 0 0 .5px rgba(235,235,245,.1);color:var(--ink)}
+/* the sky behind the data: still the northern lights, a step further back */
+:root[data-tone="aurora"][data-sky] body::after{opacity:.8}
 
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
@@ -6869,8 +6887,8 @@ function themeColors(){
     axis:  g("--chart-axis", "#9aa1ab"),
     cross: g("--chart-cross", "#9aa1ab"),
     tag:   g("--chart-tag", "#111418"),
-    up:    g("--green", "#0aa85f"),
-    down:  g("--red", "#e5342b"),
+    up:    g("--candle-up", "") || g("--green", "#0aa85f"),
+    down:  g("--candle-down", "") || g("--red", "#e5342b"),
     blue:  g("--blue", "#2f7bf6"),
     orange:   g("--orange", "#f5820d"),
     orangeBg: g("--orange-bg", "#fff2e2"),
