@@ -615,6 +615,11 @@ body.route-chart .chtrade-wrap{background:var(--chart-bg)}
 .cht.buy .cht-grip{right:9.5px}
 .cht-lbl{font-size:14px;line-height:15px;white-space:nowrap}
 .cht-px{display:block;max-width:100%;font-size:17px;line-height:18px;white-space:nowrap;overflow:hidden}
+/* cTrader's bar writes its words and figures in its white at two thirds - only the arrow is full white (the user's frame of
+   the real one, 2026-09-28: «в оригинале цифры чуть-чуть затемненные»; measured #ffc5ab on its orange, #a7e2c2 on its
+   green). Where the glass is off; the glass bar keeps its own. */
+:root:not([data-glass="on"]) .cht:not(.exec),:root[data-lgoff~="tradebar"] .cht:not(.exec){color:rgba(255,255,255,.66)}
+:root:not([data-glass="on"]) .cht .cht-dir,:root[data-lgoff~="tradebar"] .cht .cht-dir{color:#fff}
 .cht-lot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:72px;height:40px;padding:3px 9px 0 8.5px;
   display:flex;flex-direction:column;align-items:flex-start;background:var(--card);color:var(--ink);border-radius:0 0 9px 9px}
 body.route-chart .cht-lot{background:var(--chart-bg)}
