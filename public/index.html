@@ -3713,9 +3713,10 @@ function seedMarket(){
   S.candles = {};
   const counts = { M1:720, M5:520, M15:420, M30:380, H1:360, H4:300, D1:200 };
   for(const tf of TF_ORDER){
-    S.candles[tf] = genBars(counts[tf], TF[tf], startMid, now).slice(-TF_CAP[tf]);
+    S.candles[tf] = genBars(counts[tf], TF[tf], startMid, now);
   }
   S.simClock = now;
+  S.hist = histNew();                                              // a new market: its chart's history starts here
   S.lastSimDay = simDateStr(now);
   buildDefaultEvents();
   startRegime(null);
@@ -4003,6 +4004,8 @@ function shiftSimTime(ms){
   S.simClock += ms;
   S.lastSimDay = day(S.lastSimDay);
   for(const tf in S.candles) for(const b of (S.candles[tf] || [])) b.t += sec;
+  if(S.hist) S.hist.shift = (S.hist.shift || 0) + sec;             // the kept chunks carry their time before every shift
+  histShiftLoaded(sec);
   for(const p of (S.positions || [])){ p.openTime += ms; p.lastSwapDay = day(p.lastSwapDay); }
   for(const o of (S.pendings || [])) if(o.createTime) o.createTime += ms;
   for(const h of (S.history || [])){ if(h.openTime) h.openTime += ms; if(h.closeTime) h.closeTime += ms; }
@@ -5078,6 +5081,148 @@ function runDayTests(n){
 }
 function simulateDayOffline(){ return simDaysOffline(1).days[0]; }   // back-compat
 
+/* ---------------- the chart's history ----------------
+   THE WHOLE HISTORY, from the account's first bar (user 2026-09-28: «пускай история золота на графике хранится, когда
+   человек только создал аккаунт, а то сейчас нельзя всю историю смотреть»). The state keeps the newest few hundred bars
+   of each timeframe (TF_CAP) - it is saved every second and must stay small - and everything older used to be thrown
+   away. Now, once a timeframe holds a chunk's worth past its cap, the oldest chunk is cut off whole and kept: on this
+   device (IndexedDB) and on the account (/api/hist), immutable, numbered from the first (k = 0). The chart reads them
+   back as the finger takes it past its oldest bar.
+   - gen: the market's generation - a reset or a new account starts a new one, and the old chunks are never read again;
+   - shift: every whole-day move of the game clock since the market began (shiftSimTime); a chunk keeps its bars' time
+     before it, so no kept chunk ever has to be rewritten, and a bar's time on the chart is its kept time + shift. */
+const HIST_CH = { M1:400, M5:200, M15:200, M30:200, H1:200, H4:100, D1:50 };
+const histNew = () => ({ gen: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), k: {}, shift: 0 });
+// a chunk: the first bar's time and open, then six whole numbers a bar (bars in the timeframe's steps, cents, volume)
+function histEncode(bars, tfSec, shift){
+  const b0 = bars[0], t0 = b0.t - shift, p0 = Math.round(b0.o * 100), out = [];
+  let pt = t0, pc = p0;
+  for(const b of bars){
+    const t = b.t - shift, o = Math.round(b.o * 100), h = Math.round(b.h * 100), l = Math.round(b.l * 100), c = Math.round(b.c * 100);
+    out.push(Math.round((t - pt) / tfSec), o - pc, h - Math.max(o, c), Math.min(o, c) - l, c - o, Math.round(b.v || 0));
+    pt = t; pc = c;
+  }
+  return JSON.stringify({ v: 1, s: tfSec, t: t0, p: p0, b: out });
+}
+function histDecode(js, shift){
+  const d = typeof js === "string" ? JSON.parse(js) : js, s = d.s, b = d.b || [], out = [];
+  let t = d.t, pc = d.p;
+  for(let i = 0; i + 5 < b.length; i += 6){
+    t += b[i] * s;
+    const o = pc + b[i + 1], c = o + b[i + 4], h = Math.max(o, c) + b[i + 2], l = Math.min(o, c) - b[i + 3];
+    out.push({ t: t + shift, o: o / 100, h: h / 100, l: l / 100, c: c / 100, v: b[i + 5] });
+    pc = c;
+  }
+  return out;
+}
+// this device's copy: IndexedDB (a chunk is kept here first, then sent; one not yet sent is sent again later)
+let _hdb = null;
+function histDB(){
+  if(_hdb) return _hdb;
+  _hdb = new Promise((res, rej) => {
+    try{
+      const q = indexedDB.open("xc_hist", 1);
+      q.onupgradeneeded = () => { try{ q.result.createObjectStore("c"); }catch(e){} };
+      q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+    }catch(e){ rej(e); }
+  });
+  _hdb.catch(() => { _hdb = null; });
+  return _hdb;
+}
+const histKey = (gen, tf, k) => LS_KEY + "|" + gen + "|" + tf + "|" + k;
+async function histIdb(mode, key, val){
+  const db = await histDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction("c", mode === "get" ? "readonly" : "readwrite"), st = tx.objectStore("c");
+    const q = mode === "get" ? st.get(key) : st.put(val, key);
+    q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+  });
+}
+// the account's copy: only a signed-in device that drives the market sends (a local page has no server behind it)
+const histServer = () => typeof XC !== "undefined" && !!XC.token && location.hostname !== "127.0.0.1" && location.hostname !== "localhost";
+async function histSend(gen, tf, k, data){
+  await xcApi("PUT", "/api/hist", { gen, tf, k, data, sid: XC.sid });
+  try{ await histIdb("put", histKey(gen, tf, k), { data, up: 1 }); }catch(e){}
+}
+let _histRetryT = 0;
+const histRetry = () => { if(!_histRetryT) _histRetryT = setTimeout(histFlush, 60000); };
+// the chunks this device kept but could not send yet (offline, a failed request): sent again, oldest first
+async function histFlush(){
+  _histRetryT = 0;
+  if(!histServer() || XC.follower || !S || !S.hist) return;
+  const H = S.hist;
+  try{
+    for(const tf of TF_ORDER) for(let k = 0; k < (H.k[tf] || 0); k++){
+      const row = await histIdb("get", histKey(H.gen, tf, k));
+      if(row && !row.up) await histSend(H.gen, tf, k, row.data);
+    }
+  }catch(e){ histRetry(); }
+}
+function histStore(gen, tf, k, data){
+  histIdb("put", histKey(gen, tf, k), { data, up: 0 }).catch(() => {})
+    .then(() => histServer() && !XC.follower ? histSend(gen, tf, k, data) : null)
+    .catch(histRetry);
+}
+// the oldest chunk of a timeframe, off the state and into the history
+function histCut(tf, arr){
+  const H = S.hist || (S.hist = histNew());
+  const bars = arr.splice(0, HIST_CH[tf]);
+  const k = H.k[tf] || 0;
+  H.k[tf] = k + 1;
+  histStore(H.gen, tf, k, histEncode(bars, TF[tf], H.shift || 0));
+  // a chart that has scrolled into the history keeps it whole: the cut chunk joins its newest end
+  if(_histLo[tf] != null){ const old = _histOld[tf] || (_histOld[tf] = []); for(const b of bars) old.push(b); _histCombo[tf] = null; }
+}
+// the history read back for the chart: _histOld[tf] holds chunks _histLo[tf] … H.k[tf] - 1, oldest first, in chart time
+let _histOld = {}, _histLo = {}, _histBusy = {}, _histCombo = {}, _histSeen = { gen: null, shift: 0 };
+function histShiftLoaded(sec){
+  for(const tf in _histOld) for(const b of _histOld[tf]) b.t += sec;
+  _histSeen.shift += sec; _histCombo = {};
+}
+// the state it reads against: a new market drops what was read; a state from elsewhere with another shift moves it
+function histFresh(){
+  const H = S && S.hist;
+  if(!H) return false;
+  if(_histSeen.gen !== H.gen){ _histOld = {}; _histLo = {}; _histCombo = {}; _histSeen = { gen: H.gen, shift: H.shift || 0 }; }
+  else if(_histSeen.shift !== (H.shift || 0)) histShiftLoaded((H.shift || 0) - _histSeen.shift);
+  return true;
+}
+async function histFetch(gen, tf, k){
+  try{ const row = await histIdb("get", histKey(gen, tf, k)); if(row && row.data) return row.data; }catch(e){}
+  if(!histServer()) return null;
+  const r = await xcApi("GET", "/api/hist?gen=" + encodeURIComponent(gen) + "&tf=" + tf + "&k=" + k);
+  if(r && r.data){ try{ await histIdb("put", histKey(gen, tf, k), { data: r.data, up: 1 }); }catch(e){} return r.data; }
+  return null;
+}
+// one chunk further back, for the chart (nothing once it has reached the market's first bar, or a chunk never kept)
+function histMore(tf){
+  if(!histFresh() || _histBusy[tf]) return;
+  const H = S.hist;
+  if(_histLo[tf] == null){ _histLo[tf] = H.k[tf] || 0; _histOld[tf] = []; }
+  const k = _histLo[tf] - 1;
+  if(k < 0) return;
+  _histBusy[tf] = true;
+  const gen = H.gen;
+  histFetch(gen, tf, k).then(data => {
+    if(!S.hist || S.hist.gen !== gen || _histLo[tf] !== k + 1) return;
+    if(!data){ _histLo[tf] = 0; return; }                           // a chunk this account never kept: the history ends here
+    const bars = histDecode(data, S.hist.shift || 0);
+    _histOld[tf] = bars.concat(_histOld[tf] || []); _histLo[tf] = k; _histCombo[tf] = null;
+    if(tf === S.ui.chartTF) chartDraw();
+  }).catch(() => {}).finally(() => { _histBusy[tf] = false; });
+}
+// the chart's bars: the history read back so far, then the state's own - one array, rebuilt only when either changes
+function chartData(tf){
+  const cur = (S && S.candles[tf]) || [];
+  if(!histFresh()) return cur;
+  const old = _histOld[tf];
+  if(!old || !old.length) return cur;
+  let c = _histCombo[tf];
+  if(!c || c.cur !== cur || c.n !== cur.length || c.first !== cur[0] || c.old !== old || c.on !== old.length)
+    c = _histCombo[tf] = { cur, n: cur.length, first: cur[0], old, on: old.length, a: old.concat(cur) };
+  return c.a;
+}
+
 /* ---------------- candles ---------------- */
 function updateCandles(){
   const tsec = Math.floor(S.simClock/1000);
@@ -5093,7 +5238,7 @@ function updateCandles(){
       const sameDay = last && Math.floor(last.t/86400) === Math.floor(bt/86400);
       const o = sameDay ? last.c : price;
       arr.push({ t:bt, o, h:Math.max(o,price), l:Math.min(o,price), c:price, v:vol });
-      if(arr.length > TF_CAP[tf]) arr.splice(0, arr.length - TF_CAP[tf]);
+      if(arr.length > TF_CAP[tf] + HIST_CH[tf]) histCut(tf, arr);
     }else{
       last.h = Math.max(last.h, price);
       last.l = Math.min(last.l, price);
@@ -11889,7 +12034,7 @@ function chartDraw(){
    space — at most 40 bars and 30% of the plot (where a fling stops in a cTrader recording).
    Left: the oldest bar stops at the plot's left edge. */
 function chartOffsetLimits(){
-  const data = (S && S.candles[S.ui.chartTF]) || [];
+  const data = S ? chartData(S.ui.chartTF) : [];
   const unit = chart.barW + chart.gap, barsW = chart._barsW || 300;
   return { min: -Math.min(40, 0.3 * barsW / unit), max: Math.max(0, data.length - Math.floor(barsW / unit)) };
 }
@@ -13285,7 +13430,7 @@ function drawChart(){
   ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
 
   const tf = S.ui.chartTF;
-  const data = S.candles[tf] || [];
+  const data = chartData(tf);
   if(!data.length) return;
   const bw = chart.barW, gap = chart.gap, unit = bw+gap;
   const plotW = W - padR;               // gridlines / price lines end here, the axis begins
@@ -13300,6 +13445,7 @@ function drawChart(){
   let endIdx = off <= 0 ? data.length : clamp(data.length - offW, 1, data.length);
   const offF = off <= 0 ? off : (endIdx === data.length - offW ? off - offW : 0);   // never slides past the oldest bar
   let startIdx = Math.max(0, endIdx - nVisible - 2);                        // + the bars peeking in on the left
+  if(startIdx < nVisible) histMore(tf);                                      // within a screen of the oldest bar: the chunk before it
   // «›|» back to the newest bar — shown only while scrolled back, like cTrader's
   const lastBtn = document.getElementById("chLast");
   if(lastBtn){
@@ -14354,6 +14500,9 @@ function screenReset(msg, kind){
 /* ---------- state fixups applied whenever S is (re)loaded ---------- */
 function normalizeState(){
   const d = DEFAULTS();
+  if(!S.hist || typeof S.hist !== "object" || !S.hist.gen) S.hist = histNew();
+  if(!S.hist.k || typeof S.hist.k !== "object") S.hist.k = {};
+  if(!isFinite(S.hist.shift)) S.hist.shift = 0;
   if(!S.candles || !S.candles.M1 || !S.candles.M1.length) seedMarket();
   if(!S.news) S.news = d.news;
   if(!S.lock) S.lock = { active:false, until:0 };
@@ -14404,6 +14553,7 @@ function finishBoot(){
   syncBadge();
 
   wireLifecycle();
+  setTimeout(histFlush, 8000);                    // history chunks kept here but not sent (offline last time) go now
 }
 
 /* one-time — finishBoot() re-runs after logout/login, addEventListener dedups the

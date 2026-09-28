@@ -207,5 +207,6 @@ export default async function handler(req, res) {
 
   // DELETE — wipe the account's simulation (used by "reset")
   await db.execute({ sql: "DELETE FROM states WHERE user_id = ?", args: [user.id] });
+  await db.execute({ sql: "DELETE FROM hist WHERE user_id = ?", args: [user.id] });   // and its chart's history
   return json(res, 200, { ok: true });
 }

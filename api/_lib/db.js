@@ -56,6 +56,18 @@ const SCHEMA = [
      tries      INTEGER NOT NULL DEFAULT 0
    )`,
   `CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)`,
+  // the chart's history past what the state keeps (user 2026-09-28: «пускай история золота на графике хранится, когда
+  // человек только создал аккаунт»): the oldest bars of each timeframe, cut off in blocks, one immutable chunk a row.
+  // gen: the account's market (a reset starts a new one); k: the chunk's number, oldest first
+  `CREATE TABLE IF NOT EXISTS hist(
+     user_id TEXT NOT NULL,
+     gen     TEXT NOT NULL,
+     tf      TEXT NOT NULL,
+     k       INTEGER NOT NULL,
+     data    TEXT NOT NULL,
+     at      INTEGER NOT NULL,
+     PRIMARY KEY(user_id, gen, tf, k)
+   )`,
 ];
 
 /* Additive migrations for databases created before a column existed. SQLite has
