@@ -2412,6 +2412,33 @@ body.amenu-open .wl-logo{opacity:0}
    started anew on each of those frames, smoothing the spring away and costing a new animation a frame */
 :root[data-glass="on"] :is(.appbar .iconbtn,.sheet .close,.chfs,.chzoom button).pressing{transition:none}
 
+/* «Настройки графиков»: the candle pairs as cTrader shows them - rounded tiles, the one in use outlined with a ✓ */
+.ccs{background:var(--sheet-card,rgba(127,127,127,.08));border-radius:18px;padding:14px 12px 8px;margin-top:10px}
+.ccs-k{font-size:15px;font-weight:600;margin:0 2px 10px;color:var(--ink)}
+.ccs-row{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:9px 4px 10px;margin:-9px -4px 0}
+.ccs-row::-webkit-scrollbar{display:none}
+.ccs-sw{position:relative;flex:0 0 auto;width:66px;height:60px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);display:grid;place-items:center;padding:0}
+.ccs-sw svg{width:44px;height:33px;display:block}
+.ccs-sw.on{border:2px solid var(--ink)}
+.ccs-ck{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:var(--ink);display:none;box-shadow:0 0 0 2px var(--card)}
+.ccs-ck::after{content:"";position:absolute;left:7.5px;top:4px;width:5px;height:10px;border:solid var(--card);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ccs-sw.on .ccs-ck{display:block}
+.ccs-custom{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:6px 2px;border:0;background:none;color:var(--ink);font-size:15px;text-align:left}
+.ccs-custom svg{width:24px;height:24px;flex:none}
+.ccs-custom span:first-of-type{flex:1}
+.ccs-custom .chev{color:var(--ink3)}
+.ccp-prev{display:grid;place-items:center;height:86px;border-radius:18px;background:var(--chart-bg,var(--card));margin-top:2px}
+.ccp-prev svg{width:100px;height:72px;display:block}
+.ccp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:10px 6px;padding:2px 0 6px}
+.ccp-dot{position:relative;width:32px;height:32px;border-radius:50%;border:0;padding:0;background:var(--c);box-shadow:inset 0 0 0 1px rgba(127,127,127,.4);justify-self:center;cursor:pointer}
+.ccp-dot.on{box-shadow:inset 0 0 0 1px rgba(127,127,127,.4),0 0 0 2px var(--card),0 0 0 4px var(--ink)}
+.ccp-any{display:block;background:conic-gradient(#e5142b,#f5a524,#f2c94c,#15c07a,#12b5cb,#2f72f2,#af52de,#ff2d92,#e5142b);overflow:hidden}
+.ccp-any::after{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--card)}
+.ccp-any input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:0;padding:0}
+.ccp-btns{margin-top:14px}
+.cc-mini svg{width:30px;height:22px;display:inline-block;vertical-align:middle;margin-right:6px}
+.lg-pop .cc-mini svg{width:26px;height:19px;margin:0}
+
 /* the drops' rim reads the light on the drop itself (litWrite writes it there): a token declared only on :root was worked
    out there, with the page's light, whatever the drop's own was */
 :is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 24%,rgba(16,24,40,.07) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.7) 100%)}
@@ -2926,6 +2953,20 @@ const I18N = {
 "до":["to","до","à","en çok"],
 "· маржа ≈":["· margin ≈","· маржа ≈","· marge ≈","· teminat ≈"],
 "Готово":["Done","Готово","Terminé","Tamam"],
+"Настройки графиков":["Chart settings","Налаштування графіків","Paramètres des graphiques","Grafik ayarları"],
+"Тема":["Theme","Тема","Thème","Tema"],
+"Задать пользовательские цвета":["Set custom colours","Задати власні кольори","Définir des couleurs personnalisées","Özel renkler belirle"],
+"Пользовательские цвета":["Custom colours","Власні кольори","Couleurs personnalisées","Özel renkler"],
+"Как в теме":["As the theme","Як у темі","Comme le thème","Temadaki gibi"],
+"Оранжевый и зелёный":["Orange and green","Помаранчевий і зелений","Orange et vert","Turuncu ve yeşil"],
+"Красный и бирюзовый":["Red and teal","Червоний і бірюзовий","Rouge et turquoise","Kırmızı ve turkuaz"],
+"Красный и зелёный":["Red and green","Червоний і зелений","Rouge et vert","Kırmızı ve yeşil"],
+"Красный и синий":["Red and blue","Червоний і синій","Rouge et bleu","Kırmızı ve mavi"],
+"Растущая свеча":["Rising candle","Висхідна свічка","Bougie haussière","Yükselen mum"],
+"Падающая свеча":["Falling candle","Низхідна свічка","Bougie baissière","Düşen mum"],
+"Другой цвет":["Another colour","Інший колір","Autre couleur","Başka renk"],
+"Сбросить к теме":["Back to the theme","Повернути тему","Revenir au thème","Temaya dön"],
+"Цвета графика":["Chart colours","Кольори графіка","Couleurs du graphique","Grafik renkleri"],
 "Исполнение:":["Executing:","Виконання:","Exécution :","Gerçekleştiriliyor:"],
 "ордер исполнен":["order filled","ордер виконано","ordre exécuté","emir gerçekleşti"],
 "ордер отправлен":["order sent","ордер надіслано","ordre envoyé","emir gönderildi"],
@@ -6513,8 +6554,10 @@ const tfPill = () => document.querySelector('.chpill[data-act="charttf"]');
 function openTFPop(pill){
   lqMenu("tf", pill, { sel: '.chpill[data-act="charttf"]',
     build: pop => {
-      pop.innerHTML = TF_ORDER.map(tf => `<button type="button" role="menuitem" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("");
+      pop.innerHTML = TF_ORDER.map(tf => `<button type="button" role="menuitem" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("")
+        + `<div class="lq-sep" role="separator"></div><button type="button" role="menuitem" data-cc-open><span>${L("Цвета графика")}</span><b class="cc-mini" aria-hidden="true">${(p => ccSwatch(p.up, p.down))(ccNow())}</b></button>`;
       pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = () => { setChartTF(b.dataset.tfpick); closeTFPop(); });
+      pop.querySelector("[data-cc-open]").onclick = () => { closeTFPop(true); openChartColors(); };
     },
     place: (pop, a) => {
       const W = Math.min(220, innerWidth - 16); pop.style.width = W + "px";
@@ -7120,7 +7163,89 @@ function themeColors(){
     orange:   g("--orange", "#f5820d"),
     orangeBg: g("--orange-bg", "#fff2e2"),
   };
+  const cc = chartColPair();                                        // the account's own candle colours (Настройки графиков)
+  if(cc){ _themeColors.up = cc.up; _themeColors.down = cc.down; }
   return _themeColors;
+}
+
+/* ---------- CHART COLOURS ----------
+   «Настройки графиков» (user 2026-09-28, a cTrader screen: «сделайте выбор цвета графиков, как на скрине, что бы
+   пользователи могли ставить свои цвета»): a row of ready pairs - the theme's own first - and «Задать пользовательские
+   цвета» for any two. The pair is the account's (S.ui.chartCol: null = the theme's) and it colours what the chart
+   draws in rise and fall: every candle, the two price lines and their tags, the trades' marks - on both charts. The
+   rest of the app keeps its own reds and greens (the trade buttons, P&L), as cTrader's chart theme does. */
+const CHART_COL_PRESETS = [
+  { id: "theme", name: "Как в теме" },
+  { id: "og", name: "Оранжевый и зелёный", down: "#f26a21", up: "#128a48" },
+  { id: "rt", name: "Красный и бирюзовый", down: "#e8464f", up: "#13a08e" },
+  { id: "rg", name: "Красный и зелёный", down: "#e5142b", up: "#15c07a" },
+  { id: "rb", name: "Красный и синий", down: "#e5142b", up: "#2f72f2" },
+];
+const CHART_COL_PALETTE = ["#e5142b", "#f0626a", "#f26a21", "#f5a524", "#f2c94c", "#15c07a", "#128a48", "#13a08e",
+                           "#12b5cb", "#2f72f2", "#5856d6", "#af52de", "#ff2d92", "#8e8e93", "#ffffff", "#1c1c1e"];
+const ccHex = v => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v);
+function chartColPair(){
+  const c = typeof S !== "undefined" && S && S.ui && S.ui.chartCol;
+  return c && ccHex(c.up) && ccHex(c.down) ? c : null;
+}
+// the theme's own pair, whatever the account chose (the first swatch)
+function chartThemePair(){
+  const cs = getComputedStyle(document.documentElement), g = (n, fb) => cs.getPropertyValue(n).trim() || fb;
+  return { up: g("--candle-up", "") || g("--green", "#0aa85f"), down: g("--candle-down", "") || g("--red", "#e5342b") };
+}
+// four candles as cTrader draws its swatches: two falling, two rising
+const ccSwatch = (up, down) => `<svg viewBox="0 0 60 44" aria-hidden="true"><g stroke-width="1.6" stroke-linecap="round"><path d="M12 4v30M24 18v24" stroke="${down}"/><path d="M36 8v30M48 13v17" stroke="${up}"/></g>` +
+  `<g><rect x="8.5" y="10" width="7" height="16" rx="1" fill="${down}"/><rect x="20.5" y="25" width="7" height="11" rx="1" fill="${down}"/>` +
+  `<rect x="32.5" y="15" width="7" height="15" rx="1" fill="${up}"/><rect x="44.5" y="17" width="7" height="8" rx="1" fill="${up}"/></g></svg>`;
+const CC_PALETTE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10" cy="7" r="1.1" fill="currentColor"/><circle cx="14.5" cy="7" r="1.1" fill="currentColor"/><circle cx="17" cy="10.5" r="1.1" fill="currentColor"/></svg>`;
+// the pair shown now (for the «Ещё» row's little swatch)
+const ccNow = () => chartColPair() || chartThemePair();
+function setChartCol(v){
+  S.ui.chartCol = v; save();
+  _themeColors = null;
+  if(document.getElementById("chartCanvas")) chartDraw();
+  if(document.getElementById("miniCanvas")) try{ drawMini(); }catch(e){}
+  const p = ccNow();
+  document.querySelectorAll("[data-cc-row-sw]").forEach(el => { el.innerHTML = ccSwatch(p.up, p.down); });
+}
+function openChartColors(){
+  const cc = chartColPair(), th = chartThemePair();
+  const sel = cc ? (CHART_COL_PRESETS.some(p => p.id === cc.p) ? cc.p : "custom") : "theme";
+  const btn = (id, name, up, down) => `<button type="button" class="ccs-sw${sel === id ? " on" : ""}" data-ccp="${id}" aria-label="${L(name)}" aria-pressed="${sel === id}">${ccSwatch(up, down)}<i class="ccs-ck" aria-hidden="true"></i></button>`;
+  const row = CHART_COL_PRESETS.map(p => btn(p.id, p.name, p.up || th.up, p.down || th.down)).join("")
+            + (sel === "custom" ? btn("custom", "Пользовательские цвета", cc.up, cc.down) : "");
+  openSheet(`<h2>${L("Настройки графиков")}</h2><div class="ccs"><div class="ccs-k">${L("Тема")}</div><div class="ccs-row">${row}</div>` +
+    `<button type="button" class="ccs-custom" data-cc-custom>${CC_PALETTE_ICON}<span>${L("Задать пользовательские цвета")}</span><span class="chev" aria-hidden="true">›</span></button></div>`, "cc-sheet");
+  const m = modalEl;
+  m.querySelectorAll("[data-ccp]").forEach(b => b.onclick = () => {
+    const id = b.dataset.ccp, p = CHART_COL_PRESETS.find(q => q.id === id);
+    if(id === "custom") return;
+    setChartCol(id === "theme" ? null : { p: id, up: p.up, down: p.down });
+    m.querySelectorAll("[data-ccp]").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+  });
+  m.querySelector("[data-cc-custom]").onclick = openChartCustom;
+}
+function openChartCustom(){
+  const st = Object.assign({}, ccNow());
+  const pal = k => CHART_COL_PALETTE.map(c => `<button type="button" class="ccp-dot" data-k="${k}" data-c="${c}" style="--c:${c}" aria-label="${c}"></button>`).join("")
+    + `<label class="ccp-dot ccp-any" aria-label="${L("Другой цвет")}"><input type="color" data-k="${k}" value="${st[k]}"></label>`;
+  openSheet(`<h2>${L("Пользовательские цвета")}</h2><div class="ccp-prev" data-cc-prev></div>` +
+    `<div class="ccs"><div class="ccs-k">${L("Растущая свеча")}</div><div class="ccp-grid">${pal("up")}</div></div>` +
+    `<div class="ccs"><div class="ccs-k">${L("Падающая свеча")}</div><div class="ccp-grid">${pal("down")}</div></div>` +
+    `<div class="grid2 ccp-btns"><button type="button" class="btn ghost" data-cc-reset>${L("Сбросить к теме")}</button><button type="button" class="btn dark" data-cc-done>${L("Готово")}</button></div>`, "cc-sheet");
+  const m = modalEl;
+  const paint = () => {
+    m.querySelector("[data-cc-prev]").innerHTML = ccSwatch(st.up, st.down);
+    m.querySelectorAll(".ccp-dot[data-c]").forEach(d => d.classList.toggle("on", d.dataset.c === st[d.dataset.k]));
+    m.querySelectorAll(".ccp-any").forEach(l => { const i = l.querySelector("input"), k = i.dataset.k, mine = !CHART_COL_PALETTE.includes(st[k]);
+      l.classList.toggle("on", mine); l.style.setProperty("--c", st[k]); if(i.value !== st[k]) i.value = st[k]; });
+  };
+  const pick = (k, c) => { if(!ccHex(c)) return; st[k] = c.toLowerCase(); setChartCol({ p: "custom", up: st.up, down: st.down }); paint(); };
+  m.querySelectorAll(".ccp-dot[data-c]").forEach(d => d.onclick = () => pick(d.dataset.k, d.dataset.c));
+  m.querySelectorAll(".ccp-any input").forEach(i => i.addEventListener("input", () => pick(i.dataset.k, i.value)));
+  m.querySelector("[data-cc-reset]").onclick = () => { setChartCol(null); openChartColors(); };
+  m.querySelector("[data-cc-done]").onclick = openChartColors;
+  paint();
 }
 
 /* ---------- top-level render ---------- */
@@ -8010,6 +8135,7 @@ function screenMore(){
         <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
         <button data-theme-set="aurora" class="${currentTheme()==="aurora"?"on":""}" aria-pressed="${currentTheme()==="aurora"}"><span>${L("🌌 Сияние")}</span><span class="ck" aria-hidden="true">✓</span></button>
       </div>`}
+      <button type="button" class="row lang-row cc-row" data-act="chartcolors"><span class="k">${L("Настройки графиков")}</span><span class="v"><span class="cc-mini" data-cc-row-sw>${(p => ccSwatch(p.up, p.down))(ccNow())}</span><span class="chev" aria-hidden="true">›</span></span></button>
       <div class="sw-row"><span class="k">${L("💧 Жидкое стекло")}</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="dispset"><span class="k">${L("Дисперсия")}</span><span class="v"><span class="dv">${L(DISP.on ? "Вкл" : "Выкл")}</span><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
@@ -8860,8 +8986,10 @@ function tfSwap(snap, dir){
 function openChartTFSheet(){
   const pill = glassOn("morph") && document.querySelector('.chpill[data-act="charttf"]');
   if(pill) return openTFPop(pill);
-  openSheet(`<h2>${L("Таймфрейм")}</h2><div class="tfsheet">${TF_ORDER.map(tf => `<button type="button" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("")}</div>`);
+  openSheet(`<h2>${L("Таймфрейм")}</h2><div class="tfsheet">${TF_ORDER.map(tf => `<button type="button" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("")}</div>` +
+    `<button type="button" class="ccs-custom" data-cc-open>${CC_PALETTE_ICON}<span>${L("Цвета графика")}</span><span class="chev" aria-hidden="true">›</span></button>`);
   modalEl.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = ()=>{ closeModal(); setChartTF(b.dataset.tfpick); });
+  modalEl.querySelector("[data-cc-open]").onclick = openChartColors;
 }
 
 /* ---------- SETTINGS ---------- */
@@ -10306,6 +10434,7 @@ function bindScreen(){
   root.querySelectorAll('[data-act="symmenu"]').forEach(el => el.onkeydown = e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openSymMenu(el); } });
   act("glassfeats", openGlassSheet);
   act("dispset", openDispSheet);
+  act("chartcolors", openChartColors);
   act("newticket", ()=> openTicket());
   act("appmenu", ()=> openAppMenu());
   act("gotocal", ()=> nav("calendar"));
