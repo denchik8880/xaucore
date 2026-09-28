@@ -3262,6 +3262,7 @@ const NEWS_LABEL = { NFP:"NFP", CPI:"CPI", PPI:"PPI", FOMC:"FOMC", FED_SPEECH:"F
         of moves WITHIN a game-day, never a long-term ceiling. Editable in Settings. ---- */
 const DAYVOL_ORDER = ["LOW","NORMAL","ACTIVE","EXTREME"];
 const DAYVOL_RANGE = { LOW:[16,27], NORMAL:[26,46], ACTIVE:[45,75], EXTREME:[80,150] };
+const DAYVOL_STICK = 0.65;           // chance a day keeps yesterday's band: volatility comes in spells (a quiet week, a wild week)
 function dayVolProbDefaults(){ return { LOW:0.22, NORMAL:0.42, ACTIVE:0.26, EXTREME:0.10 }; }
 /* The bands above were written for gold near $2 600. Gold's volatility is roughly
    constant in PERCENT, so every $ amplitude of the engine scales by price / VOL_REF_PX. */
@@ -3642,12 +3643,23 @@ function fmtDur(ms){
 }
 
 /* ---------------- market sessions ---------------- */
+/* gold's activity hour by hour (UTC; 1 = an ordinary hour), after the real market's day: Tokyo / Shanghai 00-02, a quiet
+   Asian noon, London 07-10, US data 12:30 and the COMEX / New York open with the London PM fix 13-15 as the day's peak,
+   COMEX close 17:30, fading into the dead hour of the daily break 21-22. Every quiet hour sits BELOW the old flat
+   0.85 (Asia) / 0.70 (late) - calm ticks only got smaller - and the peak carries the day's range. */
+const HOUR_VOL = [0.66,0.66,0.66,0.64,0.60,0.64,0.66,0.93,0.98,0.98,0.95,0.95,1.50,1.85,1.85,1.60,1.35,1.10,0.95,0.85,0.75,0.46,0.50,0.56];
 let _sessJitterHour = -1, _sessJitter = 1;
 function sessionInfo(){
   const d = simDate();
   const h = d.getUTCHours() + d.getUTCMinutes()/60;
   const hourKey = Math.floor(S.simClock/3600000);
-  if(hourKey !== _sessJitterHour){ _sessJitterHour = hourKey; _sessJitter = clamp(0.78 + Math.abs(gauss())*0.42, 0.6, 1.9); }
+  if(hourKey !== _sessJitterHour){
+    // an hour's own mood drifts from the last one's (AR(1), same mean 1.11) instead of jumping anywhere in 0.6x..1.9x
+    // on the full hour - a quiet Asian hour no longer turns into a New York one on the minute
+    const fresh = clamp(0.78 + Math.abs(gauss())*0.42, 0.6, 1.9);
+    _sessJitter = _sessJitterHour < 0 || hourKey - _sessJitterHour > 1 ? fresh : 0.5 * _sessJitter + 0.5 * fresh;
+    _sessJitterHour = hourKey;
+  }
 
   const asian  = (h>=0 && h<9);
   const london = (h>=7 && h<16);
@@ -3658,13 +3670,7 @@ function sessionInfo(){
   if(london) names.push("London");
   if(ny)     names.push("New York");
   if(late)   names.push("Late");
-  let vol = 0.55;
-  if(asian)  vol = Math.max(vol, 0.85);     // low / medium
-  if(london) vol = Math.max(vol, 1.25);     // increased activity
-  if(ny)     vol = Math.max(vol, 1.40);     // high activity
-  if(london && ny) vol = 1.68;              // overlap
-  if(late)   vol = Math.max(0.7, vol*0.75); // usually calmer — but not absolute
-  if(!names.length) names = ["Off-hours"];
+  let vol = HOUR_VOL[d.getUTCHours()];      // gold's own hour-by-hour activity (see HOUR_VOL); the names stay as they were
   vol *= _sessJitter;                        // random variation — sessions aren't absolute
   return { names, vol: clamp(vol, 0.4, 2.6) };
 }
@@ -3961,14 +3967,13 @@ function advanceRegime(){
 /* ---- daily volatility band (target intraday Range) with volatility clustering ---- */
 function pickDayVol(){
   const pr = S.market.dayVolProbs || dayVolProbDefaults();
-  const bias = clamp((S.price.volCluster || 1) - 1, -0.45, 1.6);   // recent activity biases the band
-  const adj = {
-    LOW:     Math.max(0.02, (pr.LOW||0)    * (1 - bias*0.55)),
-    NORMAL:  (pr.NORMAL||0),
-    ACTIVE:  (pr.ACTIVE||0) * (1 + bias*0.45),
-    EXTREME: (pr.EXTREME||0)* (1 + bias*1.30)
-  };
-  const band = weightedKey(adj);
+  // real gold's volatility comes in SPELLS (a shock halves in ~1.6 months, WGC): a day keeps yesterday's band with
+  // DAYVOL_STICK, otherwise it draws afresh from the configured odds - a mixture that leaves every band's long-run share
+  // exactly as configured. (The old bias read S.price.volCluster, whose memory is ~half a game-hour and whose mean is
+  // ~1.3, so it never clustered anything and only skewed the odds: EXTREME 10 % -> 14-16 % of days, LOW 22 -> 17 %.)
+  const prev = S.day && S.day.band;
+  const band = prev && DAYVOL_RANGE[prev] && Math.random() < DAYVOL_STICK ? prev
+             : weightedKey({ LOW: pr.LOW || 0, NORMAL: pr.NORMAL || 0, ACTIVE: pr.ACTIVE || 0, EXTREME: pr.EXTREME || 0 });
   const [lo,hi] = DAYVOL_RANGE[band];
   let range = rnd(lo, hi);
   if(band === "EXTREME") range += expRand()*16;               // no hard upper cap
@@ -4210,7 +4215,7 @@ function marketTick(){
      a wiggle that is taken back next tick ..... bid/ask bounce (negative lag-1)
    The old AR(1) velocity made every tick continue the last one (lag-1 +0.49) and
    blew day ranges up to ~4x their band; real tick data does the opposite.      */
-const VOL_NORM = 0.9;            // calibration: realised day range ~ band x price scale
+const VOL_NORM = 0.55;           // calibration (a divisor): realised day range ~ band x price scale (0.9 before HOUR_VOL and the 30-43 min legs: the quiet hours are quieter now - calm ticks below the old ones at every percentile - and the day's range is the same)
 const SWING_SHARE = 0.78;        // share of the diffusion variance carried by swing legs. Gold's day is made of
                                  // LEGS, not of violent prints: most of the variance now rides the slow swing, so
                                  // the range of a day is unchanged while a single tick is a fraction of what it was
@@ -4240,8 +4245,11 @@ function priceStep(dt){
   const aft = newsAfterVol();
   let move = fatTail() * sigma * aft;
 
-  // swing legs — regimes with more momentum hold a leg longer (~50-95 game-min)
-  const tau = 2400 + 4800 * clamp(RG.mom, 0, 0.9);
+  // swing legs — regimes with more momentum hold a leg longer (~30-43 game-min; the report's 15-22 made the M1 chart,
+  // the one watched most, run in smooth 10-20-minute legs). At 64-86 min every hour kept the last
+  // hour's direction (H1 lag-1 autocorrelation +0.3, a day's variance 2.2x the sum of its hours; real gold's hours are
+  // independent). The swing's long-run variance does not depend on tau, so the day's range is unchanged.
+  const tau = 1200 + 2400 * clamp(RG.mom, 0, 0.9);
   const keep = Math.exp(-dt / tau);
   P.swing = (P.swing || 0) * keep + Math.sqrt(1 - keep*keep) * perSec * Math.sqrt(SWING_SHARE / (2*tau)) * gauss();
   move += P.swing * dt;
@@ -4269,9 +4277,11 @@ function priceStep(dt){
     if(B.push <= 0 && B.pull <= 0) P.burst = null;
   }
 
-  // resting liquidity at round $5 levels: an approach is often absorbed for a moment
-  const lvl = Math.round(P.mid / 5) * 5, toLvl = lvl - P.mid;
-  if(toLvl !== 0 && Math.abs(toLvl) < 0.6 * ps && Math.sign(move) === Math.sign(toLvl) && Math.random() < 0.3) move *= 0.35;
+  // resting liquidity at round $10 levels ($50 / $100 stronger): the price lingers ON a level - a move away from it is
+  // often absorbed for a moment. (The old rule damped the APPROACH to every $5 level, which kept the price OFF round
+  // numbers, 14 % under-occupied, with no support / resistance effect at all.) It only ever damps a move.
+  const lvl = Math.round(P.mid / 10) * 10, toLvl = lvl - P.mid, lvlW = lvl % 100 === 0 ? 2 : lvl % 50 === 0 ? 1.5 : 1;
+  if(Math.abs(toLvl) < 0.3 * ps && Math.sign(move) !== Math.sign(toLvl) && Math.random() < 0.22 * lvlW) move *= 0.3;
 
   // bid/ask bounce: a wiggle that is taken back on the next tick
   const jit = gauss() * sigma * 0.45;
@@ -4285,7 +4295,19 @@ function priceStep(dt){
   // manual impulse own the price and are allowed their gap.
   const calmTick = !S.news.active && !S.manual.impulse;
   const tickSd = dayStdev * Math.sqrt(dt / 86400);                 // what ONE tick of this day is worth
-  const cap = Math.max(tickSd * (calmTick ? 3.6 : 13) * aft, 0.015 * ps);
+  // the calm cap is what it always was in a quiet hour (sf <= 1); only in the busy hours does it open, with √sf -
+  // with the day's variance now at the US open, a quarter of those ticks were being clipped flat into staircases
+  const cap = Math.max(tickSd * (calmTick ? 3.6 * Math.sqrt(Math.max(1, sf)) : 13) * aft, 0.015 * ps);
+  // a consolidation's lean back toward its centre is part of THIS tick's move and goes through the cap too: added after
+  // it, a switch into a range regime with the price far from its 6-h centre printed one tick of 10-40 % of that
+  // distance ($9 on a LOW day in the Asian hour in a test, $20-40 in others) - exactly the big quiet tick
+  if(RG.rangePull > 0){
+    const dev0 = P.mid + move - P.ema, zone0 = dayRange * 0.6;
+    const half0 = ((S.regime && S.regime.channelHalf) || dayRange * 2 / ps) * ps;
+    const edge0 = Math.abs(dev0) > zone0 ? 1 - Math.exp(-RG.rangePull * 2 * (Math.abs(dev0)/zone0 - 1) * dt / 90) : 0;
+    const wall0 = Math.abs(dev0) > half0 ? clamp((Math.abs(dev0)/half0 - 1) * 0.6, 0, 0.4) : 0;
+    move -= dev0 * (edge0 + wall0);
+  }
   const want = move + (P.carry || 0), over = Math.abs(want) - cap;
   if(over > 0){                                                    // a knee, not a wall: past it a tick still grows, slower and slower
     move = Math.sign(want) * cap * (1 + 0.45 * (1 - Math.exp(-over / cap)));
@@ -4299,16 +4321,13 @@ function priceStep(dt){
   // the wide channel wall stops a range from wandering off. The old constant pull toward
   // a 1.5 h EMA made a range day net almost nothing (M30 variance ratio ~0.5): dead.
   if(RG.rangePull > 0){
-    const dev = P.mid - P.ema;
-    const zone = dayRange * 0.6;
-    const edge = Math.abs(dev) > zone ? 1 - Math.exp(-RG.rangePull * 2 * (Math.abs(dev)/zone - 1) * dt / 90) : 0;
-    const half = ((S.regime && S.regime.channelHalf) || dayRange * 2 / ps) * ps;
-    const wall = Math.abs(dev) > half ? clamp((Math.abs(dev)/half - 1) * 0.6, 0, 0.4) : 0;
-    P.mid += (P.ema - P.mid) * (edge + wall);
-    // real breakout out of a consolidation (≈ one every couple of game-days)
-    if(Math.random() < 0.00002 * dt){
+    const dev = P.mid - P.ema;                                     // (its lean back is already in this tick's move, above)
+    // real breakout out of a consolidation (≈ one every four game-days) - only out of a RANGE-like regime: BULL / BEAR /
+    // RECOVERY carry a small pull too, and letting them "break out" re-rolled the regime ~1.7 times a game-day and
+    // parked the market in STRONG_BULL / STRONG_BEAR (no pull - no way out) 85 % of the time
+    if(/RANGE|ACCUMULATION|DISTRIBUTION/.test((S.regime && S.regime.name) || "RANGE") && Math.random() < 0.000003 * dt){
       const dir = dev >= 0 ? 1 : -1;
-      startRegime(dir > 0 ? (Math.random()<0.5?"BULL":"STRONG_BULL") : (Math.random()<0.5?"BEAR":"STRONG_BEAR"));
+      startRegime(dir > 0 ? (Math.random()<0.7?"BULL":"STRONG_BULL") : (Math.random()<0.7?"BEAR":"STRONG_BEAR"));
       P.vel += dir * dayStdev * rnd(0.3, 0.8);
     }
   }
@@ -4368,11 +4387,14 @@ const _spr = { pts: 16, hold: 0 };
 function autoSpread(){
   const Q = _spr;
   if(Q.hold > 0){ Q.hold--; return Q.pts / 100; }
-  if(Math.random() < (Q.pts <= 17 ? 0.40 : 0.70)){
+  // still 16-24 points, but like a broker's book: the thin hours after New York and through the daily break (21-01 UTC)
+  // sit wide more often, the US open tight more often
+  const hr = new Date(S.simClock).getUTCHours(), thin = hr >= 21 || hr < 1, peak = hr >= 12 && hr < 16;
+  if(Math.random() < (Q.pts <= 17 ? (thin ? 0.15 : peak ? 0.50 : 0.40) : (thin ? 0.35 : peak ? 0.80 : 0.70))){
     Q.pts = Math.random() < 0.6 ? 16 : 17;
     Q.hold = weightedIdx([0.30, 0.45, 0.25]);                             // 1-3 ticks
   }else{
-    Q.pts = 18 + weightedIdx([0.30, 0.20, 0.17, 0.14, 0.10, 0.06, 0.03]);  // 18…24
+    Q.pts = 18 + weightedIdx(thin ? [0.12, 0.14, 0.16, 0.17, 0.16, 0.14, 0.11] : [0.30, 0.20, 0.17, 0.14, 0.10, 0.06, 0.03]);  // 18…24
     Q.hold = Math.random() < 0.8 ? 0 : 1;                                 // 1-2 ticks
   }
   return Q.pts / 100;
@@ -9926,6 +9948,12 @@ function pkFrame(now){
     if(!s.host.isConnected || !s.lens){ if(s.lens) s.lens.remove(); _pk.delete(s); continue; }
     const dt = s.t ? Math.min(Math.max((now - s.t) / 1000, 0), 1 / 30) : MO.dt0;
     s.t = now;
+    // ITS MENU IS GOING (user 2026-09-28 screenshot: a capsule left hanging over the chart after a timeframe was
+    // picked): a pick closes the menu at once and it drains into its button in a third of a second, while the drop
+    // was still landing on the row and melting after - alone over the page, then gone in one frame with the menu.
+    // Once the menu is on its way out (ready() says no) the drop does not land: it melts, faster than the menu drains.
+    const gone = !s.drag && !!s.ready && !s.ready();
+    if(gone && (s.tf || s.hold)){ s.tf = 0; s.hold = false; pkOn(s, null); }
     if(s._tk !== s.tt + s.tb){ s._tk = s.tt + s.tb; s._dn = (s.tt + s.tb) > (s.top + s.bot); }
     const down = s._dn;
     let nt = s.top, nb = s.bot;
@@ -9945,7 +9973,7 @@ function pkFrame(now){
       && Math.abs(s.vt) < 4 && Math.abs(s.vb) < 4 && Math.abs(s.vx) < 4 && Math.abs(s.vw) < 4;
     if(home){ s.top = s.tt; s.bot = s.tb; s.x = s.tx; s.w = s.tw; s.vt = s.vb = s.vx = s.vw = 0; }
     if(s.hold && home){ s.hold = false; s.tf = 0; pkOn(s, null); }  // landed on what was picked: now it melts
-    s.f += (s.tf - s.f) * (1 - Math.exp(-dt / (s.tf > s.f ? .045 : .11)));
+    s.f += (s.tf - s.f) * (1 - Math.exp(-dt / (s.tf > s.f ? .045 : gone ? .035 : .11)));
     if(!s.tf && s.f < .005) s.f = 0;
     pkPut(s);
     const calm = Math.abs(s.pop || 0) < .003 && Math.abs(s.pv || 0) < .05 && Math.abs(s.j || 0) < .002 && Math.abs(s.jv || 0) < .02;
