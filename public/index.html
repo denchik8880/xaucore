@@ -2391,6 +2391,10 @@ body.amenu-open .wl-logo{opacity:0}
 /* the sky behind the data: still the northern lights, a step further back */
 :root[data-tone="aurora"][data-sky] body::after{opacity:.8}
 
+/* a pressed glass button's swell is a spring written every frame (glassFrame): a CSS transition on its transform was
+   started anew on each of those frames, smoothing the spring away and costing a new animation a frame */
+:root[data-glass="on"] :is(.appbar .iconbtn,.sheet .close,.chfs,.chzoom button).pressing{transition:none}
+
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit{display:flex;position:absolute;inset:0;z-index:4;pointer-events:none;
@@ -3513,11 +3517,34 @@ function barJSON(b){
   _barJSON.set(b, { t:b.t, o:b.o, h:b.h, l:b.l, c:b.c, v:b.v, s });
   return s;
 }
+/* THE CLOSED TRADES AND THE DAY LOG, AS THE BARS ARE (2026-09-28, «фризы»): a closed trade and a finished day never change
+   after they are written - except when shiftSimTime moves every time in the state by whole days, which bumps _rowVer -
+   so each row is turned into JSON once and kept. They were re-serialised on every save (once a second) and every
+   push: on an active account ~190 KB, as much as the candles, a regular hitch on a phone. */
+let _rowVer = 0;
+const _rowJSON = new WeakMap();
+function rowsJSON(a){
+  const out = new Array(a.length);
+  for(let i = 0; i < a.length; i++){
+    const r = a[i];
+    if(r && typeof r === "object"){
+      const k = _rowJSON.get(r);
+      if(k && k.v === _rowVer){ out[i] = k.s; continue; }
+      const js = JSON.stringify(r); _rowJSON.set(r, { v: _rowVer, s: js }); out[i] = js;
+    }else out[i] = r === undefined ? "null" : JSON.stringify(r);
+  }
+  return "[" + out.join(",") + "]";
+}
+const ROWS_CACHED = ["history", "dayLog"];
 function stateJSON(){
   const C = S.candles;
   if(!C || typeof C !== "object" || Array.isArray(C)) return JSON.stringify(S);
-  const rest = {}, parts = [];
-  for(const k of Object.keys(S)) if(k !== "candles") rest[k] = S[k];
+  const rest = {}, parts = [], rows = [];
+  for(const k of Object.keys(S)){
+    if(k === "candles") continue;
+    if(ROWS_CACHED.includes(k) && Array.isArray(S[k])){ rows.push(JSON.stringify(k) + ":" + rowsJSON(S[k])); continue; }
+    rest[k] = S[k];
+  }
   for(const tf of Object.keys(C)){
     const a = C[tf];
     if(!Array.isArray(a)){ const s = JSON.stringify(a); if(s !== undefined) parts.push(JSON.stringify(tf) + ":" + s); continue; }
@@ -3526,7 +3553,7 @@ function stateJSON(){
     parts.push(JSON.stringify(tf) + ":[" + bars.join(",") + "]");
   }
   const head = JSON.stringify(rest);
-  return (head === "{}" ? "{" : head.slice(0, -1) + ",") + '"candles":{' + parts.join(",") + "}}";
+  return (head === "{}" ? "{" : head.slice(0, -1) + ",") + (rows.length ? rows.join(",") + "," : "") + '"candles":{' + parts.join(",") + "}}";
 }
 /* the body of PUT /api/state — the same JSON as { state: S, sid: XC.sid } */
 function statePutBody(){
@@ -3951,7 +3978,14 @@ function shiftSimTime(ms){
   for(const p of (S.positions || [])){ p.openTime += ms; p.lastSwapDay = day(p.lastSwapDay); }
   for(const o of (S.pendings || [])) if(o.createTime) o.createTime += ms;
   for(const h of (S.history || [])){ if(h.openTime) h.openTime += ms; if(h.closeTime) h.closeTime += ms; }
+  _rowVer++;                                                       // the kept JSON of those rows is stale now
   for(const e of (S.events || [])) if(e.time) e.time += ms;
+  // the news in progress and its aftermath run on the game clock too - left behind, a Fed move was undone and the event
+  // stayed open for a day's worth of game time
+  const N = S.news;
+  if(N){ for(const k of ["startSim", "relSim", "endSim"]) if(typeof N[k] === "number") N[k] += ms;
+    if(N.after){ N.after.from += ms; N.after.until += ms; } }
+  if(S._evNext && isFinite(S._evNext)) S._evNext += ms;
   for(const t of _tickBuf) t.t += ms;
   _lastShockMin = Math.floor(S.simClock / 60000);
 }
@@ -4030,7 +4064,7 @@ function engineFrame(){
   const closed = marketClosed();
 
   accumulateActiveTime();
-  if(S.day && (S.day.elapsedMs || 0) >= dayDurationMs()) rolloverDay();
+  if(S.day && (S.day.elapsedMs || 0) >= dayDurationMs() && !S.news.active) rolloverDay();   // never inside a release: the clock would jump under it
   advanceRegime();
 
   if(newsOn || impulseOn){
@@ -4836,7 +4870,7 @@ function startNews(type, ev){
   S.lock = { active:true, until: now + sc.duration*1000 };
   S._needRender = true;
   if(ev) ev.released = true;
-  closeModal();
+  if(!(modalEl && modalEl.querySelector(".ot-sheet"))) closeModal();   // an order being written is kept (placing is locked meanwhile)
   save();
 }
 function startGameNews(type, sc, ev, rel){
@@ -4850,7 +4884,7 @@ function startGameNews(type, sc, ev, rel){
   S.lock = sc.press ? { active: true, until: now + 3000 } : { active: false, until: 0 };
   S._needRender = true;
   if(ev) ev.released = true;
-  closeModal();
+  if(!(modalEl && modalEl.querySelector(".ot-sheet"))) closeModal();   // an order being written is kept
   save();
 }
 function endNews(){
@@ -5309,6 +5343,7 @@ function cancelPending(id){
    else it waits there (armed). */
 function processPendings(){
   const bid = S.price.bid, ask = S.price.ask, pip = Math.pow(10, -S.symbol.digits);
+  let acc = false;                                                 // the account brought up to date once a fill is near
   for(const o of [...S.pendings]){
     const side = o.type.startsWith("buy") ? "buy" : "sell", buy = side === "buy", dir = buy ? 1 : -1;
     const isStop = o.type.includes("stop"), stopLimit = o.type.endsWith("stop_limit");
@@ -5338,6 +5373,7 @@ function processPendings(){
     const i = S.pendings.findIndex(x=>x.id===o.id);
     if(i>=0) S.pendings.splice(i,1);
     const openComm = commissionFor(o.volume, px);
+    if(!acc){ recalcAccount(); acc = true; }                        // what the fills before this one took is counted
     if((o.volume*S.symbol.contractSize*S.price.mid)/S.symbol.leverage > (S._acc?S._acc.freeMargin:1e9)+1e-6){
       toast("r", L("Ордер #{0} не исполнен — недостаточно маржи", o.id)); save(); continue;
     }
@@ -5347,6 +5383,7 @@ function processPendings(){
       openTime: S.simClock, sl: o.sl, tp: o.tp, tp1: o.tp1 || null, openCommission: openComm, swap: 0,
       slippage: isStop?roundTo(Math.abs(px-o.price),S.symbol.digits):0, lastSwapDay: simDateStr()
     });
+    recalcAccount();
     toast("g", L("Исполнен {0} #{1} по {2}", ordTypeName(o.type), o.id, pxfmt(px)));
     save();
   }
@@ -5891,6 +5928,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
   const Z = .75, W = 5.4 / (Z * dur / 1000), WD = W * Math.sqrt(1 - Z * Z);   // quick off the mark, a breath of inertia, the smallest overshoot, a soft settle (user §4)
   const t0 = performance.now();
   const step = now => {
+   if(fin) return;
    try{
     const t = Math.min(1, (now - t0) / dur);
     let k;
@@ -5918,8 +5956,7 @@ function lgFlow(el, a, ra, dur, opening, key, done, soon){
     else finish();
    }catch(err){ console.error(err); finish(); }   // never leave a pane half-clipped and un-closable
   };
-  step(t0);
-  raf = requestAnimationFrame(step);
+  step(t0);                                                        // (it queues its own next frame: a second chain ran every frame twice and outlived a stop)
   return run;
 }
 /* the rect an element occupies when nothing is pressing it — the glass press scales and nudges it, and the drop
@@ -6903,6 +6940,7 @@ const WALLET_SOON = false;
 let _renderKey = "", _cvOffRaf = 0;
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
+  queueMicrotask(lgPrune);             // the screen this replaces lets go of its glass
   if(WALLET_SOON && S.ui.tab === "wallet") S.ui.tab = "more";   // a saved state may still point at it
   const t = S.ui.tab;
   let html = "";
@@ -8972,12 +9010,17 @@ function navBubFrame(now){
   // off the grey underneath it
   // the harder lens only while it is actually going somewhere (or lifted under a finger)
   navLens(NB.clear);                           // the bend rides the same number as the grey - no swap, no lag
-  const bs = bar.querySelectorAll("button[data-nav]"), rs = bar.querySelectorAll(".nav-red .nb");
-  for(let i = 0; i < bs.length; i++){
-    const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .25 * k * NB.lift;    // magnified under the lens
-    const tr = sc > 1.002 ? "scale(" + sc.toFixed(3) + ")" : "";
-    if(bs[i].style.transform !== tr) bs[i].style.transform = tr;
-    if(rs[i] && rs[i].style.transform !== tr) rs[i].style.transform = tr;
+  if(NB.lift > 0 || bar._swelled){
+    const bs = bar._bs || (bar._bs = bar.querySelectorAll("button[data-nav]")), rs = bar._rs || (bar._rs = bar.querySelectorAll(".nav-red .nb"));
+    let any = false;
+    for(let i = 0; i < bs.length; i++){
+      const k = Math.max(0, 1 - Math.abs(NB.u - i)), sc = 1 + .25 * k * NB.lift;    // magnified under the lens
+      const tr = sc > 1.002 ? "scale(" + sc.toFixed(3) + ")" : "";
+      if(tr) any = true;
+      if(bs[i].style.transform !== tr) bs[i].style.transform = tr;
+      if(rs[i] && rs[i].style.transform !== tr) rs[i].style.transform = tr;
+    }
+    bar._swelled = any;
   }
   // IT MUST NOT SNAP BACK TO GREY. The drop clears as it travels and fills again over a third of a second once
   // it lands - but the loop used to stop the instant the travel ended and set the grey to full in the same
@@ -9204,7 +9247,7 @@ function navBind(bar){
     const b = document.querySelector(".bottomnav"); if(b) b.classList.remove("dragging");
     const i = clamp(Math.round(d.u), 0, 4);
     navGo(i);
-    if(go){ _navByDrop = performance.now(); navTo(NAV_TABS[i]); }
+    if(go){ _navByDrop = performance.now(); const tb = NAV_TABS[i]; if(!(tb === S.ui.tab && !(tb === "markets" && S.ui.marketOpen))) navTo(tb); }   // the tab you are on: nothing to rebuild
   };
   bar.onpointerdown = e => {
     if(e.button > 0) return;
@@ -9633,17 +9676,23 @@ function quickLens(root){
 function mqKick(){ if(!_mqRaf){ _mqRaf = 1; moAdd(mqFrame); } }
 function mqApply(s){
   const l = s.lens, p = s.p || 0, jx = s.jx !== false;
-  l.style.setProperty("--qx", s.x.toFixed(1) + "px"); l.style.setProperty("--qy", s.y.toFixed(1) + "px");
-  l.style.setProperty("--qw", Math.max(0, s.w).toFixed(1) + "px"); l.style.setProperty("--qh", Math.max(0, s.h).toFixed(1) + "px");
+  // ITS BOX IS THE CHIP IT IS GOING TO (2026-09-28: laid out anew every frame and given a new lens every 2 px of its
+  // flight, it rebuilt a filter many times a hop): the stretch of the flight is a scale about its middle, the corners
+  // divided back by it so they stay round
+  const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
+  if(l._bw !== bw || l._bh !== bh){ l._bw = bw; l._bh = bh; l.style.setProperty("--qw", bw + "px"); l.style.setProperty("--qh", bh + "px"); }
+  const fx = (jx ? 1 + .14 * p : 1 - .1 * p) * Math.max(0, s.w) / bw, fy = (jx ? 1 - .1 * p : 1 + .14 * p) * Math.max(0, s.h) / bh;
+  l.style.setProperty("--qx", (s.x + s.w / 2 - bw / 2).toFixed(1) + "px"); l.style.setProperty("--qy", (s.y + s.h / 2 - bh / 2).toFixed(1) + "px");
   // landing: spread flat along the hop, then a taller rebound, then still — and a quick fade-in with it
-  l.style.setProperty("--qsx", (jx ? 1 + .14 * p : 1 - .1 * p).toFixed(3)); l.style.setProperty("--qsy", (jx ? 1 - .1 * p : 1 + .14 * p).toFixed(3));
+  l.style.setProperty("--qsx", Math.max(.05, fx).toFixed(4)); l.style.setProperty("--qsy", Math.max(.05, fy).toFixed(4));
+  const rr = Math.min(s.w, s.h) / 2;
+  l.style.borderRadius = (rr / Math.max(.05, fx)).toFixed(2) + "px / " + (rr / Math.max(.05, fy)).toFixed(2) + "px";
   l.style.setProperty("--qf", (s.f * (1 - .3 * Math.max(0, p))).toFixed(3));
   const idle = s.f < .01; if(l._idle !== idle){ l._idle = idle; l.classList.toggle("idle", idle); }
   // a real lens, as the tab bar's drop is: a capsule that magnifies its middle and bends at its rim (a band a third of
   // its height), no blur, so the lot under it is bigger and sharp - the iOS glass the user asked for (a size-picked
   // lens of strength 4 bent nothing one could see: «нету даже эффекта стекла»). Maps per 2 px of size, cached
-  if(!idle){ const w = Math.max(8, Math.round(s.w / 2) * 2), h = Math.max(8, Math.round(s.h / 2) * 2);
-    if(l._lw !== w || l._lh !== h){ l._lw = w; l._lh = h; lgGlass(l, w, h, 9, 0, false, true, 0, -Math.max(4, Math.round(h * .32)), false); } }
+  if(!idle && (l._lw !== bw || l._lh !== bh)){ l._lw = bw; l._lh = bh; lgGlass(l, bw, bh, 9, 0, false, true, 0, -Math.max(4, Math.round(bh * .32)), false); }
 }
 function mqFrame(now){
   _mqRaf = 0;
@@ -9714,8 +9763,34 @@ function pickDrop(host, rowSel, ready){
 function pkKick(){ if(!_pkRaf){ _pkRaf = 1; moAdd(pkFrame); } }
 // where the menu's own coordinates (its content box, scrolled) are on the screen, this frame
 function pkOrigin(s){
+  if(s.drag && s.geo) return { x: s.geo.ox, y: s.geo.oy };          // a finger holds it: the menu is where it was measured
   const h = s.host, r = h.getBoundingClientRect();
   return { x: r.left + h.clientLeft - h.scrollLeft, y: r.top + h.clientTop - h.scrollTop };
+}
+/* THE MENU'S GEOMETRY, MEASURED ONCE A GESTURE (user 2026-09-28: «лагает … не 120 фпс»). Every move of the finger read
+   the box of every row, right after the frame had written the drop's styles, so each read laid the whole page out
+   again: 3.5 s of layout in a 1.2 s slide at a phone's speed, a frame every 33 ms. The rows do not move under a finger
+   (a list that scrolls hands the gesture to the browser), so they are measured on the touch and read from here:
+   positions in the menu's own coordinates, and where those are on the screen (ox, oy). */
+function pkGeo(s, fresh){
+  const now = performance.now();
+  if(!fresh && s.geo && (s.drag || now - s.geo.t < 250)) return s.geo;
+  const h = s.host, hr = h.getBoundingClientRect(), ox = hr.left + h.clientLeft - h.scrollLeft, oy = hr.top + h.clientTop - h.scrollTop;
+  const rows = [];
+  let lo = Infinity, hi = -Infinity;
+  for(const e of h.querySelectorAll(s.rowSel)){
+    const b = e.getBoundingClientRect(); if(!b.width || !b.height) continue;
+    const g = { el: e, x: b.left - ox, y: b.top - oy, w: b.width, h: b.height, dis: !!e.disabled };
+    rows.push(g);
+    if(!g.dis){ const m = g.y + g.h / 2; if(m < lo) lo = m; if(m > hi) hi = m; }
+  }
+  return s.geo = { t: now, hl: hr.left, hrt: hr.right, ht: hr.top, hb: hr.bottom, ox, oy, rows, lo, hi };
+}
+// the measured box of a row (measured again if the menu was rebuilt under the finger)
+function pkRowGeo(s, row){
+  let G = pkGeo(s), g = G.rows.find(q => q.el === row);
+  if(!g || !row.isConnected){ G = pkGeo(s, true); g = G.rows.find(q => q.el === row); }
+  return g || null;
 }
 /* ON THE PAGE, over its menu (user 2026-09-28: a lens inside the menu's see-through glass showed every letter twice -
    the bent one over the straight one): out here what it bends is the whole picture, solid, as the tab bar's drop sees */
@@ -9727,11 +9802,13 @@ function pkLens(s){
 // the row under the finger. The one it is on keeps it 10 px past its edges (the gap between two cards, a separator);
 // null: off the rows, or off the menu - the drop melts
 function pkRow(s, x, y){
-  const hr = s.host.getBoundingClientRect();
-  if(x < hr.left - 12 || x > hr.right + 12 || y < hr.top - 12 || y > hr.bottom + 12) return null;
-  const inR = (el, m) => { const r = el.getBoundingClientRect(); return r.width > 0 && x >= r.left - m && x <= r.right + m && y >= r.top - m && y <= r.bottom + m; };
-  if(s.cur && s.cur.isConnected && inR(s.cur, 10)) return s.cur;
-  for(const r of s.host.querySelectorAll(s.rowSel)) if(!r.disabled && inR(r, 0)) return r;
+  let G = pkGeo(s);
+  if(s.cur && !s.cur.isConnected) G = pkGeo(s, true);
+  if(x < G.hl - 12 || x > G.hrt + 12 || y < G.ht - 12 || y > G.hb + 12) return null;
+  const inR = (g, m) => x >= G.ox + g.x - m && x <= G.ox + g.x + g.w + m && y >= G.oy + g.y - m && y <= G.oy + g.y + g.h + m;
+  const cur = s.cur && G.rows.find(g => g.el === s.cur);
+  if(cur && inR(cur, 10)) return s.cur;
+  for(const g of G.rows) if(!g.dis && inR(g, 0)) return g.el;
   return null;
 }
 /* UNDER A SLIDING FINGER IT IS THE FINGER'S (user 2026-09-27 video of the drawer: «анимацию стекла при свайпе … как у
@@ -9740,17 +9817,11 @@ function pkRow(s, x, y){
    the last); its size is the row it is over, so it takes each row's height as it crosses it. Let go, it springs onto
    the row and sinks into it. fy: the finger, in the host's own coordinates. */
 function pkAim(s, row, fy){
-  const h = s.host, hr = h.getBoundingClientRect(), r = row.getBoundingClientRect();
-  const x = r.left - hr.left - h.clientLeft + h.scrollLeft, y = r.top - hr.top - h.clientTop + h.scrollTop;
+  const g = pkRowGeo(s, row); if(!g) return;
+  const r = { width: g.w, height: g.h }, x = g.x, y = g.y;
   let c = y + r.height / 2;
   if(fy != null){
-    let lo = c, hi = c;
-    for(const e of h.querySelectorAll(s.rowSel)){
-      if(e.disabled) continue;
-      const b = e.getBoundingClientRect(); if(!b.height) continue;
-      const m = b.top - hr.top - h.clientTop + h.scrollTop + b.height / 2;
-      if(m < lo) lo = m; if(m > hi) hi = m;
-    }
+    const lo = Math.min(s.geo.lo, c), hi = Math.max(s.geo.hi, c);
     const rb = d => 14 * Math.tanh(d / 28);
     c = fy < lo ? lo - rb(lo - fy) : fy > hi ? hi + rb(fy - hi) : fy;
   }
@@ -9772,6 +9843,7 @@ function pkDown(s, e){
   const row = e.target.closest && e.target.closest(s.rowSel);
   if(!row || !s.host.contains(row) || row.disabled) return;
   pkLens(s);
+  pkGeo(s, true);                                                 // measured once, on the touch
   s.drag = { id: e.pointerId };
   pkAim(s, row, pkFy(s, e));
   try{ s.host.setPointerCapture(e.pointerId); }catch(_){}         // it follows the finger past the row it was pressed on
@@ -9784,7 +9856,7 @@ function pkMove(s, e){
   if(!row){ if(s.tf){ s.tf = 0; pkOn(s, null); pkKick(); } return; }
   pkAim(s, row, pkFy(s, e)); pkKick();                             // every move: it goes with the finger, not row by row
 }
-const pkFy = (s, e) => e.clientY - s.host.getBoundingClientRect().top - s.host.clientTop + s.host.scrollTop;
+const pkFy = (s, e) => e.clientY - pkGeo(s).oy;
 function pkUp(s, e, go){
   const d = s.drag; if(!d || e.pointerId !== d.id) return;
   s.drag = null;
@@ -10875,7 +10947,7 @@ function otHold(btn, fn){
     if(e.button > 0) return;
     e.preventDefault();                                            // the field keeps its keyboard
     stop(); n = 0; fn(1);
-    t1 = setTimeout(() => { t2 = setInterval(() => { n++; fn(n > 24 ? 10 : 1); }, 70); }, 380);
+    t1 = setTimeout(() => { t2 = setInterval(() => { if(!btn.isConnected || !OT){ stop(); return; } n++; fn(n > 24 ? 10 : 1); }, 70); }, 380);
   });
   for(const ev of ["pointerup", "pointercancel", "pointerleave"]) btn.addEventListener(ev, stop);
   btn.addEventListener("click", e => { if(e.detail === 0) fn(1); });  // the keyboard's Enter / Space
@@ -11511,9 +11583,18 @@ function liveDrawKey(tf){
   return k;
 }
 let _lgFly = 0;                                                    // a drop is in the air: hold the live updates
+let _bgLiveT = 0;
 function updateLive(){
   if(!S || _lgFly) return;
   recalcAccount();
+  /* A SHEET OVER THE PAGE (user 2026-09-28: «лагает»): the page under an open sheet is seen only through the sheet's
+     glass, and every change there - a price, the mini chart, the chart - makes that glass work over again. Under a
+     sheet the page is brought up to date once a second; the sheet itself keeps every tick (its _live). */
+  if(modalEl && !modalEl.classList.contains("closing")){
+    const now = performance.now();
+    if(now - _bgLiveT < 1000){ if(modalEl._live) modalEl._live(); return; }
+    _bgLiveT = now;
+  }
   const A = S._acc;
   // overview
   setTxt("ovBid", chartPx(S.price.bid));                     // no thousands separator, like cTrader's panel
@@ -11639,7 +11720,11 @@ function updateLive(){
   const nowD = performance.now();
   if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")){
     const k = liveDrawKey(S.ui.chartTF);
-    if(k !== chart._liveKey || nowD - (chart._liveAt || 0) > 1000){ chart._liveKey = k; chart._liveAt = nowD; chartDraw(); }
+    if(k !== chart._liveKey || nowD - (chart._liveAt || 0) > 1000){
+      chart._liveKey = k; chart._liveAt = nowD;
+      if(!chart._dragRaf && !chart.fling){ if(_chartRaf){ cancelAnimationFrame(_chartRaf); _chartRaf = 0; } drawChart(); }   // this frame, with the prices
+      else chartDraw();                                             // a gesture owns the frames: it joins the gesture's
+    }
   }
   if(S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "overview"){
     const mc = document.getElementById("miniCanvas");
@@ -12257,6 +12342,13 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   else if(_lgRain.has(el)){ _lgRain.delete(el); el._dispF = null; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
+// the glass registries forget what is no longer on the page (render() replaces the whole screen; a toast goes after 3.5 s):
+// held in these Sets, every old screen stayed in memory with its canvases, and the collector ran long pauses for it
+function lgPrune(){
+  for(const el of _lgEls) if(!el.isConnected) _lgEls.delete(el);
+  for(const el of _lgRain) if(!el.isConnected) _lgRain.delete(el);
+  for(const el of _lgPanels) if(!el.isConnected) _lgPanels.delete(el);
+}
 function lgRefresh(){
   for(const el of _lgEls){
     if(!el.isConnected || !el._lga || !el._lg){ _lgEls.delete(el); continue; }
@@ -12445,15 +12537,15 @@ function lgUiLoad(){
 const LIT = { a: 135, x: 30, y: 14, ta: 135, tx: 30, ty: 14, va: 0, vx: 0, vy: 0, wa: 135, wx: 30, wy: 14, hx: 30, hy: 14, raf: 0, t: 0 };
 const litWrite = () => {
   const st = document.documentElement.style;
-  if(Math.abs(LIT.a - LIT.wa) > .4){
+  if(Math.abs(LIT.a - LIT.wa) > 2){                                  // a whole-document restyle a write: only a step you can see
     LIT.wa = LIT.a; st.setProperty("--lit-a", LIT.a.toFixed(1) + "deg");
     // the glass numerals extrude AWAY from the light, so their side walls swing as the phone turns
     const r = LIT.a * Math.PI / 180;
     st.setProperty("--g3d-ex", (-Math.sin(r)).toFixed(3));
     st.setProperty("--g3d-ey", (.85 + Math.cos(r) * .25).toFixed(3));
   }
-  if(Math.abs(LIT.x - LIT.wx) > .7){ LIT.wx = LIT.x; st.setProperty("--lit-x", LIT.x.toFixed(1) + "%"); }
-  if(Math.abs(LIT.y - LIT.wy) > .7){ LIT.wy = LIT.y; st.setProperty("--lit-y", LIT.y.toFixed(1) + "%"); }
+  if(Math.abs(LIT.x - LIT.wx) > 2.5){ LIT.wx = LIT.x; st.setProperty("--lit-x", LIT.x.toFixed(1) + "%"); }
+  if(Math.abs(LIT.y - LIT.wy) > 2.5){ LIT.wy = LIT.y; st.setProperty("--lit-y", LIT.y.toFixed(1) + "%"); }
 };
 function litTo(x, y){                                              // where the light should be, in % of the screen
   LIT.tx = clamp(x, -25, 125); LIT.ty = clamp(y, -25, 125);
@@ -12485,8 +12577,11 @@ function litFinger(e){
   litTo(e.clientX / (innerWidth || 1) * 100, e.clientY / (innerHeight || 1) * 100);
   clearTimeout(_litIdle); _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000);   // then it drifts back to where the device is held
 }
-document.addEventListener("pointerdown", litFinger, { passive: true, capture: true });
-document.addEventListener("pointermove", litFinger, { passive: true, capture: true });
+/* (2026-09-28: the light no longer chases the finger. It was written on <html> on every move, and a custom property there
+   restyles the WHOLE document - measured 21 ms a write at a phone's pace, in every frame of every gesture: the drops,
+   the chart, the tab bar all lagged behind it («лагает, не 120 фпс»). Taking it off: a chart pan 3.1 s → 0.7 s of work,
+   the ticket's drop 100 long frames → none. The light rests where it is (or where the phone is tilted, «Свет от
+   наклона»); the glass under a finger still lights up where it is touched - that is the pressed piece's own.) */
 /* the device's own tilt sets where the light RESTS — the finger only borrows it for a moment. iOS needs a gesture
    to allow the sensor, so it is a switch in «Настройки стекла»; Android grants it and it just works. */
 let _tiltOn = false;
@@ -12678,7 +12773,7 @@ document.addEventListener("pointerdown", e => {
   b.classList.add("pressing");
   // a tab inside a capsule with a drop has no lens of its own: the drop is its glass. Given one, it kept it after the
   // press and stood as a pale chip beside the drop (the order ticket's types and side)
-  g.nl = b.matches(".seg button");
+  g.nl = g.calm;                                                   // light only: no lens is laid on a piece of a bar
   if(!g.nl) lgGlass(b, g.w, g.h, g.rs ? Math.round(g.rs * 1.35) : 32, g.blur);        // the lens deepens under the finger
   _glassBtn = b; _glass.add(b); glassKick();
 }, { capture: true, passive: true });
@@ -12708,7 +12803,7 @@ function chartZones(c){
     rowEl.style.transform = "";                                    // its own place, not one it has slid to
     chart._rowSlide = null;
     const sym = rowEl.querySelector(".chpill.sym");
-    if(sym){ sym.style.paddingLeft = sym.style.paddingRight = sym.style.gap = ""; sym._nr = null; }
+    if(sym){ sym.style.paddingLeft = sym.style.paddingRight = sym.style.gap = ""; sym._nr = null; sym._lw8 = 0; }
     chart._symNarrow = null;
     const r = rowEl.getBoundingClientRect();
     z.rowX0 = r.left - box.left;
@@ -12792,6 +12887,7 @@ function setupChartCanvas(){
   // x of the price axis strip, where a vertical drag rescales the price range
   const onAxis = x => x >= (c._w - (c._w < 420 ? 58 : 66));
   c.ontouchstart = e=>{
+    clearTimeout(chart._crossT); chart._crossT = 0;
     chartStopFling();                              // a touch catches a gliding chart
     rect = c.getBoundingClientRect();
     if(e.touches.length === 1 && onAxis(getX(e))){
@@ -12880,7 +12976,7 @@ function setupChartCanvas(){
         const den = n*stt - st*st;
         if(n >= 2 && den > 0) chartFling((n*stx - st*sx) / den * 1000);
       }
-      setTimeout(()=>{ chart.cross = null; chartDraw(); }, 1800);
+      chart._crossT = setTimeout(()=>{ chart._crossT = 0; chart.cross = null; chartDraw(); }, 1800);
     }
   };
   drawChart();
@@ -13404,7 +13500,9 @@ function drawChart(){
       symEl.style.paddingLeft = (16 * q).toFixed(1) + "px";
       symEl.style.paddingRight = (12 * q).toFixed(1) + "px";
       symEl.style.gap = (10 * q).toFixed(1) + "px";
-      if(Z.symW) lgGlass(symEl, Z.symW - 38 * (1 - q), Z.symH || 31);
+      // its lens in 8 px steps (a map a hair wider than the pill is fine): a new filter every 2 px of the narrowing rebuilt
+      // one on most frames of it
+      if(Z.symW){ const lw = Math.ceil((Z.symW - 38 * (1 - q)) / 8) * 8; if(symEl._lw8 !== lw){ symEl._lw8 = lw; lgGlass(symEl, lw, Z.symH || 31); } }
       if(rowEl.classList.contains("goo")) pmDraw(rowEl);
     }
   }
@@ -13633,7 +13731,8 @@ let rtTimer = null, uiTimer = null, _lastCounts = "", _loopRunning = false, _boo
 function uiFrame(){
   _uiRaf = 0; _uiLast = performance.now();
   try{
-    if(S._needRender && !modalEl){ S._needRender = false; render(); return; }
+    const ae = document.activeElement, typing = !!(ae && ae.closest && ae.closest("#app") && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName));
+    if(S._needRender && !modalEl && !typing){ S._needRender = false; render(); return; }   // (typing: after the field is left)
     const key = S.positions.length+"/"+S.pendings.length+"/"+S.history.length+"/"+(tradingLocked()?1:0);
     if(key !== _lastCounts && !modalEl){
       _lastCounts = key;
@@ -13659,6 +13758,7 @@ function stopLoop(){
   _loopRunning = false;
   if(rtTimer){ clearInterval(rtTimer); rtTimer = null; }
   if(normalTickTimer){ clearInterval(normalTickTimer); normalTickTimer = null; }
+  if(uiTimer){ clearInterval(uiTimer); uiTimer = null; } _uiOn = false;   // hidden / signed out: the screen beat rests too (startLoop brings it back)
   saveNow();
 }
 function startLoop(){
@@ -14318,6 +14418,8 @@ function backStep(){
   if(lq.length){ lq.forEach(k => lqMenuClose(k)); return true; }
   if(_otMenu){ otMenuClose(); return true; }
   if(_lotList){ closeLotList(); return true; }
+  const lw = document.getElementById("lotWheel");
+  if(lw){ const d = lw.querySelector('[data-lw="done"]'); if(d){ d.click(); return true; } }
   if(modalEl){ closeModal(); return true; }
   if(_chartFull){ _chartFull = false; chartStopFling(); render(); return true; }
   const bk = document.querySelector('#app [data-act="back"]');
