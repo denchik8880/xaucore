@@ -2395,6 +2395,12 @@ body.amenu-open .wl-logo{opacity:0}
    started anew on each of those frames, smoothing the spring away and costing a new animation a frame */
 :root[data-glass="on"] :is(.appbar .iconbtn,.sheet .close,.chfs,.chzoom button).pressing{transition:none}
 
+/* the drops' rim reads the light on the drop itself (litWrite writes it there): a token declared only on :root was worked
+   out there, with the page's light, whatever the drop's own was */
+:is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 24%,rgba(16,24,40,.07) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.7) 100%)}
+:root[data-theme="dark"] :is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 24%,rgba(0,0,0,.2) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.45) 100%)}
+:root[data-theme="dark"][data-tone="aurora"] :is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,.85) 0%,rgba(189,217,226,0) 24%,rgba(97,86,145,.2) 50%,rgba(210,189,226,0) 76%,rgba(210,189,226,.62) 100%)}
+
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>.seg-lit{display:flex;position:absolute;inset:0;z-index:4;pointer-events:none;
@@ -6940,7 +6946,7 @@ const WALLET_SOON = false;
 let _renderKey = "", _cvOffRaf = 0;
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
-  queueMicrotask(lgPrune);             // the screen this replaces lets go of its glass
+  queueMicrotask(() => { lgPrune(); try{ litWrite(true); }catch(e){} });   // the screen this replaces lets go of its glass; the new one takes the light
   if(WALLET_SOON && S.ui.tab === "wallet") S.ui.tab = "more";   // a saved state may still point at it
   const t = S.ui.tab;
   let html = "";
@@ -12140,7 +12146,7 @@ const DISP_SPEC = [[1, 0, .05], [.9, .6, 0], [.15, 1, .2], [0, .55, 1], [.6, 0, 
 function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
   const base = (sc || 22) * Math.min(1.5, LG_UI.refract), m = dispMotion(place);
-  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2) + "g";
+  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2);
   if(_lgIds.has(id) || !_lgDefs) return id;
   const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const a in at) e.setAttribute(a, at[a]); fl.appendChild(e); return e; };
@@ -12155,8 +12161,9 @@ function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
     el("feColorMatrix", { in: "d" + i, type: "matrix", values: `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, result: "c" + i });
     if(i) el("feComposite", { in: i === 1 ? "c0" : "s" + (i - 1), in2: "c" + i, operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "s" + i });
   });
-  el("feComposite", { in: "s4", in2: "d2", operator: "in", result: "o" });
-  lgGlowStage(fl, el);
+  // (no rim glow here: in motion the rainbow is the edge, and the glow's four passes over the whole piece, on every frame
+  // of a scroll, were most of what took a 120 Hz scroll down to 60-90 - user's video 2026-09-28)
+  el("feComposite", { in: "s4", in2: "d2", operator: "in" });
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
   return id;
@@ -12219,10 +12226,18 @@ const rainTop = () => _rainSrc && _rainSrc !== document ? _rainSrc.scrollTop : w
 // the glass, and then only to switch it to another ready filter
 let _rainLvl = 0;
 const dispLevel = k => k > .72 ? 1 : k > .42 ? 2 : k > .12 ? 3 : 0;
+/* WHILE THE PAGE MOVES, THE GLASS RUNS LIGHT (user's video 2026-09-28: a 120 Hz phone scrolled the symbol page at 60-90).
+   Every piece of glass over a scrolling page runs its lens again on every frame; the rim glow is four more passes over
+   the whole piece, and in motion it cannot be seen (the content streams through the rim). So a moving page gets each
+   piece's plain lens - the same bend, no glow (_lgMove) - going down, the rainbow's own ready filters where there is
+   one; the glow comes back the moment the page stops. Measured on a software GPU: the scroll's GPU work -45 %. */
+let _rainMove = false;
 function lgRainApply(el){
-  if(!el._dispF || el._dispL === _rainLvl) return;
-  el._dispL = _rainLvl;
-  el.style.backdropFilter = _rainLvl ? el._dispF[_rainLvl] : el._lg;
+  if(!el._lgMove) return;
+  const lvl = el._dispF ? _rainLvl : 0, key = lvl ? lvl : _rainMove ? "m" : 0;
+  if(el._dispL === key) return;
+  el._dispL = key;
+  el.style.backdropFilter = lvl ? el._dispF[lvl] : key === "m" ? el._lgMove : el._lg;
 }
 // the settings sheet's live readout: what the engine hears on THIS device, as it hears it
 let _dispLiveT = 0;
@@ -12237,16 +12252,18 @@ function dispLive(v){
 }
 // a place that splits: its three ready filters, built now (not on the first scroll), each with the rest of the glass's
 // filter string (tail) after it
-function lgRainBind(el, w, h, sc, rad, rm, tail){
-  el._dispP = dispPlace(el);
+// disp: whether this piece also splits its colour in motion (DISP); every iOS-glass piece gets its plain lens for motion
+function lgRainBind(el, w, h, sc, rad, rm, tail, disp){
+  el._dispP = disp ? dispPlace(el) : null;
   const edge = DISP.top ? "t" : "b";
-  el._dispF = null; el._dispL = -1;
+  el._dispF = null; el._lgMove = null; el._dispL = -1;
   _lgRain.add(el);
   clearTimeout(el._dispT);
   const build = () => {
     if(!el.isConnected) return;
     if(_rainRaf){ el._dispT = setTimeout(build, 200); return; }     // not in the middle of a scroll
-    el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, el._dispP) + ")" + tail : null);
+    el._lgMove = "url(#" + lgFilterId(w, h, sc, false, true, rad, rm, !!el._lgStretch, 0) + ")" + tail;
+    if(disp) el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, el._dispP) + ")" + tail : null);
     el._dispL = -1; lgRainApply(el);
   };
   el._dispT = setTimeout(build, 280);
@@ -12270,10 +12287,11 @@ function rainFrame(now){
   _rainK += (want - _rainK) * (1 - Math.exp(-dt / (want > _rainK ? .04 : dispFade())));
   // coming on it goes straight to full (one switch); only going out does it step down
   _rainLvl = want > _rainK ? (_rainK > .05 ? 1 : 0) : dispLevel(_rainK);
+  _rainMove = age < 160;                                         // the page is moving, either way
   rainAll();
   dispLive(v);
   if(_rainK > .005 || age < 160){ _rainRaf = requestAnimationFrame(rainFrame); return; }
-  _rainK = 0; _rainT = 0; _rainV = 0; _rainLvl = 0;
+  _rainK = 0; _rainT = 0; _rainV = 0; _rainLvl = 0; _rainMove = false;
   rainAll(); dispLive(0);
 }
 function rainAll(){
@@ -12338,8 +12356,8 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
   // letters under a sitting drop were bent hard again, and a travelling drop no longer split its colour.
-  if(ch && ios){ el._dispL = -1; lgRainBind(el, w, h, sc, rad, rm, tail); }
-  else if(_lgRain.has(el)){ _lgRain.delete(el); el._dispF = null; }
+  if(ios){ el._dispL = -1; lgRainBind(el, w, h, sc, rad, rm, tail, ch); }
+  else if(_lgRain.has(el)){ _lgRain.delete(el); el._dispF = null; el._lgMove = null; }
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
 // the glass registries forget what is no longer on the page (render() replaces the whole screen; a toast goes after 3.5 s):
@@ -12535,17 +12553,37 @@ function lgUiLoad(){
    that ask for them repaint. It springs (never a jump), it follows the finger while the finger is down, it rests
    where the device is tilted, and it returns to its corner when nothing is happening. */
 const LIT = { a: 135, x: 30, y: 14, ta: 135, tx: 30, ty: 14, va: 0, vx: 0, vy: 0, wa: 135, wx: 30, wy: 14, hx: 30, hy: 14, raf: 0, t: 0 };
-const litWrite = () => {
-  const st = document.documentElement.style;
-  if(Math.abs(LIT.a - LIT.wa) > 2){                                  // a whole-document restyle a write: only a step you can see
-    LIT.wa = LIT.a; st.setProperty("--lit-a", LIT.a.toFixed(1) + "deg");
-    // the glass numerals extrude AWAY from the light, so their side walls swing as the phone turns
-    const r = LIT.a * Math.PI / 180;
-    st.setProperty("--g3d-ex", (-Math.sin(r)).toFixed(3));
-    st.setProperty("--g3d-ey", (.85 + Math.cos(r) * .25).toFixed(3));
+/* THE LIGHT IS WRITTEN WHERE IT IS READ (2026-09-28: «нужно что бы все работало как раньше, но не перегружало ничего»).
+   On <html> every move of it restyled EVERY element of the page - 21 ms a write at a phone's pace, in each frame of each
+   gesture, the lag of the whole app. Only the glass reads it: the pieces below, a few dozen at most, so it is written
+   on them and nowhere else (a write there restyles that piece alone). <html> keeps nothing: at rest (the CSS fallbacks,
+   151° from the top left) a piece carries no value of its own. The drops' rim token (--drop-rim) is declared on the drops
+   themselves too, so it takes their light and not the page's. */
+const LIT_SEL = ".nav-bub,.nav-lens,.chfs,.chzoom button,.chpill,.chlast,.g3d-side,.g3d-face,.g3d-spec,.appbar .ttl,.bignew,.fabnew,.toast,.chartinfo,.appbar .iconbtn,.wl-logo,.sub-lens,.seg-lens,.lw-lens,.mq-lens,.mini-tools button,.sheet .close,.sub-bub,.nav-card,.pk-drop,.chtrade";
+let _litEls = null, _litElsT = 0;
+function litTargets(fresh){
+  const now = performance.now();
+  if(fresh || !_litEls || now - _litElsT > 350){ _litElsT = now; _litEls = document.querySelectorAll(LIT_SEL); }   // what has come on screen since
+  return _litEls;
+}
+const LIT_PROPS = ["--lit-a", "--g3d-ex", "--g3d-ey", "--lit-x", "--lit-y"];
+const litWrite = fresh => {
+  // the light as written: a step you can see, not every hair of the spring
+  if(Math.abs(LIT.a - LIT.wa) > 3) LIT.wa = LIT.a;                  // (fewer, still invisible steps: each is a repaint of the glass)
+  if(Math.abs(LIT.x - LIT.wx) > 3) LIT.wx = LIT.x;
+  if(Math.abs(LIT.y - LIT.wy) > 3) LIT.wy = LIT.y;
+  const atRest = Math.abs(LIT.wa - 151) < .7 && Math.abs(LIT.wx - 30) < 1.1 && Math.abs(LIT.wy - 14) < 1.1;   // = the CSS fallbacks
+  const r = LIT.wa * Math.PI / 180;
+  // the glass numerals extrude AWAY from the light, so their side walls swing as the phone turns
+  const v = [LIT.wa.toFixed(1) + "deg", (-Math.sin(r)).toFixed(3), (.85 + Math.cos(r) * .25).toFixed(3), LIT.wx.toFixed(1) + "%", LIT.wy.toFixed(1) + "%"];
+  const key = atRest ? "" : v[0] + v[3] + v[4];
+  for(const el of litTargets(fresh)){
+    if((el._litK || "") === key) continue;
+    el._litK = key;
+    const st = el.style;
+    if(atRest) for(const p of LIT_PROPS) st.removeProperty(p);
+    else for(let i = 0; i < 5; i++) st.setProperty(LIT_PROPS[i], v[i]);
   }
-  if(Math.abs(LIT.x - LIT.wx) > 2.5){ LIT.wx = LIT.x; st.setProperty("--lit-x", LIT.x.toFixed(1) + "%"); }
-  if(Math.abs(LIT.y - LIT.wy) > 2.5){ LIT.wy = LIT.y; st.setProperty("--lit-y", LIT.y.toFixed(1) + "%"); }
 };
 function litTo(x, y){                                              // where the light should be, in % of the screen
   LIT.tx = clamp(x, -25, 125); LIT.ty = clamp(y, -25, 125);
@@ -12572,16 +12610,20 @@ function litFrame(now){
   LIT.raf = 1; moAdd(litFrame);
 }
 let _litIdle = 0;
+// the surfaces a finger drags on (the chart, the bars, the drops, the menus, the lots, the drum, the sliders and switches):
+// a touch there keeps the light where it is, so the drag has its frames to itself
+const LIT_KEEP = "canvas, .bottomnav, .subtabs, .seg, .pk, .miniquick, .lotwheel, .lw-wrap, .switch, .lgs, .chpills, .chtrade";
 function litFinger(e){
   if(!LG_UI.light || !glassOn() || !LG_LENS) return;
+  if(e.target && e.target.closest && e.target.closest(LIT_KEEP)) return;
   litTo(e.clientX / (innerWidth || 1) * 100, e.clientY / (innerHeight || 1) * 100);
   clearTimeout(_litIdle); _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000);   // then it drifts back to where the device is held
 }
-/* (2026-09-28: the light no longer chases the finger. It was written on <html> on every move, and a custom property there
-   restyles the WHOLE document - measured 21 ms a write at a phone's pace, in every frame of every gesture: the drops,
-   the chart, the tab bar all lagged behind it («лагает, не 120 фпс»). Taking it off: a chart pan 3.1 s → 0.7 s of work,
-   the ticket's drop 100 long frames → none. The light rests where it is (or where the phone is tilted, «Свет от
-   наклона»); the glass under a finger still lights up where it is touched - that is the pressed piece's own.) */
+/* THE LIGHT GOES WHERE YOU TOUCH - and stays there while the finger slides. Every move of the light repaints every piece
+   of glass on screen, and each repaint runs its lens again: chased through a drag it re-ran all the glass on every frame
+   of every gesture (measured: a chart pan 0.7 s → 3.2 s of work). Springing to the touch and resting there keeps the
+   light alive and leaves the frames of the gesture to the gesture. */
+document.addEventListener("pointerdown", litFinger, { passive: true, capture: true });   // (written on the glass alone: litWrite)
 /* the device's own tilt sets where the light RESTS — the finger only borrows it for a moment. iOS needs a gesture
    to allow the sensor, so it is a switch in «Настройки стекла»; Android grants it and it just works. */
 let _tiltOn = false;
