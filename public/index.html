@@ -512,6 +512,15 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* ✕ belongs to the sheet (it sat at the screen's top-right — .sheet was not positioned — and hung there
    while the sheet slid away, user video 2026-09-18) */
 .sheet .close{position:absolute;right:12px;top:12px}
+/* THE ✕ STAYS WHERE IT IS (user 2026-09-28: «когда крутим вниз крестик уезжает, так не должно быть (касается всего)»):
+   a sheet that scrolls itself no longer carries its ✕ away - it holds its corner, 12 px from the top and the right as
+   before, and what scrolls passes under it. It stands in the flow at the top (sticky) and gives the room it takes
+   back to what follows (margin-bottom = 4 px - its height), so nothing below it moves by a pixel. Without glass it
+   wears the sheet's own background, so writing going under it does not show through the ✕. (The order ticket keeps
+   its own header and does not scroll itself: its ✕ was never carried away.) A sticky box keeps its distance from the
+   sheet's CONTENT edge (inside its 16 px padding), so it holds at top -4px, and no right inset of its own. */
+.sheet:not(.ot-sheet)>.close{position:sticky;top:-4px;right:auto;z-index:6;margin:-4px -2px -30px auto;background:inherit;border-radius:50%}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet:not(.ot-sheet)>.close{margin-bottom:-32px}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;color:var(--ink2);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
 .field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--edge);border-radius:11px;background:var(--field-bg);color:var(--ink)}
@@ -1501,14 +1510,14 @@ body.amenu-open .wl-logo{opacity:0}
 .am-head{display:flex;align-items:center;gap:14px;padding:21px 18px 13px 18px}   /* no mark of its own: the bar's poured out into the panel (user «Когда открылась вкладка, логотипа не должно быть»); the name starts where the rows' icons do */
 /* the drawer pouring out of the mark (amLiquid): all its writing comes in last, out of a blur */
 .am-sheet.lqa>*{opacity:var(--amc,1);filter:blur(calc((1 - var(--amc,1)) * 9px))}
-/* its glass while it pours: the mark's own bubble at --lqg 0 (its tint, blur 1px, saturate 1.35, brightness 1.03)
+/* its glass while it pours: the mark's own bubble at --amg 0 (its tint, blur 1px, saturate 1.35, brightness 1.03)
    and at 1 EXACTLY the panel's glass as it rests, whatever the clarity. It used to end a brighter, more saturated
    glass than the panel's own and swap at rest - at «Кристалл» a white drop that went grey a beat after it landed,
    and a 10 % brightness that turned the drop over a light page into a solid white ball (user 2026-09-25 video:
    «И опять серое с опозданием появляется») */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--lqg,1) * 100%),var(--lg-tint));
-  -webkit-backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
-  backdrop-filter:var(--lgp,) blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--lqg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--lqg,1))) brightness(calc(1.03 - .03 * var(--lqg,1)));
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet.lqa{background-color:color-mix(in srgb,var(--sheet-glass) calc(var(--amg,1) * 100%),var(--lg-tint));
+  -webkit-backdrop-filter:blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--amg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--amg,1))) brightness(calc(1.03 - .03 * var(--amg,1)));
+  backdrop-filter:var(--lgp,) blur(calc(1px + (24px * var(--lgsb,1) - 1px) * var(--amg,1))) saturate(calc(1.35 + (var(--lgsat,1.4) - 1.35) * var(--amg,1))) brightness(calc(1.03 - .03 * var(--amg,1)));
   box-shadow:none}                                                /* its edge is the rim layer's alone (below) */
 .lqa-x{position:fixed;left:0;top:0;pointer-events:none;z-index:3;transform-origin:50% 50%;will-change:transform,opacity}
 .lqa-x svg{width:100%;height:100%;display:block}
@@ -2338,6 +2347,14 @@ body.amenu-open .wl-logo{opacity:0}
         a fading page would cut every piece of glass on it off from the sky).
    The phone's status bar keeps the opening's colour until then (applyTheme waits for it). */
 @property --bt-r{syntax:"<length>";inherits:false;initial-value:0px}
+/* A FRAME'S VALUE IS READ WHERE IT IS WRITTEN (user's video 2026-09-28: the drawer poured at 60 on a 120 Hz phone). A
+   custom property is inherited: written on the window (the scrim, --shd) or on the drawer (its glass --amg) in every
+   frame of the pour, it restyled every row inside as well - measured, most of the main thread's frame. These are read
+   by the element they are written on alone, so they stay there; the writing's --amc is written on each of the
+   drawer's own children, which read it, and goes no further down. */
+@property --shd{syntax:"<number>";inherits:false;initial-value:1}
+@property --amg{syntax:"<number>";inherits:false;initial-value:1}
+@property --amc{syntax:"<number>";inherits:false;initial-value:1}
 #boot{position:fixed;inset:0;z-index:2147483000;background:#0b0d12;
   -webkit-mask:radial-gradient(circle at 50% calc(50% - 22px),transparent calc(var(--bt-r) - 90px),#000 var(--bt-r));
   mask:radial-gradient(circle at 50% calc(50% - 22px),transparent calc(var(--bt-r) - 90px),#000 var(--bt-r))}
@@ -7215,8 +7232,10 @@ function amLiquid(m, mark, open, done){
     const f = v => v.toFixed(1) + "px ";
     const rad = f(g.X) + f(g.X) + f(g.X) + f(g.X) + "/ " + f(g.yt) + f(g.yt) + f(g.yb) + f(g.yb);
     sh.style.clipPath = "inset(" + T.toFixed(2) + "px " + Rr.toFixed(2) + "px " + B.toFixed(2) + "px " + L.toFixed(2) + "px round " + rad + ")";
-    sh.style.setProperty("--amc", lqS(.25, .93, p).toFixed(3)); // the writing: last, out of a blur - as «XAUUSD ▾» does
-    sh.style.setProperty("--lqg", lqS(.1, .86, p).toFixed(3));   // its glass: the mark's own bubble first, the panel's own glass at the end
+    // the writing: last, out of a blur - as «XAUUSD ▾» does (on each of the drawer's children, which read it)
+    const amc = lqS(.25, .93, p).toFixed(3);
+    if(Q.amc !== amc){ Q.amc = amc; for(const c of sh.children) c.style.setProperty("--amc", amc); }
+    sh.style.setProperty("--amg", lqS(.1, .86, p).toFixed(3));   // its glass: the mark's own bubble first, the panel's own glass at the end
     m.style.setProperty("--shd", clamp(p, 0, 1).toFixed(3));
     const rs = Q.rim.style;
     rs.left = g.left.toFixed(2) + "px"; rs.top = g.top.toFixed(2) + "px"; rs.width = g.w.toFixed(2) + "px"; rs.height = g.h.toFixed(2) + "px";
@@ -7236,7 +7255,8 @@ function amLiquid(m, mark, open, done){
     rs.borderRadius = rad; rs.opacity = "1";                        // its edge: the panel's own, first frame to last
   };
   const rest = () => {
-    sh.style.removeProperty("clip-path"); sh.style.removeProperty("--amc"); sh.style.removeProperty("--lqg"); sh.style.removeProperty("opacity"); sh.classList.remove("lqa");
+    sh.style.removeProperty("clip-path"); sh.style.removeProperty("--amg"); sh.style.removeProperty("opacity"); sh.classList.remove("lqa");
+    Q.amc = null; for(const c of sh.children) c.style.removeProperty("--amc");
     document.body.classList.add("amenu-open");                     // covered and gone: now the class holds it away
     if(Q.mark) Q.mark.style.removeProperty("opacity");
     Q.x.style.opacity = "0";
@@ -11958,12 +11978,17 @@ const lgGlowA = k => Math.min(1, .5 * (k || 1) * Math.min(1.6, LG_UI.light)).toF
 /* PRESSED, THE GLASS LIGHTS UP (iOS 26: under a finger it «illuminates from within» and flexes with light): the rim of
    a pressed lens gathers about twice the light - its own filter (the press lays a deeper lens anyway, lgGlass on
    pointerdown), so pressing costs no switch it did not already make */
-function lgGlowStage(fl, el, k){
-  const gm = el("feColorMatrix", { in: "m", type: "matrix", values: "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k) + " 0 0", result: "gm" });
+const LG_GLOW_SAT = (() => { const S = 1.5, G = 1.36, a = (1 - S) * .2126, b = (1 - S) * .7152, c = (1 - S) * .0722;
+  return [[a + S, b, c], [a, b + S, c], [a, b, c + S]].map(r => r.map(v => (v * G).toFixed(4)).join(" ") + " 0 .012").join(" ") + " 0 0 0 1 0"; })();
+// the light of a rim, lifted out of the bent picture o where the map m says the rim is: its result is named res
+function lgGlowPart(el, k, m, o, res, sub){
+  const gm = el("feColorMatrix", Object.assign({ in: m, type: "matrix", values: "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k) + " 0 0", result: res + "a" }, sub));
   gm._gk = k || 1; _lgGlowK.add(gm);
-  const S = 1.5, G = 1.36, a = (1 - S) * .2126, b = (1 - S) * .7152, c = (1 - S) * .0722;
-  el("feColorMatrix", { in: "o", type: "matrix", values: [[a + S, b, c], [a, b + S, c], [a, b, c + S]].map(r => r.map(v => (v * G).toFixed(4)).join(" ") + " 0 .012").join(" ") + " 0 0 0 1 0", result: "ob" });
-  el("feComposite", { in: "ob", in2: "gm", operator: "in", result: "gl" });
+  el("feColorMatrix", Object.assign({ in: o, type: "matrix", values: LG_GLOW_SAT, result: res + "b" }, sub));
+  el("feComposite", Object.assign({ in: res + "b", in2: res + "a", operator: "in", result: res }, sub));
+}
+function lgGlowStage(fl, el, k){
+  lgGlowPart(el, k, "m", "o", "gl");
   el("feComposite", { in: "gl", in2: "o", operator: "over" });
 }
 function lgDefsReady(){
@@ -12385,17 +12410,19 @@ function lgRefresh(){
    new one comes once it has settled. Only the band at the edge is computed: the middle of a panel is flat glass. */
 const _lgPanels = new Set();
 let _lgPanelRO = null;
-function lgPanelMap(w, h, rad, band){
-  const key = "P" + w + "x" + h + "r" + rad + "b" + band;
+function lgPanelMap(w, h, rad, band, x0, y0, sw, sh){
+  x0 = x0 || 0; y0 = y0 || 0; sw = sw || w; sh = sh || h;
+  const key = "P" + w + "x" + h + "r" + rad + "b" + band + "@" + x0 + "," + y0 + "," + sw + "," + sh;
   if(_lgMaps.has(key)) return _lgMaps.get(key);
   const r = Math.max(1, Math.min(rad, Math.min(w, h) / 2)), M = Math.max(r, band + 14);   // past this, flat glass
-  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
-  const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
+  const cv = document.createElement("canvas"); cv.width = sw; cv.height = sh;
+  const g = cv.getContext("2d"), img = g.createImageData(sw, sh), d = img.data;
   new Uint32Array(d.buffer).fill(new Uint32Array(new Uint8ClampedArray([128, 128, 0, 255]).buffer)[0]);
-  for(let y = 0; y < h; y++){
-    const row = y < M || y >= h - M;
-    for(let x = 0; x < w; x++){
-      if(!row && x === M){ x = w - M - 1; continue; }             // the middle of the row: flat
+  for(let yy = 0; yy < sh; yy++){
+    const y = y0 + yy, row = y < M || y >= h - M;
+    for(let xx = 0; xx < sw; xx++){
+      const x = x0 + xx;
+      if(!row && x >= M && x < w - M){ xx = w - M - x0 - 1; continue; }   // the middle of the row: flat
       const px = x + .5, py = y + .5, cx = clamp(px, r, w - r), cy = clamp(py, r, h - r);
       const dx = cx - px, dy = cy - py, dist = Math.hypot(dx, dy), edge = r - dist;
       let mx = 0, my = 0;
@@ -12405,7 +12432,7 @@ function lgPanelMap(w, h, rad, band){
         mx = dx / dist * wall; my = dy / dist * wall;
         const mm = Math.hypot(mx, my); if(mm > 1){ mx /= mm; my /= mm; }
       }
-      const i = (y * w + x) * 4;
+      const i = (yy * sw + xx) * 4;
       d[i] = 128 + 127 * mx; d[i + 1] = 128 + 127 * my; d[i + 2] = lgGlowAt(edge);
     }
   }
@@ -12473,10 +12500,22 @@ function lgPanelFilter(w, h, rad, band, scale){
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
   fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
   fl.setAttribute("color-interpolation-filters", "sRGB");
-  el("feImage", { href: lgPanelMap(w, h, rad, band), x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
-  const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: "o" });
-  d._s = scale; d._c = 0; d._fixed = true; d._sp = 0; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d);   // «Преломление» scales it like the rest
-  lgGlowStage(fl, el);
+  // the strips hold every pixel the lens touches: its bend reaches band px in, its light (lgGlowAt) ~20 px; round a
+  // corner both reach r - (r - 20)/√2 in from each side. Past that the map is flat and unlit, so the middle is the page
+  const r = Math.max(1, Math.min(rad, Math.min(w, h) / 2));
+  const bw = Math.min(Math.floor(Math.min(w, h) / 2), Math.ceil(Math.max(20, band + 1, r - (r - 20) * Math.SQRT1_2)) + 1);
+  const strips = [[0, 0, w, bw], [0, h - bw, w, bw], [0, bw, bw, h - 2 * bw], [w - bw, bw, bw, h - 2 * bw]].filter(q => q[2] > 0 && q[3] > 0);
+  const outs = ["SourceGraphic"];
+  strips.forEach(([x, y, sw, sh], i) => {
+    const sub = { x, y, width: sw, height: sh };
+    el("feImage", { href: lgPanelMap(w, h, rad, band, x, y, sw, sh), x, y, width: sw, height: sh, preserveAspectRatio: "none", result: "m" + i });
+    const d = el("feDisplacementMap", Object.assign({ in: "SourceGraphic", in2: "m" + i, xChannelSelector: "R", yChannelSelector: "G", result: "o" + i }, sub));
+    d._s = scale; d._c = 0; d._fixed = true; d._sp = 0; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d);   // «Преломление» scales it like the rest
+    lgGlowPart(el, 1, "m" + i, "o" + i, "g" + i, sub);
+    outs.push("o" + i, "g" + i);
+  });
+  const mg = el("feMerge", {});
+  for(const n of outs){ const e = document.createElementNS(NS, "feMergeNode"); e.setAttribute("in", n); mg.appendChild(e); }
   _lgDefs.appendChild(fl);
   _lgIds.add(id);
   return id;
