@@ -166,7 +166,7 @@ body.chart-full .bottomnav{display:none}
 .otbl .ok{display:flex;justify-content:center;color:var(--green-ink)}
 .otbl .og{display:block;margin-left:5px}
 .og.sell{fill:var(--sell)}
-.og.buy{fill:var(--green)}
+.og.buy{fill:var(--buy)}
 .otbl .x{display:flex;align-items:center;justify-content:center;height:100%;padding:0;border:0;background:none;color:var(--ink2)}
 .otbl .x:active{background:var(--press)}
 .wrap{padding:12px}
@@ -221,13 +221,13 @@ body.chart-full .bottomnav{display:none}
 .ctp-cap{grid-row:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:54px;padding:0 4px;
   font-weight:700;font-size:clamp(10.5px,3.35vw,15px);letter-spacing:0;white-space:nowrap}
 .ctp-cap.sell{grid-column:1;background:var(--sell);border-radius:10px 8px 0 0}
-.ctp-cap.buy{grid-column:4;background:var(--green);border-radius:8px 10px 0 0}
+.ctp-cap.buy{grid-column:4;background:var(--buy);border-radius:8px 10px 0 0}
 .ctp-cap::after{content:"";position:absolute;bottom:0;width:8px;height:8px;pointer-events:none}
 .ctp-cap.sell::after{right:-8px;background:radial-gradient(circle at 100% 0,transparent 7.5px,var(--sell) 8px)}
-.ctp-cap.buy::after{left:-8px;background:radial-gradient(circle at 0 0,transparent 7.5px,var(--green) 8px)}
+.ctp-cap.buy::after{left:-8px;background:radial-gradient(circle at 0 0,transparent 7.5px,var(--buy) 8px)}
 .ctp-px{grid-row:2;display:flex;align-items:center;min-height:58px;padding:0 12px;overflow:hidden}
 .ctp-px.sell{grid-column:1 / span 2;background:var(--sell);border-radius:0 8px 10px 10px}
-.ctp-px.buy{grid-column:3 / span 2;background:var(--green);border-radius:8px 0 10px 10px}
+.ctp-px.buy{grid-column:3 / span 2;background:var(--buy);border-radius:8px 0 10px 10px}
 .ctp-px .v{display:block;width:100%;font-weight:700;font-size:clamp(20px,7.4vw,30px);line-height:1.1;white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
 .ctp-px.sell .v{text-align:right}
 .ctp-px.buy .v{text-align:left}
@@ -282,12 +282,12 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    оранжевая, а у нас тупо красная … в нижней панели красный цвет, а в оригинале синий (там где жидкое стекло, должно
    оставаться красным)»; «это касается и этих кнопок во всех темах (кроме жидкого стекла)»). SELL is cTrader's orange
    (#f15823, off the user's frame) and the tab in use its blue; with the liquid glass on, both stay as they were. */
-:root{--sell:#f15823;--nav-on-flat:#28538c}
+:root{--sell:#f15823;--buy:#009345;--nav-on-flat:#28538c}   /* BUY: cTrader's green, a shade deeper than ours (user: «кнопка купить чуть зеленее») */
 :root[data-theme="dark"]{--nav-on-flat:#4d8ff0}
 :root[data-theme="dark"][data-tone="aurora"]{--nav-on-flat:#409cff}
 /* with the glass on, each SELL keeps its own red: declared on the buttons themselves, so a theme's local --red (Сияние's
    calmer #c8414b on the big pair and the trade bar) is the one it reads, not the page's */
-:root[data-glass="on"] :is(.ctp,.cht,.btn,.ot-go,.ot-side,.og){--sell:var(--red)}
+:root[data-glass="on"] :is(.ctp,.cht,.btn,.ot-go,.ot-side,.og){--sell:var(--red);--buy:var(--green)}
 .bottomnav button.on{color:var(--nav-on-flat,var(--nav-on))}
 .bottomnav .ic svg{width:26px;height:26px}
 .nav-bub,.nav-lens,.nav-red{display:none}
@@ -587,7 +587,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .btn{display:block;width:100%;padding:14px;border-radius:13px;font-weight:600;text-align:center;margin-top:6px;overflow-wrap:normal}   /* a button never splits a word (the cards' overflow-wrap:anywhere broke «Синхронизирова / ть») */
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
-.btn.red.sell{background:var(--sell)}                                  /* a SELL, not a warning: cTrader's orange (see --sell) */
+.btn.red.sell{background:var(--sell)}
+.btn.green.buy{background:var(--buy)}                                  /* a SELL, not a warning: cTrader's orange (see --sell) */
 .btn.dark{background:var(--invert);color:var(--invert-ink)}
 /* dark: the primary button is light, like «Новый ордер» — the near-black --invert vanished on the black
    ground and read weaker than «Отмена» beside it */
@@ -609,7 +610,7 @@ body.route-chart .chtrade-wrap{background:var(--chart-bg)}
 .chtrade{position:relative;display:grid;grid-template-columns:1fr 1fr;height:48px;border-radius:10px;overflow:hidden}
 .cht{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;color:rgba(255,255,255,.95);font-weight:400;padding:0 24px}
 .cht.sell{background:var(--sell);align-items:flex-start;padding-right:42px}
-.cht.buy{background:var(--green);align-items:flex-end;padding-left:42px}
+.cht.buy{background:var(--buy);align-items:flex-end;padding-left:42px}
 .cht-grip{position:absolute;top:50%;margin-top:-6px;fill:currentColor}
 .cht.sell .cht-grip{left:9.5px}
 .cht.buy .cht-grip{right:9.5px}
@@ -648,6 +649,9 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 /* a menu entry that isn't open yet (the broker wallet): shows «Скоро», goes nowhere */
 .menu-item.soon{cursor:default}
 .menu-item.soon:active{background:var(--card);transform:none}
+/* the closed wallet: its balance on show, a lock where the chevron was */
+.wl-shut{display:inline-flex;align-items:center;gap:7px;color:var(--ink2)}
+.wl-shut svg{flex:none;color:var(--ink3)}
 .soon-pill{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--orange-ink);background:var(--orange-bg);
   border-radius:999px;padding:3px 10px;white-space:nowrap}
 .toast-wrap{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:100;width:min(492px,calc(100% - 20px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
@@ -1738,7 +1742,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 16px 20px;scrollbar-width:none}
 .ot-body::-webkit-scrollbar{display:none}
 .ot-foot{flex:none;padding:8px 16px calc(10px + env(safe-area-inset-bottom))}
-.ot-go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;min-height:56px;padding:6px 10px;border:0;border-radius:4px;color:#fff;background-color:var(--green);transition:background-color var(--mo-std),color var(--mo-std),transform var(--mo-micro)}
+.ot-go{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;min-height:56px;padding:6px 10px;border:0;border-radius:4px;color:#fff;background-color:var(--buy);transition:background-color var(--mo-std),color var(--mo-std),transform var(--mo-micro)}
 .ot-go b{font-size:16px;font-weight:500}
 .ot-go span{font-size:13.5px;opacity:.95}
 .ot-go.sell{background-color:var(--sell)}
@@ -1777,7 +1781,7 @@ body.amenu-open .wl-logo{opacity:0}
 .sheet .ot-side button[data-otside="buy"]{color:var(--green-ink)}
 .ot-side button.on{background:none}
 .ot-side [data-otside="sell"].on{border-color:var(--sell)}
-.ot-side [data-otside="buy"].on{border-color:var(--green)}
+.ot-side [data-otside="buy"].on{border-color:var(--buy)}
 /* the options: check boxes (with glass, iOS switches) that open their fields under them */
 .ot-opts{margin-top:8px}
 .ot-ck{display:flex;align-items:center;gap:14px;min-height:56px;font-size:16px;color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;-webkit-tap-highlight-color:transparent}
@@ -1844,7 +1848,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .ot-side.px button{min-height:58px}
 .ot-g .ot-side button b{font-size:18.5px;font-weight:600;letter-spacing:-.02em}
 .ot-g .ot-side button:not(.on){background:none;box-shadow:none}
-.ot-g .ot-side.buy button.on{background:color-mix(in srgb,var(--green) 22%,transparent);box-shadow:none}
+.ot-g .ot-side.buy button.on{background:color-mix(in srgb,var(--buy) 22%,transparent);box-shadow:none}
 .ot-g .ot-side.sell button.on{background:color-mix(in srgb,var(--sell) 22%,transparent);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side button.on{background:transparent}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .ot-side .seg-bub{transition:background-color var(--mo-fluid)}
@@ -1856,7 +1860,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .ot-coll>.ot-in>.ot-opt>.ot-ck{border-top:.5px solid var(--line)}
 .ot-g .ot-more>.ot-in::after{height:14px}
 .ot-g .ot-foot{padding:8px 16px 14px}
-.ot-g .ot-go{border-radius:28px;background-image:linear-gradient(180deg,rgba(255,255,255,.26),transparent 62%);box-shadow:0 8px 22px color-mix(in srgb,var(--green) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
+.ot-g .ot-go{border-radius:28px;background-image:linear-gradient(180deg,rgba(255,255,255,.26),transparent 62%);box-shadow:0 8px 22px color-mix(in srgb,var(--buy) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go.sell{box-shadow:0 8px 22px color-mix(in srgb,var(--sell) 34%,transparent),inset 0 1px 1px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22)}
 .ot-g .ot-go:disabled{background-color:var(--cap-glass);background-image:none;box-shadow:0 0 0 .5px var(--lg-line),inset 0 1px 1px var(--lg-spec);color:var(--ink3)}
 .ot-g .ot-go:not(:disabled):active{transform:scale(.986) translateY(.8px);transition:transform var(--mo-micro)}
@@ -7270,7 +7274,7 @@ function openChartCustom(){
 /* ---------- top-level render ---------- */
 /* The broker wallet is OPEN (user 2026-09-24). Its "Ещё" entry carries the balance and goes to the page; set
    this back to true and the entry reads «Скоро» and goes nowhere, with the screen itself left untouched. */
-const WALLET_SOON = false;
+const WALLET_SOON = true;                                          // closed again (user 2026-09-28: «закройте брокерский кошелек снова, но 3 000 000 000 должно показывать»)
 let _renderKey = "", _cvOffRaf = 0;
 function render(){
   if(!S) return;                       // guard against a stray render() during boot
@@ -8159,7 +8163,7 @@ function screenMore(){
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="dispset"><span class="k">${L("Дисперсия")}</span><span class="v"><span class="dv">${L(DISP.on ? "Вкл" : "Выкл")}</span><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
     </div>
     ${WALLET_SOON
-      ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="soon-pill">${L("Скоро")}</span></div>`
+      ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono wl-shut">${walletFmt(S.wallet.balance)}<svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><rect x="1.5" y="6" width="9" height="7" rx="1.6" fill="currentColor"/><path d="M3.6 6V4.3a2.4 2.4 0 0 1 4.8 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div>`
       : `<div class="menu-item" data-act="gotowallet"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
     <div class="menu-item" data-act="gotosettings"><span>${L("⚙️ Настройки симулятора")}</span><span>›</span></div>
     <div class="menu-item" data-act="gotohistory"><span>${L("📜 История сделок")}</span><span>›</span></div>
@@ -8540,7 +8544,7 @@ function screenDOM(){
       <div class="dom-grid" id="domGrid">${rows}</div>
       <div class="grid2" style="margin-top:10px">
         <button class="btn red sell" data-act="domsell"><span class="tcap">${L("ПРОДАТЬ")} ${fmt(S.ui.lot,2)}</span><span class="tx">✕</span></button>
-        <button class="btn green" data-act="dombuy"><span class="tcap">${L("КУПИТЬ")} ${fmt(S.ui.lot,2)}</span><span class="tx">✕</span></button>
+        <button class="btn green buy" data-act="dombuy"><span class="tcap">${L("КУПИТЬ")} ${fmt(S.ui.lot,2)}</span><span class="tx">✕</span></button>
       </div>
     </div>
   </div>`;
@@ -11046,7 +11050,7 @@ function confirmMarket(side){
     </div>
     <div class="field"><label>${L("Stop Loss (цена, необязательно)")}</label><input id="ck-sl" inputmode="decimal" placeholder="—"></div>
     <div class="field"><label>${L("Take Profit (цена, необязательно)")}</label><input id="ck-tp" inputmode="decimal" placeholder="—"></div>
-    <button class="btn ${side==="buy"?"green":"red sell"}" id="ck-go">${side==="buy"?L("Купить"):L("Продать")} ${fmt(v,2)} XAUUSD</button>
+    <button class="btn ${side==="buy"?"green buy":"red sell"}" id="ck-go">${side==="buy"?L("Купить"):L("Продать")} ${fmt(v,2)} XAUUSD</button>
     <button class="btn ghost" data-close>${L("Отмена")}</button>
   `);
   const upd = ()=>{ const e = document.getElementById("ck-px"); if(e) e.textContent = pxfmt(side==="buy"?S.price.ask:S.price.bid); };
