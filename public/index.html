@@ -8,14 +8,17 @@
    50 the look it had, 100 crystal (clear, a strong bend at the rim, colour fringes like a real lens — the user's
    video 2). k tints, b frost, s / sb the sheets' and toasts' (their text stays readable), r the rim's bend,
    ch colour fringes (unused now — they darkened lenses in clear sheets), n the crystal «Новый ордер»'s own tint. */
-function lgq(v){var c=Math.min(100,Math.max(0,v))/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.15,1+lo*.5-hi*.978),b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
+var LG_DEFAULTS=Object.freeze({clarity:85,depth:1,light:1,shadow:1,refract:1,line:1,dark:1,tilt:false});
+function lgNumber(k,v){return typeof v==="number"&&Number.isFinite(v)?Math.min(k==="refract"?1.5:2,Math.max(0,v)):LG_DEFAULTS[k];}
+function lgSavedClarity(th){try{for(var key of ["xc_glass_clear_"+th,"xc_glass_clear"]){var raw=localStorage.getItem(key),v=raw===null||raw.trim()===""?NaN:Number(raw);if(Number.isFinite(v)&&v>=0&&v<=100)return v;}}catch(e){}return LG_DEFAULTS.clarity;}
+function lgq(v){var c=(Number.isFinite(v)?Math.min(100,Math.max(0,v)):LG_DEFAULTS.clarity)/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.15,1+lo*.5-hi*.978),b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
 <script>/* ONCE per device: the glass settings back to the design's (user 2026-09-26: «возможно у меня что-то с настройками,
    деплойте со своими настройками жидкого стекла») - the clarity of each theme, the dials, the parts switched off and
    «Дисперсия». The mode itself and the theme are left alone; after this they are the user's to change again. */
 try{if(localStorage.getItem("xc_glass_v")!=="2"){["xc_glass_clear_light","xc_glass_clear_dark","xc_glass_clear","xc_lg_ui","xc_glass_off","xc_disp"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("xc_glass_v","2");}}catch(e){}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=parseFloat(localStorage.getItem("xc_glass_clear_"+th));if(!(gc>=0&&gc<=100))gc=parseFloat(localStorage.getItem("xc_glass_clear"));if(!(gc>=0&&gc<=100))gc=85;var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return(typeof v==="number"&&v>=0&&v<=2)?v:1};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass=(localStorage.getItem("xc_glass")==="on")?"on":"off";try{var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=lgSavedClarity(th);var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return lgNumber("depth",v)};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.classList.add("booting");(function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#0b0d12");})();</script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -337,7 +340,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   pointer-events:none;color:var(--nav-on);
   -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round calc((60px - 9px) * var(--sy,1) / 2));
   clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round calc((60px - 9px) * var(--sy,1) / 2))}
-/* THE DROP IS A MAGNIFIER. Measured on the reference: everything under it is 1.18x, about the drop's own
+/* THE DROP IS A MAGNIFIER. VANTA's source grows 1.10x (up to 1.12x in motion), about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
    transform, so the window would grow with it); it goes on a wrapper inside it. */
@@ -347,11 +350,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    clear glass over the ordinary row. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-bg{position:absolute;inset:0;background:var(--nav-hole);opacity:calc(1 - var(--lf,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(calc(1 + .08 * (1 - var(--lf,0)) * var(--ng,0)));will-change:transform}
-/* the icon carries the rest of the lens's enlargement on its own. Spread over the whole row it pushes the
-   label down into the narrow end of the capsule, where a longer word than the reference's gets cut off at the
-   rim - and our five languages have longer ones. The icon is centred and can never reach an edge. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .ic{transform:scale(calc(1 + .09 * (1 - var(--lf,0)) * var(--ng,0)))}
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(var(--nm,1));will-change:transform}
+/* Filter the complete source BEFORE the existing drop clip, as in VANTA. Sampling a pre-clipped label
+   folds its cut edge back into the lens. The opaque, themed source also keeps RGB blending neutral. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;background:var(--nav-hole)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1;
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
@@ -1412,6 +1414,7 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .lgc-row{padding-top:6px}
 .lgc-row+.lgc-row{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
 .lgc-t{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.lgc-t output{margin-left:auto;font-variant-numeric:tabular-nums;font-size:12px;font-weight:500}
 .lgc-row.now .lgc-t{color:var(--ink)}
 .lgc-now{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;color:var(--blue-ink);background:color-mix(in srgb,var(--blue) 15%,transparent)}
 .lgc-ends span{display:inline-flex;align-items:center;gap:5px}
@@ -6856,19 +6859,22 @@ function lgFeat(el){
 }
 const LG_DROP_ICO = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3.5c3.4 4.2 6 7.2 6 10.1A6 6 0 0 1 6 13.6c0-2.9 2.6-5.9 6-10.1z" fill="currentColor"/></svg>`;
 const LG_SUN_ICO = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></g></svg>`;
+// Midpoint = the design. Refraction's upper half reaches its real 1.5x limit without a dead zone.
+function lgDialValue(k, v){ return lgNumber(k, v <= 50 ? v / 50 : 1 + (v - 50) * (k === "refract" ? .01 : .02)); }
+function lgDialPosition(k, v){ return v <= 1 ? v * 50 : 50 + (v - 1) * (k === "refract" ? 100 : 50); }
 function openGlassSheet(){
   // one slider per theme (user 2026-09-20, video 3): the one on screen changes the glass live, the other is kept for
   // when that theme comes on
   const cur = currentTheme();
   const row = (th, ttl) => {
     const v = Math.round(glassClarity(th));
-    return `<div class="lgc-row now"><div class="lgc-t"><span>${L(ttl)}</span></div>` +
+    return `<div class="lgc-row now"><div class="lgc-t"><span>${L(ttl)}</span><output data-lgvalue="clarity">${v}%</output></div>` +
       `<div class="lgs" data-lgth="${th}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
       `<div class="lgc-ends"><span>${LG_DROP_ICO} ${L("Минимум")}</span><span>${L("Кристалл")} ${LG_SUN_ICO}</span></div></div>`;
   };
   const dial = (k, ttl) => {
-    const v = Math.round(clamp(LG_UI[k] * 50, 0, 100));
-    return `<div class="lgc-row"><div class="lgc-t"><span>${L(ttl)}</span></div>` +
+    const v = Math.round(lgDialPosition(k, LG_UI[k]));
+    return `<div class="lgc-row"><div class="lgc-t"><span>${L(ttl)}</span><output data-lgvalue="${k}">${Math.round(LG_UI[k] * 100)}%</output></div>` +
       `<div class="lgs" data-lgui="${k}" role="slider" tabindex="0" aria-label="${L(ttl)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div></div>`;
   };
   // ONLY THE THEME THAT IS ON (user 2026-09-28: «должна показываться и регулироваться только та тема, которая включена,
@@ -6878,22 +6884,34 @@ function openGlassSheet(){
     `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
     dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Затемнение") + dial("shadow", "Тень") +
     `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
-    `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>`);
+    `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>` +
+    `<button type="button" class="btn ghost disp-reset" data-lgreset>${L("Сбросить")}</button>`);
+  const showValue = (el, k, v) => {
+    el.setAttribute("aria-valuetext", Math.round(v) + "%");
+    const out = modalEl.querySelector(`[data-lgvalue="${k}"]`); if(out) out.textContent = Math.round(v) + "%";
+  };
   // the glass follows the finger LIVE (user: «ползунок и тема применяется когда отпустить палец» — it must change while
   // it moves): lgsBind calls this from its frame loop, once a frame at most and only when the whole percent changes,
   // in the same frame as the knob; saved on release
   modalEl.querySelectorAll(".lgs[data-lgth]").forEach(el => {
     const th = el.dataset.lgth, live = th === cur;
-    lgsBind(el, Math.round(glassClarity(th)),
-      v => { if(live) applyClarity(v); },
-      v => { if(live) applyClarity(v, true); else saveClarity(th, v); });
+    const apply = (v, save) => { showValue(el, "clarity", v); if(live) applyClarity(v, save); else if(save) saveClarity(th, v); };
+    showValue(el, "clarity", glassClarity(th));
+    lgsBind(el, Math.round(glassClarity(th)), v => apply(v, false), v => apply(v, true));
   });
   modalEl.querySelectorAll(".lgs[data-lgui]").forEach(el => {
     const k = el.dataset.lgui, hard = k === "refract";
-    lgsBind(el, Math.round(clamp(LG_UI[k] * 50, 0, 100)),
-      v => { LG_UI[k] = v / 50; lgUiApply(hard); },
-      v => { LG_UI[k] = v / 50; lgUiApply(hard); lgUiSave(); });
+    const apply = (v, save) => { LG_UI[k] = lgDialValue(k, v); showValue(el, k, LG_UI[k] * 100); lgUiApply(hard); if(save) lgUiSave(); };
+    showValue(el, k, LG_UI[k] * 100);
+    lgsBind(el, Math.round(lgDialPosition(k, LG_UI[k])), v => apply(v, false), v => apply(v, true));
   });
+  modalEl.querySelector("[data-lgreset]").onclick = () => {
+    for(const k of ["depth", "light", "shadow", "refract", "line", "dark", "tilt"]) LG_UI[k] = LG_DEFAULTS[k];
+    try{ localStorage.removeItem("xc_glass_off"); }catch(e){}
+    delete document.documentElement.dataset.lgoff;
+    litHome(); lgUiSave(); applyClarity(LG_DEFAULTS.clarity, true); lgUiApply(true);
+    render(); otReform(); openGlassSheet();
+  };
   const tl = modalEl.querySelector("[data-lgtilt]");
   if(tl) tl.onclick = () => {
     const on = !tl.classList.contains("on");
@@ -7040,6 +7058,7 @@ function lgsBind(el, v0, onInput, onDone){
   const J = { j: 0, jv: 0, vel: 0, t: 0, raf: 0, lx: 0, lt: 0 };
   const jelly = now => {
     J.raf = 0;
+    if(!el.isConnected){ P = null; J.t = 0; return; }
     if(P && P.x != null && P.x !== P.done){ P.done = P.x; const was = el._v, v = set(vAt(P.x)); if(v !== was) onInput(v); }   // one write a frame
     const dt = J.t ? Math.min(Math.max((now - J.t) / 1000, 0), 1 / 30) : MO.dt0; J.t = now;
     const target = P ? Math.min(Math.abs(J.vel) * .00035, .2) : 0;
@@ -7054,7 +7073,7 @@ function lgsBind(el, v0, onInput, onDone){
   const kick = () => { if(!J.raf) J.raf = requestAnimationFrame(jelly); };
   let P = null;
   el.onpointerdown = e => {
-    if(e.button > 0) return;
+    if(e.button > 0 || P) return;
     P = { id: e.pointerId, x: e.clientX, done: null };
     R = el.getBoundingClientRect();
     try{ el.setPointerCapture(e.pointerId); }catch(_){}
@@ -7072,8 +7091,10 @@ function lgsBind(el, v0, onInput, onDone){
   };
   const end = e => {
     if(!P || e.pointerId !== P.id) return;
-    if(P.x !== P.done) set(vAt(P.x));                                // where the finger left it
+    const was = el._v, v = set(vAt(e.type === "pointerup" ? e.clientX : P.x));
+    if(v !== was) onInput(v);                                      // include the final pending move
     P = null; kick();
+    try{ if(el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId); }catch(_){}
     // it shrinks back still a clear lens and turns white only at the very end (video 3)
     el.classList.remove("press"); el.classList.add("rel");
     el._t1 = setTimeout(() => el.classList.add("frost"), 150);
@@ -7081,6 +7102,7 @@ function lgsBind(el, v0, onInput, onDone){
     onDone(el._v);
   };
   el.onpointerup = end; el.onpointercancel = end;
+  el.onlostpointercapture = end;
   el.onkeydown = e => {
     const d = { ArrowLeft: -5, ArrowDown: -5, ArrowRight: 5, ArrowUp: 5, PageDown: -10, PageUp: 10 }[e.key];
     let v = null;
@@ -9202,7 +9224,7 @@ function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t 
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // a: the drop's LEADING edge in tabs, b its trailing one (at rest on tab i they are i and i+1); u is the tab
 // they straddle, kept because the icons' swell and the drag read it. lift 0…1: resting drop → lens under the finger
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, materialOn: false, materialTween: null, wCircle: 0, hCircle: 1, dms: null, dmB: null, _lensK: null, bx: 0 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, materialOn: false, materialTween: null, wCircle: 0, hCircle: 1, optical: null, opticalEnergy: 0, bx: 0 };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 // The drop is a seventh wider than a tab, as the reference's is, and it is CLAMPED inside the bar: on the end
@@ -9308,7 +9330,7 @@ function navBubFrame(now){
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
   if(!lens || !glassOn("nav")){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0;
-    NB.lift = NB.clear = NB.bx = 0; NB.tw = NB.materialTween = null; NB.materialOn = false; NB._pm = null; return;
+    NB.lift = NB.clear = NB.bx = NB.opticalEnergy = 0; NB.tw = NB.materialTween = null; NB.materialOn = false; NB._pm = null; return;
   }
   if(NB.a == null){ NB.a = NB.target; NB.b = NB.target + 1; }
   const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : MO.dt0;
@@ -9342,6 +9364,8 @@ function navBubFrame(now){
   // the bar leans a couple of pixels the way the drop is going and comes back to nothing when it lands
   const vmid = NB._pm != null && dt > 0 ? (mid - NB._pm) / dt : 0;
   NB._pm = mid;
+  const speed = Math.abs(vmid) * (NB.optical ? NB.optical.tabW : 0);
+  NB.opticalEnergy += (speed / (speed + 420) - NB.opticalEnergy) * (1 - Math.exp(-dt / .06));
   // IT FOLLOWS THE FINGER, AND SLOWLY. A hard function of the speed arrives and leaves with the speed, which
   // reads as the bar twitching; low-passed, it drifts after the drop and is still drifting a little when the
   // drop has stopped, which is what the Apple Music bar does under a finger.
@@ -9393,7 +9417,7 @@ function navBubFrame(now){
   // Keep the existing frame alive until the optical landing and the bar's drift both finish. No writes at rest.
   if(!NB.drag && !NB.tw && !NB.materialTween && NB.lift < .01 && NB.clear === 0 && Math.abs(NB.bx) < .05){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
-    NB._pm = null; NB.clear = 0; NB.bx = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
+    NB._pm = null; NB.clear = 0; NB.bx = NB.opticalEnergy = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
     navLens(0);                                // and it is written once more here, where the frames stop
     const r = navBox(NB.target, NB.target + 1, 0);
     // --sy comes from navBox as well: it carries the ball-up on the end tabs, and a hard 1 here threw it away
@@ -9530,14 +9554,62 @@ function navFit(bar){
   _navFit = key;
   if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
 }
-// how hard the drop bends what is under it: nothing at all standing still, full while it travels. A tenth was
-// kept at rest once, and even that fanned a yellow fringe onto the red label and bent it a hair.
+// VANTA's numerical map and optical defaults, sampled over XAUCORE's unchanged navBox contour.
+// One padded map / filter for this bar; no map generation or filter creation during a gesture.
+const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", bend: 27, motion: 4, dispersion: .008, padding: 24 });
+let _navMapReady = false, _navMapRequested = false;
+function navOpticsBind(bar){
+  const source = bar.querySelector(".nr-optics");
+  if(!source) return;
+  if(!LG_LENS){ NB.optical = null; return; }
+  if(!_navMapRequested){
+    _navMapRequested = true;
+    const image = new Image();
+    image.onload = () => { _navMapReady = true; navLens(NB.clear); };
+    image.src = NAV_OPTICS.map;                                   // a plain source remains visible if loading fails
+  }
+  lgDefsReady();
+  let filter = document.getElementById("xc-nav-optics");
+  if(!filter){
+    const NS = "http://www.w3.org/2000/svg";
+    filter = document.createElementNS(NS, "filter");
+    for(const [k,v] of Object.entries({ id: "xc-nav-optics", filterUnits: "userSpaceOnUse", primitiveUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" })) filter.setAttribute(k,v);
+    const add = (tag, attrs) => { const node = document.createElementNS(NS, tag); for(const [k,v] of Object.entries(attrs)) node.setAttribute(k,v); filter.appendChild(node); return node; };
+    add("feImage", { href: NAV_OPTICS.map, preserveAspectRatio: "none", result: "normals" });
+    for(let i = 0; i < 3; i++){
+      add("feDisplacementMap", { in: "SourceGraphic", in2: "normals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "sample" + i });
+      const matrix = Array(20).fill(0); matrix[i * 6] = 1; matrix[18] = 1;
+      add("feColorMatrix", { in: "sample" + i, type: "matrix", values: matrix.join(" "), result: "channel" + i });
+    }
+    add("feBlend", { in: "channel0", in2: "channel1", mode: "screen", result: "rg" });
+    add("feBlend", { in: "rg", in2: "channel2", mode: "screen" });
+    _lgDefs.appendChild(filter);
+  }
+  NB.optical = { bar, source, filter, image: filter.querySelector("feImage"), dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
+  navLens(NB.clear);
+}
 function navLens(clear){
-  if(!NB.dms || !NB.dmB) return;
-  const k = Math.max(0, Math.min(1, clear));   // NOTHING at rest: the label under a sitting drop is plain red, no fringe, no bend (user: «текст то красный должен быть в спокойном виде»)
-  if(NB._lensK != null && Math.abs(NB._lensK - k) < .004) return;
-  NB._lensK = k;
-  for(let i = 0; i < NB.dms.length; i++) NB.dms[i].setAttribute("scale", (NB.dmB[i] * k).toFixed(2));
+  const o = NB.optical;
+  if(!o || !o.bar.isConnected) return;
+  const enabled = glassOn("nav") && glassOn("refract"), k = enabled ? clamp(clear, 0, 1) : 0;
+  const energy = clamp(NB.opticalEnergy, 0, 1), box = navBox(NB.a, NB.b, NB.lift);
+  const w = o.tabW * box.sx, h = (o.h - 9) * box.sy, x = o.tabW * box.left, y = (o.h - h) / 2;
+  const bend = k * (NAV_OPTICS.bend + NAV_OPTICS.motion * energy) * LG_UI.refract;
+  const split = DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 : 0;
+  const magnify = 1 + k * (.10 + .02 * energy) * LG_UI.refract;
+  o.bar.style.setProperty("--nm", magnify.toFixed(4));
+  // Fully plain at rest / with refraction off. Clearing the CSS filter also removes its sampling region.
+  if(!k || !LG_UI.refract || !_navMapReady){ o.source.style.filter = ""; o.key = ""; return; }
+  const key = [x,y,w,h,bend,split].map(v => v.toFixed(4)).join(",");
+  if(key !== o.key){
+    o.key = key;
+    const set = (node, values) => { for(const [a,v] of Object.entries(values)){ const s = v.toFixed(3); if(node.getAttribute(a) !== s) node.setAttribute(a,s); } };
+    const region = { x: x - NAV_OPTICS.padding, y: y - NAV_OPTICS.padding, width: w + NAV_OPTICS.padding * 2, height: h + NAV_OPTICS.padding * 2 };
+    set(o.filter, region);
+    set(o.image, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
+    o.dms.forEach((dm,i) => set(dm, { ...region, scale: bend * (1 + (i - 1) * split) }));
+  }
+  if(!o.source.style.filter) o.source.style.filter = "url(#xc-nav-optics)";
 }
 function navBind(bar){
   if(!bar) return;
@@ -9561,49 +9633,8 @@ function navBind(bar){
     bar.style.setProperty("--sy", r0.sy.toFixed(3));
   }
   navFit(bar);
-  if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; NB.drag = null; return; }   // flat: taps go to the buttons
-  // the bar's own rim bends nothing (the reference's is straight) — but the DROP is a lens, always, not only
-  // under a finger: a strong bend in the band at its rim, near-sharp in the middle, the three channels a little
-  // apart so its edge throws the colour the user calls «полурадуга». Fixed, so the clarity slider cannot flatten it.
-  const bub = bar.querySelector(".nav-bub");
-  if(bub){
-    // the map must be the size of the element's OWN box. A backdrop filter runs before the transform, so the
-    // 1.14 I had here laid an 86 px map over a 76 px box: the whole right-hand wall of the rim fell outside the
-    // filter region and that side of the drop bent nothing at all.
-    const dw = bar.clientWidth / 5, dh = Math.max(8, bar.clientHeight - 9);
-    // rim-only (the ninth argument): the reference's fringe is a ring along the edge and its middle is clean,
-    // so the drop must not carry the gentle magnifier that every other lens here has. Two strengths, because
-    // the split measures about half a source pixel at rest and two and a half at the peak of a travel.
-    // the reference bends what is under it and still leaves it legible; at 11 on a drop this small the whole
-    // word turned to paste
-    // REAL GLASS, not a hint of it. Every time the word under the drop came out mangled I turned the bend
-    // down, and that was the wrong call every time: on the reference the label under a travelling drop is a
-    // smear you cannot read - that IS the effect. So the bend runs over the whole face now (a gentle magnifier
-    // everywhere plus the hard wall at the rim, which is what the ninth argument being 0 turns back on) and at
-    // twice the strength, with real frosting behind it.
-    // NO FROSTING. The bend is what glass does to a letter; a blur on top of it only makes the word muddy, and
-    // the user reads that as broken rather than as glass. The displacement stays strong and the frost goes to
-    // almost nothing, so the letters under the drop are bent and sharp instead of bent and smeared.
-    // A NEGATIVE rim: that band width, and the gentle magnifier over the whole face kept. Rim-only was the
-    // single reason there was no rainbow anywhere - the accent copy of the label sits in the MIDDLE of the drop,
-    // where a rim-only map bends nothing, so the one piece of content with an edge sharp enough to split into
-    // colour was the one piece the lens never touched. On the reference the word under a travelling drop is
-    // dragged out of shape across its whole width; the rim is where it is worst, not where it is only.
-    // and the strength: a drop 91 px wide bending a 24 px icon and a 10 px word is a much smaller lens than
-    // the reference's 225 px one, so the same bend goes far further into the content. Twelve travelling and
-    // seven at rest leaves the icon an icon and the word a word, with the fringe still on them.
-    lgGlass(bub, dw, dh, 12, .12, false, true, 0, -14, true);
-    // its three displacement passes are driven straight, frame by frame, so the bend can slide instead of
-    // switching. Only this drop uses this filter, so nothing else feels it.
-    const fid = bub._lg && bub._lg.indexOf("#") > 0 ? bub._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
-    const flt = fid && document.getElementById(fid);
-    NB.dms = flt ? [...flt.querySelectorAll("feDisplacementMap")] : null;
-    // the base comes from lgDmScale, never from the attribute: navBind runs on every render, and reading
-    // back a scale this function had already turned down would compound it toward nothing
-    NB.dmB = NB.dms ? NB.dms.map(d => +lgDmScale(d)) : null;
-    NB._lensK = null;
-    navLens(NB.clear);
-  }
+  if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = bar.onlostpointercapture = null; NB.drag = NB.optical = null; return; }   // flat: taps go to the buttons
+  navOpticsBind(bar);
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
   const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
   const end = (e, go) => {
@@ -10425,7 +10456,7 @@ function bottomNav(){
   const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b, NB.lift);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-optics"><span class="nr-in">${red}</span></span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     ${row}
   </div>`;
 }
@@ -12306,14 +12337,9 @@ let _lgDefs = null;
    the light one shows more of the page through it, the dark one usually wants a little more body. 85 by default. */
 const clarityKey = th => "xc_glass_clear_" + (th || currentTheme());
 function glassClarity(th){
-  try{
-    let v = parseFloat(localStorage.getItem(clarityKey(th)));
-    if(!(v >= 0 && v <= 100)) v = parseFloat(localStorage.getItem("xc_glass_clear"));   // one saved before the split
-    if(v >= 0 && v <= 100) return v;
-  }catch(e){}
-  return 85;
+  return lgSavedClarity(th || currentTheme());
 }
-function saveClarity(th, v){ try{ localStorage.setItem(clarityKey(th), String(Math.round(v))); }catch(e){} }
+function saveClarity(th, v){ try{ localStorage.setItem(clarityKey(th), String(Math.round(Number.isFinite(v) ? clamp(v, 0, 100) : LG_DEFAULTS.clarity))); }catch(e){} }
 let LGQ = lgq(glassClarity());
 /* THE RIM CATCHES THE LIGHT (user 2026-09-27: «дорогой стиль жидкого стекла с переломами как в айос»). At its edge
    real glass gathers the light of what is behind it into a thin bright line - in the colour of what it bends, never
@@ -12451,11 +12477,10 @@ function lgMotionMap(w, h, rad, rim, edge, k){
 // noise instead of a word with a coloured edge.
 const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp != null ? dm._sp : dispDropSp() * (dm._spk || 1))) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
 function lgScaleAll(){
-  for(const dm of _lgDms) dm.setAttribute("scale", lgDmScale(dm));
-  if(typeof NB !== "undefined" && NB.dms){ NB.dmB = NB.dms.map(d => +d.getAttribute("scale")); NB._lensK = null; navLens(NB.clear); }
+  for(const dm of _lgDms){ const scale = lgDmScale(dm); if(dm.getAttribute("scale") !== scale) dm.setAttribute("scale", scale); }
+  navLens(NB.clear);
   if(typeof SB !== "undefined" && SB.dms){ SB.dmB = SB.dms.map(d => +d.getAttribute("scale")); SB.lk = null; subLens(SB.clear); }
-  // and the two rainbow panels close their colour back up, or a move of the slider would leave it split at rest
-  // (the rainbow places' ready filters carry the bend in their ids: lgRefresh builds them again)
+  // Ready dispersion filters participate too; their immutable base no longer changes with the slider.
 }
 /* stretch (UNUSED - kept for the record): the map is drawn once for a size and laid over the WHOLE box (feImage at
    100 %). The desktop drew it right; on the user's phone the lots' lens bent nothing - the figures under it came
@@ -12536,7 +12561,7 @@ function lgFilterId(w, h, scale, chroma, fixed, rad, rim, stretch, glow){
 const DISP_SPEC = [[1, 0, .05], [.9, .6, 0], [.15, 1, .2], [0, .55, 1], [.6, 0, .9]], DISP_LV = [0, 1, .6, .3];
 function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
-  const base = (sc || 22) * Math.min(1.5, LG_UI.refract), m = dispMotion(place);
+  const base = sc || 22, m = dispMotion(place);
   const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2);
   if(_lgIds.has(id) || !_lgDefs) return id;
   const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
@@ -12547,7 +12572,9 @@ function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
   const tot = [0, 1, 2].map(j => DISP_SPEC.reduce((a, s) => a + s[j], 0));
   DISP_SPEC.forEach((s, i) => {
     const c = (i - 2) / 2;
-    el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", scale: (base * (1 + k * (m.bd + c * m.sp))).toFixed(2), result: "d" + i });
+    const dm = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: "d" + i });
+    dm._s = base * (1 + k * (m.bd + c * m.sp)); dm._c = 0; dm._sp = 0; dm._fixed = true;
+    dm.setAttribute("scale", lgDmScale(dm)); _lgDms.push(dm);
     const [r, g, b] = s.map((v, j) => (v / tot[j]).toFixed(4));
     el("feColorMatrix", { in: "d" + i, type: "matrix", values: `${r} 0 0 0 0 0 ${g} 0 0 0 0 0 ${b} 0 0 0 0 0 1 0`, result: "c" + i });
     if(i) el("feComposite", { in: i === 1 ? "c0" : "s" + (i - 1), in2: "c" + i, operator: "arithmetic", k1: 0, k2: 1, k3: 1, k4: 0, result: "s" + i });
@@ -12711,7 +12738,11 @@ function dispApply(hard){
 // no colour fringes any more: a channel-split lens darkened what it sat on inside a see-through sheet (the slider
 // went grey at «Кристалл»), and the user wanted them smaller twice. `fixed`: a bend the clarity does not scale
 function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
-  if(!LG_LENS || !el || (!force && (!glassOn("refract") || !glassOn(lgFeat(el))))) return;
+  if(!el) return;
+  if(!LG_LENS || (!force && (!glassOn("refract") || !glassOn(lgFeat(el))))){
+    el._lg = null; el.style.removeProperty("backdrop-filter");
+    _lgEls.delete(el); _lgRain.delete(el); el._dispF = el._lgMove = null; return;
+  }
   blur = blur == null ? 1 : blur;
   el._lga = [w, h, scale, blur, force, fixed, rad, rim, chroma]; _lgEls.add(el);
   let bl = blur > 2 ? blur * LGQ.b : blur * Math.min(1, LGQ.b + .25);   // frosted surfaces clear up with the clarity, lenses stay near-sharp
@@ -12767,6 +12798,7 @@ function lgRefresh(){
     if(!el.isConnected){ _lgPanels.delete(el); continue; }
     if(glassOn("refract") && glassOn("sheets")) lgPanelBuild(el); else el.style.removeProperty("--lgp");
   }
+  navLens(NB.clear);
 }
 /* THE BIG GLASS BENDS AT ITS EDGE TOO (user 2026-09-27: «дорогой стиль жидкого стекла с переломами как в айос»).
    iOS's sheets and side panels are the same glass as its buttons, only thicker: what lies under their edge is drawn
@@ -12915,26 +12947,28 @@ function lgPanel(el, band, scale, wait){
   else el._lgp.t = setTimeout(() => lgPanelBuild(el), el._lgp.wait);
 }
 /* THE DIALS. The clarity slider says how much glass; these say what KIND of glass — how thick it reads, how hard
-   it bends, how bright its light, how far it floats off the page. 50 on each slider is the design, 100 is twice
-   it. Depth / highlight / shadow are pure CSS (they only feed custom properties), so moving them costs nothing
+   it bends, how bright its light, how far it floats off the page. 50 on each slider is the design; the top is
+   1.5x for refraction, 2x for the other dials. Depth / highlight / shadow are pure CSS, so moving them costs nothing
    per frame; refraction re-scales the displacement maps, which is the one that has to be re-applied. */
-const LG_UI = { depth: 1, light: 1, shadow: 1, refract: 1, line: 1, dark: 1, chroma: false, tilt: false };
+const LG_UI = { depth: LG_DEFAULTS.depth, light: LG_DEFAULTS.light, shadow: LG_DEFAULTS.shadow, refract: LG_DEFAULTS.refract, line: LG_DEFAULTS.line, dark: LG_DEFAULTS.dark, chroma: false, tilt: LG_DEFAULTS.tilt };
 const LG_LOW = ((navigator.hardwareConcurrency || 8) <= 4) || ((navigator.deviceMemory || 4) <= 2);
 const LG_SOFT = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 function lgUiApply(hard){
   const st = document.documentElement.style;
+  for(const k of ["depth", "light", "shadow", "refract", "line", "dark"]) LG_UI[k] = lgNumber(k, LG_UI[k]);
   st.setProperty("--lgd", LG_UI.depth.toFixed(2));
   st.setProperty("--lgh", LG_UI.light.toFixed(2));
   st.setProperty("--lgsh", LG_UI.shadow.toFixed(2));
   st.setProperty("--lgln", LG_UI.line.toFixed(2));                 // the drawn edge: all the way down to none
   st.setProperty("--lgdk", LG_UI.dark.toFixed(2));                 // every grey the glass casts into itself
-  LG_UI.chroma = !LG_LOW && LG_UI.refract >= 1.4;                  // dispersion at the rim: the top of the slider only
+  // Colour belongs to Dispersion, not to crossing an arbitrary refraction-slider threshold.
+  LG_UI.chroma = false;
   for(const k of _lgGlowK){
     if(!k.isConnected){ _lgGlowK.delete(k); continue; }
     const gv = "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k._gk) + " 0 0";
     if(k.getAttribute("values") !== gv) k.setAttribute("values", gv);
   }
-  if(hard){ lgScaleAll(); lgRefresh(); }
+  if(hard) lgScaleAll();                                        // ready maps / filters survive a slider sweep
   if(!LG_UI.light) litHome();
 }
 function lgUiSave(){
@@ -12943,11 +12977,10 @@ function lgUiSave(){
 function lgUiLoad(){
   try{
     const j = JSON.parse(localStorage.getItem("xc_lg_ui") || "null");
-    if(j){
-      const num = (v, d) => (typeof v === "number" && v >= 0 && v <= 2) ? v : d;
-      LG_UI.depth = num(j.d, 1); LG_UI.light = num(j.l, 1); LG_UI.shadow = num(j.s, 1); LG_UI.refract = num(j.r, 1);
-      LG_UI.line = num(j.ln, 1); LG_UI.dark = num(j.dk, 1);
-      LG_UI.tilt = !!j.t;
+    if(j && typeof j === "object" && !Array.isArray(j)){
+      for(const [k, stored] of Object.entries({ depth: "d", light: "l", shadow: "s", refract: "r", line: "ln", dark: "dk" })) LG_UI[k] = lgNumber(k, j[stored]);
+      LG_UI.tilt = j.t === true;
+      lgUiSave();                                               // normalize legacy values once when loading
     }
   }catch(e){}
   lgUiApply(false);
@@ -13058,6 +13091,8 @@ function lgReflow(){
     const w = el.offsetWidth, h = el.offsetHeight;
     if(w > 0 && h > 0 && (Math.abs(a[0] - w) > 4 || Math.abs(a[1] - h) > 4)) lgGlass(el, w, h, a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
   }
+  const bar = document.querySelector(".bottomnav");
+  if(bar && glassOn("nav")) navBind(bar);
 }
 addEventListener("resize", () => { clearTimeout(_lgRz); _lgRz = setTimeout(lgReflow, 180); }, { passive: true });
 addEventListener("orientationchange", () => { clearTimeout(_lgRz); _lgRz = setTimeout(lgReflow, 320); }, { passive: true });
