@@ -278,8 +278,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 
 /* bottom nav — liquid glass OFF: cTrader's — outline icons and large grey labels, the current tab in blue, on the
    page ground with a hairline on top (and the touch ripple) */
-.bottomnav{position:fixed;left:50%;transform:translateX(calc(-50% + var(--bx,0px)));bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
   display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.nav-panel{display:contents}
+.nav-surface,.nav-shadow{display:none}
 .bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
 /* cTRADER'S OWN COLOURS WHERE THE GLASS IS OFF (user 2026-09-28, ours beside the real cTrader: «кнопка продать более
    оранжевая, а у нас тупо красная … в нижней панели красный цвет, а в оригинале синий (там где жидкое стекло, должно
@@ -311,8 +313,20 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
      that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
-  background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);
-  box-shadow:var(--lg-lift2)}
+  background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
+/* VANTA's centred control plane: the surface and ordinary glyphs swell together. The drop stays in the
+   unscaled track, so the rail's response cannot change its accepted contour or optical sampling region. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-panel,
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-shadow{position:absolute;inset:0;border-radius:inherit;transform-origin:50% 50%;
+  transform:translateY(var(--nry,0px)) scale(var(--nrsx,1),var(--nrsy,1));will-change:transform}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-panel{display:grid;grid-template-columns:repeat(5,1fr);isolation:isolate;z-index:1}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-shadow{display:block;z-index:-1;pointer-events:none;box-shadow:var(--lg-lift2)}
+/* Keep the frost raster unscaled; its clip follows the same centred outline as the panel. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface{display:block;position:absolute;inset:-8px;z-index:0;pointer-events:none;will-change:clip-path;
+  clip-path:inset(calc(8px - var(--nrgy,0px) + var(--nry,0px)) calc(8px - var(--nrgx,0px)) calc(8px - var(--nrgy,0px) - var(--nry,0px)) calc(8px - var(--nrgx,0px)) round calc(30px * var(--nrsx,1)) / calc(30px * var(--nrsy,1)));
+  background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface::after,
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nr-optics::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#73747a;opacity:var(--nrl,0);pointer-events:none}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#ff4a45}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* nothing in the row changes colour by itself any more: the drop carries the accent (see .nav-red), so a tab
@@ -339,7 +353,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey again behind it, with the hard edge the video shows mid-icon. It reads --u/--sx/--sy straight off the
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:2;
-  pointer-events:none;color:var(--nav-on);
+  pointer-events:none;color:var(--nav-on);border-radius:inherit;
   -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round calc((60px - 9px) * var(--sy,1) / 2));
   clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round calc((60px - 9px) * var(--sy,1) / 2))}
 /* THE DROP IS A MAGNIFIER. VANTA's source grows 1.10x (up to 1.12x in motion), about the drop's own
@@ -352,10 +366,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    clear glass over the ordinary row. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-bg{position:absolute;inset:0;background:var(--nav-hole);opacity:calc(1 - var(--lf,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(var(--nm,1));will-change:transform}
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;
+  /* Compose the centred rail scale and lens magnifier in one source transform, avoiding another composited
+     surface inside the SVG filter. */
+  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nm,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nm,1) * var(--nrsy,1)));will-change:transform}
 /* Filter the complete source BEFORE the existing drop clip, as in VANTA. Sampling a pre-clipped label
    folds its cut edge back into the lens. The opaque, themed source also keeps RGB blending neutral. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;background:var(--nav-hole)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;border-radius:inherit;background:var(--nav-hole)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1;
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
@@ -398,7 +415,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   background:linear-gradient(var(--lit-a,151deg),var(--lg-rim) 0%,transparent 28%,var(--lg-rimd) 50%,transparent 72%,var(--lg-rim2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media (prefers-reduced-transparency:reduce){
-  :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
   :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{background:var(--nav-bub);-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 .bottomnav .ic{line-height:0;position:relative}
@@ -9226,9 +9243,33 @@ function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t 
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // a: the drop's LEADING edge in tabs, b its trailing one (at rest on tab i they are i and i+1); u is the tab
 // they straddle, kept because the icons' swell and the drag read it. lift 0…1: resting drop → lens under the finger
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, materialOn: false, materialTween: null, wCircle: 0, hCircle: 1, optical: null, opticalEnergy: 0, bx: 0 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, materialOn: false, materialTween: null, wCircle: 0, hCircle: 1, optical: null, opticalEnergy: 0, rail: 0, railV: 0, railLight: 0, railLightV: 0 };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
+function navRailValues(){
+  return { "--nrsx": (1 + NB.rail * .70).toFixed(5), "--nrsy": (1 + NB.rail * 1.55).toFixed(5),
+    "--nry": (-clamp(NB.rail, 0, .026) * 12).toFixed(3) + "px", "--nrl": NB.railLight.toFixed(5),
+    "--nrgx": (NB.rail * .70 * (NB.railWidth || 0) / 2).toFixed(3) + "px", "--nrgy": (NB.rail * 1.55 * 30).toFixed(3) + "px" };
+}
+function navRailStyle(){ return Object.entries(navRailValues()).map(([k,v]) => k + ":" + v).join(";"); }
+function navRailWrite(bar){
+  for(const [k,v] of Object.entries(navRailValues())) if(bar.style.getPropertyValue(k) !== v) bar.style.setProperty(k,v);
+}
+function navRailFrame(dt){
+  const u = clamp(NB.u || 0, 0, 4), t = u - Math.floor(u), between = 16 * t * t * (1 - t) * (1 - t);
+  const target = NB.clear * (.012 + .006 * clamp(NB.opticalEnergy, 0, 1) + .006 * between);
+  // VANTA's two springs, integrated on this existing frame. Small substeps stay stable after a slow frame.
+  const steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps;
+  for(let i = 0; i < steps; i++){
+    NB.railV += ((target - NB.rail) * 800 - NB.railV * 25.5) / .4 * h;
+    NB.rail += NB.railV * h;
+    const light = clamp(NB.rail / .024, 0, 1) * .085;
+    NB.railLightV += ((light - NB.railLight) * 260 - NB.railLightV * 25) / .45 * h;
+    NB.railLight += NB.railLightV * h;
+  }
+  if(!target && Math.abs(NB.rail) < .00001 && Math.abs(NB.railV) < .0001) NB.rail = NB.railV = 0;
+  if(!NB.rail && Math.abs(NB.railLight) < .0001 && Math.abs(NB.railLightV) < .001) NB.railLight = NB.railLightV = 0;
+}
 // The drop is a seventh wider than a tab, as the reference's is, and it is CLAMPED inside the bar: on the end
 // tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
 // settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
@@ -9328,7 +9369,8 @@ function navBubFrame(now){
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
   if(!lens || !glassOn("nav")){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0;
-    NB.lift = NB.clear = NB.bx = NB.opticalEnergy = 0; NB.tw = NB.materialTween = null; NB.materialOn = false; NB._pm = null; return;
+    NB.lift = NB.clear = NB.opticalEnergy = NB.rail = NB.railV = NB.railLight = NB.railLightV = 0;
+    NB.tw = NB.materialTween = null; NB.materialOn = false; NB._pm = null; return;
   }
   if(NB.a == null){ NB.a = NB.target; NB.b = NB.target + 1; }
   const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : MO.dt0;
@@ -9360,23 +9402,14 @@ function navBubFrame(now){
   // bar, growing as it travels rather than thinning
   const span0 = NB.b - NB.a, mid = (NB.a + NB.b) / 2;
   const box = navBox(NB.a, NB.b, NB.lift), left = box.left, sx = box.sx, sy = box.sy;
-  // the bar leans a couple of pixels the way the drop is going and comes back to nothing when it lands
+  // Only the speed magnitude feeds the rail, never the direction or distance of the finger.
   const vmid = NB._pm != null && dt > 0 ? (mid - NB._pm) / dt : 0;
   NB._pm = mid;
   const speed = Math.abs(vmid) * (NB.optical ? NB.optical.tabW : 0);
   NB.opticalEnergy += (speed / (speed + 420) - NB.opticalEnergy) * (1 - Math.exp(-dt / .06));
-  // IT FOLLOWS THE FINGER, AND SLOWLY. A hard function of the speed arrives and leaves with the speed, which
-  // reads as the bar twitching; low-passed, it drifts after the drop and is still drifting a little when the
-  // drop has stopped, which is what the Apple Music bar does under a finger.
-  // under a finger: where the finger has GOT TO, held there until it lifts. On a tap there is no finger to
-  // follow, so the drop's speed stands in for one.
-  // measured on the Apple Music bar: its left edge runs about two per cent of the bar out from where it rests
-  // and stays there while the finger is down. Two per cent of ours is eight pixels.
-  const bxT = NB.drag ? clamp((NB.drag.u - (NB.drag.u0 || 0)) * 7, -8, 8) : clamp(vmid * .70, -6, 6);
-  NB.bx += (bxT - NB.bx) * (1 - Math.exp(-dt / .16));
-  bar.style.setProperty("--bx", NB.bx.toFixed(2) + "px");
+  navRailFrame(dt); navRailWrite(bar);
   // The material stays clear through a hold and the whole flight, even while slowing down. Only after arrival
-  // does it fade into the theme's matte selection; the existing geometry and bar's drift have their own timing.
+  // does it fade into the theme's matte selection; the drop geometry and rail springs have their own timing.
   // ON THE ROOT, not on the bar. A custom property that carries a var() inside it - and --nav-bub, --nav-lip
   // and --nav-edge all carry var(--dk) - has that var substituted where the TOKEN is declared, which is :root,
   // not where it is used. Setting --dk on the bar left :root without one, the fallback of 1 won every time, and
@@ -9412,10 +9445,10 @@ function navBubFrame(now){
     }
     bar._swelled = any;
   }
-  // Keep the existing frame alive until the optical landing and the bar's drift both finish. No writes at rest.
-  if(!NB.drag && !NB.tw && !NB.materialTween && NB.lift < .01 && NB.clear === 0 && Math.abs(NB.bx) < .05){
+  // The rail completes its own contraction after the optical landing. No writes at rest.
+  if(!NB.drag && !NB.tw && !NB.materialTween && NB.lift < .01 && NB.clear === 0 && !NB.rail && !NB.railV && !NB.railLight && !NB.railLightV){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
-    NB._pm = null; NB.clear = 0; NB.bx = NB.opticalEnergy = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
+    NB._pm = null; NB.clear = NB.opticalEnergy = 0; bar.style.setProperty("--dk", "1");
     navLens(0);                                // and it is written once more here, where the frames stop
     const r = navBox(NB.target, NB.target + 1, 0);
     // --sy comes from navBox as well: it carries the ball-up on the end tabs, and a hard 1 here threw it away
@@ -9611,6 +9644,8 @@ function navLens(clear){
 }
 function navBind(bar){
   if(!bar) return;
+  NB.railWidth = bar.clientWidth;
+  navRailWrite(bar);
   // THE ENDS KEEP A GAP, and a bigger one than the top and bottom: measured off the user's frame, about an
   // eighth of the bar's height at the end against a thirteenth above and below. There is white bar either side
   // of a drop sitting on the first or last tab, and there was none in ours.
@@ -9634,7 +9669,11 @@ function navBind(bar){
   if(!glassOn("nav")){ bar.onpointerdown = bar.onpointermove = bar.onpointerup = bar.onpointercancel = bar.onlostpointercapture = null; NB.drag = NB.optical = null; return; }   // flat: taps go to the buttons
   navOpticsBind(bar);
   // the finger past an end pulls the lens on a rubber band (a fifth of a tab at most)
-  const uAt = x => { const r = bar.getBoundingClientRect(), u = (x - r.left) / (r.width / 5) - .5; return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u; };
+  const uAt = x => {
+    const r = bar.getBoundingClientRect(), scale = 1 + NB.rail * .70;
+    const u = (x - r.left - r.width / 2) / (r.width / 5 * scale) + 2;
+    return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u;
+  };
   const end = (e, go) => {
     const d = NB.drag;
     if(!d || e.pointerId !== d.id) return;
@@ -9647,7 +9686,7 @@ function navBind(bar){
   bar.onpointerdown = e => {
     if(e.button > 0) return;
     const br = bar.getBoundingClientRect();
-    NB.drag = { id: e.pointerId, u: uAt(e.clientX), u0: uAt(e.clientX), x0: e.clientX, y0: e.clientY, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
+    NB.drag = { id: e.pointerId, u: uAt(e.clientX), x0: e.clientX, y0: e.clientY, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
     try{ bar.setPointerCapture(e.pointerId); }catch(_){}
     bar.classList.add("dragging");
     navBubKick();
@@ -9667,7 +9706,7 @@ function navBind(bar){
   bar.onlostpointercapture = e => { if(bar.isConnected) end(e, false); };
   // a screen re-rendered mid-drag gets a new bar: it takes the finger over
   if(NB.drag){ try{ bar.setPointerCapture(NB.drag.id); }catch(_){} }
-  if(NB.drag || NB.tw || NB.materialTween || NB.clear > 0 || NB.lift > .01 || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
+  if(NB.drag || NB.tw || NB.materialTween || NB.clear > 0 || NB.rail || NB.railV || NB.railLight || NB.railLightV || NB.lift > .01 || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
 }
 // a finger lifted outside everything still ends the drag
 // (bubbling, after the bar's own handler — which opens the tab — has had its turn)
@@ -10454,8 +10493,8 @@ function bottomNav(){
   const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b, NB.lift);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-optics"><span class="nr-in">${red}</span></span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
-    ${row}
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="${navRailStyle()};--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-optics"><span class="nr-in">${red}</span></span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+    <span class="nav-shadow" aria-hidden="true"></span><span class="nav-surface" aria-hidden="true"></span><span class="nav-panel">${row}</span>
   </div>`;
 }
 
