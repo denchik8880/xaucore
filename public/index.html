@@ -307,11 +307,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
 :root[data-glass="on"]{--nav-top:calc(68px + env(safe-area-inset-bottom))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:60px;padding:0;border-top:0;border-radius:999px;
+  --nav-on:#ef1f24;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
      that says where it ends is the pair of shadows. No hairline, no rim, no inner body. */
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);
   box-shadow:var(--lg-lift2)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#ff4a45}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:relative;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* nothing in the row changes colour by itself any more: the drop carries the accent (see .nav-red), so a tab
    reads as chosen only while the drop is over it. The label is the dark one and the icon the pale one. */
@@ -9231,8 +9233,9 @@ function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(nav
 // tabs it rests against the end rather than hanging over it. Every place that needs its box — the frame, the
 // settle and the first render — comes through here, because when the settle wrote its own flat 1 the resting
 // drop came out a tab wide and too round.
-// a capsule with semicircular ends - "round at the ends" - 1.07 tabs wide and 0.78 of the bar tall
-let NAV_W = 1.07;
+// A capsule with semicircular ends: 1.10 tabs at rest, wider while active as in the supplied recording.
+const NAV_DROP = Object.freeze({ width: 1.10, pressWidth: .22, pressHeight: .06 });
+let NAV_W = NAV_DROP.width;
 // the drop on an end tab: 66 by 57 on the reference's bar; centred on its tab it keeps 4 px from the bar's end (NB.eIn)
 // at rest, so on a narrower bar it is narrower - down to a circle, never narrower than tall
 function navEndW(bar){
@@ -9243,7 +9246,10 @@ function navEndW(bar){
 function navBox(a, b, lift){
   const span0 = b - a, mid = (a + b) / 2;
   const over = Math.max(0, -a, b - 5);
-  const slack = Math.max(0, span0 - 1) * .5 + over;
+  // The supplied 30 fps reference widens the active drop by about a quarter. Keep the same capsule / end
+  // contours and centre; only the held / travelling material swells, then returns over its existing landing.
+  const press = clamp(NB.clear || 0, 0, 1);
+  const slack = Math.max(0, span0 - 1) * .5 + over + press * NAV_DROP.pressWidth / 2;
   // it BALLS UP at the ends: a capsule over the middle three tabs, a circle on the first and the last, blended
   // across the tab between them so the change is something it does on its way rather than a state it snaps to
   const t = mid - .5;
@@ -9253,7 +9259,7 @@ function navBox(a, b, lift){
   // the two edges still decide WHERE it is; how far that pulls it OUT is damped to what the reference does.
   // Measured there: 96 px of drop at rest and 125 at the peak of a four-tab flight, a third more - where the
   // raw gap between the edges would have given two thirds.
-  let sx = (1 + (span0 - 1) * .45 * WATER) * wT * (1 + .32 * lift), left = mid - sx / 2;
+  let sx = (1 + (span0 - 1) * .45 * WATER) * wT * (1 + .32 * lift) * (1 + NAV_DROP.pressWidth * press), left = mid - sx / 2;
   // pressed into an end it squashes AGAINST that end: the edge touching the wall stays where it is and the far
   // one comes in. Taking it off the far edge either way — which is what scaling from the left edge does by
   // itself — pulls the drop off the very wall it is pressed into, and the bulge comes out lopsided.
@@ -9275,7 +9281,7 @@ function navBox(a, b, lift){
     // and it stands a fifth taller travelling than at rest - 79 px against 65 on a 76 px bar - not two thirds
     // taller. The swell scales the displacement map with it, so an honest number here is what keeps the colour
     // fringe the width of a letter stroke instead of a band across the whole drop.
-    sy: hK * Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .85 + over * .3)
+    sy: hK * Math.max(.5, 1 + .3 * lift + Math.max(0, span0 - 1) * .85 + over * .3) * (1 + NAV_DROP.pressHeight * press)
   };
 }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
@@ -9291,23 +9297,15 @@ function navEase(x){
   const u = 1 - t;
   return 2.76 * t * t * u + t * t * t;
 }
-// GO TO A TAB. The drop is not told where it is, it is told where to be by when: the leading edge takes
-// .30 s + .085 s per tab crossed, the trailing one the same curve 62 ms later. Neither is scaled down under
-// Reduce Motion — this pace IS what the user asked for, and their phone has Reduce Motion on.
+// Both edges follow the reference curve; one adjacent flight takes about 0.19 s, followed by the optical landing.
 function navGo(i){
   NB.target = i;
   if(NB.a == null){ NB.a = i; NB.b = i + 1; NB.u = i; NB.tw = null; return; }
-  // Both edges run the SAME curve and the trailing one simply takes 8 % longer, so the stretch opens by
-  // itself, peaks about two thirds of the way and shuts as the back catches up. A fixed delay gets all three
-  // of those wrong: it is already open on the first frame, it peaks with the speed, and it lands at +47 %
-  // instead of the reference's +25 %. .30 s plus .12 s a tab is its 780 ms for the full four.
+  // The trailing edge takes 10% longer, so the existing contour stretches and gathers continuously.
   const right = i + .5 > (NB.a + NB.b) / 2;
-  // FASTER, and faster still when the taps come quickly (user 2026-09-25: «когда мы быстро тапаем … капелька
-  // быстрее двигалась, например от Рынки до Ещё»). A far jump used to cost 0.63 s whatever the finger was doing,
-  // so a quick run of taps queued up flight after flight behind the finger. Four tabs now take under half a second,
-  // one tab about a quarter, and a tap that lands while the drop is still in the air cuts the next flight by 30 %.
+  // A new tap in flight shortens the next flight instead of queueing another animation.
   const hurry = NB.tw ? .7 : 1;
-  const dur = (200 + 55 * Math.abs(i - NB.a)) * hurry, slow = dur * 1.1;
+  const dur = (140 + 35 * Math.abs(i - NB.a)) * hurry, slow = dur * 1.1;
   NB.tw = { t0: performance.now(), end: slow, da: right ? slow : dur, db: right ? dur : slow, a0: NB.a, b0: NB.b };
   navBubKick();
 }
@@ -9357,6 +9355,7 @@ function navBubFrame(now){
   // finger moves it, so the lift is held at zero and the lens element never shows
   const lt = 0;
   NB.lift += (lt - NB.lift) * (1 - Math.exp(-dt / (lt ? .06 : .2)));
+  navMaterialFrame(now, !!(NB.drag || NB.tw));
   // its box comes from navBox and nowhere else (see there): a seventh wider than a tab, clamped inside the
   // bar, growing as it travels rather than thinning
   const span0 = NB.b - NB.a, mid = (NB.a + NB.b) / 2;
@@ -9378,7 +9377,6 @@ function navBubFrame(now){
   bar.style.setProperty("--bx", NB.bx.toFixed(2) + "px");
   // The material stays clear through a hold and the whole flight, even while slowing down. Only after arrival
   // does it fade into the theme's matte selection; the existing geometry and bar's drift have their own timing.
-  navMaterialFrame(now, !!(NB.drag || NB.tw));
   // ON THE ROOT, not on the bar. A custom property that carries a var() inside it - and --nav-bub, --nav-lip
   // and --nav-edge all carry var(--dk) - has that var substituted where the TOKEN is declared, which is :root,
   // not where it is used. Setting --dk on the bar left :root without one, the fallback of 1 won every time, and
@@ -9554,9 +9552,9 @@ function navFit(bar){
   _navFit = key;
   if(fit < .999){ _navFs = (10.5 * Math.max(.7, fit)).toFixed(2) + "px"; bar.style.setProperty("--nav-fs", _navFs); }
 }
-// VANTA's numerical map and optical defaults, sampled over XAUCORE's unchanged navBox contour.
+// VANTA's prepared normal field, with edge dispersion calibrated to the user's recording (2026-10-21).
 // One padded map / filter for this bar; no map generation or filter creation during a gesture.
-const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", bend: 27, motion: 4, dispersion: .008, padding: 24 });
+const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", bend: 27, motion: 4, dispersion: .09, padding: 24 });
 let _navMapReady = false, _navMapRequested = false;
 function navOpticsBind(bar){
   const source = bar.querySelector(".nr-optics");
@@ -9617,7 +9615,7 @@ function navBind(bar){
   // eighth of the bar's height at the end against a thirteenth above and below. There is white bar either side
   // of a drop sitting on the first or last tab, and there was none in ours.
   const tabW = Math.max(1, bar.clientWidth / 5), h0 = Math.max(8, bar.clientHeight - 9);
-  NAV_W = 1.07;                                      // measured: 225 px of drop against a 210 px tab
+  NAV_W = NAV_DROP.width;
   const endW = navEndW(bar);
   NB.wCircle = endW.w / tabW;                        // on the END tabs: 66 by 57 - round-ended, and the white either side comes down to 5.4 px
   NB.hCircle = endW.h / h0;                          // and taller than the capsule, or the label will not fit
