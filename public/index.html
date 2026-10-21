@@ -290,13 +290,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"] :is(.ctp,.cht,.btn,.ot-go,.ot-side,.og){--sell:var(--red);--buy:var(--green)}
 .bottomnav button.on{color:var(--nav-on-flat,var(--nav-on))}
 .bottomnav .ic svg{width:26px;height:26px}
-.nav-bub,.nav-lens,.nav-red{display:none}
+.nav-rest,.nav-bub,.nav-lens,.nav-red{display:none}
 /* the drop's own tokens, declared again ON THE BAR: they carry var(--dk), which is substituted where a token is
    declared, so declared here they read the bar's --dk - and the drop's clearing no longer writes <html> (every
    write there restyled the whole document, thirty frames of it per tab change) */
-.bottomnav{--nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1)));--nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1)))))}
-:root[data-theme="dark"] .bottomnav{--nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1)));--nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3)))}
-:root[data-theme="dark"][data-tone="aurora"] .bottomnav{--nav-bub:rgba(195,207,230,calc(.15 * var(--dk,1)));--nav-lip:rgba(12,13,25,calc(.46 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(189,216,226,calc(.7 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(207,189,226,calc(.42 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(199,211,231,calc(.14 * (1 + (1 - var(--dk,1)) * 3)))}
+.bottomnav{--nav-rest:rgba(16,24,40,.09);--nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1)));--nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1)))))}
+:root[data-theme="dark"] .bottomnav{--nav-rest:rgba(255,255,255,.14);--nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1)));--nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3)))}
+:root[data-theme="dark"][data-tone="aurora"] .bottomnav{--nav-rest:rgba(195,207,230,.15);--nav-bub:rgba(195,207,230,calc(.15 * var(--dk,1)));--nav-lip:rgba(12,13,25,calc(.46 * (1 + (1 - var(--dk,1)) * .7)));--nav-spec:rgba(189,216,226,calc(.7 * (1 + (1 - var(--dk,1)))));--nav-spec2:rgba(207,189,226,calc(.42 * (1 + (1 - var(--dk,1)))));--nav-edge:rgba(199,211,231,calc(.14 * (1 + (1 - var(--dk,1)) * 3)))}
 /* liquid glass ON (the default; «Ещё» → «Жидкое стекло») — iOS 26's floating tab bar (user 2026-09-18, an Apple
    Music recording): a frosted capsule the page scrolls under; the current tab sits on a soft drop (.nav-bub).
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
@@ -321,7 +321,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    grey in one jump — «нужно более плавнее, как с того видео») */
 /* --u is the drop's LEADING edge in tabs and --sx how many tabs it spans, so one write places it and stretches
    it at once. One tab wide, it is flush with the bar's ends on the first and last tab, as in the video. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
   /* THE RADIUS IS RESOLVED BEFORE THE TRANSFORM. The box is 20% of the bar by 47 px and the shape we want is
      whatever the scale turns it into, so a flat 999px gave a capsule with a straight middle that the scale then
      squashed - which is why the numbers said circle and the eye did not. Half the height vertically (50% of the
@@ -347,11 +347,11 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    clear glass over the ordinary row. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-bg{position:absolute;inset:0;background:var(--nav-hole);opacity:calc(1 - var(--lf,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(calc(1 + .08 * (1 - var(--lf,0))));will-change:transform}
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;transform:scale(calc(1 + .08 * (1 - var(--lf,0)) * var(--ng,0)));will-change:transform}
 /* the icon carries the rest of the lens's enlargement on its own. Spread over the whole row it pushes the
    label down into the narrow end of the capsule, where a longer word than the reference's gets cut off at the
    rim - and our five languages have longer ones. The icon is centred and can never reach an edge. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .ic{transform:scale(calc(1 + .09 * (1 - var(--lf,0))))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .ic{transform:scale(calc(1 + .09 * (1 - var(--lf,0)) * var(--ng,0)))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1;
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
@@ -374,7 +374,11 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;pointer-events:none;
   background:linear-gradient(var(--lit-a,151deg),var(--nav-spec) 0%,transparent 26%,var(--nav-specd) 50%,transparent 74%,var(--nav-spec2) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc(1 - var(--lf,0))}
+/* VANTA's appearance / landing, on XAUCORE's existing shape: the optical layer fades into a plain, theme-coloured
+   selection. Both layers read the very same navBox values; opacity never changes the contour or its movement. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:4;background:var(--nav-rest);opacity:calc(1 - var(--ng,0))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc((1 - var(--lf,0)) * var(--ng,0))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub.material-idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:var(--nav-bub);
   /* the bright line runs the whole way round, not just down the sides - measured on the reference at the top
      and bottom rims too, four or five levels over the body */
@@ -9198,7 +9202,7 @@ function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t 
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // a: the drop's LEADING edge in tabs, b its trailing one (at rest on tab i they are i and i+1); u is the tab
 // they straddle, kept because the icons' swell and the drag read it. lift 0…1: resting drop → lens under the finger
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, wCircle: 0, hCircle: 1, dms: null, dmB: null, _lensK: null, bx: 0 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, eIn: 0, clear: 0, materialOn: false, materialTween: null, wCircle: 0, hCircle: 1, dms: null, dmB: null, _lensK: null, bx: 0 };
 let _navByDrop = 0;
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 // The drop is a seventh wider than a tab, as the reference's is, and it is CLAMPED inside the bar: on the end
@@ -9285,10 +9289,27 @@ function navGo(i){
   NB.tw = { t0: performance.now(), end: slow, da: right ? slow : dur, db: right ? dur : slow, a0: NB.a, b0: NB.b };
   navBubKick();
 }
+/* Only the material is borrowed from VANTA: a quick appearance, held throughout the gesture / flight, then a
+   bounded 180 ms landing. Re-grabbing starts from the current opacity. It uses the existing navigation frame. */
+function navMaterialFrame(now, active){
+  if(active !== NB.materialOn){
+    NB.materialOn = active;
+    NB.materialTween = { t0: now, from: NB.clear, to: active ? 1 : 0, ms: active ? 70 : 180 };
+  }
+  const w = NB.materialTween;
+  if(!w) return;
+  const p = clamp((now - w.t0) / w.ms, 0, 1);
+  const e = w.to ? 1 - Math.pow(1 - p, 3) : p * p * (3 - 2 * p);
+  NB.clear = w.from + (w.to - w.from) * e;
+  if(p === 1){ NB.clear = w.to; NB.materialTween = null; }
+}
 function navBubFrame(now){
   NB.raf = 0;
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
-  if(!lens){ NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; return; }
+  if(!lens || !glassOn("nav")){
+    NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0;
+    NB.lift = NB.clear = NB.bx = 0; NB.tw = NB.materialTween = null; NB.materialOn = false; NB._pm = null; return;
+  }
   if(NB.a == null){ NB.a = NB.target; NB.b = NB.target + 1; }
   const dt = NB.t ? Math.min(Math.max((now - NB.t) / 1000, 0), 1 / 30) : MO.dt0;
   NB.t = now;
@@ -9331,23 +9352,19 @@ function navBubFrame(now){
   const bxT = NB.drag ? clamp((NB.drag.u - (NB.drag.u0 || 0)) * 7, -8, 8) : clamp(vmid * .70, -6, 6);
   NB.bx += (bxT - NB.bx) * (1 - Math.exp(-dt / .16));
   bar.style.setProperty("--bx", NB.bx.toFixed(2) + "px");
-  // CLEAR ON THE MOVE, GREY WHEN IT LANDS. Every grey the drop carries — its tint, the dark bands on its lips,
-  // the light line at its sides — runs through --dk, so one number takes it from glass to grey. It clears fast
-  // (a twentieth of a second) and fills back slowly (a third of one), which is the asymmetry the user describes:
-  // crystal the moment it sets off, grey only once it has settled.
-  // A FINGER ON IT MEANS IT IS IN MOTION, even when it is not moving. The clearing was a function of the
-  // drop's speed alone, so holding the finger still halfway across took the speed to zero and the drop filled
-  // grey under a finger that had not let go. While there is a finger on it it stays crystal; the speed only
-  // gets a say once the finger is off.
-  const want = NB.drag ? 1 : Math.min(1, Math.abs(vmid) * .5);
-  // it clears fast and fills back QUICKLY - an eighth of a second, not a third. The slow fill was meant to read
-  // as «плавно» and read as late instead: the drop had landed and was still swimming.
-  NB.clear += (want - NB.clear) * (1 - Math.exp(-dt / (want > NB.clear ? .05 : .07)));
+  // The material stays clear through a hold and the whole flight, even while slowing down. Only after arrival
+  // does it fade into the theme's matte selection; the existing geometry and bar's drift have their own timing.
+  navMaterialFrame(now, !!(NB.drag || NB.tw));
   // ON THE ROOT, not on the bar. A custom property that carries a var() inside it - and --nav-bub, --nav-lip
   // and --nav-edge all carry var(--dk) - has that var substituted where the TOKEN is declared, which is :root,
   // not where it is used. Setting --dk on the bar left :root without one, the fallback of 1 won every time, and
   // the drop stayed fully grey through the whole flight however far the number fell.
   bar.style.setProperty("--dk", (1 - NB.clear).toFixed(3));   // on the bar: its tokens are declared there too
+  bar.style.setProperty("--ng", NB.clear.toFixed(4));
+  const bub = bar.querySelector(".nav-bub"), materialIdle = NB.clear === 0;
+  if(bub && bub._materialIdle !== materialIdle){
+    bub._materialIdle = materialIdle; bub.classList.toggle("material-idle", materialIdle);
+  }
   bar.style.setProperty("--u", left.toFixed(4));
   bar.style.setProperty("--sx", sx.toFixed(4));
   bar.style.setProperty("--sy", sy.toFixed(3));
@@ -9373,11 +9390,8 @@ function navBubFrame(now){
     }
     bar._swelled = any;
   }
-  // IT MUST NOT SNAP BACK TO GREY. The drop clears as it travels and fills again over a third of a second once
-  // it lands - but the loop used to stop the instant the travel ended and set the grey to full in the same
-  // breath, so the fill never played: the drop went crystal for the whole flight and then flicked grey on its
-  // last frame. The frame keeps running until the fill has burnt down as well.
-  if(!NB.drag && !NB.tw && NB.lift < .01 && NB.clear < .01 && Math.abs(NB.bx) < .05){
+  // Keep the existing frame alive until the optical landing and the bar's drift both finish. No writes at rest.
+  if(!NB.drag && !NB.tw && !NB.materialTween && NB.lift < .01 && NB.clear === 0 && Math.abs(NB.bx) < .05){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0; NB.lift = 0; NB.t = 0;
     NB._pm = null; NB.clear = 0; NB.bx = 0; bar.style.setProperty("--bx", "0px"); bar.style.setProperty("--dk", "1");
     navLens(0);                                // and it is written once more here, where the frames stop
@@ -9597,7 +9611,7 @@ function navBind(bar){
     if(!d || e.pointerId !== d.id) return;
     NB.drag = null;
     const b = document.querySelector(".bottomnav"); if(b) b.classList.remove("dragging");
-    const i = clamp(Math.round(d.u), 0, 4);
+    const i = go ? clamp(Math.round(d.u), 0, 4) : navIndexOf(S.ui.tab);
     navGo(i);
     if(go){ _navByDrop = performance.now(); const tb = NAV_TABS[i]; if(!(tb === S.ui.tab && !(tb === "markets" && S.ui.marketOpen))) navTo(tb); }   // the tab you are on: nothing to rebuild
   };
@@ -9621,9 +9635,10 @@ function navBind(bar){
   };
   bar.onpointerup = e => end(e, true);
   bar.onpointercancel = e => end(e, false);
+  bar.onlostpointercapture = e => { if(bar.isConnected) end(e, false); };
   // a screen re-rendered mid-drag gets a new bar: it takes the finger over
   if(NB.drag){ try{ bar.setPointerCapture(NB.drag.id); }catch(_){} }
-  if(NB.drag || NB.tw || NB.lift > .01 || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
+  if(NB.drag || NB.tw || NB.materialTween || NB.clear > 0 || NB.lift > .01 || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
 }
 // a finger lifted outside everything still ends the drag
 // (bubbling, after the bar's own handler — which opens the tab — has had its turn)
@@ -10410,7 +10425,7 @@ function bottomNav(){
   const red = NAV_ICONS.map(x => `<span class="nb"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map(x => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b, NB.lift);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-bub"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-in">${red}</span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     ${row}
   </div>`;
 }
