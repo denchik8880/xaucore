@@ -15,11 +15,12 @@ export function allow(req, res, methods) {
 
 /** Parse the JSON body whether Vercel pre-parsed it or we get a raw stream. */
 export async function readJson(req) {
+  const objectBody = value => value && typeof value === "object" ? value : {};
   const b = req.body;
   if (b && typeof b === "object" && !Buffer.isBuffer(b)) return b;
-  if (typeof b === "string") { try { return JSON.parse(b); } catch { return {}; } }
-  if (Buffer.isBuffer(b)) { try { return JSON.parse(b.toString("utf8")); } catch { return {}; } }
+  if (typeof b === "string") { try { return objectBody(JSON.parse(b)); } catch { return {}; } }
+  if (Buffer.isBuffer(b)) { try { return objectBody(JSON.parse(b.toString("utf8"))); } catch { return {}; } }
   let raw = "";
   try { for await (const chunk of req) raw += chunk; } catch { /* ignore */ }
-  try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
+  try { return raw ? objectBody(JSON.parse(raw)) : {}; } catch { return {}; }
 }

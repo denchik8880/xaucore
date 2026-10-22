@@ -23,11 +23,11 @@ export async function createUser(email, password) {
   const id = newId();
   const salt = newSalt();
   const ph = hashPw(password, salt);
-  await db.execute({
-    sql: "INSERT INTO users(id,email,pass_hash,salt,is_guest,created_at) VALUES(?,?,?,?,0,?)",
+  const created = await db.execute({
+    sql: "INSERT INTO users(id,email,pass_hash,salt,is_guest,created_at) VALUES(?,?,?,?,0,?) ON CONFLICT(email) DO NOTHING",
     args: [id, email, ph, salt, Date.now()],
   });
-  return id;
+  return created.rowsAffected ? id : null;
 }
 
 export async function getUserById(id) {
@@ -40,13 +40,17 @@ export async function getUserByEmail(email) {
   return r.rows[0] || null;
 }
 
+export function newSession(userId, now = Date.now()) {
+  return { token: newToken(), userId, createdAt: now, expiresAt: now + SESSION_TTL_MS };
+}
+
 export async function createSession(userId) {
-  const token = newToken();
+  const session = newSession(userId);
   await db.execute({
     sql: "INSERT INTO sessions(token,user_id,created_at,expires_at) VALUES(?,?,?,?)",
-    args: [token, userId, Date.now(), Date.now() + SESSION_TTL_MS],
+    args: [session.token, session.userId, session.createdAt, session.expiresAt],
   });
-  return token;
+  return session.token;
 }
 
 export function bearer(req) {

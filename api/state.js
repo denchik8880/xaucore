@@ -26,6 +26,13 @@ import { json, allow, readJson } from "./_lib/http.js";
 
 const LEASE_MS = 20000;          // a lease outlives a couple of missed pushes
 const MAX_STATE_BYTES = 4 * 1024 * 1024;
+// Check ownership in the write itself: a SELECT followed by an UPDATE lets a
+// stale request overwrite a lease another device acquired between the two.
+const MAY_WRITE = `(states.lease_sid IS NULL OR states.lease_sid = '' OR
+                    COALESCE(states.lease_exp, 0) <= ? OR states.lease_sid = ?)`;
+const ORDER_QUEUE = `CASE WHEN json_valid(states.ops) THEN
+                      CASE WHEN json_type(states.ops) = 'array' THEN states.ops ELSE '[]' END
+                    ELSE '[]' END`;
 
 async function readRow(userId) {
   const r = await db.execute({
@@ -92,17 +99,16 @@ export default async function handler(req, res) {
     if (body && body.op === "order") {
       const order = body.order;
       if (!order || typeof order !== "object") return json(res, 400, { error: "bad order" });
-      const r = await db.execute({ sql: "SELECT ops FROM states WHERE user_id = ?", args: [user.id] });
-      let q = [];
-      try { q = JSON.parse((r.rows[0] && r.rows[0].ops) || "[]") || []; } catch { q = []; }
-      if (q.length >= 50) return json(res, 429, { error: "Слишком много ордеров в очереди" });
-      q.push({ ...order, _id: `${now}-${Math.random().toString(36).slice(2, 8)}`, _at: now, _from: String(body.sid || "") });
-      await db.execute({
-        sql: `INSERT INTO states(user_id, data, updated_at, ops, rev) VALUES(?,'null',0,?,0)
-              ON CONFLICT(user_id) DO UPDATE SET ops = excluded.ops`,
-        args: [user.id, JSON.stringify(q)],
+      const entry = JSON.stringify({ ...order, _id: `${now}-${Math.random().toString(36).slice(2, 8)}`, _at: now, _from: String(body.sid || "") });
+      const r = await db.execute({
+        sql: `INSERT INTO states(user_id, data, updated_at, ops, rev) VALUES(?,'null',0,json_array(json(?)),0)
+              ON CONFLICT(user_id) DO UPDATE SET ops = json_insert(${ORDER_QUEUE}, '$[#]', json(?))
+              WHERE json_array_length(${ORDER_QUEUE}) < 50
+              RETURNING json_array_length(ops) AS pending`,
+        args: [user.id, entry, entry],
       });
-      return json(res, 200, { queued: true, pending: q.length });
+      if (!r.rows.length) return json(res, 429, { error: "Слишком много ордеров в очереди" });
+      return json(res, 200, { queued: true, pending: Number(r.rows[0].pending) });
     }
 
     // Release the lease on the way out (tab hidden / closed) so another device
@@ -122,24 +128,32 @@ export default async function handler(req, res) {
     // back any orders other devices queued so the driver can execute them.
     if (body && body.op === "live") {
       const sid = String(body.sid || "");
-      const row = await readRow(user.id);
-      const cur = leaseOf(row, sid, now);
-      if (!(cur.free || cur.mine)) return json(res, 409, { error: "Симуляция запущена в другой сессии", lease: cur });
       const frame = JSON.stringify(body.live || null);
       if (frame.length > 512 * 1024) return json(res, 413, { error: "live frame too large" });
-      const qr = await db.execute({ sql: "SELECT ops FROM states WHERE user_id = ?", args: [user.id] });
-      let ops = [];
-      try { ops = JSON.parse((qr.rows[0] && qr.rows[0].ops) || "[]") || []; } catch { ops = []; }
-      await db.execute({
+      // Publish, read and drain form one transaction. Orders appended while a
+      // heartbeat is in flight remain queued for the following heartbeat.
+      const [written, queued] = await db.batch([{
         sql: `INSERT INTO states(user_id, data, updated_at, live, live_at, lease_sid, lease_exp, lease_at, rev, ops)
               VALUES(?,'null',0,?,?,?,?,?,0,'[]')
               ON CONFLICT(user_id) DO UPDATE SET live      = excluded.live,
                                                  live_at   = excluded.live_at,
                                                  lease_sid = excluded.lease_sid,
-                                                 lease_exp = excluded.lease_exp,
-                                                 ops       = '[]'`,
-        args: [user.id, frame, now, sid || null, now + LEASE_MS, now],
-      });
+                                                 lease_exp = excluded.lease_exp
+              WHERE ${MAY_WRITE}`,
+        args: [user.id, frame, now, sid || null, now + LEASE_MS, now, now, sid],
+      }, {
+        sql: "SELECT ops FROM states WHERE user_id = ? AND lease_sid IS ?",
+        args: [user.id, sid || null],
+      }, {
+        sql: "UPDATE states SET ops = '[]' WHERE user_id = ? AND lease_sid IS ?",
+        args: [user.id, sid || null],
+      }], "write");
+      if (!written.rowsAffected) {
+        const cur = leaseOf(await readRow(user.id), sid, Date.now());
+        return json(res, 409, { error: "Симуляция запущена в другой сессии", lease: cur });
+      }
+      let ops = [];
+      try { const q = JSON.parse((queued.rows[0] && queued.rows[0].ops) || "[]"); if (Array.isArray(q)) ops = q; } catch { /* corrupt queue */ }
       return json(res, 200, { ok: true, liveAt: now, ops,
                               lease: { holder: sid, exp: now + LEASE_MS, mine: true, free: false } });
     }
@@ -148,28 +162,19 @@ export default async function handler(req, res) {
     const sid = String(body.sid || "");
     if (!sid) return json(res, 400, { error: "sid required" });
 
-    const row = await readRow(user.id);
-    const cur = leaseOf(row, sid, now);
-    // free, expired, already mine, or an explicit takeover -> the lease is ours
-    if (!(cur.free || cur.mine || body.force)) {
-      return json(res, 409, { error: "Терминал уже открыт в другой сессии", lease: cur, granted: false });
-    }
     const exp = now + LEASE_MS;
-    if (row) {
-      await db.execute({
-        sql: "UPDATE states SET lease_sid = ?, lease_exp = ?, lease_at = ? WHERE user_id = ?",
-        args: [sid, exp, now, user.id],
-      });
-    } else {
-      // no state yet (fresh account) — reserve the lease so the first device wins
-      await db.execute({
+    const claimed = await db.execute({
         sql: `INSERT INTO states(user_id, data, updated_at, lease_sid, lease_exp, lease_at, rev)
               VALUES(?,?,?,?,?,?,0)
               ON CONFLICT(user_id) DO UPDATE SET lease_sid = excluded.lease_sid,
                                                  lease_exp = excluded.lease_exp,
-                                                 lease_at  = excluded.lease_at`,
-        args: [user.id, "null", 0, sid, exp, now],
+                                                 lease_at  = excluded.lease_at
+              WHERE ? OR ${MAY_WRITE}`,
+        args: [user.id, "null", 0, sid, exp, now, body.force ? 1 : 0, now, sid],
       });
+    if (!claimed.rowsAffected) {
+      const cur = leaseOf(await readRow(user.id), sid, Date.now());
+      return json(res, 409, { error: "Терминал уже открыт в другой сессии", lease: cur, granted: false });
     }
     return json(res, 200, { granted: true, lease: { holder: sid, exp, mine: true, free: false } });
   }
@@ -180,33 +185,32 @@ export default async function handler(req, res) {
     const sid = String((body && body.sid) || (req.query && req.query.sid) || "");
     if (!state || typeof state !== "object") return json(res, 400, { error: "bad state" });
 
-    const row = await readRow(user.id);
-    const cur = leaseOf(row, sid, now);
-    // Only the session driving the simulation may write it. Without this the
-    // second device silently overwrites the first one's market.
-    if (!(cur.free || cur.mine)) {
-      return json(res, 409, { error: "Симуляция запущена в другой сессии", lease: cur, rev: row ? Number(row.rev || 0) : 0 });
-    }
-
     const data = JSON.stringify(state);
     if (data.length > MAX_STATE_BYTES) return json(res, 413, { error: "state too large" });
     const exp = now + LEASE_MS;
-    await db.execute({
+    const written = await db.execute({
       sql: `INSERT INTO states(user_id, data, updated_at, lease_sid, lease_exp, lease_at, rev)
             VALUES(?,?,?,?,?,?,1)
             ON CONFLICT(user_id) DO UPDATE SET data       = excluded.data,
                                                updated_at = excluded.updated_at,
                                                lease_sid  = excluded.lease_sid,
                                                lease_exp  = excluded.lease_exp,
-                                               rev        = states.rev + 1`,
-      args: [user.id, data, now, sid || null, exp, now],
+                                               rev        = states.rev + 1
+            WHERE ${MAY_WRITE}
+            RETURNING rev`,
+      args: [user.id, data, now, sid || null, exp, now, now, sid],
     });
-    const after = await readRow(user.id);
-    return json(res, 200, { updatedAt: now, rev: after ? Number(after.rev || 0) : 1, lease: { holder: sid, exp, mine: true, free: false } });
+    if (!written.rows.length) {
+      const row = await readRow(user.id);
+      return json(res, 409, { error: "Симуляция запущена в другой сессии", lease: leaseOf(row, sid, Date.now()), rev: row ? Number(row.rev || 0) : 0 });
+    }
+    return json(res, 200, { updatedAt: now, rev: Number(written.rows[0].rev), lease: { holder: sid, exp, mine: true, free: false } });
   }
 
   // DELETE — wipe the account's simulation (used by "reset")
-  await db.execute({ sql: "DELETE FROM states WHERE user_id = ?", args: [user.id] });
-  await db.execute({ sql: "DELETE FROM hist WHERE user_id = ?", args: [user.id] });   // and its chart's history
+  await db.batch([
+    { sql: "DELETE FROM states WHERE user_id = ?", args: [user.id] },
+    { sql: "DELETE FROM hist WHERE user_id = ?", args: [user.id] },
+  ], "write");
   return json(res, 200, { ok: true });
 }

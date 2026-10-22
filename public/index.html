@@ -2556,6 +2556,8 @@ const I18N = {
 "Максимальный объём {0}":["Maximum volume {0}","Максимальний обсяг {0}","Volume maximum {0}","Maksimum hacim {0}"],
 "Объём должен быть кратен {0}":["Volume must be a multiple of {0}","Обсяг має бути кратним {0}","Le volume doit être un multiple de {0}","Hacim {0} katı olmalı"],
 "Ордер отправлен — исполняется":["Order sent — executing","Ордер надіслано — виконується","Ordre envoyé — exécution en cours","Emir gönderildi — gerçekleştiriliyor"],
+"Запрос отправлен — исполняется":["Request sent — processing","Запит надіслано — виконується","Demande envoyée — traitement en cours","İstek gönderildi — işleniyor"],
+"Не удалось отправить запрос — нет связи":["Could not send request — no connection","Не вдалося надіслати запит — немає зв’язку","Impossible d’envoyer la demande — aucune connexion","İstek gönderilemedi — bağlantı yok"],
 "Не удалось отправить ордер — нет связи":["Couldn't send the order — no connection","Не вдалося надіслати ордер — немає зв'язку","Impossible d'envoyer l'ordre — pas de connexion","Emir gönderilemedi — bağlantı yok"],
 "Рынок закрыт — исполнение недоступно":["Market closed — execution unavailable","Ринок закрито — виконання недоступне","Marché fermé — exécution indisponible","Piyasa kapalı — işlem yapılamıyor"],
 "Недостаточно свободной маржи (нужно {0})":["Not enough free margin ({0} needed)","Недостатньо вільної маржі (потрібно {0})","Marge libre insuffisante ({0} requis)","Serbest teminat yetersiz ({0} gerekli)"],
@@ -5234,9 +5236,13 @@ async function histIdb(mode, key, val){
 }
 // the account's copy: only a signed-in device that drives the market sends (a local page has no server behind it)
 const histServer = () => typeof XC !== "undefined" && !!XC.token && location.hostname !== "127.0.0.1" && location.hostname !== "localhost";
-async function histSend(gen, tf, k, data){
+function histCurrent(session){ return xcSessionCurrent(session) && session.key === LS_KEY; }
+async function histSend(gen, tf, k, data, session = xcSession()){
+  if(!histCurrent(session) || !histServer() || XC.follower) return;
+  const key = histKey(gen, tf, k);
   await xcApi("PUT", "/api/hist", { gen, tf, k, data, sid: XC.sid });
-  try{ await histIdb("put", histKey(gen, tf, k), { data, up: 1 }); }catch(e){}
+  if(!histCurrent(session)) return;
+  try{ await histIdb("put", key, { data, up: 1 }); }catch(e){}
 }
 let _histRetryT = 0;
 const histRetry = () => { if(!_histRetryT) _histRetryT = setTimeout(histFlush, 60000); };
@@ -5244,18 +5250,21 @@ const histRetry = () => { if(!_histRetryT) _histRetryT = setTimeout(histFlush, 6
 async function histFlush(){
   _histRetryT = 0;
   if(!histServer() || XC.follower || !S || !S.hist) return;
-  const H = S.hist;
+  const H = S.hist, session = xcSession();
   try{
     for(const tf of TF_ORDER) for(let k = 0; k < (H.k[tf] || 0); k++){
+      if(!histCurrent(session) || XC.follower || S.hist !== H) return;
       const row = await histIdb("get", histKey(H.gen, tf, k));
-      if(row && !row.up) await histSend(H.gen, tf, k, row.data);
+      if(!histCurrent(session) || XC.follower || S.hist !== H) return;
+      if(row && !row.up) await histSend(H.gen, tf, k, row.data, session);
     }
-  }catch(e){ histRetry(); }
+  }catch(e){ if(histCurrent(session)) histRetry(); }
 }
 function histStore(gen, tf, k, data){
-  histIdb("put", histKey(gen, tf, k), { data, up: 0 }).catch(() => {})
-    .then(() => histServer() && !XC.follower ? histSend(gen, tf, k, data) : null)
-    .catch(histRetry);
+  const session = xcSession(), key = histKey(gen, tf, k);
+  histIdb("put", key, { data, up: 0 }).catch(() => {})
+    .then(() => histCurrent(session) && histServer() && !XC.follower ? histSend(gen, tf, k, data, session) : null)
+    .catch(() => { if(histCurrent(session)) histRetry(); });
 }
 // the oldest chunk of a timeframe, off the state and into the history
 function histCut(tf, arr){
@@ -5282,10 +5291,12 @@ function histFresh(){
   return true;
 }
 async function histFetch(gen, tf, k){
-  try{ const row = await histIdb("get", histKey(gen, tf, k)); if(row && row.data) return row.data; }catch(e){}
-  if(!histServer()) return null;
+  const session = xcSession(), key = histKey(gen, tf, k);
+  try{ const row = await histIdb("get", key); if(!histCurrent(session)) return null; if(row && row.data) return row.data; }catch(e){}
+  if(!histCurrent(session) || !histServer()) return null;
   const r = await xcApi("GET", "/api/hist?gen=" + encodeURIComponent(gen) + "&tf=" + tf + "&k=" + k);
-  if(r && r.data){ try{ await histIdb("put", histKey(gen, tf, k), { data: r.data, up: 1 }); }catch(e){} return r.data; }
+  if(!histCurrent(session)) return null;
+  if(r && r.data){ try{ await histIdb("put", key, { data: r.data, up: 1 }); }catch(e){} return histCurrent(session) ? r.data : null; }
   return null;
 }
 // one chunk further back, for the chart (nothing once it has reached the market's first bar, or a chunk never kept)
@@ -5312,8 +5323,8 @@ function chartData(tf){
   const old = _histOld[tf];
   if(!old || !old.length) return cur;
   let c = _histCombo[tf];
-  if(!c || c.cur !== cur || c.n !== cur.length || c.first !== cur[0] || c.old !== old || c.on !== old.length)
-    c = _histCombo[tf] = { cur, n: cur.length, first: cur[0], old, on: old.length, a: old.concat(cur) };
+  if(!c || c.cur !== cur || c.n !== cur.length || c.first !== cur[0] || c.last !== cur[cur.length - 1] || c.old !== old || c.on !== old.length)
+    c = _histCombo[tf] = { cur, n: cur.length, first: cur[0], last: cur[cur.length - 1], old, on: old.length, a: old.concat(cur) };
   return c.a;
 }
 
@@ -5431,9 +5442,10 @@ function validateLot(v){
    and the result comes back to every device in the next frame. */
 function guardMirror(kind, payload){
   if(!XC.follower) return false;
+  const session = xcSession(), funds = kind === "accountFunds";
   xcApi("POST", "/api/state", { op:"order", sid: XC.sid, order: Object.assign({ kind }, payload) })
-    .then(()=> toast("", L("Ордер отправлен — исполняется")))
-    .catch(()=> toast("r", L("Не удалось отправить ордер — нет связи")));
+    .then(()=> { if(xcSessionCurrent(session)) toast("", L(funds ? "Запрос отправлен — исполняется" : "Ордер отправлен — исполняется")); })
+    .catch(()=> { if(xcSessionCurrent(session)) toast("r", L(funds ? "Не удалось отправить запрос — нет связи" : "Не удалось отправить ордер — нет связи")); });
   return true;
 }
 /* Driver side: run the orders other devices placed, through the real engine. */
@@ -5446,6 +5458,8 @@ function execRemoteOps(ops){
       else if(o.kind === "modify")        modifyPosition(o.id, o.sl, o.tp);
       else if(o.kind === "pending")       addPending(o.order);
       else if(o.kind === "cancelPending") cancelPending(o.id);
+      else if(o.kind === "modifyPending") modifyPending(o.id, o.price, o.sl, o.tp);
+      else if(o.kind === "accountFunds") accountFunds(o.action, o.amount);
     }catch(e){ console.error("[remote order]", e); }
   }
   xcPushState(true);          // let the other devices see the result immediately
@@ -7032,7 +7046,7 @@ function openDispSheet(){
     const k = el.dataset.disp;
     lgsBind(el, Math.round(DISP[k]),
       v => { DISP[k] = v; },
-      v => { DISP[k] = v; dispSave(); if(k === "str") dispApply(true); });   // the strength is baked into the ready filters: built again once, on release
+      v => { DISP[k] = v; dispSave(); if(k === "str") dispApply(true); });   // existing ready passes take the new strength once, on release
   });
   const flip = (b, fn) => b.onclick = () => {
     const on = !b.classList.contains("on");
@@ -7694,6 +7708,27 @@ function aboutModal(){
 /* «Пополнить счёт» / «Снять средства» — DEMO money straight into the trading account (the broker wallet is a
    separate thing and still «Скоро»). Withdrawal is capped by what is actually free, so an open position's margin
    can never be taken out from under it. */
+function accountFunds(action, amount){
+  if(!["deposit", "withdraw", "set"].includes(action) || !Number.isFinite(amount)) return { ok:false, msg:L("Введите сумму") };
+  const isDep = action === "deposit", isSet = action === "set";
+  const v = isSet ? clamp(amount, 0, 1e12) : amount;
+  recalcAccount();
+  const free = Math.max(0, Math.min(S.account.balance, S._acc.freeMargin));
+  if(!isSet && !(v > 0)) return { ok:false, msg:L("Введите сумму") };
+  if(isDep && v > 1e7) return { ok:false, msg:L("Не больше {0} за раз", money(1e7)) };
+  if(action === "withdraw" && v > free + 1e-9) return { ok:false, msg:L("Доступно для снятия: {0}", money(free)) };
+  // Mirrors submit the operation; only the market's driver changes its account balance.
+  // Repeating the same validation there uses the authoritative, current free margin.
+  if(guardMirror("accountFunds", { action, amount: v })) return { ok:true, queued:true };
+  S.account.balance = isSet ? roundTo(v, 2) : Math.round((S.account.balance + (isDep ? v : -v)) * 100) / 100;
+  if(isSet) S.account.initialBalance = S.account.balance;
+  recalcAccount();
+  if(isSet){ saveNow(); if(typeof xcPushState === "function") xcPushState(true); }
+  else save();
+  toast("g", isSet ? L("Баланс изменён: {0} · позиции сохранены", money(S.account.balance))
+    : isDep ? L("Счёт пополнен на {0}", money(v)) : L("Снято {0}", money(v)));
+  return { ok:true };
+}
 function acctFundsModal(kind){
   const isDep = kind === "deposit";
   recalcAccount();
@@ -7720,15 +7755,10 @@ function acctFundsModal(kind){
     if(f) f.textContent = money(free());
   };
   document.getElementById("af-go").onclick = () => {
-    const v = read();
-    if(!(v > 0)) return err.textContent = "⚠ " + L("Введите сумму");
-    if(isDep && v > 1e7) return err.textContent = "⚠ " + L("Не больше {0} за раз", money(1e7));
-    if(!isDep && v > free() + 1e-9) return err.textContent = "⚠ " + L("Доступно для снятия: {0}", money(free()));
-    S.account.balance = Math.round((S.account.balance + (isDep ? v : -v)) * 100) / 100;
-    recalcAccount(); save();
+    const result = accountFunds(isDep ? "deposit" : "withdraw", read());
+    if(!result.ok) return err.textContent = "⚠ " + result.msg;
     closeModal();
     render();
-    toast("g", isDep ? L("Счёт пополнен на {0}", money(v)) : L("Снято {0}", money(v)));
   };
   amt.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("af-go").click(); });
   setTimeout(() => amt.focus(), 60);
@@ -9825,14 +9855,14 @@ function subApply(bar){
   const span = Math.max(1, (SB.r - SB.l) / wRest), mid = (SB.l + SB.r) / 2;
   const w = wRest * (1 + (span - 1) * .45 * WATER), left = mid - w / 2, sy = Math.min(1.45 + .1 * (WATER - 1), 1 + (span - 1) * .85 * WATER);
   const W0 = bar._sw0 || 80, h = bar._sh || 30;
+  const red = bar.querySelector(":scope > .sub-red"), barH = red ? bar.clientHeight : 0, barW = red ? bar.clientWidth : 0;
   bar.style.setProperty("--sbl", left.toFixed(2) + "px");
   bar.style.setProperty("--ssx", (w / W0).toFixed(4));
   bar.style.setProperty("--ssy", sy.toFixed(4));
-  const red = bar.querySelector(":scope > .sub-red");
   if(red){
-    const hh = h * sy, top = (bar.clientHeight - hh) / 2;
+    const hh = h * sy, top = (barH - hh) / 2;
     // a pure length for the radius: a percentage there resolves per axis and comes out square
-    const cp = "inset(" + top.toFixed(2) + "px " + (bar.clientWidth - left - w).toFixed(2) + "px " + top.toFixed(2) + "px " + left.toFixed(2) + "px round " + (hh / 2).toFixed(2) + "px)";
+    const cp = "inset(" + top.toFixed(2) + "px " + (barW - left - w).toFixed(2) + "px " + top.toFixed(2) + "px " + left.toFixed(2) + "px round " + (hh / 2).toFixed(2) + "px)";
     if(red._cp !== cp){ red._cp = cp; red.style.clipPath = cp; red.style.webkitClipPath = cp; }
   }
 }
@@ -11072,7 +11102,9 @@ function quickTrade(side){
   if(err){ toast("r", err); return; }
   execMark(side, true);
   execPill("run", v);
+  const session = xcSession();
   setTimeout(()=>{
+    if(!xcSessionCurrent(session)) return;
     const mirroring = XC.follower;
     const p = openPosition(side, v, { quiet: true });
     execMark(side, false);
@@ -11524,7 +11556,9 @@ function otPlace(){
     if(both) opts.tp1 = Object.assign(lvl(OT.tp1), { volume: R.v1 });
     closeModal();
     execPill("run", vol);
+    const session = xcSession();
     setTimeout(() => {
+      if(!xcSessionCurrent(session)) return;
       const mirroring = XC.follower, p = openPosition(side, vol, opts);
       if(p){ execPill("ok", vol); render(); }
       else if(mirroring) execPill("sent", vol);
@@ -11595,6 +11629,15 @@ function openPosDetail(id){
   draw();
 }
 
+function modifyPending(id, price, sl, tp){
+  if(guardMirror("modifyPending", { id, price: Number.isFinite(price) ? price : null, sl, tp })) return;
+  if(guardLock()) return;
+  const o = S.pendings.find(x => x.id === id);
+  if(!o) return;
+  if(Number.isFinite(price)) o.price = roundTo(price, S.symbol.digits);
+  o.sl = Number.isFinite(sl) ? sl : null; o.tp = Number.isFinite(tp) ? tp : null;
+  toast("", L("Ордер #{0} изменён", o.id)); save();
+}
 function openOrderModify(id){
   const o = S.pendings.find(x=>x.id===id);
   if(!o) return;
@@ -11612,9 +11655,8 @@ function openOrderModify(id){
     const px = parseFloat((document.getElementById("mo-px").value||"").replace(/[\s,]/g,""));
     const sl = parseFloat((document.getElementById("mo-sl").value||"").replace(/[\s,]/g,""));
     const tp = parseFloat((document.getElementById("mo-tp").value||"").replace(/[\s,]/g,""));
-    if(isFinite(px)) o.price = roundTo(px,S.symbol.digits);
-    o.sl = isFinite(sl)?sl:null; o.tp = isFinite(tp)?tp:null;
-    toast("", L("Ордер #{0} изменён", o.id)); save(); closeModal(); render();
+    modifyPending(id, Number.isFinite(px) ? px : null, Number.isFinite(sl) ? sl : null, Number.isFinite(tp) ? tp : null);
+    closeModal(); render();
   };
 }
 
@@ -11950,13 +11992,7 @@ function saveSettingsFromForm(silent){
 }
 function applyNewBalance(){
   const b = clamp(num("set_bal", S.account.balance), 0, 1e12);
-  S.account.balance = roundTo(b, 2);
-  S.account.initialBalance = S.account.balance;
-  recalcAccount();                         // equity/margin update; open positions are kept
-  saveNow();
-  if(typeof xcPushState === "function") xcPushState(true);
-  toast("g", L("Баланс изменён: {0} · позиции сохранены", money(S.account.balance)));
-  nav("markets");
+  if(accountFunds("set", b).ok) nav("markets");
 }
 function forceRollover(){
   const d = simDate();
@@ -12512,12 +12548,17 @@ function lgMotionMap(w, h, rad, rim, edge, k){
 // disperses at any setting, and its fringe is the width of a letter stroke. A TENTH apart, not the fifth I had:
 // the split has to come out about one stroke wide, and at a fifth it was three, which turns a word into colour
 // noise instead of a word with a coloured edge.
-const lgDmScale = dm => ((dm._fixed ? dm._s * (1 + dm._c * (dm._sp != null ? dm._sp : dispDropSp() * (dm._spk || 1))) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch)) * Math.min(1.5, LG_UI.refract)).toFixed(1);
+function lgDmScale(dm){
+  const d = dm._disp, m = d && dispMotion(d.place);
+  const s = d ? d.base * (1 + d.k * (m.bd + d.c * m.sp)) :
+    dm._fixed ? dm._s * (1 + dm._c * (dm._sp != null ? dm._sp : dispDropSp() * (dm._spk || 1))) : dm._s * LGQ.r * (1 + dm._c * .018 * LGQ.ch);
+  return (s * Math.min(1.5, LG_UI.refract)).toFixed(1);
+}
 function lgScaleAll(){
   for(const dm of _lgDms){ const scale = lgDmScale(dm); if(dm.getAttribute("scale") !== scale) dm.setAttribute("scale", scale); }
   navLens(NB.clear);
   if(typeof SB !== "undefined" && SB.dms){ SB.dmB = SB.dms.map(d => +d.getAttribute("scale")); SB.lk = null; subLens(SB.clear); }
-  // Ready dispersion filters participate too; their immutable base no longer changes with the slider.
+  // Ready dispersion filters keep their geometry; only their existing pass scales take the new settings.
 }
 /* stretch (UNUSED - kept for the record): the map is drawn once for a size and laid over the WHOLE box (feImage at
    100 %). The desktop drew it right; on the user's phone the lots' lens bent nothing - the figures under it came
@@ -12599,7 +12640,7 @@ const DISP_SPEC = [[1, 0, .05], [.9, .6, 0], [.15, 1, .2], [0, .55, 1], [.6, 0, 
 function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
   w = Math.max(8, Math.round(w / 2) * 2); h = Math.max(8, Math.round(h / 2) * 2);
   const base = sc || 22, m = dispMotion(place);
-  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "m" + m.bd.toFixed(2) + "_" + m.sp.toFixed(2);
+  const id = "lgD" + w + "x" + h + "s" + base.toFixed(1) + (rad ? "r" + rad : "") + "b" + rim + edge + "k" + k + "p" + (place === "head" ? "h" : "a");
   if(_lgIds.has(id) || !_lgDefs) return id;
   const NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const a in at) e.setAttribute(a, at[a]); fl.appendChild(e); return e; };
@@ -12610,6 +12651,8 @@ function lgDispFilter(w, h, sc, rad, rim, edge, k, place){
   DISP_SPEC.forEach((s, i) => {
     const c = (i - 2) / 2;
     const dm = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: "d" + i });
+    // Strength changes reuse this graph; the head keeps its own 0.6-strength geometry bucket.
+    dm._disp = { base, k, c, place };
     dm._s = base * (1 + k * (m.bd + c * m.sp)); dm._c = 0; dm._sp = 0; dm._fixed = true;
     dm.setAttribute("scale", lgDmScale(dm)); _lgDms.push(dm);
     const [r, g, b] = s.map((v, j) => (v / tot[j]).toFixed(4));
@@ -12708,17 +12751,23 @@ function dispLive(v){
 // a place that splits: its three ready filters, built now (not on the first scroll), each with the rest of the glass's
 // filter string (tail) after it
 // disp: whether this piece also splits its colour in motion (DISP); every iOS-glass piece gets its plain lens for motion
+function lgRainUnbind(el){
+  clearTimeout(el._dispT); el._dispT = 0; el._dispBind = null;
+  _lgRain.delete(el); el._dispF = el._lgMove = null; el._dispL = -1;
+}
 function lgRainBind(el, w, h, sc, rad, rm, tail, disp){
-  el._dispP = disp ? dispPlace(el) : null;
-  const edge = DISP.top ? "t" : "b";
-  el._dispF = null; el._lgMove = null; el._dispL = -1;
-  _lgRain.add(el);
-  clearTimeout(el._dispT);
+  const place = disp ? dispPlace(el) : null, edge = DISP.top ? "t" : "b", stretch = !!el._lgStretch;
+  const key = JSON.stringify([w, h, sc, rad, rm, tail, !!disp, place, edge, stretch]);
+  if(el._dispBind && el._dispBind.key === key && _lgRain.has(el)){ lgRainApply(el); return; }
+  lgRainUnbind(el);
+  const binding = el._dispBind = { key };
+  el._dispP = place; _lgRain.add(el);
   const build = () => {
-    if(!el.isConnected) return;
+    if(!el.isConnected || !_lgRain.has(el) || el._dispBind !== binding) return;
+    el._dispT = 0;
     if(_rainRaf){ el._dispT = setTimeout(build, 200); return; }     // not in the middle of a scroll
-    el._lgMove = "url(#" + lgFilterId(w, h, sc, false, true, rad, rm, !!el._lgStretch, 0) + ")" + tail;
-    if(disp) el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, el._dispP) + ")" + tail : null);
+    el._lgMove = "url(#" + lgFilterId(w, h, sc, false, true, rad, rm, stretch, 0) + ")" + tail;
+    if(disp) el._dispF = DISP_LV.map(k => k ? "url(#" + lgDispFilter(w, h, sc, rad, rm, edge, k, place) + ")" + tail : null);
     el._dispL = -1; lgRainApply(el);
   };
   el._dispT = setTimeout(build, 280);
@@ -12750,7 +12799,7 @@ function rainFrame(now){
   rainAll(); dispLive(0);
 }
 function rainAll(){
-  for(const el of _lgRain){ if(!el.isConnected){ _lgRain.delete(el); continue; } lgRainApply(el); }
+  for(const el of _lgRain){ if(!el.isConnected){ lgRainUnbind(el); continue; } lgRainApply(el); }
 }
 // ANY scroll moves what is under the glass - the page, and the ones that scroll inside themselves (the wallet, the
 // sample on the settings sheet): caught on the way down. A sheet scrolling carries its own glass with it, so not that.
@@ -12778,7 +12827,7 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   if(!el) return;
   if(!LG_LENS || (!force && (!glassOn("refract") || !glassOn(lgFeat(el))))){
     el._lg = null; el.style.removeProperty("backdrop-filter");
-    _lgEls.delete(el); _lgRain.delete(el); el._dispF = el._lgMove = null; return;
+    _lgEls.delete(el); lgRainUnbind(el); return;
   }
   blur = blur == null ? 1 : blur;
   el._lga = [w, h, scale, blur, force, fixed, rad, rim, chroma]; _lgEls.add(el);
@@ -12811,24 +12860,24 @@ function lgGlass(el, w, h, scale, blur, force, fixed, rad, rim, chroma){
   // the drops that travel (the tab bars', the knob) keep the rim they were tuned with; the buttons and capsules of
   // iOS glass take the lit one
   const f = "url(#" + lgFilterId(w, h, sc, ch && !ios, fixed, rad, rm, !!el._lgStretch, ios ? (el.classList.contains("pressing") ? 2 : 1) : 0) + ")" + tail;
-  if(el._lg !== f){ el._lg = f; el.style.backdropFilter = f; }
+  if(el._lg !== f){ el._lg = f; el._dispL = -1; el.style.backdropFilter = f; }
   // ONLY the iOS panels ride the scroll's rainbow. The tab drops ask for colour too, and when they were let in
   // here this held their three passes together at FULL strength at rest - over their own tenth-at-rest - so the
   // letters under a sitting drop were bent hard again, and a travelling drop no longer split its colour.
-  if(ios){ el._dispL = -1; lgRainBind(el, w, h, sc, rad, rm, tail, ch); }
-  else if(_lgRain.has(el)){ _lgRain.delete(el); el._dispF = null; el._lgMove = null; }
+  if(ios) lgRainBind(el, w, h, sc, rad, rm, tail, ch);
+  else lgRainUnbind(el);
 }
 // the slider moved: every lens on screen takes the new frost / fringes (their bend follows lgScaleAll)
 // the glass registries forget what is no longer on the page (render() replaces the whole screen; a toast goes after 3.5 s):
 // held in these Sets, every old screen stayed in memory with its canvases, and the collector ran long pauses for it
 function lgPrune(){
   for(const el of _lgEls) if(!el.isConnected) _lgEls.delete(el);
-  for(const el of _lgRain) if(!el.isConnected) _lgRain.delete(el);
+  for(const el of _lgRain) if(!el.isConnected) lgRainUnbind(el);
   for(const el of _lgPanels) if(!el.isConnected) _lgPanels.delete(el);
 }
 function lgRefresh(){
   for(const el of _lgEls){
-    if(!el.isConnected || !el._lga || !el._lg){ _lgEls.delete(el); continue; }
+    if(!el.isConnected || !el._lga || !el._lg){ _lgEls.delete(el); lgRainUnbind(el); continue; }
     lgGlass(el, ...el._lga);
   }
   for(const el of _lgPanels){
@@ -14060,7 +14109,8 @@ function drawChart(){
     pAnim.set(m.key, { al, t: pNow, g: pGen });
     m.a = al * clamp((m.ly - padT) / FADE, 0, 1) * clamp((H - padB - m.ly) / FADE, 0, 1);
   }
-  if(pAnim.size > 120) pAnim.clear();
+  // Keep visible fades, however many levels are open; only expired off-screen entries are expendable.
+  if(pAnim.size > 120) for(const [key, a] of pAnim) if(a.g !== pGen && pNow - a.t >= 400) pAnim.delete(key);
   if(pSettling) chartDraw();                                      // keep gliding / fading until they settle
   const pillX = m => m.px;
   // each line starts under the middle of its pill (from its left end it peeked past the round cap;
@@ -14383,22 +14433,70 @@ function median(a){ const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return
    So "where you trade" does not matter — the account is the single source of
    truth, and no two devices can ever price the same gold differently.
    ========================================================================= */
+// A tab keeps its lease across reloads. A cloned tab may inherit sessionStorage,
+// so an origin-wide Web Lock reserves the SID for this document before claim.
+function xcNewTabSid(){
+  const c = globalThis.crypto;
+  return c && typeof c.randomUUID === "function" ? c.randomUUID() :
+    Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+function xcReadTabSid(){
+  let sid = null;
+  try{ sid = sessionStorage.getItem("xc_tab_sid"); }catch(e){}
+  return sid || xcNewTabSid();
+}
+function xcStoreTabSid(sid){
+  try{ sessionStorage.setItem("xc_tab_sid", sid); }catch(e){}
+}
+let _xcTabSidReady = null;
+function xcEnsureTabSid(){
+  if(_xcTabSidReady) return _xcTabSidReady;
+  _xcTabSidReady = new Promise(resolve=>{
+    let settled = false;
+    const finish = sid=>{
+      if(settled) return;
+      settled = true;
+      XC.sid = sid; xcStoreTabSid(sid); resolve(sid);
+    };
+    // Without a cross-document lock, never trust a potentially cloned SID.
+    // A fresh document ID is safe; after reload the prior lease may need to expire.
+    const fallback = ()=> finish(xcNewTabSid());
+    const reserve = sid=>{
+      try{
+        if(!navigator.locks || typeof navigator.locks.request !== "function") return fallback();
+        Promise.resolve(navigator.locks.request("xaucore.sid." + sid, { mode:"exclusive", ifAvailable:true }, lock=>{
+          if(!lock){ reserve(xcNewTabSid()); return; }
+          finish(sid);
+          // The browser releases this lock when the document is destroyed.
+          return new Promise(()=>{});
+        })).catch(fallback);
+      }catch(e){ fallback(); }
+    };
+    reserve(XC.sid);
+  });
+  return _xcTabSidReady;
+}
+
 const XC = {
   token: localStorage.getItem("xc_token") || null,
   email: localStorage.getItem("xc_email") || null,
-  // The lease identifies a DEVICE, not a page load: it lives in localStorage so a
-  // refresh reclaims its own lease instead of locking itself out for the TTL.
-  sid: (function(){
-    let v = null;
-    try{ v = localStorage.getItem("xc_sid"); }catch(e){}
-    if(!v){ v = Math.random().toString(36).slice(2) + Date.now().toString(36);
-            try{ localStorage.setItem("xc_sid", v); }catch(e){} }
-    return v;
-  })(),
+  // Session storage survives reload; a Web Lock distinguishes cloned tabs.
+  sid: xcReadTabSid(),
   lease: { holder:null, exp:0, mine:false, free:true },
-  follower: false, rev: 0, _pollT: null,
+  follower: false, rev: 0, _pollT: null, _session: 0,
   online: false, remoteAt: 0, _pushT: null, _pushMax: 0, _dirty: false, _inflight: false, booted: false
 };
+// Async work belongs to the sign-in that started it, even when the same user signs in again.
+function xcSession(){ return { token: XC.token, generation: XC._session || 0, key: LS_KEY }; }
+function xcSessionCurrent(session){ return session.token === XC.token && session.generation === (XC._session || 0); }
+function xcResetSessionWork(){
+  XC._session = (XC._session || 0) + 1;
+  clearTimeout(XC._pushT); clearTimeout(XC._pushMax);
+  clearInterval(XC._pollT); clearInterval(XC._liveT);
+  XC._pushT = null; XC._pushMax = 0; XC._pollT = null; XC._liveT = null;
+  XC._dirty = false; XC._inflight = false; XC._liveBusy = false;
+  XC._syncAt = 0; XC._beaconAt = 0; XC.rev = 0; XC.remoteAt = 0;
+}
 async function xcApi(method, path, body){
   const h = { "Content-Type": "application/json" };
   if(XC.token) h["Authorization"] = "Bearer " + XC.token;
@@ -14408,11 +14506,13 @@ async function xcApi(method, path, body){
   return data;
 }
 function xcSetSession(res){
+  xcResetSessionWork();
   XC.token = res.token; XC.email = res.email || null;
   localStorage.setItem("xc_token", XC.token);
   if(XC.email) localStorage.setItem("xc_email", XC.email); else localStorage.removeItem("xc_email");
 }
 function xcClearSession(){
+  xcResetSessionWork();
   XC.token = null; XC.email = null; XC.online = false;
   XC.follower = false; XC.lease = { holder:null, exp:0, mine:false, free:true };
   if(XC._pollT){ clearInterval(XC._pollT); XC._pollT = null; }
@@ -14422,7 +14522,13 @@ function xcClearSession(){
 
 /* ---- lease: who is allowed to advance this account's market ---- */
 async function xcClaimLease(force){
-  const r = await xcApi("POST", "/api/state", { op:"claim", sid: XC.sid, force: !!force });
+  const session = xcSession();
+  const sid = await xcEnsureTabSid();
+  // A sign-out/sign-in while waiting for a lock must not send the old claim
+  // using the new account's token (xcApi reads XC.token at call time).
+  if(!xcSessionCurrent(session)) return false;
+  const r = await xcApi("POST", "/api/state", { op:"claim", sid, force: !!force });
+  if(!xcSessionCurrent(session)) return false;
   XC.lease = r.lease; XC.follower = false;
   return true;
 }
@@ -14463,10 +14569,14 @@ function xcApplyLive(L){
   if(L.walletBalance != null && S.wallet) S.wallet.balance = L.walletBalance;
   if(L.news){ S.news.active = L.news.active; S.news.type = L.news.type; S.news.progress = L.news.progress; }
   // closed trades that happened on the driver
-  if(Array.isArray(L.histTop) && L.histLen !== S.history.length){
-    const known = new Set(S.history.slice(0, 60).map(h => h.id));
-    const fresh = L.histTop.filter(h => !known.has(h.id));
-    if(fresh.length) S.history = fresh.concat(S.history);
+  if(Array.isArray(L.histTop)){
+    // A partial close and its final close share the position id. Compare the close itself;
+    // at the 500-row cap a new close also leaves the total length unchanged.
+    const key = h => JSON.stringify([h.id, h.closeTime, h.volume, h.reason, h.entry, h.exit]);
+    const known = new Set(L.histTop.map(key));
+    const tail = S.history.filter(h => !known.has(key(h)));
+    const cap = Number.isInteger(L.histLen) ? Math.min(500, Math.max(0, L.histLen)) : 500;
+    S.history = L.histTop.concat(tail).slice(0, cap);
   }
   // merge the candle tips: update the forming bar, append new ones
   for(const tf in (L.candles || {})){
@@ -14498,19 +14608,22 @@ function xcBecomeFollower(lease){
    the moment the driver stops holding the lease. */
 async function xcPollLive(){
   if(!XC.token || !XC.follower) return;
+  const session = xcSession();
   try{
     const m = await xcApi("GET", "/api/state?live=1&sid=" + encodeURIComponent(XC.sid));
+    if(!xcSessionCurrent(session) || !XC.follower) return;
     XC.online = true;
     if(m.lease && (m.lease.free || m.lease.mine)) return xcTakeOver(false);   // driver left -> take the wheel
     if(m.live) xcApplyLive(m.live);
     // the driver pushed a full state (new day, settings, long history) -> resync
     if((m.rev || 0) > XC.rev){
-      XC.rev = m.rev;
       const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+      if(!xcSessionCurrent(session) || !XC.follower) return;
       if(r && r.state){ const ui = S && S.ui; S = r.state; migrateState(); if(ui) S.ui = ui; normalizeState(); }
+      XC.rev = m.rev;
     }
     if(!modalEl) render();
-  }catch(e){ XC.online = false; }
+  }catch(e){ if(xcSessionCurrent(session)) XC.online = false; }
 }
 /* Driver side: publish the frame ~1/s so mirrors stay in step. */
 function xcStartLivePublish(){
@@ -14519,19 +14632,25 @@ function xcStartLivePublish(){
     if(!XC.token || XC.follower || !S || !_loopRunning) return;
     if(XC._liveBusy) return;
     XC._liveBusy = true;
+    const session = xcSession();
     xcApi("POST", "/api/state", { op:"live", sid: XC.sid, live: xcLiveFrame() })
-      .then(r=>{ XC._liveBusy = false; XC.online = true;
+      .then(r=>{ if(!xcSessionCurrent(session)) return;
+                 XC._liveBusy = false; XC.online = true;
                  if(r && r.ops && r.ops.length) execRemoteOps(r.ops); })
-      .catch(e=>{ XC._liveBusy = false;
+      .catch(e=>{ if(!xcSessionCurrent(session)) return;
+        XC._liveBusy = false;
         if(e.status === 409) xcBecomeFollower(e.data && e.data.lease); });
   }, 1200);
 }
 /* Become the driver: claim (optionally stealing), pull the authoritative state,
    then run. This is the ONLY way a session starts advancing the market. */
 async function xcTakeOver(force){
+  const session = xcSession();
   try{
     await xcClaimLease(force);
+    if(!xcSessionCurrent(session)) return;
     const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+    if(!xcSessionCurrent(session)) return;
     if(r && r.state){ S = r.state; migrateState(); XC.rev = r.rev || 0; XC.remoteAt = r.updatedAt; saveNow(); }
     else if(!S) load(true);              // nothing on the server yet -> local cache / fresh
     XC.follower = false;
@@ -14543,6 +14662,7 @@ async function xcTakeOver(force){
     xcStartLivePublish();
     xcPushState(true);
   }catch(e){
+    if(!xcSessionCurrent(session)) return;
     if(e.status === 409){ xcBecomeFollower(e.data && e.data.lease); return; }
     toast("r", L("Не удалось подключиться: {0}", L(e.message || "ошибка")));
   }
@@ -14551,14 +14671,18 @@ async function xcTakeOver(force){
 function xcPushState(force){
   if(!XC.token || XC.follower) return;          // a follower must never write the account's market
   XC._dirty = true;
+  const session = xcSession();
   const go = ()=>{
+    if(!xcSessionCurrent(session) || !XC.token || XC.follower) return;
     clearTimeout(XC._pushT); clearTimeout(XC._pushMax); XC._pushT = null; XC._pushMax = 0;
     if(!XC._dirty || XC._inflight) return;
     XC._inflight = true; XC._dirty = false;
     xcApi("PUT", "/api/state", statePutBody())
-      .then(res=>{ XC._inflight = false; XC.online = true; XC.remoteAt = res.updatedAt;
+      .then(res=>{ if(!xcSessionCurrent(session)) return;
+                   XC._inflight = false; XC.online = true; XC.remoteAt = res.updatedAt;
                    XC.rev = res.rev; XC.lease = res.lease; syncBadge(); })
       .catch(e=>{
+        if(!xcSessionCurrent(session)) return;
         XC._inflight = false; XC.online = false;
         // another device took the terminal over -> stand down instead of fighting it
         if(e.status === 409){ XC._dirty = false; xcBecomeFollower(e.data && e.data.lease); return; }
@@ -14845,26 +14969,31 @@ function startOffline(){
    pull ITS state. The server copy always wins — that is what makes two devices
    on one account show the same market instead of two drifting ones. */
 async function bootAfterAuth(){
+  const session = xcSession();
   const leaseP = xcClaimLease(false);                   // asked alongside /api/me: one round trip less before the app opens
   leaseP.catch(() => {});                               // (its failure is read below, after /api/me)
   try{
     const me = await xcApi("GET", "/api/me");
+    if(!xcSessionCurrent(session)) return;
     XC.email = me.email || null;
     if(me.id) LS_KEY = "xc_state_" + me.id;   // per-user local cache -> no cross-account bleed
     if(XC.email) localStorage.setItem("xc_email", XC.email);
   }catch(e){
+    if(!xcSessionCurrent(session)) return;
     if(e.status === 401){ xcClearSession(); return screenAuth(L("Сессия истекла — войдите снова"), "err"); }
   }
 
-  try{ await leaseP; }
+  try{ await leaseP; if(!xcSessionCurrent(session)) return; }
   catch(e){
+    if(!xcSessionCurrent(session)) return;
     if(e.status === 409){
       // Another device drives this account: pull its full state once (chart
       // history, settings), then follow it live frame by frame.
       try{
         const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+        if(!xcSessionCurrent(session)) return;
         if(r && r.state){ S = r.state; migrateState(); XC.rev = r.rev || 0; }
-      }catch(e2){}
+      }catch(e2){ if(!xcSessionCurrent(session)) return; }
       if(!S) load(true);
       normalizeState();
       XC.booted = true;
@@ -14878,6 +15007,7 @@ async function bootAfterAuth(){
 
   try{
     const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+    if(!xcSessionCurrent(session)) return;
     if(r && r.state){
       S = r.state;                      // the account's own state wins -> exact resume
       if(S.version >= 2) migrateState();
@@ -14892,6 +15022,7 @@ async function bootAfterAuth(){
       load();
     }
   }catch(e){
+    if(!xcSessionCurrent(session)) return;
     if(e.status === 401){ xcClearSession(); return screenAuth(L("Сессия истекла — войдите снова"), "err"); }
     XC.online = false;
     load(true);                         // network error -> offline cache
@@ -14907,16 +15038,19 @@ async function xcResync(){
   if(!XC.token || !XC.booted || XC.follower) return;
   if(Date.now() - (XC._syncAt || 0) < 4000) return;
   XC._syncAt = Date.now();
+  const session = xcSession();
   try{
     const m = await xcApi("GET", "/api/state?meta=1&sid=" + encodeURIComponent(XC.sid));
+    if(!xcSessionCurrent(session)) return;
     XC.online = true;
     if(m.lease && !m.lease.free && !m.lease.mine){ xcBecomeFollower(m.lease); return; }
     if((m.rev || 0) > XC.rev){          // someone else advanced it -> adopt their state
       const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
+      if(!xcSessionCurrent(session)) return;
       if(r && r.state){ S = r.state; migrateState(); normalizeState(); XC.rev = r.rev || 0; saveNow(); render(); }
     }
     await xcClaimLease(false).catch(()=>{});
-  }catch(e){ XC.online = false; }
+  }catch(e){ if(xcSessionCurrent(session)) XC.online = false; }
 }
 
 /* ---------------- boot ---------------- */

@@ -13,6 +13,7 @@ export default async function handler(req, res) {
   if (await getUserByEmail(e)) return json(res, 409, { error: "Этот email уже занят" });
 
   const id = await createUser(e, password);
+  if (!id) return json(res, 409, { error: "Этот email уже занят" });
   const token = await createSession(id);
   json(res, 200, sessionInfo(await getUserById(id), token));
 }

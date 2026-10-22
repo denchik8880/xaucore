@@ -23,6 +23,8 @@ export default async function handler(req, res) {
   const u = await getUserByEmail(e);
   if (u) {
     const now = Date.now();
+    // Fast cooldown check avoids hashing another code for ordinary retries;
+    // the conditional UPSERT below still arbitrates simultaneous requests.
     const prev = await db.execute({ sql: "SELECT sent_at FROM pw_resets WHERE email = ?", args: [e] });
     const sentAt = prev.rows[0] ? Number(prev.rows[0].sent_at) : 0;
     if (now - sentAt < RESEND_AFTER_MS) {
@@ -30,17 +32,23 @@ export default async function handler(req, res) {
     }
     const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
     const salt = newSalt();
-    await db.execute({
+    const issued = await db.execute({
       sql: "INSERT INTO pw_resets(email,user_id,code_hash,salt,expires_at,sent_at,tries) VALUES(?,?,?,?,?,?,0)" +
            " ON CONFLICT(email) DO UPDATE SET user_id=excluded.user_id,code_hash=excluded.code_hash,salt=excluded.salt," +
-           "expires_at=excluded.expires_at,sent_at=excluded.sent_at,tries=0",
-      args: [e, u.id, hashPw(code, salt), salt, now + CODE_TTL_MS, now],
+           "expires_at=excluded.expires_at,sent_at=excluded.sent_at,tries=0 WHERE pw_resets.sent_at <= ?",
+      args: [e, u.id, hashPw(code, salt), salt, now + CODE_TTL_MS, now, now - RESEND_AFTER_MS],
     });
+    if (!issued.rowsAffected) {
+      const latest = await db.execute({ sql: "SELECT sent_at FROM pw_resets WHERE email = ?", args: [e] });
+      const latestAt = latest.rows[0] ? Number(latest.rows[0].sent_at) : now;
+      return json(res, 429, { error: "Код уже отправлен — подождите минуту", wait: Math.max(1, Math.ceil((RESEND_AFTER_MS - (now - latestAt)) / 1000)) });
+    }
     const m = resetCodeMail(code, String(lang || "en").slice(0, 2));
     try {
       await sendMail({ to: e, subject: m.subject, text: m.text, html: m.html });
     } catch (err) {
-      await db.execute({ sql: "DELETE FROM pw_resets WHERE email = ?", args: [e] }).catch(() => {});
+      // A slow failure must not erase a newer successfully issued code.
+      await db.execute({ sql: "DELETE FROM pw_resets WHERE email = ? AND salt = ?", args: [e, salt] }).catch(() => {});
       return json(res, 502, { error: "Письмо не отправилось — попробуйте позже" });
     }
   }

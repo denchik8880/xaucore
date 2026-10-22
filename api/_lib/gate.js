@@ -41,14 +41,17 @@ let _cache = { at: 0, locked: false };
 export async function isLocked() {
   const now = Date.now();
   if (now - _cache.at < TTL_MS) return _cache.locked;
+  let timeout;
   try {
     const v = await Promise.race([
       getSetting(LOCK_KEY),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("db timeout")), DB_TIMEOUT_MS)),
+      new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error("db timeout")), DB_TIMEOUT_MS); }),
     ]);
     _cache = { at: now, locked: v === "1" || v === "true" };
   } catch {
     _cache.at = now; // keep the previous value, retry after TTL
+  } finally {
+    clearTimeout(timeout);
   }
   return _cache.locked;
 }

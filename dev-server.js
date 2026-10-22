@@ -51,14 +51,25 @@ function decorate(req, res, u) {
 }
 
 const server = http.createServer(async (req, res) => {
-  const u = new URL(req.url, "http://localhost");
-  decorate(req, res, u);
+  let u;
+  try {
+    u = new URL(req.url, "http://localhost");
+    decorate(req, res, u);
 
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
-    let raw = "";
-    for await (const c of req) raw += c;
-    const ct = req.headers["content-type"] || "";
-    req.body = raw && ct.includes("json") ? safeParse(raw) : raw;
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+      let raw = "";
+      for await (const c of req) raw += c;
+      const ct = req.headers["content-type"] || "";
+      req.body = raw && ct.includes("json") ? safeParse(raw) : raw;
+    }
+  } catch {
+    // A client may close the connection midway through its body. The async
+    // request callback must absorb that rejection so the dev server survives.
+    if (req.aborted || req.destroyed || res.destroyed) return;
+    res.statusCode = 400;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    return res.end(JSON.stringify({ error: "bad request" }));
   }
 
   const key = u.pathname.replace(/\/+$/, "") || "/";

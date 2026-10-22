@@ -47,17 +47,23 @@ export default async function handler(req, res) {
     if (data.length > MAX_CHUNK_BYTES) return json(res, 413, { error: "chunk too large" });
     // only the session that drives the market writes its history (as with the state)
     const now = Date.now();
-    const lr = await db.execute({ sql: "SELECT lease_sid, lease_exp FROM states WHERE user_id = ?", args: [user.id] });
-    const row = lr.rows[0];
-    const holder = row && row.lease_sid && Number(row.lease_exp || 0) > now ? String(row.lease_sid) : null;
-    if (holder && holder !== sid) return json(res, 409, { error: "Симуляция запущена в другой сессии" });
-    await db.execute({
-      sql: `INSERT INTO hist(user_id, gen, tf, k, data, at) VALUES(?,?,?,?,?,?)
+    const writes = [{
+      sql: `INSERT INTO hist(user_id, gen, tf, k, data, at)
+            SELECT ?,?,?,?,?,? WHERE NOT EXISTS (
+              SELECT 1 FROM states WHERE user_id = ? AND COALESCE(lease_sid, '') <> ''
+                AND lease_exp > ? AND lease_sid <> ?)
+            AND NOT EXISTS (
+              SELECT 1 FROM states WHERE user_id = ? AND CASE WHEN json_valid(data) THEN
+                json_type(data, '$.hist.gen') = 'text' AND json_extract(data, '$.hist.gen') <> ?
+              ELSE 0 END)
             ON CONFLICT(user_id, gen, tf, k) DO UPDATE SET data = excluded.data, at = excluded.at`,
-      args: [user.id, gen, tf, k, data, now],
-    });
+      args: [user.id, gen, tf, k, data, now, user.id, now, sid, user.id, gen],
+    }];
     // the first chunk of a market: whatever an earlier market (before a reset) left here goes
-    if (k === 0) await db.execute({ sql: "DELETE FROM hist WHERE user_id = ? AND gen <> ?", args: [user.id, gen] });
+    // changes() refers to the guarded insert, so a refused writer cannot prune.
+    if (k === 0) writes.push({ sql: "DELETE FROM hist WHERE user_id = ? AND gen <> ? AND changes() > 0", args: [user.id, gen] });
+    const [written] = await db.batch(writes, "write");
+    if (!written.rowsAffected) return json(res, 409, { error: "Сессия или поколение рынка изменились" });
     return json(res, 200, { ok: true });
   }
 
