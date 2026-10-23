@@ -147,6 +147,65 @@ test('phone capsules clear every neighbouring letter at rest, held and throughou
   }
 });
 
+test('a narrow phone keeps the first reference profile as a low pill instead of a desktop-height balloon', () => {
+  const { a } = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), t = a.NB.track;
+  const first = a.navBox(0, 1, 0), middle = a.navBox(2, 3, 0);
+  const height = first.sy * t.baseH, ratio = first.sx * t.tabW / height;
+  assert.ok(height < 44 && height >= 39);
+  assert.ok(ratio >= 1.8 && ratio <= 2.05);
+  assert.ok(first.sx > middle.sx * 1.25, 'The first pill stays wider than the middle profile, as in the reference');
+  let previous = height;
+  for(let u = .01; u <= 1; u += .01) {
+    const h = a.navBox(u, u + 1, 0).sy * t.baseH;
+    assert.ok(Math.abs(h - previous) < .2, 'Height morphs continuously between the mobile profiles');
+    previous = h;
+  }
+});
+
+test('a thumb tap away from an item centre and small contact jitter still hold and choose that exact item', () => {
+  const runtime = harness({ width: 332 }), { a, bar, counters } = runtime, t = a.NB.track;
+  const x = 20 + t.centres[0] * t.tabW + 15;
+  bar.onpointerdown({ button: 0, pointerType: 'touch', pointerId: 21, clientX: x, clientY: 530 });
+  assert.equal(a.NB.drag.u, 0); assert.equal(a.NB.drag.moved, false);
+  bar.onpointermove({ pointerId: 21, clientX: x + 4, clientY: 531 });
+  assert.equal(a.NB.drag.u, 0); assert.equal(a.NB.drag.moved, false);
+  for(let i = 1; i <= 90; i++) runtime.frame(100 + i * 1000 / 120);
+  near(a.NB.u, 0, .001);
+  bar.onpointerup({ pointerId: 21 });
+  assert.equal(a.NB.target, 0); assert.deepEqual(counters.nav, ['markets']);
+});
+
+test('deliberate touch dragging preserves the contact offset instead of jumping to the edge of a thumb', () => {
+  const { a, bar } = harness(), t = a.NB.track, rect = { left: 20, width: t.width };
+  const x = 20 + t.centres[1] * t.tabW + 12;
+  bar.onpointerdown({ button: 0, pointerType: 'touch', pointerId: 22, clientX: x, clientY: 530 });
+  const pointer = a.navUAt(x, rect);
+  bar.onpointermove({ pointerId: 22, clientX: x + 7, clientY: 530 });
+  assert.equal(a.NB.drag.moved, true);
+  near(a.NB.drag.u, 1 + a.navUAt(x + 7, rect) - pointer);
+  assert.ok(a.NB.drag.u < a.navUAt(x + 7, rect));
+});
+
+test('a resized screen during touch dragging rebases its contact offset without moving the drop', () => {
+  const runtime = harness({ width: 332 }), { a } = runtime, t = a.NB.track;
+  const x = 20 + t.centres[1] * t.tabW + 12;
+  runtime.bar.onpointerdown({ button: 0, pointerType: 'touch', pointerId: 23, clientX: x, clientY: 530 });
+  runtime.bar.onpointermove({ pointerId: 23, clientX: x + 20, clientY: 530 });
+  const u = a.NB.drag.u, next = runtime.replaceBar(422);
+  near(a.NB.drag.u, u);
+  next.onpointermove({ pointerId: 23, clientX: x + 20, clientY: 530 });
+  near(a.NB.drag.u, u);
+});
+
+test('desktop mouse input retains its continuous pointer position', () => {
+  const { a, bar } = harness(), t = a.NB.track, rect = { left: 20, width: t.width };
+  const x = 20 + t.centres[0] * t.tabW + 15;
+  bar.onpointerdown({ button: 0, pointerType: 'mouse', pointerId: 24, clientX: x, clientY: 530 });
+  near(a.NB.drag.u, a.navUAt(x, rect)); assert.equal(a.NB.drag.moved, true);
+  bar.onpointermove({ pointerId: 24, clientX: x + 4, clientY: 530 });
+  near(a.NB.drag.u, a.navUAt(x + 4, rect));
+});
+
 test('a flight may span its two passing items but cannot reach an unrelated third caption', () => {
   const { a } = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), t = a.NB.track;
   Object.assign(a.NB, { clear: 1, materialOn: true });
