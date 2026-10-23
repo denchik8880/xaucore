@@ -9305,8 +9305,8 @@ function navRailFrame(dt){
   if(!target && Math.abs(NB.rail) < .00001 && Math.abs(NB.railV) < .0001) NB.rail = NB.railV = 0;
   if(!NB.rail && Math.abs(NB.railLight) < .0001 && Math.abs(NB.railLightV) < .001) NB.railLight = NB.railLightV = 0;
 }
-// Five measured profiles from the supplied 555 x 86 reference. Coordinates stay in the
-// existing five-tab units; the same centres place both rows, steer the drop and pick tabs.
+// Five measured profiles from the supplied 555 x 86 reference. Responsive caption clearance
+// adapts their spacing; the same resulting centres place both rows, steer the drop and pick tabs.
 const NAV_DROP = Object.freeze({
   centres: Object.freeze([86.5, 196.5, 287.5, 378.5, 478.5]),
   widths: Object.freeze([156, 118, 118, 118, 136]),
@@ -9316,24 +9316,49 @@ function navTrackBuild(width, height, labels){
   const w = Math.max(1, width), h = Math.max(8, height), tabW = w / 5;
   const scale = Math.min(w / NAV_DROP.referenceW, h / NAV_DROP.referenceH);
   const restH = h * NAV_DROP.height / NAV_DROP.referenceH;
-  const centres = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
+  const reference = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
   const measured = labels || [0, 0, 0, 0, 0];
   let fit = 1;
-  for(let i = 0; i < centres.length; i++){
-    const x = centres[i] * tabW, before = i ? (centres[i - 1] + centres[i]) * tabW / 2 : 0;
-    const after = i < 4 ? (centres[i] + centres[i + 1]) * tabW / 2 : w;
+  for(let i = 0; i < reference.length; i++){
+    const x = reference[i] * tabW, before = i ? (reference[i - 1] + reference[i]) * tabW / 2 : 0;
+    const after = i < 4 ? (reference[i] + reference[i + 1]) * tabW / 2 : w;
     const available = Math.max(1, 2 * Math.min(x - before, after - x) - 6 * scale);
     if(measured[i] > 0) fit = Math.min(fit, available / measured[i]);
   }
   const fontSize = Math.max(9, 10.5 * Math.min(1, fit));
-  const widths = NAV_DROP.widths.map((v, i) => Math.max(v * scale, 1.35 * restH, (measured[i] || 0) * fontSize / 10.5 + .65 * h) / tabW);
-  return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres, widths, fontSize };
+  const captions = measured.map(v => v * fontSize / 10.5), gap = Math.max(2.5, 4 * scale);
+  // The reference has a long first caption. Its unequal spacing must not squeeze XAUCORE's
+  // longer middle captions. Move only as far toward equal spacing as those capsules need.
+  const requested = NAV_DROP.widths.map((v, i) => Math.max(v * scale, captions[i] + .22 * h));
+  let spread = 0;
+  for(let i = 1; i < 4; i++) for(const j of [i - 1, i + 1]){
+    const distance = Math.abs(reference[i] - reference[j]) * tabW;
+    const needed = requested[i] / 2 + captions[j] / 2 + gap;
+    if(needed > distance && tabW > distance) spread = Math.max(spread, clamp((needed - distance) / (tabW - distance), 0, 1));
+  }
+  const centres = reference.map((v, i) => v + (i + .5 - v) * spread), inset = 4 / NAV_DROP.referenceH * h;
+  // These limits include the full caption rectangles, not just the rounded contour at one height.
+  // An anchored drop (including a held one) cannot tint, bend or cover a neighbouring letter.
+  const limits = centres.map((c, i) => {
+    const x = c * tabW;
+    const edge = (j, side) => {
+      const plain = centres[j] * tabW + side * captions[j] / 2, pulse = w / 2 + (plain - w / 2) * 1.04;
+      return side > 0 ? Math.max(plain, pulse) : Math.min(plain, pulse);
+    };
+    const left = i ? edge(i - 1, 1) + gap : inset;
+    const right = i < 4 ? edge(i + 1, -1) - gap : w - inset;
+    return Math.max(1, 2 * Math.min(x - left, right - x)) / tabW;
+  });
+  const widths = requested.map((v, i) => Math.min(v / tabW, limits[i]));
+  return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres, widths, limits, captions, gap, fontSize };
 }
 function navTrackAt(u){
   const t = NB.track || (NB.track = navTrackBuild(NB.railWidth || 360, 60));
   const i = clamp(Math.floor(u), 0, 3), k = u - i;
+  const f = clamp(k, 0, 1);
   return { track: t, centre: t.centres[i] + (t.centres[i + 1] - t.centres[i]) * k,
-    width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * clamp(k, 0, 1) };
+    width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * f,
+    limit: t.limits[i] + (t.limits[i + 1] - t.limits[i]) * f + 4 * f * (1 - f) * (t.centres[i + 1] - t.centres[i]) * .6 };
 }
 // Piecewise inverse of the very same centres, after undoing the rail's centred swell.
 // Pointer moves use the rectangle captured on pointerdown, with no layout reads in a frame.
@@ -9346,7 +9371,10 @@ function navUAt(x, rect){
   const u = i + (unit - c[i]) / (c[i + 1] - c[i]);
   return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u;
 }
-function navSlotStyle(i){ return "--nx:" + (NAV_DROP.centres[i] / NAV_DROP.referenceW).toFixed(7) + ";--nw:.2"; }
+function navSlotStyle(i){
+  const centres = NB.track ? NB.track.centres : NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
+  return "--nx:" + (centres[i] / 5).toFixed(7) + ";--nw:.2";
+}
 function navAccentWeight(i, u){ return clamp(1 - Math.abs(u - i), 0, 1).toFixed(4); }
 function navAccentWrite(bar, u){
   const items = bar._accentItems || (bar._accentItems = bar.querySelectorAll(".nav-red .nb"));
@@ -9366,7 +9394,7 @@ function navBox(a, b, lift){
   // On landing the contour contracts ahead of the remaining optical tail, as in the frame sequence.
   const press = NB.materialOn ? clear : clear * clear, stretch = Math.min(1, Math.abs(b - a - 1));
   const centre = p.centre * t.tabW;
-  const width = p.width * t.tabW + press * NAV_DROP.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height;
+  const width = Math.min(p.limit * t.tabW, p.width * t.tabW + press * NAV_DROP.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height);
   const height = t.restH + press * NAV_DROP.activeHeight / NAV_DROP.referenceH * t.height + stretch * .01 * t.height;
   const inset = 4 / NAV_DROP.referenceH * t.height * (1 - press);
   // At an end the silhouette is trimmed against the rail, rather than pushed away
@@ -9600,10 +9628,8 @@ function closeNavCard(outside){
   if(!C.raf){ C.H = C.card.offsetHeight; C.h = C.H; C.v = 0; }         // at rest: its own height (its figures may have grown it); mid-grow: turns round
   C.open = false; navCardRun(C);
 }
-// The capsule pinches toward its ends, so a long label can run into the rim from inside even though it fits its
-// tab perfectly well. Measure the longest label against the capsule's width at that label's own height and size
-// Fit long localizations to their real neighbour spacing. The reference font remains
-// 10.5 px normally; no end-circle test can shrink all five labels on an ordinary phone.
+// Measure the real captions once for a track. They limit each anchored capsule and adapt the
+// shared row spacing; no text measurement or layout read belongs in the animation frame.
 function navFit(bar){
   if(!glassOn("nav")){ NB.track = null; bar.style.removeProperty("--nav-fs"); return; }
   const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight + ":" + (document.fonts ? document.fonts.status : "");
@@ -9620,6 +9646,12 @@ function navFit(bar){
     track = NB.track = navTrackBuild(bar.clientWidth, bar.clientHeight, labels); track.key = key;
   }
   bar.style.setProperty("--nav-fs", track.fontSize.toFixed(2) + "px");
+  for(const row of [bar.querySelectorAll("button[data-nav]"), bar.querySelectorAll(".nav-red .nb")]){
+    for(let i = 0; i < row.length; i++){
+      const nx = (track.centres[i] / 5).toFixed(7);
+      if(row[i].style.getPropertyValue("--nx") !== nx) row[i].style.setProperty("--nx", nx);
+    }
+  }
 }
 // VANTA's prepared normal field, with edge dispersion calibrated to the user's recording (2026-10-21).
 // One padded map / filter for this bar; no map generation or filter creation during a gesture.
@@ -9661,7 +9693,10 @@ function navLens(clear){
   const enabled = glassOn("nav") && glassOn("refract"), k = enabled ? clamp(clear, 0, 1) : 0;
   const energy = clamp(NB.opticalEnergy, 0, 1), box = navBox(NB.a, NB.b, NB.lift);
   const w = o.tabW * box.sx, h = (o.h - 9) * box.sy, x = o.tabW * box.left, y = (o.h - h) / 2;
-  const bend = k * (NAV_OPTICS.bend + NAV_OPTICS.motion * energy) * LG_UI.refract;
+  // The old full-size lens strength folds a narrow responsive capsule's letters over themselves.
+  // Keep the same material settings and RGB ratios, scaling its displacement to the actual contour.
+  const size = Math.min(1, w / ((NAV_DROP.widths[2] + NAV_DROP.activeWidth) / NAV_DROP.referenceH * o.h));
+  const bend = k * (NAV_OPTICS.bend + NAV_OPTICS.motion * energy) * LG_UI.refract * size;
   const split = DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 : 0;
   const magnify = 1 + k * (.14 + .025 * energy) * LG_UI.refract;
   o.bar.style.setProperty("--nm", magnify.toFixed(4));

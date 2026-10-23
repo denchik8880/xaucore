@@ -99,8 +99,8 @@ test('held middle capsules add the measured width and height without turning the
     near(box.sy * 77, 80);
   }
   const first = a.navBox(0, 1, 0);
-  near(first.left, 0);
-  near(first.sx * 111, 185.5);
+  near(first.left * 111, 4);
+  near(first.sx * 111, 165);
   assert.ok(first.sx * 111 > first.sy * 77 * 2);
 });
 
@@ -119,14 +119,43 @@ test('all phone sizes, overdrag and stretched transitions keep a finite contour 
   }
 });
 
-test('long localizations use the content guard and only reduce the font within its allowed floor', () => {
+test('long localizations retain the font floor without enlarging a drop into a neighbouring caption', () => {
   const { a } = harness();
   near(a.NB.track.fontSize, 10.5);
   const track = a.navTrackBuild(385, 60, [100, 75, 75, 75, 80]);
   assert.ok(track.fontSize >= 9 && track.fontSize < 10.5);
   for (let i = 0; i < 5; i++) {
-    assert.ok(track.widths[i] * track.tabW >= 1.35 * track.restH - 1e-7);
-    assert.ok(track.widths[i] * track.tabW >= [100, 75, 75, 75, 80][i] * track.fontSize / 10.5 + 39 - 1e-7);
+    assert.ok(track.widths[i] <= track.limits[i]);
+    const x = track.centres[i] * track.tabW, half = track.widths[i] * track.tabW / 2;
+    if(i) assert.ok(x - half >= track.centres[i - 1] * track.tabW + track.captions[i - 1] / 2 + 2.5 - 1e-7);
+    if(i < 4) assert.ok(x + half <= track.centres[i + 1] * track.tabW - track.captions[i + 1] / 2 - 2.5 + 1e-7);
+  }
+});
+
+test('phone capsules clear every neighbouring letter at rest, held and throughout the centred rail pulse', () => {
+  const labels = [33.8125, 44.875, 45.5625, 42.203125, 21.53125];
+  for(const width of [292, 332, 356, 384, 422, 472]) for(const textScale of [1, 1.25, 1.5]) {
+    const { a } = harness({ width, labels: labels.map(v => v * textScale) }), t = a.NB.track;
+    for(let selected = 0; selected < 5; selected++) for(const clear of [0, .5, 1]) {
+      Object.assign(a.NB, { clear, materialOn: true });
+      const box = a.navBox(selected, selected + 1, 0), left = box.left * t.tabW, right = left + box.sx * t.tabW;
+      for(let j = 0; j < 5; j++) if(j !== selected) for(const pulse of [1, 1.02, 1.04]) {
+        const x = width / 2 + (t.centres[j] * t.tabW - width / 2) * pulse, half = t.captions[j] * pulse / 2;
+        assert.ok(j < selected ? left >= x + half + 2.49 : right <= x - half - 2.49, `width ${width}, text ${textScale}, selected ${selected}, neighbour ${j}, pulse ${pulse}`);
+      }
+    }
+  }
+});
+
+test('a flight may span its two passing items but cannot reach an unrelated third caption', () => {
+  const { a } = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), t = a.NB.track;
+  Object.assign(a.NB, { clear: 1, materialOn: true });
+  for(let u = 0; u <= 4; u += .025) {
+    const box = a.navBox(u, u + 1, 0), left = box.left * t.tabW, right = left + box.sx * t.tabW;
+    for(let j = 0; j < 5; j++) if(j < Math.floor(u) || j > Math.ceil(u)) {
+      const x = t.centres[j] * t.tabW, half = t.captions[j] / 2;
+      assert.ok(right <= x - half || left >= x + half, `u ${u}, unrelated caption ${j}`);
+    }
   }
 });
 
