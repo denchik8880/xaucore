@@ -375,6 +375,9 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* Filter the complete source BEFORE the existing drop clip, as in VANTA. Sampling a pre-clipped label
    folds its cut edge back into the lens. The opaque, themed source also keeps RGB blending neutral. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;border-radius:inherit;background:var(--nav-hole)}
+/* Keep the filtered source opaque beyond the rail. Outward edge samples must see the theme's backing,
+   not transparent RGB-channel boundaries; the outer .nav-red capsule still supplies the only visible clip. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics::after{content:"";position:absolute;inset:-24px;background:var(--nav-hole);z-index:-1;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1;
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%;
   color:color-mix(in srgb,var(--nav-on) calc(var(--na,0) * 100%),var(--ink))}
@@ -9666,7 +9669,12 @@ function navOpticsBind(bar){
     filter = document.createElementNS(NS, "filter");
     for(const [k,v] of Object.entries({ id: "xc-nav-optics", filterUnits: "userSpaceOnUse", primitiveUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" })) filter.setAttribute(k,v);
     const add = (tag, attrs) => { const node = document.createElementNS(NS, tag); for(const [k,v] of Object.entries(attrs)) node.setAttribute(k,v); filter.appendChild(node); return node; };
-    add("feImage", { href: NAV_OPTICS.map, preserveAspectRatio: "none", result: "normals" });
+    add("feImage", { href: NAV_OPTICS.map, preserveAspectRatio: "none", result: "rawNormals" });
+    // SVG displacement samples the source, rather than moving its pixels. At a side edge the original
+    // inward sample and the magnified row both skipped the first covered letter. Reverse only X so the
+    // incoming letter is sampled immediately. The 1.5 X gain compensates the row's remaining magnification
+    // at first contact; retain the accepted vertical pull and all three RGB scales.
+    add("feColorMatrix", { in: "rawNormals", type: "matrix", values: "-1.5 0 0 0 1.25 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "normals" });
     for(let i = 0; i < 3; i++){
       add("feDisplacementMap", { in: "SourceGraphic", in2: "normals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "sample" + i });
       const matrix = Array(20).fill(0); matrix[i * 6] = 1; matrix[18] = 1;
