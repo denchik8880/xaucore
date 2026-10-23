@@ -51,11 +51,12 @@ function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navEase,navMaterialFrame,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navAccentWeight,navAccentWrite,navBox,navEndW,navGo,navEase,navMaterialFrame,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
     const buttons = labels.map((value, i) => ({ childNodes: [{ nodeType: 3, textContent: `Label ${i}`, width: value }], style: style() }));
+    const accent = labels.map(() => ({ style: style() }));
     return {
       isConnected: true, style: style(), classList: classes(), captures: [],
       get clientWidth() { counters.layout++; return w; },
@@ -63,7 +64,7 @@ function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {
       getBoundingClientRect() { counters.layout++; return { left: 20, width: w, height: h, top: 500 }; },
       setPointerCapture(id) { this.captures.push(id); },
       querySelector: selector => selector === '.nav-lens' ? lens : selector === '.nav-bub' ? bub : null,
-      querySelectorAll: selector => selector === 'button[data-nav]' ? buttons : [],
+      querySelectorAll: selector => selector === 'button[data-nav]' ? buttons : selector === '.nav-red .nb' ? accent : [],
     };
   }
   currentBar = makeBar();
@@ -148,7 +149,7 @@ test('ordinary and accent rows receive exactly the same five centre styles', () 
   const plainStyles = [...markup.matchAll(/<button data-nav="[^"]+" class="[^"]*" style="([^"]+)"/g)].map(match => match[1]);
   const accentStyles = [...markup.matchAll(/<span class="nb" style="([^"]+)"/g)].map(match => match[1]);
   assert.equal(plainStyles.length, 5); assert.equal(accentStyles.length, 5);
-  assert.deepEqual(plainStyles, accentStyles);
+  assert.deepEqual(plainStyles, accentStyles.map(value => value.split(';--na:')[0]));
 });
 
 test('a held current tab releases directly into the 230 ms fade with no empty flight', () => {
@@ -160,6 +161,34 @@ test('a held current tab releases directly into the 230 ms fade with no empty fl
   assert.equal(a.NB.materialTween.ms, 230);
   setNow(330); a.navMaterialFrame(330, false);
   near(a.NB.clear, 0); assert.equal(a.NB.materialTween, null);
+});
+
+test('a settled wide capsule leaves every neighbouring caption and icon without a selected tint', () => {
+  const { a, bar } = harness();
+  const items = bar.querySelectorAll('.nav-red .nb');
+  for(let selected = 0; selected < 5; selected++) {
+    a.navAccentWrite(bar, selected);
+    assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), Array.from({ length: 5 }, (_, i) => +(i === selected)));
+    Object.assign(a.NB, { u: selected, target: selected, a: selected, b: selected + 1 });
+    const weights = [...a.bottomNav().matchAll(/;--na:([\d.]+)/g)].map(match => +match[1]);
+    assert.deepEqual(weights, Array.from({ length: 5 }, (_, i) => +(i === selected)), 'A rebuilt bar has the correct tint before its first frame');
+  }
+});
+
+test('selected tint travels continuously between two neighbouring items and repeated frames do not rewrite it', () => {
+  const { a, bar } = harness();
+  const items = bar.querySelectorAll('.nav-red .nb');
+  a.navAccentWrite(bar, 1.25);
+  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, .75, .25, 0, 0]);
+  let writes = 0;
+  for(const item of items) {
+    const original = item.style.setProperty;
+    item.style.setProperty = (...args) => { writes++; original(...args); };
+  }
+  a.navAccentWrite(bar, 1.25);
+  assert.equal(writes, 0);
+  a.navAccentWrite(bar, 2);
+  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 0, 0]);
 });
 
 test('appearance starts at the initiating event and an adjacent flight takes 200 ms plus its tail', () => {
