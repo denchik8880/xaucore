@@ -149,16 +149,113 @@ test('phone capsules clear every neighbouring letter at rest, held and throughou
 
 test('a narrow phone keeps the first reference profile as a low pill instead of a desktop-height balloon', () => {
   const { a } = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), t = a.NB.track;
+  Object.assign(a.NB, { clear: 1, materialOn: true });
   const first = a.navBox(0, 1, 0), middle = a.navBox(2, 3, 0);
   const height = first.sy * t.baseH, ratio = first.sx * t.tabW / height;
   assert.ok(height < 44 && height >= 39);
   assert.ok(ratio >= 1.8 && ratio <= 2.05);
   assert.ok(first.sx > middle.sx * 1.25, 'The first pill stays wider than the middle profile, as in the reference');
-  let previous = height;
+  a.NB.clear = 0;
+  let previous = a.navBox(0, 1, 0).sy * t.baseH;
   for(let u = .01; u <= 1; u += .01) {
     const h = a.navBox(u, u + 1, 0).sy * t.baseH;
     assert.ok(Math.abs(h - previous) < .2, 'Height morphs continuously between the mobile profiles');
     previous = h;
+  }
+});
+
+test('the unified contour preserves the visible matte height and the existing optical endpoint', () => {
+  const profiles = [
+    { width: 332, height: 60, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] },
+    { width: 555, height: 86, labels: [0, 0, 0, 0, 0] },
+  ];
+  for(const profile of profiles) {
+    const { a } = harness(profile), t = a.NB.track;
+    for(let selected = 0; selected < 5; selected++) {
+      Object.assign(a.NB, { clear: 1, materialOn: true });
+      const held = a.navBox(selected, selected + 1, 0).sy * t.baseH;
+      near(held, t.heights[selected] * (1 + a.NAV_DROP.activeHeight / a.NAV_DROP.height));
+      a.NB.clear = 0;
+      const idle = a.navBox(selected, selected + 1, 0).sy * t.baseH;
+      near(idle, Math.min(t.heights[selected] * 1.15, t.restH));
+      if(profile.width === 332 && selected === 0) assert.ok(idle > 48 && idle < 49, 'The accepted phone matte silhouette includes its former CSS enlargement');
+      if(profile.width === 555) near(idle, 78);
+    }
+  }
+});
+
+test('fading the unified height is monotonic on both mobile and reference rails', () => {
+  for(const profile of [
+    { width: 332, height: 60, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] },
+    { width: 555, height: 86, labels: [0, 0, 0, 0, 0] },
+  ]) for(const materialOn of [true, false]) {
+    const { a } = harness(profile), t = a.NB.track;
+    Object.assign(a.NB, { clear: 1, materialOn });
+    const held = a.navBox(0, 1, 0).sy * t.baseH;
+    a.NB.clear = 0;
+    const idle = a.navBox(0, 1, 0).sy * t.baseH, direction = Math.sign(idle - held);
+    assert.equal(direction, profile.width === 332 ? 1 : -1, 'Phone fades grow into matte; reference fades contract into matte');
+    let previous = held;
+    for(let i = 1; i <= 100; i++) {
+      a.NB.clear = 1 - i / 100;
+      const height = a.navBox(0, 1, 0).sy * t.baseH;
+      assert.ok(direction * (height - previous) >= -1e-9, `width ${profile.width}, material ${materialOn}, clear ${a.NB.clear}`);
+      assert.ok(height >= Math.min(held, idle) - 1e-9 && height <= Math.max(held, idle) + 1e-9, 'The fade cannot overshoot either accepted silhouette');
+      previous = height;
+    }
+    near(previous, idle);
+  }
+});
+
+test('the terminal navigation frame uses the same four-decimal height as the optical tail', () => {
+  const runtime = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), { a, bar } = runtime;
+  const write = bar.style.setProperty, writes = [];
+  bar.style.setProperty = (name, value) => { if(name === '--sy') writes.push(value); write(name, value); };
+  Object.assign(a.NB, { a: 0, b: 1, u: 0, target: 0, clear: 1, materialOn: true, materialTween: null });
+  a.navGo(0);
+  runtime.frame(116);
+  assert.ok(writes.length > 0 && writes.every(value => /^\d+\.\d{4}$/.test(value)), 'A moving frame must not quantize height to three decimals');
+  writes.length = 0;
+  runtime.frame(329.99);
+  const tail = writes.at(-1);
+  assert.match(tail, /^\d+\.\d{4}$/);
+  writes.length = 0;
+  runtime.frame(330);
+  assert.equal(a.NB.clear, 0);
+  assert.equal(a.NB.raf, 0, 'This is the terminal frame, not another moving sample');
+  assert.ok(writes.length > 0);
+  assert.ok(writes.every(value => /^\d+\.\d{4}$/.test(value)));
+  assert.deepEqual([...new Set(writes)], [tail], 'Stopping the RAF must not write a second, differently rounded height');
+  assert.equal(bar.style.getPropertyValue('--sy'), tail);
+});
+
+test('a short attack can release and be re-grabbed without jumping either contour endpoint', () => {
+  for(const profile of [
+    { width: 332, height: 60, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] },
+    { width: 555, height: 86, labels: [0, 0, 0, 0, 0] },
+  ]) {
+    const { a } = harness(profile);
+    Object.assign(a.NB, { clear: 0, materialOn: false, materialTween: null });
+    const sameContour = (before, after) => {
+      for(const key of ['left', 'sx', 'sy']) near(after[key], before[key]);
+    };
+    a.navMaterialFrame(100, true);
+    a.navMaterialFrame(150, true);
+    assert.ok(a.NB.clear > 0 && a.NB.clear < 1, 'The finger releases before the attack reaches its full endpoint');
+    const attack = a.navBox(2, 3, 0), attackClear = a.NB.clear;
+    a.navMaterialFrame(150, false);
+    near(a.NB.clear, attackClear);
+    sameContour(attack, a.navBox(2, 3, 0));
+    a.navMaterialFrame(210, false);
+    assert.ok(a.NB.clear > 0 && a.NB.clear < attackClear);
+    const fading = a.navBox(2, 3, 0), fadingClear = a.NB.clear;
+    a.navMaterialFrame(210, true);
+    near(a.NB.clear, fadingClear);
+    sameContour(fading, a.navBox(2, 3, 0));
+    a.navMaterialFrame(390, true);
+    near(a.NB.clear, 1);
+    near(a.navBox(2, 3, 0).sy * a.NB.track.baseH,
+      a.NB.track.heights[2] * (1 + a.NAV_DROP.activeHeight / a.NAV_DROP.height));
   }
 });
 

@@ -339,7 +339,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-ic)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:var(--nav-is,24px);height:var(--nav-is,24px)}
-/* The matte and optical layers share measured position and width; the matte's vertical fill is resolved below.
+/* The matte and optical layers share one measured contour throughout their crossfade.
    --ng is the optical envelope; --u/--sx express the leading edge/width in fifths of the rail. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
   /* THE RADIUS IS RESOLVED BEFORE THE TRANSFORM. The box is 20% of the bar by 51 px and the shape we want is
@@ -398,14 +398,9 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:.65px;pointer-events:none;
   background:linear-gradient(var(--lit-a,170deg),var(--nav-fine) 0%,transparent 30%,transparent 65%,var(--nav-fine-low) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* The optical layer lands into a plain, theme-coloured selection. Position and width stay on the same track;
-   the matte has its own fuller vertical body, so the resting grey does not look undersized on a phone. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:4;background:var(--nav-rest);opacity:calc(1 - var(--ng,0));
-  /* The matte landing has a fuller body than the compact optical contour on phones.
-     Its width stays inside the measured caption clearance; circular ends follow its own height. */
-  --idle-sy:min(calc(var(--sy,1) * 1.15),calc(60 / 86 * 78 / 51));
-  border-radius:calc((60px - 9px) / 2 * var(--idle-sy) / var(--sx,1)) / 50%;
-  transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--idle-sy))}
+/* The optical layer lands into a plain, theme-coloured selection. navBox blends the compact held height
+   into the fuller resting height for BOTH layers, so no second upper arc appears during the crossfade. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:4;background:var(--nav-rest);opacity:calc(1 - var(--ng,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc((1 - var(--lf,0)) * var(--ng,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub.material-idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:linear-gradient(180deg,rgba(40,44,52,.035),transparent 44%,transparent 70%,rgba(40,44,52,.018));
@@ -9425,14 +9420,24 @@ function navEndW(bar){
   const t = navTrackBuild(bar.clientWidth, bar.clientHeight);
   return { w: t.widths[0] * t.tabW, h: t.heights[0] };
 }
+// The contour follows its own landing envelope, without jumping when a short press is released or
+// a fading drop is grabbed again. A full hold still lands with the reference's clear-squared curve.
+function navMaterialPress(){
+  const clear = clamp(NB.clear || 0, 0, 1);
+  const w = NB.materialTween;
+  if(!w) return NB.materialOn ? clear : clear * clear;
+  if(!w.to) return w.fromPress * Math.pow(clamp(clear / Math.max(w.from, 1e-9), 0, 1), 2);
+  return w.fromPress + (1 - w.fromPress) * clamp((clear - w.from) / Math.max(1 - w.from, 1e-9), 0, 1);
+}
 function navBox(a, b, lift){
   const u = (a + b) / 2 - .5, p = navTrackAt(u), t = p.track;
-  const clear = clamp(NB.clear || 0, 0, 1);
-  // On landing the contour contracts ahead of the remaining optical tail, as in the frame sequence.
-  const press = NB.materialOn ? clear : clear * clear, stretch = Math.min(1, Math.abs(b - a - 1));
+  const press = navMaterialPress(), stretch = Math.min(1, Math.abs(b - a - 1));
   const centre = p.centre * t.tabW;
   const width = Math.min(p.limit * t.tabW, p.width * t.tabW + press * NAV_DROP.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height);
-  const height = p.height * (1 + press * NAV_DROP.activeHeight / NAV_DROP.height) + stretch * .01 * t.height;
+  // Keep both accepted endpoints: the fuller matte body and the compact optical profile. Blending one
+  // height keeps the skin, accent clip and normal field on the same edge, including on narrow phones.
+  const idleH = Math.min(t.restH, p.height * 1.15), activeH = p.height * (1 + NAV_DROP.activeHeight / NAV_DROP.height);
+  const height = idleH + (activeH - idleH) * press + stretch * .01 * t.height;
   const inset = 4 / NAV_DROP.referenceH * t.height * (1 - press);
   // At an end the silhouette is trimmed against the rail, rather than pushed away
   // from its icon. This avoids the former round end tabs and the tall flight balloon.
@@ -9472,11 +9477,12 @@ function navGo(i){
   navMaterialFrame(now, true); navBubKick();
 }
 /* The video's optical envelope: about 180 ms to clear, held through the flight, then a 230 ms landing.
-   Re-grabbing starts from the current opacity. It uses the existing navigation frame. */
+   Re-grabbing starts from the current opacity and contour. It uses the existing navigation frame. */
 function navMaterialFrame(now, active){
   if(active !== NB.materialOn){
+    const fromPress = navMaterialPress();
     NB.materialOn = active;
-    NB.materialTween = { t0: now, from: NB.clear, to: active ? 1 : 0, ms: active ? 180 : 230 };
+    NB.materialTween = { t0: now, from: NB.clear, fromPress, to: active ? 1 : 0, ms: active ? 180 : 230 };
   }
   const w = NB.materialTween;
   if(!w) return;
@@ -9541,7 +9547,7 @@ function navBubFrame(now){
   }
   bar.style.setProperty("--u", left.toFixed(4));
   bar.style.setProperty("--sx", sx.toFixed(4));
-  bar.style.setProperty("--sy", sy.toFixed(3));
+  bar.style.setProperty("--sy", sy.toFixed(4));
   bar.style.setProperty("--lf", NB.lift.toFixed(3));
   const idle = NB.lift < .01;
   if(lens._idle !== idle){
