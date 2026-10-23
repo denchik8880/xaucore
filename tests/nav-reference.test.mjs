@@ -55,7 +55,7 @@ function harness({ width = 384, height = 60, labels = [34, 42, 43, 38, 17], view
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navAccentWeight,navAccentWrite,navBox,navEndW,navGo,navEase,navMaterialFrame,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navEase,navMaterialFrame,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -373,7 +373,7 @@ test('ordinary and accent rows receive exactly the same five centre styles', () 
   const plainStyles = [...markup.matchAll(/<button data-nav="[^"]+" class="[^"]*" style="([^"]+)"/g)].map(match => match[1]);
   const accentStyles = [...markup.matchAll(/<span class="nb" style="([^"]+)"/g)].map(match => match[1]);
   assert.equal(plainStyles.length, 5); assert.equal(accentStyles.length, 5);
-  assert.deepEqual(plainStyles, accentStyles.map(value => value.split(';--na:')[0]));
+  assert.deepEqual(plainStyles, accentStyles);
 });
 
 test('a held current tab releases directly into the 230 ms fade with no empty flight', () => {
@@ -387,40 +387,38 @@ test('a held current tab releases directly into the 230 ms fade with no empty fl
   near(a.NB.clear, 0); assert.equal(a.NB.materialTween, null);
 });
 
-test('a settled wide capsule leaves every neighbouring caption and icon without a selected tint', () => {
-  const { a, bar } = harness();
-  const items = bar.querySelectorAll('.nav-red .nb');
+test('every optical letter and icon has the theme accent, with colour restricted by the existing outer clip', () => {
+  const { a } = harness();
+  const css = html.slice(html.indexOf('<style'), html.indexOf('</style>'));
+  assert.match(css, /\.nav-red \.nb\{[^}]*color:var\(--nav-on\)/);
+  assert.match(css, /\.nav-red \.nb>\.ic\{color:inherit\}/);
+  assert.match(css, /\.bottomnav button\.on\{color:var\(--ink\)\}/);
+  assert.match(css, /\.bottomnav button>\.ic\{color:var\(--nav-ic\)\}/);
+  assert.match(css, /\.nav-red\{[^}]*clip-path:[^}]*var\(--u,0\)[^}]*var\(--sx,1\)/);
   for(let selected = 0; selected < 5; selected++) {
-    a.navAccentWrite(bar, selected);
-    assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), Array.from({ length: 5 }, (_, i) => +(i === selected)));
     Object.assign(a.NB, { u: selected, target: selected, a: selected, b: selected + 1 });
-    const weights = [...a.bottomNav().matchAll(/;--na:([\d.]+)/g)].map(match => +match[1]);
-    assert.deepEqual(weights, Array.from({ length: 5 }, (_, i) => +(i === selected)), 'A rebuilt bar has the correct tint before its first frame');
+    const opticalItems = [...a.bottomNav().matchAll(/<span class="nb" style="([^"]*)"/g)];
+    assert.equal(opticalItems.length, 5);
+    for(const [, style] of opticalItems) assert.doesNotMatch(style, /--na:|\bcolor:|opacity:/, 'The outer capsule clips the full accent copy, including neighbouring letters');
   }
 });
 
-test('both passing tabs retain full preview colour during travel while idle and held neighbours stay neutral', () => {
-  const { a, bar } = harness();
+test('holding, travelling and fading need no per-tab colour writes or colour handover at arrival', () => {
+  const runtime = harness(), { a, bar } = runtime;
   const items = bar.querySelectorAll('.nav-red .nb');
-  a.NB.tw = { t0: 100 };
-  a.navAccentWrite(bar, 1.25);
-  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 1, 1, 0, 0]);
   let writes = 0;
   for(const item of items) {
     const original = item.style.setProperty;
     item.style.setProperty = (...args) => { writes++; original(...args); };
   }
-  a.navAccentWrite(bar, 1.25);
+  Object.assign(a.NB, { clear: 1, materialOn: true, drag: { u: 1, moved: false } });
+  runtime.frame(110);
+  a.NB.drag = null; runtime.setNow(120); a.navGo(3);
+  for(let i = 1; i <= 150; i++) runtime.frame(120 + i * 1000 / 120);
+  assert.equal(a.NB.clear, 0);
+  assert.equal(a.NB.tw, null);
+  assert.equal(a.NB.raf, 0);
   assert.equal(writes, 0);
-  a.NB.tw = null;
-  a.navAccentWrite(bar, 2);
-  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 0, 0]);
-  Object.assign(a.NB, { drag: { moved: false }, clear: 1, materialOn: true });
-  a.navAccentWrite(bar, 2);
-  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 0, 0]);
-  a.NB.drag.moved = true;
-  a.navAccentWrite(bar, 2.75);
-  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 1, 0]);
 });
 
 test('appearance starts at the initiating event and an adjacent flight takes 200 ms plus its tail', () => {

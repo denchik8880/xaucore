@@ -334,8 +334,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nr-optics::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#73747a;opacity:var(--nrl,0);pointer-events:none}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#ff4a45}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
-/* The ordinary row stays neutral. The optical copy carries the selected colour, with separate caption and
-   icon colours for its neighbours so a wide capsule cannot turn their outer letters red. */
+/* The ordinary row stays neutral outside the lens. The complete optical copy uses the theme's accent;
+   the existing capsule clip decides which parts of its letters and icons are visible in that colour. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button,
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-ic)}
@@ -380,8 +380,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics::after{content:"";position:absolute;inset:-24px;background:var(--nav-hole);z-index:-1;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1;
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%;
-  color:color-mix(in srgb,var(--nav-on) calc(var(--na,0) * 100%),var(--ink))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb>.ic{color:color-mix(in srgb,var(--nav-on) calc(var(--na,0) * 100%),var(--nav-ic))}
+  color:var(--nav-on)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb>.ic{color:inherit}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
    band across its top, no lit lip, no edge. Everything I had drawn on it is what made it read as a separate
    object sitting on the bar instead of a shadow under the tab. */
@@ -9360,19 +9360,6 @@ function navSlotStyle(i){
   const centres = NB.track ? NB.track.centres : NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
   return "--nx:" + (centres[i] / 5).toFixed(7) + ";--nw:.2";
 }
-function navAccentWeight(i, u){
-  // In the supplied preview both passing tabs are red through the moving lens. A settled or held
-  // tab keeps its neighbours neutral, including any letters close to the optical rim.
-  const distance = Math.abs(u - i), moving = NB.tw || (NB.drag && NB.drag.moved);
-  return (moving ? (distance < 1 ? 1 : 0) : clamp(1 - distance, 0, 1)).toFixed(4);
-}
-function navAccentWrite(bar, u){
-  const items = bar._accentItems || (bar._accentItems = bar.querySelectorAll(".nav-red .nb"));
-  for(let i = 0; i < items.length; i++){
-    const value = navAccentWeight(i, u);
-    if(items[i].style.getPropertyValue("--na") !== value) items[i].style.setProperty("--na", value);
-  }
-}
 // Compatibility for callers that need the first profile's size: the ends are capsules too.
 function navEndW(bar){
   const t = navTrackBuild(bar.clientWidth, bar.clientHeight);
@@ -9475,7 +9462,6 @@ function navBubFrame(now){
     if(e >= w.end){ NB.a = NB.target; NB.b = NB.target + 1; NB.tw = null; }
   }else{ NB.a = NB.target; NB.b = NB.target + 1; NB.va = NB.vb = 0; }
   NB.u = (NB.a + NB.b) / 2 - .5;
-  navAccentWrite(bar, NB.u);
   // the lens does not rise at all any more (see the note on this file's change): this bar has ONE drop and a
   // finger moves it, so the lift is held at zero and the lens element never shows
   const lt = 0;
@@ -9717,7 +9703,6 @@ function navBind(bar){
   // Build the frozen geometry before the first measured drop paint. The RAF path
   // uses only these numbers; new language, font availability or size refreshes them here.
   navFit(bar);
-  navAccentWrite(bar, NB.u == null ? NB.target : NB.u);
   if(NB.a != null){
     const r0 = navBox(NB.a, NB.b, NB.lift);
     bar.style.setProperty("--u", r0.left.toFixed(4));
@@ -10556,7 +10541,7 @@ function bottomNav(){
   // colour travels with it instead of jumping from one tab to the next
   const tag = { positions: S.positions.length, orders: S.pendings.length };
   // the copy carries the count badge as well, or a tab's badge would vanish the moment the drop covered it
-  const red = NAV_ICONS.map((x, i) => `<span class="nb" style="${navSlotStyle(i)};--na:${navAccentWeight(i, NB.u == null ? ti : NB.u)}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
+  const red = NAV_ICONS.map((x, i) => `<span class="nb" style="${navSlotStyle(i)}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map((x, i) => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}" style="${navSlotStyle(i)}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b, NB.lift);
   return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="${navRailStyle()};--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><i class="nr-bg"></i><span class="nr-optics"><span class="nr-in">${red}</span></span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
