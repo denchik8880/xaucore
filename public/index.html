@@ -310,8 +310,9 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    Pressed, the drop lifts into a clear lens over the icons — swelling them and tinting the one beneath it
    (Chromium also bends them at its rim) — follows the finger along the bar, stretching with its speed like
    liquid, and on release springs onto the nearest tab, which opens. Motion lives in navBubFrame(). */
-:root[data-glass="on"]{--nav-top:calc(68px + env(safe-area-inset-bottom))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100% - 28px);max-width:500px;height:60px;padding:0;border-top:0;border-radius:999px;
+:root[data-glass="on"]:not([data-lgoff~="nav"]){--nav-top:calc(8px + 60px * var(--nav-scale,1) + env(safe-area-inset-bottom))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{bottom:calc(8px + env(safe-area-inset-bottom));width:384px;max-width:none;height:60px;padding:0;border-top:0;border-radius:999px;
+  transform:translateX(-50%) scale(var(--nav-scale,1));transform-origin:50% 100%;
   --nav-on:#ef1f24;
   isolation:isolate;touch-action:none;user-select:none;-webkit-user-select:none;
   /* the reference draws no edge at all: the bar is a white slab that the page passes under, and the only thing
@@ -398,17 +399,16 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:.65px;pointer-events:none;
   background:linear-gradient(var(--lit-a,170deg),var(--nav-fine) 0%,transparent 30%,transparent 65%,var(--nav-fine-low) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* The optical layer lands into a plain, theme-coloured selection. navBox blends the compact held height
-   into the fuller resting height for BOTH layers, so no second upper arc appears during the crossfade. */
+/* The optical layer lands into a plain, theme-coloured selection. Both layers use the same navBox contour;
+   its contraction finishes ahead of the remaining refraction, without a material or geometry hand-over. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:4;background:var(--nav-rest);opacity:calc(1 - var(--ng,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc((1 - var(--lf,0)) * var(--ng,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub.material-idle{visibility:hidden}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:linear-gradient(180deg,rgba(40,44,52,.035),transparent 44%,transparent 70%,rgba(40,44,52,.018));
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
   /* One soft inner shoulder and one fine highlight, as in the recording. The matte selection is a separate
      layer; painting its tint here as well doubled the grey during the optical landing. */
-  box-shadow:inset 0 0 0 .6px var(--nav-outline),inset 0 7px 7px -3px var(--nav-soft-top),inset 0 -4px 5px -3px var(--nav-soft-foot),
-    0 3px 7px -4px var(--nav-cast)}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:linear-gradient(180deg,rgba(255,255,255,.055),transparent 44%,transparent 70%,rgba(255,255,255,.025))}
+  box-shadow:inset 0 6px 6px -3px var(--nav-soft-top),inset 0 -3px 4px -3px var(--nav-soft-foot),
+    0 4px 9px -5px var(--nav-cast)}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:4;opacity:var(--lf,0);background:rgba(255,255,255,.025);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
@@ -2349,7 +2349,7 @@ body.amenu-open .wl-logo{opacity:0}
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:linear-gradient(155deg,rgba(187,216,244,.025),transparent 54%,rgba(183,185,236,.02));
-  box-shadow:inset 0 0 0 .6px var(--nav-outline),inset 0 7px 7px -3px var(--nav-soft-top),inset 0 -4px 5px -3px var(--nav-soft-foot),0 3px 7px -4px var(--nav-cast)}
+  box-shadow:inset 0 6px 6px -3px var(--nav-soft-top),inset 0 -3px 4px -3px var(--nav-soft-foot),0 4px 9px -5px var(--nav-cast)}
 /* 2. THE LENSES THAT FOLLOW A FINGER - over their bend, the same glint and gathered light */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,
@@ -9305,98 +9305,48 @@ function navRailFrame(dt){
   if(!target && Math.abs(NB.rail) < .00001 && Math.abs(NB.railV) < .0001) NB.rail = NB.railV = 0;
   if(!NB.rail && Math.abs(NB.railLight) < .0001 && Math.abs(NB.railLightV) < .001) NB.railLight = NB.railLightV = 0;
 }
-// Five measured profiles from the supplied 555 x 86 reference. Responsive caption clearance
-// adapts their spacing; the same resulting centres place both rows, steer the drop and pick tabs.
+// Preserve the complete 384 x 60 composition that produced xaucore-navigation-preview.mp4.
+// Scale the rail, type, skin and optics together: fitting only the drop made phone silhouettes differ.
+function navLayoutScale(){
+  const scale = Math.max(1, Math.min(500, (window.innerWidth || 412) - 28)) / 384;
+  const style = document.documentElement.style, value = scale.toFixed(6);
+  if(style.getPropertyValue("--nav-scale") !== value) style.setProperty("--nav-scale", value);
+  return Number(value);
+}
+// Five measured profiles; all rendering and hit testing use these same local coordinates.
 const NAV_DROP = Object.freeze({
   centres: Object.freeze([86.5, 196.5, 287.5, 378.5, 478.5]),
   widths: Object.freeze([156, 118, 118, 118, 136]),
   referenceW: 555, referenceH: 86, height: 78, activeWidth: 42, activeHeight: 2
 });
-function navTrackBuild(width, height, labels, content){
-  const w = Math.max(1, width), h = Math.max(8, height), tabW = w / 5, ceiling = h * NAV_DROP.height / NAV_DROP.referenceH;
-  const measured = labels || [0, 0, 0, 0, 0], reference = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * w);
-  const pulse = 1.04;
-  // Adjacent centres must clear BOTH possible selected capsules and both endpoints of the
-  // rail pulse. Solve this composition at its real phone width instead of squeezing one axis.
-  const next = (x, i, widths, captions, gap) => Math.max(
-    x + widths[i] / 2 + captions[i + 1] / 2 + gap,
-    x + widths[i + 1] / 2 + captions[i] / 2 + gap,
-    (x + widths[i] / 2 + pulse * captions[i + 1] / 2 + gap + (pulse - 1) * w / 2) / pulse,
-    pulse * x + widths[i + 1] / 2 + pulse * captions[i] / 2 + gap - (pulse - 1) * w / 2
-  );
-  const previous = (x, i, widths, captions, gap) => Math.min(
-    x - widths[i] / 2 - captions[i + 1] / 2 - gap,
-    x - widths[i + 1] / 2 - captions[i] / 2 - gap,
-    pulse * x - widths[i] / 2 - pulse * captions[i + 1] / 2 - gap - (pulse - 1) * w / 2,
-    (x - widths[i + 1] / 2 - pulse * captions[i] / 2 - gap + (pulse - 1) * w / 2) / pulse
-  );
-  const minimumHeight = (ww, boxes) => {
-    let minimum = 8;
-    for(const r of boxes){
-      const d = Math.max(Math.abs(r.top), Math.abs(r.bottom)) + .65;
-      const room = Math.max(.25, ww / 2 - r.halfW - .5);
-      minimum = Math.max(minimum, room >= d ? 2 * d : (d * d + room * room) / room);
-    }
-    return minimum;
-  };
-  let fontSize = 10.5, captions, scale, widths, gap, inset, profileHeight, iconSize, estimates;
-  for(let attempt = 0; attempt < 7; attempt++){
-    captions = measured.map(v => v * fontSize / 10.5);
-    const fits = s => {
-      const sizes = NAV_DROP.widths.map(v => v * s), pad = Math.max(2.5, 4 * s);
-      let x = sizes[0] / 2 + pad;
-      for(let i = 0; i < 4; i++) x = next(x, i, sizes, captions, pad);
-      return x + sizes[4] / 2 + pad <= w;
-    };
-    let lo = 0, hi = Math.min(w / NAV_DROP.referenceW, h / NAV_DROP.referenceH);
-    if(fits(hi)) lo = hi;
-    else for(let n = 0; n < 22; n++){
-      const s = (lo + hi) / 2;
-      if(fits(s)) lo = s; else hi = s;
-    }
-    scale = Math.max(.001, lo); widths = NAV_DROP.widths.map(v => v * scale);
-    gap = inset = Math.max(2.5, 4 * scale); profileHeight = NAV_DROP.height * scale;
-    iconSize = clamp(24 / (60 / NAV_DROP.referenceH) * scale, 18, 24);
-    estimates = captions.map((caption, i) => caption ? minimumHeight(widths[i], [
-      { halfW: iconSize / 2, top: -(3 + fontSize) / 2 - iconSize / 2, bottom: -(3 + fontSize) / 2 + iconSize / 2 },
-      { halfW: caption / 2, top: (iconSize + 3) / 2 - fontSize * .69, bottom: (iconSize + 3) / 2 + fontSize * .55 }
-    ]) : 8);
-    if(Math.max(...estimates) <= profileHeight + .25 || fontSize === 9) break;
-    fontSize = Math.max(9, fontSize - .25);
+function navTrackBuild(width, height, labels){
+  const w = Math.max(1, width), h = Math.max(8, height), tabW = w / 5;
+  const scale = Math.min(w / NAV_DROP.referenceW, h / NAV_DROP.referenceH);
+  const restH = h * NAV_DROP.height / NAV_DROP.referenceH;
+  const centres = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
+  const measured = labels || [0, 0, 0, 0, 0];
+  let fit = 1;
+  for(let i = 0; i < centres.length; i++){
+    const x = centres[i] * tabW, before = i ? (centres[i - 1] + centres[i]) * tabW / 2 : 0;
+    const after = i < 4 ? (centres[i] + centres[i + 1]) * tabW / 2 : w;
+    const available = Math.max(1, 2 * Math.min(x - before, after - x) - 6 * scale);
+    if(measured[i] > 0) fit = Math.min(fit, available / measured[i]);
   }
-  const centresPx = [Math.max(reference[0], widths[0] / 2 + inset)];
-  for(let i = 1; i < 5; i++) centresPx[i] = Math.max(reference[i], next(centresPx[i - 1], i - 1, widths, captions, gap));
-  centresPx[4] = Math.min(centresPx[4], w - widths[4] / 2 - inset);
-  for(let i = 3; i >= 0; i--) centresPx[i] = Math.min(centresPx[i], previous(centresPx[i + 1], i, widths, captions, gap));
-  const centres = centresPx.map(v => v / tabW);
-  const limits = centresPx.map((x, i) => {
-    const edge = (j, side) => {
-      const plain = centresPx[j] + side * captions[j] / 2, expanded = w / 2 + (plain - w / 2) * pulse;
-      return side > 0 ? Math.max(plain, expanded) : Math.min(plain, expanded);
-    };
-    const left = i ? edge(i - 1, 1) + gap : inset;
-    const right = i < 4 ? edge(i + 1, -1) - gap : w - inset;
-    return Math.max(1, 2 * Math.min(x - left, right - x)) / tabW;
-  });
-  const heights = widths.map((ww, i) => Math.min(ceiling, Math.max(profileHeight,
-    content && content[i] ? minimumHeight(ww, content[i]) : estimates[i])));
-  return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH: ceiling, centres,
-    widths: widths.map((v, i) => Math.min(v / tabW, limits[i])), heights, limits, captions, gap, fontSize, iconSize };
+  const fontSize = Math.max(9, 10.5 * Math.min(1, fit));
+  const widths = NAV_DROP.widths.map((v, i) => Math.max(v * scale, 1.35 * restH, (measured[i] || 0) * fontSize / 10.5 + .65 * h) / tabW);
+  return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres, widths, fontSize };
 }
 function navTrackAt(u){
   const t = NB.track || (NB.track = navTrackBuild(NB.railWidth || 360, 60));
   const i = clamp(Math.floor(u), 0, 3), k = u - i;
-  const f = clamp(k, 0, 1);
   return { track: t, centre: t.centres[i] + (t.centres[i + 1] - t.centres[i]) * k,
-    width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * f,
-    height: t.heights[i] + (t.heights[i + 1] - t.heights[i]) * f,
-    limit: t.limits[i] + (t.limits[i + 1] - t.limits[i]) * f + 4 * f * (1 - f) * (t.centres[i + 1] - t.centres[i]) * .6 };
+    width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * clamp(k, 0, 1) };
 }
 // Piecewise inverse of the very same centres, after undoing the rail's centred swell.
 // Pointer moves use the rectangle captured on pointerdown, with no layout reads in a frame.
 function navUAt(x, rect){
   const t = NB.track || (NB.track = navTrackBuild(NB.railWidth || rect.width, 60));
-  const px = (x - rect.left - rect.width / 2) / (1 + NB.rail * .70) + t.width / 2;
+  const px = (x - rect.left - rect.width / 2) * (t.width / rect.width) / (1 + NB.rail * .70) + t.width / 2;
   const unit = px / t.tabW, c = t.centres;
   let i = 0;
   while(i < 3 && unit > c[i + 1]) i++;
@@ -9407,7 +9357,12 @@ function navSlotStyle(i){
   const centres = NB.track ? NB.track.centres : NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
   return "--nx:" + (centres[i] / 5).toFixed(7) + ";--nw:.2";
 }
-function navAccentWeight(i, u){ return clamp(1 - Math.abs(u - i), 0, 1).toFixed(4); }
+function navAccentWeight(i, u){
+  // In the supplied preview both passing tabs are red through the moving lens. A settled or held
+  // tab keeps its neighbours neutral, including any letters close to the optical rim.
+  const distance = Math.abs(u - i), moving = NB.tw || (NB.drag && NB.drag.moved);
+  return (moving ? (distance < 1 ? 1 : 0) : clamp(1 - distance, 0, 1)).toFixed(4);
+}
 function navAccentWrite(bar, u){
   const items = bar._accentItems || (bar._accentItems = bar.querySelectorAll(".nav-red .nb"));
   for(let i = 0; i < items.length; i++){
@@ -9418,7 +9373,7 @@ function navAccentWrite(bar, u){
 // Compatibility for callers that need the first profile's size: the ends are capsules too.
 function navEndW(bar){
   const t = navTrackBuild(bar.clientWidth, bar.clientHeight);
-  return { w: t.widths[0] * t.tabW, h: t.heights[0] };
+  return { w: t.widths[0] * t.tabW, h: t.restH };
 }
 // The contour follows its own landing envelope, without jumping when a short press is released or
 // a fading drop is grabbed again. A full hold still lands with the reference's clear-squared curve.
@@ -9431,13 +9386,11 @@ function navMaterialPress(){
 }
 function navBox(a, b, lift){
   const u = (a + b) / 2 - .5, p = navTrackAt(u), t = p.track;
+  // On landing the contour contracts ahead of the remaining optical tail, as in the frame sequence.
   const press = navMaterialPress(), stretch = Math.min(1, Math.abs(b - a - 1));
   const centre = p.centre * t.tabW;
-  const width = Math.min(p.limit * t.tabW, p.width * t.tabW + press * NAV_DROP.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height);
-  // Keep both accepted endpoints: the fuller matte body and the compact optical profile. Blending one
-  // height keeps the skin, accent clip and normal field on the same edge, including on narrow phones.
-  const idleH = Math.min(t.restH, p.height * 1.15), activeH = p.height * (1 + NAV_DROP.activeHeight / NAV_DROP.height);
-  const height = idleH + (activeH - idleH) * press + stretch * .01 * t.height;
+  const width = p.width * t.tabW + press * NAV_DROP.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height;
+  const height = t.restH + press * NAV_DROP.activeHeight / NAV_DROP.referenceH * t.height + stretch * .01 * t.height;
   const inset = 4 / NAV_DROP.referenceH * t.height * (1 - press);
   // At an end the silhouette is trimmed against the rail, rather than pushed away
   // from its icon. This avoids the former round end tabs and the tall flight balloon.
@@ -9609,7 +9562,7 @@ function openNavCard(){
   const card = document.createElement("div"); card.className = "nav-card"; card.setAttribute("role", "dialog"); card.setAttribute("aria-label", L("Счёт"));
   card.innerHTML = `<button type="button" class="grab" aria-label="${L("Закрыть")}"></button><div class="nc-body">${navCardBody()}</div>`;
   document.body.append(catcher, card);
-  const H = card.offsetHeight, h0 = bar.offsetHeight;
+  const H = card.offsetHeight, h0 = bar.getBoundingClientRect().height;
   document.body.classList.add("navcard-open");
   const C = _navCard = { card, catcher, H, h0, h: h0, v: 0, open: true, raf: 0, t: setInterval(() => { const b = card.querySelector(".nc-body"); if(b) b.innerHTML = navCardBody(); }, 500) };
   card.classList.add("shown");
@@ -9671,50 +9624,26 @@ function closeNavCard(outside){
   if(!C.raf){ C.H = C.card.offsetHeight; C.h = C.H; C.v = 0; }         // at rest: its own height (its figures may have grown it); mid-grow: turns round
   C.open = false; navCardRun(C);
 }
-// Measure the real captions once for a track. They limit each anchored capsule and adapt the
-// shared row spacing; no text measurement or layout read belongs in the animation frame.
+// Measure captions in the preview's local coordinates, removing screen scale and rail pulse.
+// Text measurement stays outside the animation frame; screen resizing scales the cached composition.
 function navFit(bar){
+  const globalScale = navLayoutScale();
   if(!glassOn("nav")){ NB.track = null; bar.style.removeProperty("--nav-fs"); return; }
-  const width = bar.clientWidth, height = bar.clientHeight;
-  const key = LANG + ":" + width + ":" + height + ":" + (document.fonts ? document.fonts.status : "");
+  const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight + ":" + (document.fonts ? document.fonts.status : "");
   let track = NB.track;
   if(!track || track.key !== key){
     bar.style.setProperty("--nav-fs", "10.5px");
-    bar.style.setProperty("--nav-is", "24px");
-    const scale = 1 + NB.rail * .70, centreY = bar.getBoundingClientRect().top + height / 2;
-    const buttons = [...bar.querySelectorAll("button[data-nav]")];
-    const measure = () => buttons.map(button => {
+    const scale = globalScale * (1 + NB.rail * .70);
+    const labels = [...bar.querySelectorAll("button[data-nav]")].map(button => {
       const text = [...button.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
-      if(!text) return { width: 0, boxes: [] };
+      if(!text) return 0;
       const range = document.createRange(); range.selectNodeContents(text);
-      const label = range.getBoundingClientRect(), icon = button.querySelector && button.querySelector(".ic svg");
-      const iconRect = icon && icon.getBoundingClientRect(), badge = button.querySelector && button.querySelector(".navpill");
-      const rects = iconRect ? [label, iconRect] : [label];
-      if(badge) rects.push(badge.getBoundingClientRect());
-      const anchorX = iconRect ? (iconRect.left + iconRect.right) / 2 : (label.left + label.right) / 2;
-      const boxes = rects.filter(r => Number.isFinite(r.top) && Number.isFinite(r.bottom)).map(r => ({
-        halfW: Math.max(Math.abs(r.left - anchorX), Math.abs(r.right - anchorX)) / scale,
-        top: (r.top - centreY) / scale, bottom: (r.bottom - centreY) / scale
-      }));
-      return { width: label.width / scale, boxes };
+      return range.getBoundingClientRect().width / scale;
     });
-    const measured = measure(), labels = measured.map(r => r.width);
-    track = navTrackBuild(width, height, labels);
-    // The composition fits its icons and readable captions together with the reference profiles.
-    // Only a changed phone layout needs a second measurement, outside RAF.
-    let content = measured;
-    bar.style.setProperty("--nav-is", track.iconSize.toFixed(2) + "px");
-    if(track.fontSize !== 10.5 || track.iconSize !== 24){ bar.style.setProperty("--nav-fs", track.fontSize.toFixed(2) + "px"); content = measure(); }
-    track = NB.track = navTrackBuild(width, height, labels, content.map(r => r.boxes.length ? r.boxes : null)); track.key = key;
+    track = NB.track = navTrackBuild(bar.clientWidth, bar.clientHeight, labels); track.key = key;
   }
   bar.style.setProperty("--nav-fs", track.fontSize.toFixed(2) + "px");
-  bar.style.setProperty("--nav-is", track.iconSize.toFixed(2) + "px");
-  for(const row of [bar.querySelectorAll("button[data-nav]"), bar.querySelectorAll(".nav-red .nb")]){
-    for(let i = 0; i < row.length; i++){
-      const nx = (track.centres[i] / 5).toFixed(7);
-      if(row[i].style.getPropertyValue("--nx") !== nx) row[i].style.setProperty("--nx", nx);
-    }
-  }
+  bar.style.setProperty("--nav-is", "24px");
 }
 // VANTA's prepared normal field, with edge dispersion calibrated to the user's recording (2026-10-21).
 // One padded map / filter for this bar; no map generation or filter creation during a gesture.
@@ -9756,10 +9685,7 @@ function navLens(clear){
   const enabled = glassOn("nav") && glassOn("refract"), k = enabled ? clamp(clear, 0, 1) : 0;
   const energy = clamp(NB.opticalEnergy, 0, 1), box = navBox(NB.a, NB.b, NB.lift);
   const w = o.tabW * box.sx, h = (o.h - 9) * box.sy, x = o.tabW * box.left, y = (o.h - h) / 2;
-  // The old full-size lens strength folds a narrow responsive capsule's letters over themselves.
-  // Keep the same material settings and RGB ratios, scaling its displacement to the actual contour.
-  const size = Math.min(1, w / ((NAV_DROP.widths[2] + NAV_DROP.activeWidth) / NAV_DROP.referenceH * o.h), h / ((NAV_DROP.height + NAV_DROP.activeHeight) / NAV_DROP.referenceH * o.h));
-  const bend = k * (NAV_OPTICS.bend + NAV_OPTICS.motion * energy) * LG_UI.refract * size;
+  const bend = k * (NAV_OPTICS.bend + NAV_OPTICS.motion * energy) * LG_UI.refract;
   const split = DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 : 0;
   const magnify = 1 + k * (.14 + .025 * energy) * LG_UI.refract;
   o.bar.style.setProperty("--nm", magnify.toFixed(4));
@@ -10611,6 +10537,7 @@ function dropFrame(now){
   if(_drops.size) _dropRaf = requestAnimationFrame(dropFrame);
 }
 function bottomNav(){
+  navLayoutScale();
   const t = S.ui.tab;
   // cTrader's outline icons (stroke = whatever colour the row it sits in carries)
   const I = d => `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">${d}</svg>`;
@@ -14485,6 +14412,8 @@ window.addEventListener("resize", ()=>{
   if(!S || _resizeRaf) return;                 // resize can fire before the state is loaded
   _resizeRaf = requestAnimationFrame(()=>{
     _resizeRaf = 0;
+    const bar = document.querySelector(".bottomnav");
+    if(bar && glassOn("nav")) navBind(bar);
     const ids = ["chartCanvas","miniCanvas"];
     ids.forEach(id=>{ const c = document.getElementById(id); if(c){ if(id === "chartCanvas") chartTabHeight(c); c._w = 0; fitCanvas(c); if(id === "chartCanvas") chartZones(c); } });
     if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen)) drawChart();

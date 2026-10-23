@@ -15,8 +15,9 @@ const bind = section('function navBind(bar){', '// a finger lifted outside every
 const markup = section('function bottomNav(){', '/* =========================================================================\n   Event binding');
 const near = (actual, expected, tolerance = 1e-7) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} ≈ ${expected}`);
 const plain = value => JSON.parse(JSON.stringify(value));
+const PREVIEW_LABELS = [33.8125, 44.875, 45.5625, 42.203125, 21.53125];
 
-function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {}) {
+function harness({ width = 384, height = 60, labels = [34, 42, 43, 38, 17], viewport = width + 28 } = {}) {
   const raf = new Map(), counters = { layout: 0, ranges: 0, cards: 0, nav: [] };
   let now = 100, nextRaf = 0, currentBar;
   function style() {
@@ -29,6 +30,7 @@ function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {
   }
   const ctx = {
     Math, performance: { now: () => now }, LANG: 'ru', WATER: 1,
+    window: { innerWidth: viewport },
     S: { ui: { tab: 'chart', marketOpen: false }, positions: [], pendings: [] },
     clamp: (v, lo, hi) => Math.max(lo, Math.min(hi, v)),
     glassOn: () => true, L: value => value,
@@ -39,13 +41,15 @@ function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {
     navLens() {}, navOpticsBind() {}, lgGlass() {},
     openNavCard: () => { counters.cards++; },
     document: {
+      documentElement: { style: style(), get clientWidth() { return ctx.window.innerWidth; } },
       fonts: { status: 'loaded' },
       querySelector: selector => selector === '.bottomnav' ? currentBar : null,
       createRange() {
         let selected;
         return { selectNodeContents: text => { selected = text; }, getBoundingClientRect() {
           counters.ranges++;
-          return { width: selected.width * (1 + ctx.api.NB.rail * 0.70) };
+          const scale = +ctx.document.documentElement.style.getPropertyValue('--nav-scale') || 1;
+          return { width: selected.width * scale * (1 + ctx.api.NB.rail * 0.70) };
         } };
       },
     },
@@ -61,7 +65,13 @@ function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {
       isConnected: true, style: style(), classList: classes(), captures: [],
       get clientWidth() { counters.layout++; return w; },
       get clientHeight() { counters.layout++; return h; },
-      getBoundingClientRect() { counters.layout++; return { left: 20, width: w, height: h, top: 500 }; },
+      getBoundingClientRect() {
+        counters.layout++;
+        const scale = +ctx.document.documentElement.style.getPropertyValue('--nav-scale') || 1;
+        // The whole bar scales around its bottom centre. Its rail pulse is on
+        // the child rows/surfaces, so it affects text ranges but not this rect.
+        return { left: (ctx.window.innerWidth - w * scale) / 2, width: w * scale, height: h * scale, top: 500 + h - h * scale };
+      },
       setPointerCapture(id) { this.captures.push(id); },
       querySelector: selector => selector === '.nav-lens' ? lens : selector === '.nav-bub' ? bub : null,
       querySelectorAll: selector => selector === 'button[data-nav]' ? buttons : selector === '.nav-red .nb' ? accent : [],
@@ -74,6 +84,11 @@ function harness({ width = 385, height = 60, labels = [34, 42, 43, 38, 17] } = {
   return {
     ctx, a, counters, raf, get bar() { return currentBar; },
     setNow(value) { now = value; },
+    setViewport(value) { ctx.window.innerWidth = value; },
+    point(u, offset = 0) {
+      const rect = currentBar.getBoundingClientRect(), t = a.NB.track;
+      return rect.left + rect.width / 2 + (a.navTrackAt(u).centre * t.tabW - t.width / 2) * (rect.width / t.width) * (1 + a.NB.rail * .70) + offset;
+    },
     frame(value) { now = value; raf.clear(); a.navBubFrame(value); },
     replaceBar(w = width, h = height) { currentBar = makeBar(w, h); a.navBind(currentBar); return currentBar; },
   };
@@ -99,8 +114,8 @@ test('held middle capsules add the measured width and height without turning the
     near(box.sy * 77, 80);
   }
   const first = a.navBox(0, 1, 0);
-  near(first.left * 111, 4);
-  near(first.sx * 111, 165);
+  near(first.left * 111, 0);
+  near(first.sx * 111, 185.5);
   assert.ok(first.sx * 111 > first.sy * 77 * 2);
 });
 
@@ -119,54 +134,63 @@ test('all phone sizes, overdrag and stretched transitions keep a finite contour 
   }
 });
 
-test('long localizations retain the font floor without enlarging a drop into a neighbouring caption', () => {
+test('long localizations retain the font floor and the preview anchors', () => {
   const { a } = harness();
   near(a.NB.track.fontSize, 10.5);
-  const track = a.navTrackBuild(385, 60, [100, 75, 75, 75, 80]);
+  const normal = a.navTrackBuild(384, 60, PREVIEW_LABELS);
+  const track = a.navTrackBuild(384, 60, [100, 75, 75, 75, 80]);
   assert.ok(track.fontSize >= 9 && track.fontSize < 10.5);
+  assert.deepEqual(plain(track.centres), plain(normal.centres));
   for (let i = 0; i < 5; i++) {
-    assert.ok(track.widths[i] <= track.limits[i]);
-    const x = track.centres[i] * track.tabW, half = track.widths[i] * track.tabW / 2;
-    if(i) assert.ok(x - half >= track.centres[i - 1] * track.tabW + track.captions[i - 1] / 2 + 2.5 - 1e-7);
-    if(i < 4) assert.ok(x + half <= track.centres[i + 1] * track.tabW - track.captions[i + 1] / 2 - 2.5 + 1e-7);
+    assert.ok(Number.isFinite(track.widths[i]) && track.widths[i] >= normal.widths[i]);
   }
 });
 
-test('phone capsules clear every neighbouring letter at rest, held and throughout the centred rail pulse', () => {
-  const labels = [33.8125, 44.875, 45.5625, 42.203125, 21.53125];
-  for(const width of [292, 332, 356, 384, 422, 472]) for(const textScale of [1, 1.25, 1.5]) {
-    const { a } = harness({ width, labels: labels.map(v => v * textScale) }), t = a.NB.track;
-    for(let selected = 0; selected < 5; selected++) for(const clear of [0, .5, 1]) {
-      Object.assign(a.NB, { clear, materialOn: true });
-      const box = a.navBox(selected, selected + 1, 0), left = box.left * t.tabW, right = left + box.sx * t.tabW;
-      for(let j = 0; j < 5; j++) if(j !== selected) for(const pulse of [1, 1.02, 1.04]) {
-        const x = width / 2 + (t.centres[j] * t.tabW - width / 2) * pulse, half = t.captions[j] * pulse / 2;
-        assert.ok(j < selected ? left >= x + half + 2.49 : right <= x - half - 2.49, `width ${width}, text ${textScale}, selected ${selected}, neighbour ${j}, pulse ${pulse}`);
-      }
+test('responsive screens uniformly scale the complete 384 by 60 preview without refitting its capsules or type', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS }), { a, ctx, counters, bar } = runtime, track = a.NB.track;
+  const baseline = [];
+  for(const clear of [0, 1]) for(let selected = 0; selected < 5; selected++) {
+    Object.assign(a.NB, { clear, materialOn: true });
+    baseline.push({ clear, selected, box: plain(a.navBox(selected, selected + 1, 0)) });
+  }
+  const ranges = counters.ranges;
+  for(const viewport of [308, 360, 412, 450, 528, 960]) {
+    runtime.setViewport(viewport); a.navFit(bar);
+    const scale = +ctx.document.documentElement.style.getPropertyValue('--nav-scale'), rect = bar.getBoundingClientRect();
+    near(scale, Math.min(viewport - 28, 500) / 384, .00000051);
+    near(rect.width, Math.min(viewport - 28, 500), .0002);
+    near(rect.height / 60, rect.width / 384);
+    assert.equal(a.NB.track, track, 'A viewport resize scales the original composition instead of rebuilding its layout');
+    near(track.width, 384); near(track.height, 60); near(track.fontSize, 10.5);
+    assert.equal(bar.style.getPropertyValue('--nav-is'), '24px');
+    for(const sample of baseline) {
+      Object.assign(a.NB, { clear: sample.clear, materialOn: true });
+      const box = a.navBox(sample.selected, sample.selected + 1, 0);
+      assert.deepEqual(plain(box), sample.box);
+      const screenWidth = box.sx * track.tabW * scale, screenHeight = box.sy * track.baseH * scale;
+      near(screenWidth / screenHeight, sample.box.sx * track.tabW / (sample.box.sy * track.baseH));
     }
   }
+  assert.equal(counters.ranges, ranges, 'Uniform screen scaling needs no further text measurements');
 });
 
-test('a narrow phone keeps the first reference profile as a low pill instead of a desktop-height balloon', () => {
-  const { a } = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), t = a.NB.track;
-  Object.assign(a.NB, { clear: 1, materialOn: true });
-  const first = a.navBox(0, 1, 0), middle = a.navBox(2, 3, 0);
-  const height = first.sy * t.baseH, ratio = first.sx * t.tabW / height;
-  assert.ok(height < 44 && height >= 39);
-  assert.ok(ratio >= 1.8 && ratio <= 2.05);
-  assert.ok(first.sx > middle.sx * 1.25, 'The first pill stays wider than the middle profile, as in the reference');
-  a.NB.clear = 0;
-  let previous = a.navBox(0, 1, 0).sy * t.baseH;
-  for(let u = .01; u <= 1; u += .01) {
-    const h = a.navBox(u, u + 1, 0).sy * t.baseH;
-    assert.ok(Math.abs(h - previous) < .2, 'Height morphs continuously between the mobile profiles');
-    previous = h;
+test('the authoritative 412 viewport preserves the recorded 384 by 60 five-tab composition', () => {
+  const { a, bar } = harness({ labels: PREVIEW_LABELS }), t = a.NB.track;
+  const centres = [59.8486486486, 135.9567567568, 198.9189189189, 261.8810810811, 331.0702702703];
+  const widths = [107.9351351351, 83.875, 84.5625, 81.6432432432, 94.0972972973];
+  near(bar.getBoundingClientRect().width, 384);
+  for(let selected = 0; selected < 5; selected++) {
+    const box = a.navBox(selected, selected + 1, 0);
+    near((box.left + box.sx / 2) * t.tabW, centres[selected]);
+    near(box.sx * t.tabW, widths[selected]);
+    near(box.sy * t.baseH, 54.4186046512);
   }
 });
 
-test('the unified contour preserves the visible matte height and the existing optical endpoint', () => {
+test('the shared contour preserves the preview matte and full optical height endpoints', () => {
   const profiles = [
-    { width: 332, height: 60, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] },
+    { viewport: 360, labels: PREVIEW_LABELS },
+    { viewport: 412, labels: PREVIEW_LABELS },
     { width: 555, height: 86, labels: [0, 0, 0, 0, 0] },
   ];
   for(const profile of profiles) {
@@ -174,19 +198,19 @@ test('the unified contour preserves the visible matte height and the existing op
     for(let selected = 0; selected < 5; selected++) {
       Object.assign(a.NB, { clear: 1, materialOn: true });
       const held = a.navBox(selected, selected + 1, 0).sy * t.baseH;
-      near(held, t.heights[selected] * (1 + a.NAV_DROP.activeHeight / a.NAV_DROP.height));
+      near(held, t.restH + a.NAV_DROP.activeHeight / a.NAV_DROP.referenceH * t.height);
       a.NB.clear = 0;
       const idle = a.navBox(selected, selected + 1, 0).sy * t.baseH;
-      near(idle, Math.min(t.heights[selected] * 1.15, t.restH));
-      if(profile.width === 332 && selected === 0) assert.ok(idle > 48 && idle < 49, 'The accepted phone matte silhouette includes its former CSS enlargement');
-      if(profile.width === 555) near(idle, 78);
+      near(idle, t.restH);
+      if(t.width === 384) { near(idle, 54.4186046512); near(held, 55.8139534884); }
+      else near(idle, 78);
     }
   }
 });
 
-test('fading the unified height is monotonic on both mobile and reference rails', () => {
+test('the preview contour contracts monotonically while fading on mobile and reference rails', () => {
   for(const profile of [
-    { width: 332, height: 60, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] },
+    { viewport: 360, labels: PREVIEW_LABELS },
     { width: 555, height: 86, labels: [0, 0, 0, 0, 0] },
   ]) for(const materialOn of [true, false]) {
     const { a } = harness(profile), t = a.NB.track;
@@ -194,7 +218,7 @@ test('fading the unified height is monotonic on both mobile and reference rails'
     const held = a.navBox(0, 1, 0).sy * t.baseH;
     a.NB.clear = 0;
     const idle = a.navBox(0, 1, 0).sy * t.baseH, direction = Math.sign(idle - held);
-    assert.equal(direction, profile.width === 332 ? 1 : -1, 'Phone fades grow into matte; reference fades contract into matte');
+    assert.equal(direction, -1, 'Uniform scale preserves the preview fade direction on every screen');
     let previous = held;
     for(let i = 1; i <= 100; i++) {
       a.NB.clear = 1 - i / 100;
@@ -208,7 +232,7 @@ test('fading the unified height is monotonic on both mobile and reference rails'
 });
 
 test('the terminal navigation frame uses the same four-decimal height as the optical tail', () => {
-  const runtime = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), { a, bar } = runtime;
+  const runtime = harness({ viewport: 360, labels: PREVIEW_LABELS }), { a, bar } = runtime;
   const write = bar.style.setProperty, writes = [];
   bar.style.setProperty = (name, value) => { if(name === '--sy') writes.push(value); write(name, value); };
   Object.assign(a.NB, { a: 0, b: 1, u: 0, target: 0, clear: 1, materialOn: true, materialTween: null });
@@ -231,7 +255,7 @@ test('the terminal navigation frame uses the same four-decimal height as the opt
 
 test('a short attack can release and be re-grabbed without jumping either contour endpoint', () => {
   for(const profile of [
-    { width: 332, height: 60, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] },
+    { viewport: 360, labels: PREVIEW_LABELS },
     { width: 555, height: 86, labels: [0, 0, 0, 0, 0] },
   ]) {
     const { a } = harness(profile);
@@ -255,13 +279,13 @@ test('a short attack can release and be re-grabbed without jumping either contou
     a.navMaterialFrame(390, true);
     near(a.NB.clear, 1);
     near(a.navBox(2, 3, 0).sy * a.NB.track.baseH,
-      a.NB.track.heights[2] * (1 + a.NAV_DROP.activeHeight / a.NAV_DROP.height));
+      a.NB.track.restH + a.NAV_DROP.activeHeight / a.NAV_DROP.referenceH * a.NB.track.height);
   }
 });
 
 test('a thumb tap away from an item centre and small contact jitter still hold and choose that exact item', () => {
-  const runtime = harness({ width: 332 }), { a, bar, counters } = runtime, t = a.NB.track;
-  const x = 20 + t.centres[0] * t.tabW + 15;
+  const runtime = harness({ viewport: 360 }), { a, bar, counters } = runtime;
+  const x = runtime.point(0, 15);
   bar.onpointerdown({ button: 0, pointerType: 'touch', pointerId: 21, clientX: x, clientY: 530 });
   assert.equal(a.NB.drag.u, 0); assert.equal(a.NB.drag.moved, false);
   bar.onpointermove({ pointerId: 21, clientX: x + 4, clientY: 531 });
@@ -273,8 +297,8 @@ test('a thumb tap away from an item centre and small contact jitter still hold a
 });
 
 test('deliberate touch dragging preserves the contact offset instead of jumping to the edge of a thumb', () => {
-  const { a, bar } = harness(), t = a.NB.track, rect = { left: 20, width: t.width };
-  const x = 20 + t.centres[1] * t.tabW + 12;
+  const runtime = harness({ viewport: 360 }), { a, bar } = runtime, rect = bar.getBoundingClientRect();
+  const x = runtime.point(1, 12);
   bar.onpointerdown({ button: 0, pointerType: 'touch', pointerId: 22, clientX: x, clientY: 530 });
   const pointer = a.navUAt(x, rect);
   bar.onpointermove({ pointerId: 22, clientX: x + 7, clientY: 530 });
@@ -284,47 +308,62 @@ test('deliberate touch dragging preserves the contact offset instead of jumping 
 });
 
 test('a resized screen during touch dragging rebases its contact offset without moving the drop', () => {
-  const runtime = harness({ width: 332 }), { a } = runtime, t = a.NB.track;
-  const x = 20 + t.centres[1] * t.tabW + 12;
+  const runtime = harness({ viewport: 360 }), { a } = runtime;
+  const x = runtime.point(1, 12);
   runtime.bar.onpointerdown({ button: 0, pointerType: 'touch', pointerId: 23, clientX: x, clientY: 530 });
   runtime.bar.onpointermove({ pointerId: 23, clientX: x + 20, clientY: 530 });
-  const u = a.NB.drag.u, next = runtime.replaceBar(422);
+  const u = a.NB.drag.u;
+  runtime.setViewport(450);
+  const next = runtime.replaceBar();
   near(a.NB.drag.u, u);
   next.onpointermove({ pointerId: 23, clientX: x + 20, clientY: 530 });
   near(a.NB.drag.u, u);
 });
 
 test('desktop mouse input retains its continuous pointer position', () => {
-  const { a, bar } = harness(), t = a.NB.track, rect = { left: 20, width: t.width };
-  const x = 20 + t.centres[0] * t.tabW + 15;
+  const runtime = harness({ viewport: 960 }), { a, bar } = runtime, rect = bar.getBoundingClientRect();
+  const x = runtime.point(0, 15);
   bar.onpointerdown({ button: 0, pointerType: 'mouse', pointerId: 24, clientX: x, clientY: 530 });
   near(a.NB.drag.u, a.navUAt(x, rect)); assert.equal(a.NB.drag.moved, true);
   bar.onpointermove({ pointerId: 24, clientX: x + 4, clientY: 530 });
   near(a.NB.drag.u, a.navUAt(x + 4, rect));
 });
 
-test('a flight may span its two passing items but cannot reach an unrelated third caption', () => {
-  const { a } = harness({ width: 332, labels: [33.8125, 44.875, 45.5625, 42.203125, 21.53125] }), t = a.NB.track;
+test('a flight retains the full recorded contour instead of squeezing it between neighbouring captions', () => {
+  const { a } = harness({ labels: PREVIEW_LABELS }), t = a.NB.track;
   Object.assign(a.NB, { clear: 1, materialOn: true });
-  for(let u = 0; u <= 4; u += .025) {
-    const box = a.navBox(u, u + 1, 0), left = box.left * t.tabW, right = left + box.sx * t.tabW;
-    for(let j = 0; j < 5; j++) if(j < Math.floor(u) || j > Math.ceil(u)) {
-      const x = t.centres[j] * t.tabW, half = t.captions[j] / 2;
-      assert.ok(right <= x - half || left >= x + half, `u ${u}, unrelated caption ${j}`);
-    }
+  const centred = a.navBox(1.5, 2.5, 0);
+  near(centred.sx * t.tabW, 113.5210755814);
+  near(centred.sy * t.baseH, 55.8139534884);
+  const stretched = a.navBox(1.25, 2.75, 0);
+  near(stretched.sx * t.tabW, 115.3210755814);
+  near(stretched.sy * t.baseH, 56.1139534884);
+  near(stretched.left + stretched.sx / 2, centred.left + centred.sx / 2);
+});
+
+test('piecewise pointer inverse cancels both whole-bar scale and the independent centred rail pulse', () => {
+  const runtime = harness(), { a } = runtime, track = a.NB.track;
+  for(const viewport of [308, 360, 412, 528, 960]) for (const rail of [0, 0.012, 0.026]) {
+    runtime.setViewport(viewport); a.navFit(runtime.bar); a.NB.rail = rail;
+    const rect = runtime.bar.getBoundingClientRect();
+    for (let i = 0; i < 5; i++) near(a.navUAt(runtime.point(i), rect), i);
+    for (let i = 0; i < 4; i++) near(a.navUAt(runtime.point(i + .5), rect), i + 0.5);
+    assert.ok(a.navUAt(-1000, rect) >= -0.2);
+    assert.ok(a.navUAt(2000, rect) <= 4.2);
   }
 });
 
-test('piecewise pointer inverse picks exact centres and midpoints after the rail has swelled', () => {
-  const { a } = harness(), track = a.NB.track;
-  const rect = { left: 20, width: 385 };
-  for (const rail of [0, 0.012, 0.026]) {
-    a.NB.rail = rail;
-    const screen = local => rect.left + rect.width / 2 + (local - track.width / 2) * (1 + rail * 0.70);
-    for (let i = 0; i < 5; i++) near(a.navUAt(screen(track.centres[i] * track.tabW), rect), i);
-    for (let i = 0; i < 4; i++) near(a.navUAt(screen((track.centres[i] + track.centres[i + 1]) / 2 * track.tabW), rect), i + 0.5);
-    assert.ok(a.navUAt(-1000, rect) >= -0.2);
-    assert.ok(a.navUAt(2000, rect) <= 4.2);
+test('caption measurement removes whole-bar scale and an existing rail pulse before rebuilding a track', () => {
+  const baseline = plain(harness({ labels: PREVIEW_LABELS }).a.NB.track);
+  for(const viewport of [308, 360, 528, 960]) for(const rail of [0, .012, .026]) {
+    const runtime = harness({ viewport, labels: PREVIEW_LABELS }), { a, ctx } = runtime;
+    a.NB.rail = rail; a.NB.track = null;
+    a.navFit(runtime.bar);
+    const track = plain(a.NB.track);
+    delete track.key; const expected = { ...baseline }; delete expected.key;
+    for(const key of ['width', 'height', 'tabW', 'baseH', 'restH', 'fontSize']) near(track[key], expected[key]);
+    for(let i = 0; i < 5; i++) { near(track.centres[i], expected.centres[i]); near(track.widths[i], expected.widths[i]); }
+    assert.ok(+ctx.document.documentElement.style.getPropertyValue('--nav-scale') > 0);
   }
 });
 
@@ -360,11 +399,12 @@ test('a settled wide capsule leaves every neighbouring caption and icon without 
   }
 });
 
-test('selected tint travels continuously between two neighbouring items and repeated frames do not rewrite it', () => {
+test('both passing tabs retain full preview colour during travel while idle and held neighbours stay neutral', () => {
   const { a, bar } = harness();
   const items = bar.querySelectorAll('.nav-red .nb');
+  a.NB.tw = { t0: 100 };
   a.navAccentWrite(bar, 1.25);
-  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, .75, .25, 0, 0]);
+  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 1, 1, 0, 0]);
   let writes = 0;
   for(const item of items) {
     const original = item.style.setProperty;
@@ -372,8 +412,15 @@ test('selected tint travels continuously between two neighbouring items and repe
   }
   a.navAccentWrite(bar, 1.25);
   assert.equal(writes, 0);
+  a.NB.tw = null;
   a.navAccentWrite(bar, 2);
   assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 0, 0]);
+  Object.assign(a.NB, { drag: { moved: false }, clear: 1, materialOn: true });
+  a.navAccentWrite(bar, 2);
+  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 0, 0]);
+  a.NB.drag.moved = true;
+  a.navAccentWrite(bar, 2.75);
+  assert.deepEqual(items.map(item => +item.style.getPropertyValue('--na')), [0, 0, 1, 1, 0]);
 });
 
 test('appearance starts at the initiating event and an adjacent flight takes 200 ms plus its tail', () => {
@@ -425,7 +472,7 @@ test('a screen rebuilt mid-gesture keeps its pointer and refreshes the cached re
   const next = runtime.replaceBar();
   assert.equal(a.NB.drag.id, 7);
   assert.ok(next.captures.includes(7));
-  assert.equal(a.NB.drag.rect.width, 385);
+  near(a.NB.drag.rect.width, 384);
   next.onpointerup({ pointerId: 7 });
   assert.equal(a.NB.drag, null);
 });
