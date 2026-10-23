@@ -339,8 +339,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-ic)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:var(--nav-is,24px);height:var(--nav-is,24px)}
-/* The matte and optical layers share the same measured contour. --ng is the optical envelope;
-   --u and --sx express the leading edge and width in fifths of the rail, including the unequal tab spacing. */
+/* The matte and optical layers share measured position and width; the matte's vertical fill is resolved below.
+   --ng is the optical envelope; --u/--sx express the leading edge/width in fifths of the rail. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
   /* THE RADIUS IS RESOLVED BEFORE THE TRANSFORM. The box is 20% of the bar by 51 px and the shape we want is
      whatever the scale turns it into, so a flat 999px gave a capsule with a straight middle that the scale then
@@ -398,9 +398,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:.65px;pointer-events:none;
   background:linear-gradient(var(--lit-a,170deg),var(--nav-fine) 0%,transparent 30%,transparent 65%,var(--nav-fine-low) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* The optical layer lands into a plain, theme-coloured selection. Both layers use the same navBox contour;
-   its contraction finishes ahead of the remaining refraction, without a material or geometry hand-over. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:4;background:var(--nav-rest);opacity:calc(1 - var(--ng,0))}
+/* The optical layer lands into a plain, theme-coloured selection. Position and width stay on the same track;
+   the matte has its own fuller vertical body, so the resting grey does not look undersized on a phone. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:4;background:var(--nav-rest);opacity:calc(1 - var(--ng,0));
+  /* The matte landing has a fuller body than the compact optical contour on phones.
+     Its width stays inside the measured caption clearance; circular ends follow its own height. */
+  --idle-sy:min(calc(var(--sy,1) * 1.15),calc(60 / 86 * 78 / 51));
+  border-radius:calc((60px - 9px) / 2 * var(--idle-sy) / var(--sx,1)) / 50%;
+  transform:translateX(calc(var(--u,0) * 100%)) scaleX(var(--sx,1)) scaleY(var(--idle-sy))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub{z-index:4;opacity:calc((1 - var(--lf,0)) * var(--ng,0))}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub.material-idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:linear-gradient(180deg,rgba(40,44,52,.035),transparent 44%,transparent 70%,rgba(40,44,52,.018));
