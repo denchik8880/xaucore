@@ -9722,7 +9722,9 @@ function navFieldsPrepare(){
       try{
         while(next < images.length && !failed){
           const i = next++, url = URL.createObjectURL(new Blob([data.subarray(base + offsets[i], base + offsets[i + 1])], { type: "image/png" }));
-          urls[i] = url; const image = images[i] = new Image(); image.crossOrigin = "anonymous"; image.src = url; await image.decode();
+          // Match feImage's default fetch mode. A CORS preload occupies a different cache entry:
+          // swapping SVG href would fetch the Blob again and briefly sample an empty normal map.
+          urls[i] = url; const image = images[i] = new Image(); image.src = url; await image.decode();
         }
       }catch(error){ failed = error; }
     }));

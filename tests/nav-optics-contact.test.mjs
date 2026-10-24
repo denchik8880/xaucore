@@ -255,7 +255,7 @@ test('the shipped cap pixels magnify the first captured fragment instead of canc
 });
 
 function fieldLoader(h, { bytes = packBytes, status = true, rejectDecode = false } = {}) {
-  const stats = { fetched: 0, active: 0, maximumActive: 0, decoded: 0, urls: [], revoked: [] };
+  const stats = { fetched: 0, active: 0, maximumActive: 0, decoded: 0, urls: [], revoked: [], preloadModes: [] };
   h.ctx.Blob = Blob; h.ctx.TextDecoder = TextDecoder;
   h.ctx.URL = {
     createObjectURL: () => { const url = `blob:nav-test-${stats.urls.length}`; stats.urls.push(url); return url; },
@@ -267,6 +267,7 @@ function fieldLoader(h, { bytes = packBytes, status = true, rejectDecode = false
   };
   h.ctx.Image = class {
     async decode() {
+      stats.preloadModes.push(this.crossOrigin ?? null);
       stats.active++; stats.maximumActive = Math.max(stats.maximumActive, stats.active);
       await Promise.resolve(); stats.active--; stats.decoded++;
       if (rejectDecode && this.src === 'blob:nav-test-0') throw new Error('decode failed');
@@ -280,6 +281,7 @@ test('one bounded preparation replaces the mask graph for frames, without changi
   const loading = h.navFieldsPrepare(); assert.equal(h.navFieldsPrepare(), loading);
   const fields = await loading; assert.ok(fields); assert.equal(stats.fetched, 1);
   assert.equal(stats.decoded, 129); assert.equal(stats.maximumActive, 4); assert.equal(stats.revoked.length, 0);
+  assert.deepEqual(stats.preloadModes, Array(129).fill(null), 'Prepared PNGs use feImage\'s default fetch mode, so animation reuses the same loaded resources');
   assert.deepEqual(h.ctx.NB.optical.dms.map(n => n.getAttribute('scale')), scales);
   assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'preparedNormals'));
   for (const name of ['x', 'y', 'width', 'height']) assert.equal(h.ctx.NB.optical.prepared.getAttribute(name), h.ctx.NB.optical.image.getAttribute(name), 'The prepared field keeps the same padded sampling rectangle');
