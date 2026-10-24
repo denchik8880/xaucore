@@ -82,7 +82,7 @@ const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} ≈ ${b}`);
 
 test('the loaded page contains the complete live lens inputs, independent of further network requests', () => {
   const h = optics();
-  for(const [key,file] of [['map','nav-normal-map.png'],['coordinates','nav-contact-surface.png']]){
+  for(const [key,file] of [['map','nav-normal-map.png'],['coordinates','nav-contact-surface-v2.png']]){
     const url = h.NAV_OPTICS[key];
     assert.ok(url.startsWith('data:image/png;base64,'), 'A missing network image cannot silently disable the only live fallback');
     const embedded = Buffer.from(url.slice(url.indexOf(',')+1), 'base64');
@@ -175,12 +175,13 @@ test('animation and rebinding reuse the same side images, normal correction and 
   h.navLens(0); assert.equal(h.source.style.filter, ''); assert.equal(h.counts.created, created);
 });
 
-const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v3.bin', import.meta.url));
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v4.bin', import.meta.url));
 const packBase = 4 + packBytes.readUInt32LE(0);
 const packMeta = JSON.parse(packBytes.toString('utf8', 4, packBase));
 
 test('prepared fields retain the original core and sample icons and captions at the first cap contact', () => {
-  assert.equal(packMeta.version, 3); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+  assert.equal(packMeta.version, 4); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+  assert.equal(packMeta.contactSlope, 2.25); assert.equal(packMeta.contactSpan, 1.6);
   assert.equal(packMeta.offsets.length, 130); assert.equal(packMeta.offsets[0], 0);
   assert.equal(packMeta.offsets.at(-1), packBytes.length - packBase);
   let maximumVerticalError = 0;
@@ -249,7 +250,7 @@ test('the shipped cap pixels magnify the first captured fragment instead of canc
     const x0 = edge-side*.25, x1 = edge-side*1.75;
     const magnification = Math.abs((x1-x0)/(inverse(x1)-inverse(x0)));
     minimum = Math.min(minimum,magnification);
-    assert.ok(magnification > 1.05 && magnification < 2, `Visible curved contact at saved 74%: y=${y}, side=${side}, magnification=${magnification}`);
+    assert.ok(magnification > 1.3 && magnification < 2, `The first captured 1.5px must already bend at saved 74%: y=${y}, side=${side}, magnification=${magnification}`);
   }
   t.diagnostic(`Minimum first-fragment magnification at 74%: ${minimum.toFixed(3)}x`);
 });

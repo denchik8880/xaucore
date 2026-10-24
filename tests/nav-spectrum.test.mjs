@@ -47,7 +47,7 @@ test('contact coordinates recover a small outward source sample from either caps
       const x = side < 0 ? inset : width - inset;
       // This is the documented coordinate image at the actual left/right capsule intersection.
       const capX = side < 0 ? radius : width - radius;
-      const input = [.5 + (x - capX) / (height * 1.2), .5 + (y - radius) / (height * 1.2), .27, 1];
+      const input = [.5 + (x - capX) / (height * NAV_OPTICS.contactSpan), .5 + (y - radius) / (height * NAV_OPTICS.contactSpan), .27, 1];
       const normal = matrix(navContactValues(width, height, side), input);
       near(normal[2], .27); near(normal[3], 1);
       assert.ok(normal.slice(0, 2).every(value => value > 0 && value < 1), 'The contact coordinate matrix does not clip');

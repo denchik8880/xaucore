@@ -12,19 +12,23 @@ const require = createRequire(path.join(process.env.XAUCORE_TOOL_ROOT || root, '
 const { chromium } = require('playwright'), sharp = require('sharp');
 let html = (await fs.readFile(path.join(root, 'public/index.html'), 'utf8')).replaceAll('\r\n', '\n');
 const normal = await fs.readFile(path.join(root, 'public/nav-normal-map.png'));
-// Reflect the circular cap's normal coordinate about its boundary. At rho=50 this has exactly
-// the same value as the old affine field, but the inward derivative now magnifies the first
-// captured fragment. Only the existing narrow side masks expose this surface in the live graph.
+// Steepen the first-contact curvature while preserving exactly the same boundary sample.
+// The wider encoding span avoids clipping normals in the visible side band. The original core
+// and the geometric clip remain unchanged. Read calibration from the actual production config.
+const config = html.slice(html.indexOf('const NAV_OPTICS ='), html.indexOf('let _navMapReady'));
+const contactSlope = Number(config.match(/contactSlope: ([\d.]+)/)?.[1]);
+const contactSpan = Number(config.match(/contactSpan: ([\d.]+)/)?.[1]);
+if(!Number.isFinite(contactSlope) || !Number.isFinite(contactSpan)) throw new Error('Missing first-contact calibration');
 const pixels = Buffer.alloc(256 * 256 * 4);
 for(let y = 0; y < 256; y++) for(let x = 0; x < 256; x++){
   const dx = (x + .5) / 256 * 120 - 60, dy = (y + .5) / 256 * 120 - 60;
-  const rho = Math.hypot(dx,dy), reflected = rho ? 100 / rho - 1 : 0, p = (y * 256 + x) * 4;
-  pixels[p] = Math.round(Math.max(0,Math.min(1,.5 + dx * reflected / 120)) * 255);
-  pixels[p+1] = Math.round(Math.max(0,Math.min(1,.5 + dy * reflected / 120)) * 255);
+  const rho = Math.hypot(dx,dy), reflected = rho ? (50 + contactSlope * (50 - rho)) / rho : 0, p = (y * 256 + x) * 4;
+  pixels[p] = Math.round(Math.max(0,Math.min(1,.5 + dx * reflected / (contactSpan * 100))) * 255);
+  pixels[p+1] = Math.round(Math.max(0,Math.min(1,.5 + dy * reflected / (contactSpan * 100))) * 255);
   pixels[p+2] = 128; pixels[p+3] = 255;
 }
 const coordinates = await sharp(pixels, { raw:{ width:256, height:256, channels:4 } }).png({ compressionLevel:9, adaptiveFiltering:true }).toBuffer();
-await fs.writeFile(path.join(root, 'public/nav-contact-surface.png'), coordinates);
+await fs.writeFile(path.join(root, 'public/nav-contact-surface-v2.png'), coordinates);
 const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function navBind(bar){', start);
 if(start < 0 || end < start) throw new Error('Cannot find the actual navigation optics');
 // The live fallback must work with the HTML alone, including when the optimization pack cannot
@@ -74,10 +78,10 @@ try{
     const png = await sharp(await page.screenshot()).removeAlpha().png({ compressionLevel:9, adaptiveFiltering:true }).toBuffer();
     buffers.push(png); offsets.push(offsets.at(-1) + png.length);
   }
-  const header = Buffer.from(JSON.stringify({ version:3, min:1, step:1/64, height:55.8, width:288, rows:232,
-    contactGain, rimStroke, rimBlur, sourceMap:createHash('sha256').update(normal).digest('hex'), coordinateMap:createHash('sha256').update(coordinates).digest('hex'), offsets }));
+  const header = Buffer.from(JSON.stringify({ version:4, min:1, step:1/64, height:55.8, width:288, rows:232,
+    contactGain, contactSlope, contactSpan, rimStroke, rimBlur, sourceMap:createHash('sha256').update(normal).digest('hex'), coordinateMap:createHash('sha256').update(coordinates).digest('hex'), offsets }));
   const length = Buffer.alloc(4); length.writeUInt32LE(header.length);
-  const output = path.join(root, 'public/nav-optics-fields-v3.bin');
+  const output = path.join(root, 'public/nav-optics-fields-v4.bin');
   await fs.writeFile(output, Buffer.concat([length, header, ...buffers]));
   console.log(`Prepared 129 fields: ${output}`);
   await context.close();
