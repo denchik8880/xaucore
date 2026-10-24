@@ -105,18 +105,33 @@ test('resting profiles reproduce all five reference centres and distinct capsule
   }
 });
 
-test('held middle capsules add the measured width and height without turning the end tabs into circles', () => {
+test('held middle capsules stay compact while the end profiles retain their wider shoulders', () => {
   const { a } = harness({ width: 555, height: 86, labels: [0, 0, 0, 0, 0] });
   a.NB.clear = 1;
   for (let i = 1; i <= 3; i++) {
     const box = a.navBox(i, i + 1, 0);
-    near(box.sx * 111, 160);
+    near(box.sx * 111, 150);
     near(box.sy * 77, 80);
   }
   const first = a.navBox(0, 1, 0);
   near(first.left * 111, 0);
   near(first.sx * 111, 185.5);
   assert.ok(first.sx * 111 > first.sy * 77 * 2);
+  const last = a.navBox(4, 5, 0);
+  near(last.sx * 111, 165.5);
+  near((last.left + last.sx) * 111, 555);
+});
+
+test('the compact moving width interpolates continuously into both end profiles through the fade', () => {
+  const { a } = harness({ width: 555, height: 86, labels: [0, 0, 0, 0, 0] });
+  for(const clear of [0, .2, .7, 1]){
+    Object.assign(a.NB, {clear,materialOn:true,materialTween:null});
+    for(const u of [0, .25, .5, .75, 1, 1.5, 2, 2.5, 3, 3.25, 3.5, 3.75, 4]){
+      const width = x => a.navBox(x,x+1,0).sx*111;
+      assert.ok(Math.abs(width(u+1e-7)-width(u-1e-7))<.0001, 'A profile boundary must not cause a width jump');
+      if(u>=1&&u<=3)near(width(u),118+clear*32);
+    }
+  }
 });
 
 test('all phone sizes, overdrag and stretched transitions keep a finite contour inside the rail', () => {
@@ -333,10 +348,10 @@ test('a flight retains the full recorded contour instead of squeezing it between
   const { a } = harness({ labels: PREVIEW_LABELS }), t = a.NB.track;
   Object.assign(a.NB, { clear: 1, materialOn: true });
   const centred = a.navBox(1.5, 2.5, 0);
-  near(centred.sx * t.tabW, 113.5210755814);
+  near(centred.sx * t.tabW, 106.5443313953);
   near(centred.sy * t.baseH, 55.8139534884);
   const stretched = a.navBox(1.25, 2.75, 0);
-  near(stretched.sx * t.tabW, 115.3210755814);
+  near(stretched.sx * t.tabW, 108.3443313953);
   near(stretched.sy * t.baseH, 56.1139534884);
   near(stretched.left + stretched.sx / 2, centred.left + centred.sx / 2);
 });

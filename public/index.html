@@ -9331,7 +9331,8 @@ function navLayoutScale(){
 const NAV_DROP = Object.freeze({
   centres: Object.freeze([86.5, 196.5, 287.5, 378.5, 478.5]),
   widths: Object.freeze([156, 118, 118, 118, 136]),
-  referenceW: 555, referenceH: 86, height: 78, activeWidth: 42, activeHeight: 2
+  referenceW: 555, referenceH: 86, height: 78,
+  activeWidths: Object.freeze([42, 32, 32, 32, 42]), activeHeight: 2
 });
 function navTrackBuild(width, height, labels){
   const w = Math.max(1, width), h = Math.max(8, height), tabW = w / 5;
@@ -9352,9 +9353,10 @@ function navTrackBuild(width, height, labels){
 }
 function navTrackAt(u){
   const t = NB.track || (NB.track = navTrackBuild(NB.railWidth || 360, 60));
-  const i = clamp(Math.floor(u), 0, 3), k = u - i;
+  const i = clamp(Math.floor(u), 0, 3), k = u - i, blend = clamp(k, 0, 1);
   return { track: t, centre: t.centres[i] + (t.centres[i + 1] - t.centres[i]) * k,
-    width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * clamp(k, 0, 1) };
+    width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * blend,
+    activeWidth: NAV_DROP.activeWidths[i] + (NAV_DROP.activeWidths[i + 1] - NAV_DROP.activeWidths[i]) * blend };
 }
 // Piecewise inverse of the very same centres, after undoing the rail's centred swell.
 // Pointer moves use the rectangle captured on pointerdown, with no layout reads in a frame.
@@ -9390,7 +9392,9 @@ function navBox(a, b, lift){
   // On landing the contour contracts ahead of the remaining optical tail, as in the frame sequence.
   const press = navMaterialPress(), stretch = Math.min(1, Math.abs(b - a - 1));
   const centre = p.centre * t.tabW;
-  const width = p.width * t.tabW + press * NAV_DROP.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height;
+  // The middle stays compact; only the end profiles retain the wider optical shoulder.
+  // Interpolating the expansion with the same track prevents a size jump on the way to either end.
+  const width = p.width * t.tabW + press * p.activeWidth / NAV_DROP.referenceH * t.height + stretch * .06 * t.height;
   const height = t.restH + press * NAV_DROP.activeHeight / NAV_DROP.referenceH * t.height + stretch * .01 * t.height;
   const inset = 4 / NAV_DROP.referenceH * t.height * (1 - press);
   // At an end the silhouette is trimmed against the rail, rather than pushed away
