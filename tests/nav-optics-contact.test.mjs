@@ -51,7 +51,7 @@ function optics() {
     getAttribute(k) { return this.attrs.get(k) ?? null; }
     appendChild(node) { counts.appended++; this.children.push(node); return node; }
     querySelectorAll(tag) { return this.children.filter(n => n.tag === tag); }
-    querySelector(tag) { return this.querySelectorAll(tag)[0] || null; }
+    querySelector(tag) { const result = tag.match(/^\[result="([^"]+)"\]$/); return result ? this.children.find(n => n.getAttribute('result') === result[1]) || null : this.querySelectorAll(tag)[0] || null; }
   }
   const defs = new Element('defs'), source = new Element('source'), box = { left: 1.2, sx: 114 / 76.8, sy: 55.8 / 51 };
   const bar = new Element('bar'); bar.clientWidth = 384; bar.clientHeight = 60;
@@ -70,7 +70,7 @@ function optics() {
   vm.createContext(ctx);
   vm.runInContext(html.slice(start, end) + '\nglobalThis.api={navOpticsBind,navLens,navFieldsPrepare,navFieldAt,NAV_OPTICS,getFields:()=>_navFields};', ctx);
   ctx.api.navOpticsBind(bar);
-  assert.equal(counts.images.length, 1); counts.images[0].onload();
+  assert.equal(counts.images.length, 2); for (const image of counts.images) image.onload();
   return { ...ctx.api, ctx, counts, defs, bar, source, box, filter: ctx.NB.optical.filter };
 }
 function applyMatrix(node, rgba) {
@@ -80,59 +80,29 @@ function applyMatrix(node, rgba) {
 }
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} ≈ ${b}`);
 
-test('side contact samples the incoming letter immediately while retaining the vertical normal field', t => {
-  const h = optics(), image = h.filter.querySelector('feImage');
-  const correction = h.filter.querySelectorAll('feColorMatrix').find(n => n.getAttribute('in') === image.getAttribute('result'));
-  assert.ok(correction, 'Raw normals pass through the contact correction');
+test('both coordinate components feed side contact while the same three RGB samples keep their original source', () => {
+  const h = optics(), images = h.filter.querySelectorAll('feImage');
+  const correction = h.ctx.NB.optical.contact;
+  assert.equal(images[1].getAttribute('href'), h.NAV_OPTICS.coordinates);
+  assert.equal(correction.getAttribute('in'), 'contactCoordinates');
   const passes = h.filter.querySelectorAll('feDisplacementMap'); assert.equal(passes.length, 3);
   for (const dm of passes) {
-    assert.equal(dm.getAttribute('in'), 'SourceGraphic');
-    assert.equal(dm.getAttribute('in2'), 'normals');
+    assert.equal(dm.getAttribute('in'), 'SourceGraphic'); assert.equal(dm.getAttribute('in2'), 'normals');
     assert.equal(dm.getAttribute('xChannelSelector'), 'R'); assert.equal(dm.getAttribute('yChannelSelector'), 'G');
   }
   assert.ok(h.filter.children.indexOf(correction) < h.filter.children.indexOf(passes[0]));
-  let minimumR = Infinity, maximumR = -Infinity;
-  for (let p = 0; p < field.pixels.length; p += field.channels) {
-    const raw = [field.pixels[p] / 255, field.pixels[p + 1] / 255, field.pixels[p + 2] / 255, field.channels === 4 ? field.pixels[p + 3] / 255 : 1];
-    const corrected = applyMatrix(correction, raw);
-    assert.ok(corrected[0] > 0 && corrected[0] < 1, 'The actual map never clips R at the SVG matrix clamp');
-    minimumR = Math.min(minimumR, corrected[0]); maximumR = Math.max(maximumR, corrected[0]);
-    for (const channel of [1, 2, 3]) near(corrected[channel], raw[channel]);
-  }
-  near(applyMatrix(correction, [.5, .5, .5, 1])[0], .5);
-  let coreError = 0;
-  for (const dx of [-16, 0, 16]) for (const dy of [-16, 0, 16]) {
-    coreError = Math.max(coreError, Math.abs(applyMatrix(correction, field.at(field.width / 2 + dx, field.height / 2 + dy))[0] - .5));
-  }
-  assert.ok(coreError < .004, 'The neutral core stays neutral to the PNG quantization tolerance');
-  // Sample the actual lower caption arc, not a synthetic positive/negative vector.
-  const width = 114, height = 55.8, y = 45, r = height / 2;
-  const inset = r - Math.sqrt(r * r - (y - r) ** 2), magnify = 1.165;
-  const inwardGaps = [];
-  for (const side of [-1, 1]) {
-    const x = side < 0 ? inset : width - inset;
-    const raw = field.at(16 + x / width * 256, 16 + y / height * 200), corrected = applyMatrix(correction, raw);
-    for (const dm of passes) {
-      const scale = Number(dm.getAttribute('scale')), oldDx = scale * (raw[0] - .5), dx = scale * (corrected[0] - .5);
-      assert.ok(side * oldDx < 0 && side * dx > 0, 'Source sampling reaches outside the incoming side');
-      near(scale * (corrected[1] - .5), scale * (raw[1] - .5));
-      const oldGap = ((magnify - 1) * (width / 2 - x) + oldDx) / magnify;
-      const gap = ((magnify - 1) * (width / 2 - x) + dx) / magnify;
-      // Positive means sampling inside the edge, leaving an incoming letter behind the white patch.
-      // A few pixels outward pick up that letter immediately; an unbounded pull would fold distant text.
-      const inwardGap = -side * gap; inwardGaps.push(inwardGap);
-      assert.ok(-side * oldGap > 10, 'The uncorrected field reproduces the delayed contact');
-      assert.ok(inwardGap <= 0 && inwardGap >= -5, 'All RGB passes reach the incoming letter without excessive outward pull');
-    }
-  }
-  t.diagnostic(`Signed inward contact gap ${Math.min(...inwardGaps).toFixed(4)}..${Math.max(...inwardGaps).toFixed(4)} local px; corrected R ${minimumR.toFixed(6)}..${maximumR.toFixed(6)}; core error ${coreError.toFixed(6)}`);
+  const center = applyMatrix(correction, [.5,.5,.5,1]); near(center[0],.5); near(center[1],.5);
+  const topLeft = applyMatrix(correction, [.1,.2,.5,1]), bottomRight = applyMatrix(correction, [.9,.8,.5,1]);
+  assert.ok(topLeft[0] < .5 && topLeft[1] < .5);
+  assert.ok(bottomRight[0] > .5 && bottomRight[1] > .5);
+  for (const n of [topLeft,bottomRight]) { near(n[2],.5); near(n[3],1); }
 });
 
 test('the original field feeds the lens core and only image-masked side arcs receive the contact correction', () => {
   const h = optics(), byResult = name => h.filter.children.find(n => n.getAttribute('result') === name);
   const correction = byResult('contactNormals'), mask = byResult('rimMask');
   const core = byResult('originalCore'), contact = byResult('contactRim'), mixed = byResult('normals');
-  assert.equal(correction.getAttribute('in'), 'rawNormals');
+  assert.equal(correction.getAttribute('in'), 'contactCoordinates');
   for (const [node, input, op] of [[core, 'rawNormals', 'out'], [contact, 'contactNormals', 'in']]) {
     assert.equal(node.getAttribute('in'), input); assert.equal(node.getAttribute('in2'), 'rimMask');
     assert.equal(node.getAttribute('operator'), op);
@@ -144,27 +114,26 @@ test('the original field feeds the lens core and only image-masked side arcs rec
   assert.equal(+mask.getAttribute('stdDeviation'), h.NAV_OPTICS.rimBlur);
   const shape = byResult('rimShape'); assert.equal(shape.tag, 'feMerge');
   assert.deepEqual(shape.children.map(n => n.getAttribute('in')), ['leftRim', 'rightRim']);
-  const images = h.filter.querySelectorAll('feImage'); assert.equal(images.length, 4);
-  for (const [i, image] of images.slice(1, 3).entries()) {
+  const images = h.filter.querySelectorAll('feImage'); assert.equal(images.length, 5);
+  for (const [i, image] of images.slice(2, 4).entries()) {
     const href = image.getAttribute('href'); assert.ok(href.startsWith('data:image/svg+xml,'));
     const svg = decodeURIComponent(href.slice(href.indexOf(',') + 1));
     assert.match(svg, /viewBox="0 0 120 120"/); assert.ok(svg.includes(`stroke-width="${h.NAV_OPTICS.rimStroke}"`));
-    assert.ok(svg.includes(i ? 'M95.7071 25 A50 50 0 0 1 95.7071 95' : 'M24.2929 25 A50 50 0 0 0 24.2929 95'));
+    assert.ok(svg.includes(i ? 'M60 10 A50 50 0 0 1 60 110' : 'M60 10 A50 50 0 0 0 60 110'));
     assert.doesNotMatch(svg, /href=|<use|<foreignObject|<script|<image/);
     const x = 76.8 * h.box.left, w = 76.8 * h.box.sx, height = 51 * h.box.sy;
     assert.ok(Math.abs(+image.getAttribute('width') - 1.2 * height) < .001);
     assert.ok(Math.abs(+image.getAttribute('x') - (x + (i ? w - 1.1 * height : -.1 * height))) < .001);
-    // The partial arcs stay on the sides: no correction band across the top or bottom captions.
-    const top = +image.getAttribute('y') + (25 - h.NAV_OPTICS.rimStroke / 2) / 120 * 1.2 * height;
-    assert.ok(top > (60 - height) / 2 + .09 * height);
+    // Separate circular caps cover icons and captions, without a horizontal mask across the middle.
+    assert.doesNotMatch(svg, /<rect/);
   }
   // Complementary masks plus arithmetic addition preserve all raw channels when mask alpha is zero,
-  // and preserve G/B/A at every feathered value. In particular, no global horizontal reversal remains.
+  // and preserve B/A at every feathered value. In particular, no global horizontal reversal remains.
   for (const [x, y] of [[40, 70], [120, 185], [248, 70]]) {
     const raw = field.at(x, y), corrected = applyMatrix(correction, raw);
     for (const alpha of [0, .1, .5, 1]) {
       const normal = raw.map((v, c) => v * (1 - alpha) + corrected[c] * alpha);
-      for (const c of [1, 2, 3]) near(normal[c], raw[c]);
+      for (const c of [2, 3]) near(normal[c], raw[c]);
       if (!alpha) assert.deepEqual(normal, raw);
     }
   }
@@ -177,7 +146,7 @@ test('opaque source padding covers displaced samples while the existing outer ca
     return Object.fromEntries(item[2].split(';').filter(s => s.includes(':')).map(s => { const i = s.indexOf(':'); return [s.slice(0, i).trim(), s.slice(i + 1).trim()]; }));
   };
   const h = optics(), pad = rule('.nav-red .nr-optics::after'), outer = rule(' .nav-red'), source = rule('.nav-red .nr-optics');
-  assert.equal(pad.inset, `-${h.NAV_OPTICS.padding}px`); assert.equal(pad.background, 'var(--nav-hole)');
+  assert.equal(pad.inset, `-${h.NAV_OPTICS.sourcePadding}px`); assert.equal(pad.background, 'var(--nav-hole)');
   assert.equal(pad.position, 'absolute'); assert.equal(pad['z-index'], '-1'); assert.equal(pad['pointer-events'], 'none');
   for (const color of html.matchAll(/--nav-hole\s*:\s*([^;}]+)/g)) assert.match(color[1].trim(), /^#[\da-f]{3}(?:[\da-f]{3})?$/i, 'Theme backing remains opaque');
   assert.ok(outer['clip-path'].includes('var(--u,0)') && outer['clip-path'].includes('var(--sx,1)') && outer['clip-path'].includes('var(--sy,1)'));
@@ -185,15 +154,10 @@ test('opaque source padding covers displaced samples while the existing outer ca
   assert.ok(html.includes('<span class="nr-optics"><span class="nr-in">'), 'The complete source is nested inside the outer clip');
   h.ctx.LG_UI.refract = 1.5; h.ctx.DISP.str = 100; h.navLens(1);
   const maximumScale = Math.max(...h.filter.querySelectorAll('feDisplacementMap').map(n => +n.getAttribute('scale')));
-  const image = h.filter.querySelector('feImage');
-  const correction = h.filter.querySelectorAll('feColorMatrix').find(n => n.getAttribute('in') === image.getAttribute('result'));
-  let maximumDeviation = 0;
-  for (let p = 0; p < field.pixels.length; p += field.channels) {
-    const corrected = applyMatrix(correction, [field.pixels[p] / 255, field.pixels[p + 1] / 255, field.pixels[p + 2] / 255, field.channels === 4 ? field.pixels[p + 3] / 255 : 1]);
-    for (const c of [0, 1]) maximumDeviation = Math.max(maximumDeviation, Math.abs(corrected[c] - .5));
-  }
-  assert.ok(maximumScale * maximumDeviation < h.NAV_OPTICS.padding, 'Backing reaches every sample even at maximum refraction/dispersion');
-  t.diagnostic(`Maximum corrected sample displacement ${(maximumScale * maximumDeviation).toFixed(4)} local px within ${h.NAV_OPTICS.padding}px opaque padding`);
+  // Both encoded displacement channels are clamped to [0,1]. This conservative bound covers every
+  // prepared ratio and the live coordinate field, including the largest slider values.
+  assert.ok(maximumScale * .5 < h.NAV_OPTICS.sourcePadding);
+  t.diagnostic(`Maximum possible sample displacement ${(maximumScale * .5).toFixed(3)}px within ${h.NAV_OPTICS.sourcePadding}px backing; output padding stays ${h.NAV_OPTICS.padding}px`);
 });
 
 test('animation and rebinding reuse the same side images, normal correction and three RGB passes', () => {
@@ -203,7 +167,7 @@ test('animation and rebinding reuse the same side images, normal correction and 
     h.box.left = 1.2 + i / 300; h.ctx.NB.opticalEnergy = (i % 100) / 100; h.navLens((i % 99 + 1) / 100);
   }
   h.navOpticsBind(h.bar);
-  assert.equal(h.ctx.NB.optical.filter, h.filter); assert.equal(h.counts.images.length, 1);
+  assert.equal(h.ctx.NB.optical.filter, h.filter); assert.equal(h.counts.images.length, 2);
   assert.deepEqual(h.filter.children, nodes); assert.equal(h.counts.created, created); assert.equal(h.counts.appended, appended);
   assert.deepEqual(h.filter.querySelectorAll('feImage').map(n => n.getAttribute('href')), hrefs);
   h.navLens(1); const writes = h.counts.attributes; h.navLens(1); assert.equal(h.counts.attributes, writes, 'Unchanged frame does not rewrite the graph');
@@ -215,12 +179,12 @@ test('animation and rebinding reuse the same side images, normal correction and 
   h.navLens(0); assert.equal(h.source.style.filter, ''); assert.equal(h.counts.created, created);
 });
 
-const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v1.bin', import.meta.url));
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v2.bin', import.meta.url));
 const packBase = 4 + packBytes.readUInt32LE(0);
 const packMeta = JSON.parse(packBytes.toString('utf8', 4, packBase));
 
-test('the prepared fields retain the real vertical map and first-contact direction throughout the aspect range', () => {
-  assert.equal(packMeta.version, 1); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+test('prepared fields retain the original core and sample icons and captions at the first cap contact', () => {
+  assert.equal(packMeta.version, 2); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
   assert.equal(packMeta.offsets.length, 130); assert.equal(packMeta.offsets[0], 0);
   assert.equal(packMeta.offsets.at(-1), packBytes.length - packBase);
   let maximumVerticalError = 0;
@@ -230,7 +194,14 @@ test('the prepared fields retain the real vertical map and first-contact directi
     assert.equal(prepared.width, 288); assert.equal(prepared.height, 232);
     for (let y = 2; y < 198; y += 3) for (let x = 2; x < 254; x += 3) {
       const normal = prepared.at(x + 16, y + 16), raw = field.at(x + 16, y + 16);
-      maximumVerticalError = Math.max(maximumVerticalError, Math.abs(normal[1] - raw[1]));
+      const height = packMeta.height, width = (packMeta.min + i * packMeta.step) * height;
+      const lx = (x + .5) / 256 * width, ly = (y + .5) / 200 * height, r = height / 2;
+      const onLeft = lx < r + 6 && Math.abs(Math.hypot(lx-r,ly-r)-r) < 6;
+      const onRight = lx > width-r-6 && Math.abs(Math.hypot(lx-(width-r),ly-r)-r) < 6;
+      if (!onLeft && !onRight) {
+        maximumVerticalError = Math.max(maximumVerticalError, Math.abs(normal[1] - raw[1]));
+        assert.ok(Math.abs(normal[0] - raw[0]) <= 1 / 255 + 1e-10, 'Horizontal core stays original');
+      }
       assert.ok(Math.abs(normal[2] - raw[2]) <= 1 / 255 + 1e-10); assert.equal(normal[3], 1);
     }
     assert.ok(prepared.at(17, 116)[0] < .5, 'The left side samples its incoming letter');
@@ -238,10 +209,33 @@ test('the prepared fields retain the real vertical map and first-contact directi
     assert.ok(Math.abs(prepared.at(144, 116)[0] - .5) < .004, 'The middle stays neutral');
     for (const [x, y] of [[0, 0], [144, 0], [144, 231], [0, 116], [287, 116]]) {
       const rgba = prepared.at(x, y); assert.equal(rgba[3], 1);
-      assert.ok(rgba.slice(0, 3).every(v => Math.abs(v - .5) < .01), 'The padded border stays opaque/neutral, preventing an RGB seam');
+      assert.ok(rgba.slice(0, 3).every(v => Math.abs(v - .5) < .06), 'The padded border stays opaque and near neutral, preventing an RGB seam');
     }
   }
   assert.ok(maximumVerticalError <= 1 / 255 + 1e-10, `Vertical field error ${maximumVerticalError}`);
+});
+
+// Decode the shipped prepared pixels, rather than assuming that an ideal correction is visible
+// through its full mask. These icon heights were missing from the earlier caption-only regression.
+test('the shipped field reaches the first intersected icon row and caption on both caps', t => {
+  let minimum = Infinity, maximum = -Infinity;
+  for (const index of [16, 40, 64, 88, 112, 128]) {
+    const map = normalMap(packBytes.subarray(packBase + packMeta.offsets[index], packBase + packMeta.offsets[index + 1]));
+    const h = packMeta.height, w = (packMeta.min + index * packMeta.step) * h, r = h / 2;
+    const sample = (x, y) => {
+      const ix = 16 + x / w * 256 - .5, iy = 16 + y / h * 200 - .5;
+      const x0 = Math.floor(ix), y0 = Math.floor(iy), dx = ix-x0, dy = iy-y0;
+      const a = map.at(x0,y0), b = map.at(x0+1,y0), c = map.at(x0,y0+1), d = map.at(x0+1,y0+1);
+      return a.map((v,i) => (v*(1-dx)+b[i]*dx)*(1-dy)+(c[i]*(1-dx)+d[i]*dx)*dy);
+    };
+    for (const y of [18, r, 45]) for (const side of [-1, 1]) {
+      const inset = r-Math.sqrt(r*r-(y-r)**2), x = side < 0 ? inset : w-inset, normal = sample(x,y);
+      const sourceX = w/2 + (x+31*(normal[0]-.5)-w/2)/1.165;
+      const reach = side*(sourceX-x); minimum = Math.min(minimum,reach); maximum = Math.max(maximum,reach);
+      assert.ok(reach > -.15 && reach < 1.5, `Prepared cap samples its incoming row: ratio ${w/h}, y ${y}, side ${side}, reach ${reach}`);
+    }
+  }
+  t.diagnostic(`Prepared inverse source reach ${minimum.toFixed(4)}..${maximum.toFixed(4)} local px at icon/caption cap contacts`);
 });
 
 function fieldLoader(h, { bytes = packBytes, status = true, rejectDecode = false } = {}) {

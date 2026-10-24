@@ -388,7 +388,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;border-radius:inherit;background:var(--nav-hole)}
 /* Keep the filtered source opaque beyond the rail. Outward edge samples must see the theme's backing,
    not transparent RGB-channel boundaries; the outer .nav-red capsule still supplies the only visible clip. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics::after{content:"";position:absolute;inset:-24px;background:var(--nav-hole);z-index:-1;pointer-events:none}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics::after{content:"";position:absolute;inset:-32px;background:var(--nav-hole);z-index:-1;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1;
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%;
   color:var(--nav-on)}
@@ -9648,9 +9648,57 @@ function navFit(bar){
 // VANTA's prepared normal field, with edge dispersion calibrated to the user's recording (2026-10-21).
 // Prepared fields bake the identical side-mask graph once, outside the frame path. The live graph
 // remains the fallback while loading, on failure, or for a shape outside the prepared aspect range.
-const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", fields: "/nav-optics-fields-v1.bin", bend: 27, motion: 4, dispersion: .09, padding: 24, rimStroke: 10, rimBlur: .65 });
+const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", coordinates: "/nav-contact-coordinates.png", fields: "/nav-optics-fields-v2.bin", bend: 27, motion: 4, dispersion: .09, padding: 24, sourcePadding: 32, contactGain: .0057, rimStroke: 10, rimBlur: .65 });
 let _navMapReady = false, _navMapRequested = false;
 let _navFields = null, _navFieldsLoading = null;
+function navContactValues(width, height){
+  // Inverse sampling must first cancel the row's magnifier, including at neutral/flat map edges.
+  // The small outward allowance catches the first intersected pixel in both coordinates.
+  // Normalized height matches the prepared field through the small contour-height changes on fade.
+  const gain = NAV_OPTICS.contactGain * 55.8 / height;
+  const x = gain * width * 1.125, y = gain * height * 1.16;
+  return [x,0,0,0,.5-x/2, 0,y,0,0,.5-y/2, 0,0,1,0,0, 0,0,0,1,0];
+}
+function navSpectrumValues(ink, background){
+  let channel = 0;
+  for(let i = 1; i < 3; i++) if(Math.abs(background[i] - ink[i]) > Math.abs(background[channel] - ink[channel])) channel = i;
+  if(Math.abs(background[channel] - ink[channel]) < .05) return null;
+  const slope = 1 / (background[channel] - ink[channel]), offset = -ink[channel] * slope;
+  const channels = [0,1,2].map(i => { const m = Array(20).fill(0); m[i*5+channel] = slope; m[i*5+4] = offset; m[18] = 1; return m; });
+  const light = background.reduce((a,b) => a+b, 0) > 1.5, weights = light ? [0,1,0] : [1/3,1/3,1/3];
+  const delta = Array(20).fill(0), sign = light ? 1 : -1;
+  for(let i = 0; i < 3; i++){
+    for(let j = 0; j < 3; j++) delta[i*5+j] = .5 * sign * ((i === j ? 1 : 0) - weights[j]);
+    delta[i*5+4] = 128 / 255;
+  }
+  delta[18] = 1;
+  return { channels, delta };
+}
+function navSpectrumRead(bar){
+  const styles = typeof getComputedStyle === "function" ? getComputedStyle(bar) : null;
+  const read = (key, fallback) => {
+    const value = styles ? styles.getPropertyValue(key).trim() : "", hex = value.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+    if(hex){ const s = hex[1].length === 3 ? [...hex[1]].map(c => c+c).join("") : hex[1]; return [0,2,4].map(i => parseInt(s.slice(i,i+2),16) / 255); }
+    const rgb = value.match(/^rgba?\(([\d.,\s]+)\)$/);
+    return rgb ? rgb[1].split(",").slice(0,3).map(v => Number(v.trim()) / 255) : fallback;
+  };
+  return navSpectrumValues(read("--nav-on", [239/255,31/255,36/255]), read("--nav-hole", [1,1,1]));
+}
+function navSpectrumSync(o, active){
+  active = !!(active && o.spectrum);
+  if(o.spectral === active) return;
+  o.spectral = active;
+  const set = (node, key, value) => { value = String(value); if(node.getAttribute(key) !== value) node.setAttribute(key,value); };
+  o.channels.forEach((node,i) => {
+    const plain = Array(20).fill(0); plain[i*6] = plain[18] = 1;
+    set(node, "values", (active ? o.spectrum.channels[i] : plain).join(" "));
+  });
+  if(active) set(o.delta, "values", o.spectrum.delta.join(" "));
+  // Keep the original full-colour middle sample. Add only wavelength differences, so blue count
+  // badges, their white digits, and the pulsing background retain their colours inside the lens.
+  set(o.output, "in", active ? "sample1" : "spectrum");
+  set(o.output, "k3", active ? 2 : 0); set(o.output, "k4", active ? -256/255 : 0);
+}
 function navFieldsPrepare(){
   if(_navFieldsLoading) return _navFieldsLoading;
   if(typeof fetch !== "function" || typeof URL === "undefined" || !URL.createObjectURL) return Promise.resolve(null);
@@ -9663,7 +9711,7 @@ function navFieldsPrepare(){
     const length = new DataView(data.buffer, data.byteOffset, data.byteLength).getUint32(0, true), base = 4 + length;
     if(length > 8192 || base > data.length) throw new Error("Invalid navigation field header");
     const meta = JSON.parse(new TextDecoder().decode(data.subarray(4, base))), offsets = meta.offsets;
-    if(meta.version !== 1 || meta.min !== 1 || meta.step !== 1 / 64 || meta.width !== 288 || meta.rows !== 232 || meta.height !== 55.8 || meta.rimStroke !== NAV_OPTICS.rimStroke || meta.rimBlur !== NAV_OPTICS.rimBlur || !Array.isArray(offsets) || offsets.length !== 130 || offsets[0] !== 0 || offsets[129] !== data.length - base) throw new Error("Unsupported navigation fields");
+    if(meta.version !== 2 || meta.min !== 1 || meta.step !== 1 / 64 || meta.width !== 288 || meta.rows !== 232 || meta.height !== 55.8 || meta.contactGain !== NAV_OPTICS.contactGain || meta.rimStroke !== NAV_OPTICS.rimStroke || meta.rimBlur !== NAV_OPTICS.rimBlur || !Array.isArray(offsets) || offsets.length !== 130 || offsets[0] !== 0 || offsets[129] !== data.length - base) throw new Error("Unsupported navigation fields");
     for(let i = 1; i < offsets.length; i++) if(!Number.isInteger(offsets[i]) || offsets[i] <= offsets[i - 1]) throw new Error("Invalid navigation field offsets");
     const images = Array(129); let next = 0, failed = null;
     // Decode only four small images concurrently. These retained images/short URLs are reused by SVG;
@@ -9695,9 +9743,12 @@ function navOpticsBind(bar){
   navFieldsPrepare();
   if(!_navMapRequested){
     _navMapRequested = true;
-    const image = new Image();
-    image.onload = () => { _navMapReady = true; navLens(NB.clear); };
-    image.src = NAV_OPTICS.map;                                   // a plain source remains visible if loading fails
+    let ready = 0;
+    for(const src of [NAV_OPTICS.map, NAV_OPTICS.coordinates]){
+      const image = new Image();
+      image.onload = () => { if(++ready === 2){ _navMapReady = true; navLens(NB.clear); } };
+      image.src = src;                                           // the plain source remains visible if loading fails
+    }
   }
   lgDefsReady();
   let filter = document.getElementById("xc-nav-optics");
@@ -9707,14 +9758,15 @@ function navOpticsBind(bar){
     for(const [k,v] of Object.entries({ id: "xc-nav-optics", filterUnits: "userSpaceOnUse", primitiveUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" })) filter.setAttribute(k,v);
     const add = (tag, attrs) => { const node = document.createElementNS(NS, tag); for(const [k,v] of Object.entries(attrs)) node.setAttribute(k,v); filter.appendChild(node); return node; };
     add("feImage", { href: NAV_OPTICS.map, preserveAspectRatio: "none", result: "rawNormals" });
-    // Preserve the reference field inside the lens. Only its side contact arcs sample outward to
-    // catch an incoming letter immediately; reversing X throughout the lens changes the reference bend.
-    add("feColorMatrix", { in: "rawNormals", type: "matrix", values: "-1.5 0 0 0 1.25 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0", result: "contactNormals" });
+    // The original map remains the interior. Geometric side sampling catches icons as well as text;
+    // multiplying the old map cannot do that where its normal approaches zero at a flat cap edge.
+    add("feImage", { href: NAV_OPTICS.coordinates, preserveAspectRatio: "none", result: "contactCoordinates" });
+    add("feColorMatrix", { in: "contactCoordinates", type: "matrix", values: navContactValues(114,55.8).join(" "), result: "contactNormals" });
     // Self-contained images keep the displacement input image-only. DOM-fragment feImage inputs make
     // it tainted under Filter Effects and turn feDisplacementMap into a pass-through in browsers.
     const rimImage = path => "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><path d="' + path + '" fill="none" stroke="white" stroke-width="' + NAV_OPTICS.rimStroke + '"/></svg>');
-    add("feImage", { href: rimImage("M24.2929 25 A50 50 0 0 0 24.2929 95"), preserveAspectRatio: "none", result: "leftRim" });
-    add("feImage", { href: rimImage("M95.7071 25 A50 50 0 0 1 95.7071 95"), preserveAspectRatio: "none", result: "rightRim" });
+    add("feImage", { href: rimImage("M60 10 A50 50 0 0 0 60 110"), preserveAspectRatio: "none", result: "leftRim" });
+    add("feImage", { href: rimImage("M60 10 A50 50 0 0 1 60 110"), preserveAspectRatio: "none", result: "rightRim" });
     const rimShape = add("feMerge", { result: "rimShape" });
     for(const name of ["leftRim", "rightRim"]){ const node = document.createElementNS(NS, "feMergeNode"); node.setAttribute("in", name); rimShape.appendChild(node); }
     add("feGaussianBlur", { in: "rimShape", stdDeviation: NAV_OPTICS.rimBlur, result: "rimMask" });
@@ -9728,11 +9780,14 @@ function navOpticsBind(bar){
       add("feColorMatrix", { in: "sample" + i, type: "matrix", values: matrix.join(" "), result: "channel" + i });
     }
     add("feBlend", { in: "channel0", in2: "channel1", mode: "screen", result: "rg" });
-    add("feBlend", { in: "rg", in2: "channel2", mode: "screen" });
+    add("feBlend", { in: "rg", in2: "channel2", mode: "screen", result: "spectrum" });
+    add("feColorMatrix", { in: "spectrum", type: "matrix", values: Array(20).fill(0).join(" "), result: "spectralDelta" });
+    add("feComposite", { in: "spectrum", in2: "spectralDelta", operator: "arithmetic", k2: 1, k3: 0, k4: 0, result: "navigationColour" });
     _lgDefs.appendChild(filter);
   }
   const images = [...filter.querySelectorAll("feImage")];
-  NB.optical = { bar, source, filter, image: images[0], rims: images.slice(1,3), prepared: images[3], dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
+  const matrices = [...filter.querySelectorAll("feColorMatrix")], result = name => filter.querySelector('[result="' + name + '"]');
+  NB.optical = { bar, source, filter, image: images[0], coordinates: images[1], contact: result("contactNormals"), rims: images.slice(2,4), prepared: images[4], channels: matrices.filter(m => /^sample\d$/.test(m.getAttribute("in"))), delta: result("spectralDelta"), output: result("navigationColour"), spectrum: navSpectrumRead(bar), spectral: null, dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
   navLens(NB.clear);
 }
 function navLens(clear){
@@ -9746,8 +9801,9 @@ function navLens(clear){
   const magnify = 1 + k * (.14 + .025 * energy) * LG_UI.refract;
   o.bar.style.setProperty("--nm", magnify.toFixed(4));
   // Fully plain at rest / with refraction off. Clearing the CSS filter also removes its sampling region.
-  if(!k || !LG_UI.refract || !_navMapReady){ o.source.style.filter = ""; o.key = ""; return; }
   const field = navFieldAt(w, h), input = field ? "preparedNormals" : "normals";
+  if(!k || !LG_UI.refract || (!_navMapReady && !field)){ o.source.style.filter = ""; o.key = ""; return; }
+  navSpectrumSync(o, split > 0);
   const key = [x,y,w,h,bend,split].map(v => v.toFixed(4)).join(",") + "," + (field || "");
   if(key !== o.key){
     o.key = key;
@@ -9761,6 +9817,8 @@ function navLens(clear){
       set(o.prepared, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
     }else{
       set(o.image, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
+      set(o.coordinates, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
+      const values = navContactValues(w,h).join(" "); if(o.contact.getAttribute("values") !== values) o.contact.setAttribute("values",values);
       o.rims.forEach((rim,i) => set(rim, { x: x + (i ? w - 1.1 * h : -.1 * h), y: y - .1 * h, width: 1.2 * h, height: 1.2 * h }));
     }
     o.dms.forEach((dm,i) => { if(dm.getAttribute("in2") !== input) dm.setAttribute("in2", input); set(dm, { ...region, scale: bend * (1 + (i - 1) * split) }); });
