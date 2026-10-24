@@ -296,6 +296,17 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .bottomnav button.on{color:var(--nav-on-flat,var(--nav-on))}
 .bottomnav .ic svg{width:26px;height:26px}
 .nav-rest,.nav-bub,.nav-lens,.nav-red{display:none}
+/* Geometry is local to these layers. Do not restyle every SVG path when the lens moves. Explicit
+   inheritance below preserves the same values on browsers without property registration as well. */
+@property --u{syntax:"<number>";inherits:false;initial-value:0}
+@property --sx{syntax:"<number>";inherits:false;initial-value:1}
+@property --sy{syntax:"<number>";inherits:false;initial-value:1}
+@property --nm{syntax:"<number>";inherits:false;initial-value:1}
+@property --ng{syntax:"<number>";inherits:false;initial-value:0}
+.bottomnav :is(.nav-rest,.nav-bub,.nav-lens,.nav-red,.nr-optics,.nr-in){--u:inherit;--sx:inherit;--sy:inherit}
+.bottomnav .nb-skin{--sx:inherit;--sy:inherit}
+.bottomnav :is(.nav-red,.nr-optics,.nr-in){--nm:inherit}
+.bottomnav :is(.nav-rest,.nav-bub){--ng:inherit}
 /* the drop's own tokens, declared again ON THE BAR: they carry var(--dk), which is substituted where a token is
    declared, so declared here they read the bar's --dk - and the drop's clearing no longer writes <html> (every
    write there restyled the whole document, thirty frames of it per tab change) */
@@ -9635,13 +9646,53 @@ function navFit(bar){
   bar.style.setProperty("--nav-is", "24px");
 }
 // VANTA's prepared normal field, with edge dispersion calibrated to the user's recording (2026-10-21).
-// One padded map / filter for this bar; no map generation or filter creation during a gesture.
-const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", bend: 27, motion: 4, dispersion: .09, padding: 24, rimStroke: 10, rimBlur: .65 });
+// Prepared fields bake the identical side-mask graph once, outside the frame path. The live graph
+// remains the fallback while loading, on failure, or for a shape outside the prepared aspect range.
+const NAV_OPTICS = Object.freeze({ map: "/nav-normal-map.png", fields: "/nav-optics-fields-v1.bin", bend: 27, motion: 4, dispersion: .09, padding: 24, rimStroke: 10, rimBlur: .65 });
 let _navMapReady = false, _navMapRequested = false;
+let _navFields = null, _navFieldsLoading = null;
+function navFieldsPrepare(){
+  if(_navFieldsLoading) return _navFieldsLoading;
+  if(typeof fetch !== "function" || typeof URL === "undefined" || !URL.createObjectURL) return Promise.resolve(null);
+  const urls = [];
+  _navFieldsLoading = (async () => {
+    const response = await fetch(NAV_OPTICS.fields, { cache: "no-cache" });
+    if(!response.ok) throw new Error("Navigation field pack unavailable");
+    const data = new Uint8Array(await response.arrayBuffer());
+    if(data.length < 8 || data.length > 8e6) throw new Error("Invalid navigation field pack");
+    const length = new DataView(data.buffer, data.byteOffset, data.byteLength).getUint32(0, true), base = 4 + length;
+    if(length > 8192 || base > data.length) throw new Error("Invalid navigation field header");
+    const meta = JSON.parse(new TextDecoder().decode(data.subarray(4, base))), offsets = meta.offsets;
+    if(meta.version !== 1 || meta.min !== 1 || meta.step !== 1 / 64 || meta.width !== 288 || meta.rows !== 232 || meta.height !== 55.8 || meta.rimStroke !== NAV_OPTICS.rimStroke || meta.rimBlur !== NAV_OPTICS.rimBlur || !Array.isArray(offsets) || offsets.length !== 130 || offsets[0] !== 0 || offsets[129] !== data.length - base) throw new Error("Unsupported navigation fields");
+    for(let i = 1; i < offsets.length; i++) if(!Number.isInteger(offsets[i]) || offsets[i] <= offsets[i - 1]) throw new Error("Invalid navigation field offsets");
+    const images = Array(129); let next = 0, failed = null;
+    // Decode only four small images concurrently. These retained images/short URLs are reused by SVG;
+    // no SVG mask rendering, PNG encoding, object URL creation or decoding is requested by a frame.
+    await Promise.all(Array.from({ length: 4 }, async () => {
+      try{
+        while(next < images.length && !failed){
+          const i = next++, url = URL.createObjectURL(new Blob([data.subarray(base + offsets[i], base + offsets[i + 1])], { type: "image/png" }));
+          urls[i] = url; const image = images[i] = new Image(); image.src = url; await image.decode();
+        }
+      }catch(error){ failed = error; }
+    }));
+    if(failed) throw failed;
+    _navFields = { min: meta.min, step: meta.step, urls, images };
+    if(NB.optical){ NB.optical.key = ""; navLens(NB.clear); }
+    return _navFields;
+  })().catch(() => { for(const url of urls) if(url) URL.revokeObjectURL(url); return null; });
+  return _navFieldsLoading;
+}
+function navFieldAt(width, height){
+  const p = _navFields, ratio = width / height;
+  if(!p || height < 52 || height > 58 || !Number.isFinite(ratio) || ratio < p.min - 1e-9 || ratio > p.min + p.step * (p.urls.length - 1) + 1e-9) return null;
+  return p.urls[Math.round((ratio - p.min) / p.step)];
+}
 function navOpticsBind(bar){
   const source = bar.querySelector(".nr-optics");
   if(!source) return;
   if(!LG_LENS){ NB.optical = null; return; }
+  navFieldsPrepare();
   if(!_navMapRequested){
     _navMapRequested = true;
     const image = new Image();
@@ -9670,6 +9721,7 @@ function navOpticsBind(bar){
     add("feComposite", { in: "contactNormals", in2: "rimMask", operator: "in", result: "contactRim" });
     add("feComposite", { in: "rawNormals", in2: "rimMask", operator: "out", result: "originalCore" });
     add("feComposite", { in: "contactRim", in2: "originalCore", operator: "arithmetic", k2: 1, k3: 1, result: "normals" });
+    add("feImage", { preserveAspectRatio: "none", result: "preparedNormals" });
     for(let i = 0; i < 3; i++){
       add("feDisplacementMap", { in: "SourceGraphic", in2: "normals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "sample" + i });
       const matrix = Array(20).fill(0); matrix[i * 6] = 1; matrix[18] = 1;
@@ -9680,7 +9732,7 @@ function navOpticsBind(bar){
     _lgDefs.appendChild(filter);
   }
   const images = [...filter.querySelectorAll("feImage")];
-  NB.optical = { bar, source, filter, image: images[0], rims: images.slice(1), dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
+  NB.optical = { bar, source, filter, image: images[0], rims: images.slice(1,3), prepared: images[3], dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
   navLens(NB.clear);
 }
 function navLens(clear){
@@ -9695,15 +9747,23 @@ function navLens(clear){
   o.bar.style.setProperty("--nm", magnify.toFixed(4));
   // Fully plain at rest / with refraction off. Clearing the CSS filter also removes its sampling region.
   if(!k || !LG_UI.refract || !_navMapReady){ o.source.style.filter = ""; o.key = ""; return; }
-  const key = [x,y,w,h,bend,split].map(v => v.toFixed(4)).join(",");
+  const field = navFieldAt(w, h), input = field ? "preparedNormals" : "normals";
+  const key = [x,y,w,h,bend,split].map(v => v.toFixed(4)).join(",") + "," + (field || "");
   if(key !== o.key){
     o.key = key;
     const set = (node, values) => { for(const [a,v] of Object.entries(values)){ const s = v.toFixed(3); if(node.getAttribute(a) !== s) node.setAttribute(a,s); } };
     const region = { x: x - NAV_OPTICS.padding, y: y - NAV_OPTICS.padding, width: w + NAV_OPTICS.padding * 2, height: h + NAV_OPTICS.padding * 2 };
     set(o.filter, region);
-    set(o.image, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
-    o.rims.forEach((rim,i) => set(rim, { x: x + (i ? w - 1.1 * h : -.1 * h), y: y - .1 * h, width: 1.2 * h, height: 1.2 * h }));
-    o.dms.forEach((dm,i) => set(dm, { ...region, scale: bend * (1 + (i - 1) * split) }));
+    if(field){
+      if(o.prepared.getAttribute("href") !== field) o.prepared.setAttribute("href", field);
+      // Keep the original neutral map padding too: a cropped field creates an RGB seam where the
+      // antialiased capsule edge samples just outside the image (especially along its bottom).
+      set(o.prepared, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
+    }else{
+      set(o.image, { x: x - w * 16 / 256, y: y - h * 16 / 200, width: w * (1 + 32 / 256), height: h * (1 + 32 / 200) });
+      o.rims.forEach((rim,i) => set(rim, { x: x + (i ? w - 1.1 * h : -.1 * h), y: y - .1 * h, width: 1.2 * h, height: 1.2 * h }));
+    }
+    o.dms.forEach((dm,i) => { if(dm.getAttribute("in2") !== input) dm.setAttribute("in2", input); set(dm, { ...region, scale: bend * (1 + (i - 1) * split) }); });
   }
   if(!o.source.style.filter) o.source.style.filter = "url(#xc-nav-optics)";
 }

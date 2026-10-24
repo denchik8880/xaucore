@@ -9,8 +9,7 @@ const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function n
 assert.ok(start >= 0 && end > start, 'Actual navigation optics section exists');
 
 // Decode the committed field without browser/image packages or generated fixture files.
-function normalMap() {
-  const png = fs.readFileSync(new URL('../public/nav-normal-map.png', import.meta.url));
+function normalMap(png = fs.readFileSync(new URL('../public/nav-normal-map.png', import.meta.url))) {
   let width, height, channels;
   const chunks = [];
   for (let p = 8; p < png.length;) {
@@ -69,7 +68,7 @@ function optics() {
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(html.slice(start, end) + '\nglobalThis.api={navOpticsBind,navLens,NAV_OPTICS};', ctx);
+  vm.runInContext(html.slice(start, end) + '\nglobalThis.api={navOpticsBind,navLens,navFieldsPrepare,navFieldAt,NAV_OPTICS,getFields:()=>_navFields};', ctx);
   ctx.api.navOpticsBind(bar);
   assert.equal(counts.images.length, 1); counts.images[0].onload();
   return { ...ctx.api, ctx, counts, defs, bar, source, box, filter: ctx.NB.optical.filter };
@@ -145,8 +144,8 @@ test('the original field feeds the lens core and only image-masked side arcs rec
   assert.equal(+mask.getAttribute('stdDeviation'), h.NAV_OPTICS.rimBlur);
   const shape = byResult('rimShape'); assert.equal(shape.tag, 'feMerge');
   assert.deepEqual(shape.children.map(n => n.getAttribute('in')), ['leftRim', 'rightRim']);
-  const images = h.filter.querySelectorAll('feImage'); assert.equal(images.length, 3);
-  for (const [i, image] of images.slice(1).entries()) {
+  const images = h.filter.querySelectorAll('feImage'); assert.equal(images.length, 4);
+  for (const [i, image] of images.slice(1, 3).entries()) {
     const href = image.getAttribute('href'); assert.ok(href.startsWith('data:image/svg+xml,'));
     const svg = decodeURIComponent(href.slice(href.indexOf(',') + 1));
     assert.match(svg, /viewBox="0 0 120 120"/); assert.ok(svg.includes(`stroke-width="${h.NAV_OPTICS.rimStroke}"`));
@@ -214,4 +213,93 @@ test('animation and rebinding reuse the same side images, normal correction and 
   h.ctx.LG_UI.refract = 0; h.navLens(1); assert.equal(h.source.style.filter, '');
   h.ctx.LG_UI.refract = 1; h.navLens(1); assert.equal(h.source.style.filter, 'url(#xc-nav-optics)');
   h.navLens(0); assert.equal(h.source.style.filter, ''); assert.equal(h.counts.created, created);
+});
+
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v1.bin', import.meta.url));
+const packBase = 4 + packBytes.readUInt32LE(0);
+const packMeta = JSON.parse(packBytes.toString('utf8', 4, packBase));
+
+test('the prepared fields retain the real vertical map and first-contact direction throughout the aspect range', () => {
+  assert.equal(packMeta.version, 1); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+  assert.equal(packMeta.offsets.length, 130); assert.equal(packMeta.offsets[0], 0);
+  assert.equal(packMeta.offsets.at(-1), packBytes.length - packBase);
+  let maximumVerticalError = 0;
+  for (let i = 0; i < 129; i++) {
+    const begin = packMeta.offsets[i], end = packMeta.offsets[i + 1]; assert.ok(end > begin);
+    const prepared = normalMap(packBytes.subarray(packBase + begin, packBase + end));
+    assert.equal(prepared.width, 288); assert.equal(prepared.height, 232);
+    for (let y = 2; y < 198; y += 3) for (let x = 2; x < 254; x += 3) {
+      const normal = prepared.at(x + 16, y + 16), raw = field.at(x + 16, y + 16);
+      maximumVerticalError = Math.max(maximumVerticalError, Math.abs(normal[1] - raw[1]));
+      assert.ok(Math.abs(normal[2] - raw[2]) <= 1 / 255 + 1e-10); assert.equal(normal[3], 1);
+    }
+    assert.ok(prepared.at(17, 116)[0] < .5, 'The left side samples its incoming letter');
+    assert.ok(prepared.at(270, 116)[0] > .5, 'The right side samples its incoming letter');
+    assert.ok(Math.abs(prepared.at(144, 116)[0] - .5) < .004, 'The middle stays neutral');
+    for (const [x, y] of [[0, 0], [144, 0], [144, 231], [0, 116], [287, 116]]) {
+      const rgba = prepared.at(x, y); assert.equal(rgba[3], 1);
+      assert.ok(rgba.slice(0, 3).every(v => Math.abs(v - .5) < .01), 'The padded border stays opaque/neutral, preventing an RGB seam');
+    }
+  }
+  assert.ok(maximumVerticalError <= 1 / 255 + 1e-10, `Vertical field error ${maximumVerticalError}`);
+});
+
+function fieldLoader(h, { bytes = packBytes, status = true, rejectDecode = false } = {}) {
+  const stats = { fetched: 0, active: 0, maximumActive: 0, decoded: 0, urls: [], revoked: [] };
+  h.ctx.Blob = Blob; h.ctx.TextDecoder = TextDecoder;
+  h.ctx.URL = {
+    createObjectURL: () => { const url = `blob:nav-test-${stats.urls.length}`; stats.urls.push(url); return url; },
+    revokeObjectURL: url => stats.revoked.push(url),
+  };
+  h.ctx.fetch = async (url, options) => {
+    assert.equal(url, h.NAV_OPTICS.fields); assert.equal(options.cache, 'no-cache'); stats.fetched++;
+    return { ok: status, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
+  };
+  h.ctx.Image = class {
+    async decode() {
+      stats.active++; stats.maximumActive = Math.max(stats.maximumActive, stats.active);
+      await Promise.resolve(); stats.active--; stats.decoded++;
+      if (rejectDecode && this.src === 'blob:nav-test-0') throw new Error('decode failed');
+    }
+  };
+  return stats;
+}
+
+test('one bounded preparation replaces the mask graph for frames, without changing the RGB strengths', async () => {
+  const h = optics(), stats = fieldLoader(h), scales = h.ctx.NB.optical.dms.map(n => n.getAttribute('scale'));
+  const loading = h.navFieldsPrepare(); assert.equal(h.navFieldsPrepare(), loading);
+  const fields = await loading; assert.ok(fields); assert.equal(stats.fetched, 1);
+  assert.equal(stats.decoded, 129); assert.equal(stats.maximumActive, 4); assert.equal(stats.revoked.length, 0);
+  assert.deepEqual(h.ctx.NB.optical.dms.map(n => n.getAttribute('scale')), scales);
+  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'preparedNormals'));
+  for (const name of ['x', 'y', 'width', 'height']) assert.equal(h.ctx.NB.optical.prepared.getAttribute(name), h.ctx.NB.optical.image.getAttribute(name), 'The prepared field keeps the same padded sampling rectangle');
+  near(+h.filter.getAttribute('width'), 114 + 48);
+  near(+h.filter.getAttribute('height'), 55.8 + 48);
+  assert.equal(h.navFieldAt(55.8, 55.8), stats.urls[0]); assert.equal(h.navFieldAt(167.4, 55.8), stats.urls[128]);
+  assert.equal(h.navFieldAt(200, 55.8), null); assert.equal(h.navFieldAt(20, 55.8), null);
+  const rawImage = h.ctx.NB.optical.image, rims = h.ctx.NB.optical.rims;
+  const frozen = [rawImage, ...rims].map(n => [...n.attrs]), created = h.counts.created;
+  for (let i = 0; i < 300; i++) { h.box.left = 1 + i / 100; h.box.sx = (90 + i % 60) / 76.8; h.navLens(1); }
+  assert.deepEqual([rawImage, ...rims].map(n => [...n.attrs]), frozen, 'No animated mask/image geometry on the prepared path');
+  assert.equal(stats.urls.length, 129); assert.equal(stats.decoded, 129); assert.equal(h.counts.created, created);
+  h.box.sx = 4; h.navLens(1);
+  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'normals'), 'Uncached shapes retain the accepted live field');
+  h.box.sx = 1.5; h.navLens(1);
+  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'preparedNormals'));
+  h.navOpticsBind(h.bar); await h.navFieldsPrepare(); assert.equal(stats.fetched, 1);
+});
+
+test('a missing or corrupt pack preserves live refraction and does not retry every binding', async () => {
+  for (const options of [{ status: false }, { bytes: Buffer.from([1, 2]) }, { bytes: Buffer.alloc(16, 255) }]) {
+    const h = optics(), stats = fieldLoader(h, options);
+    assert.equal(await h.navFieldsPrepare(), null); assert.equal(h.getFields(), null);
+    assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'normals'));
+    h.navOpticsBind(h.bar); await h.navFieldsPrepare(); assert.equal(stats.fetched, 1); assert.equal(stats.urls.length, 0);
+  }
+});
+
+test('failed preparation waits for the other decoders before releasing every created URL', async () => {
+  const h = optics(), stats = fieldLoader(h, { rejectDecode: true });
+  assert.equal(await h.navFieldsPrepare(), null); assert.equal(stats.active, 0); assert.equal(h.getFields(), null);
+  assert.deepEqual(stats.revoked.toSorted(), stats.urls.toSorted()); assert.ok(stats.urls.length <= 4);
 });
