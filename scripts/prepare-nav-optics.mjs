@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(path.join(process.env.XAUCORE_TOOL_ROOT || root, 'package.json'));
 const { chromium } = require('playwright'), sharp = require('sharp');
-const html = (await fs.readFile(path.join(root, 'public/index.html'), 'utf8')).replaceAll('\r\n', '\n');
+let html = (await fs.readFile(path.join(root, 'public/index.html'), 'utf8')).replaceAll('\r\n', '\n');
 const normal = await fs.readFile(path.join(root, 'public/nav-normal-map.png'));
 // Reflect the circular cap's normal coordinate about its boundary. At rho=50 this has exactly
 // the same value as the old affine field, but the inward derivative now magnifies the first
@@ -27,7 +27,13 @@ const coordinates = await sharp(pixels, { raw:{ width:256, height:256, channels:
 await fs.writeFile(path.join(root, 'public/nav-contact-surface.png'), coordinates);
 const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function navBind(bar){', start);
 if(start < 0 || end < start) throw new Error('Cannot find the actual navigation optics');
-const source = html.slice(start, end).replace('map: "/nav-normal-map.png"', 'map: ' + JSON.stringify('data:image/png;base64,' + normal.toString('base64'))).replace('coordinates: "/nav-contact-surface.png"', 'coordinates: ' + JSON.stringify('data:image/png;base64,' + coordinates.toString('base64')));
+// The live fallback must work with the HTML alone, including when the optimization pack cannot
+// download. Inline these two immutable inputs once; frame updates never rewrite their long URLs.
+const source = html.slice(start, end)
+  .replace(/\bmap: "[^"]*"/, 'map: ' + JSON.stringify('data:image/png;base64,' + normal.toString('base64')))
+  .replace(/\bcoordinates: "[^"]*"/, 'coordinates: ' + JSON.stringify('data:image/png;base64,' + coordinates.toString('base64')));
+html = html.slice(0,start) + source + html.slice(end);
+await fs.writeFile(path.join(root, 'public/index.html'), html);
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try{
   const context = await browser.newContext({ viewport: { width: 288, height: 232 }, deviceScaleFactor: 1 });

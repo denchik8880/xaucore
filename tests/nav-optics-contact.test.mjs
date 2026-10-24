@@ -80,6 +80,16 @@ function applyMatrix(node, rgba) {
 }
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} ≈ ${b}`);
 
+test('the loaded page contains the complete live lens inputs, independent of further network requests', () => {
+  const h = optics();
+  for(const [key,file] of [['map','nav-normal-map.png'],['coordinates','nav-contact-surface.png']]){
+    const url = h.NAV_OPTICS[key];
+    assert.ok(url.startsWith('data:image/png;base64,'), 'A missing network image cannot silently disable the only live fallback');
+    const embedded = Buffer.from(url.slice(url.indexOf(',')+1), 'base64');
+    assert.deepEqual(embedded, fs.readFileSync(new URL('../public/'+file,import.meta.url)), 'Embedded and prepared inputs use the same committed pixels');
+  }
+});
+
 test('both cap surfaces retain three RGB samples from the complete original source', () => {
   const h = optics(), images = h.filter.querySelectorAll('feImage');
   for (const [i, correction] of h.ctx.NB.optical.contact.entries()) {
