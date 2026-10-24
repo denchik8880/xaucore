@@ -39,16 +39,16 @@ function nearColor(actual, expected, message) {
 
 test('contact coordinates recover a small outward source sample from either capsule edge', t => {
   near(NAV_OPTICS.contactGain, .0057);
-  const width = 114, height = 55.8, center = [width / 2, height / 2], values = navContactValues(width, height);
-  nearColor(matrix(values, [.5, .5, .3, .41]), [.5, .5, .3, .41], 'The contact center stays neutral and B/A pass through');
+  const width = 114, height = 55.8, center = [width / 2, height / 2];
   let largestOutward = 0;
   for (const y of [18, center[1], 45]) {
     const radius = height / 2, inset = radius - Math.sqrt(radius ** 2 - (y - radius) ** 2);
     for (const side of [-1, 1]) {
       const x = side < 0 ? inset : width - inset;
       // This is the documented coordinate image at the actual left/right capsule intersection.
-      const input = [.5 + (x - center[0]) / (width * 1.125), .5 + (y - center[1]) / (height * 1.16), .27, 1];
-      const normal = matrix(values, input);
+      const capX = side < 0 ? radius : width - radius;
+      const input = [.5 + (x - capX) / (height * 1.2), .5 + (y - radius) / (height * 1.2), .27, 1];
+      const normal = matrix(navContactValues(width, height, side), input);
       near(normal[2], .27); near(normal[3], 1);
       assert.ok(normal.slice(0, 2).every(value => value > 0 && value < 1), 'The contact coordinate matrix does not clip');
       for (const energy of [0, 1]) for (const clear of [.25, 1]) for (const refraction of [.5, 1.5]) {
@@ -126,10 +126,10 @@ test('dark contact fringes stay finite and colored without tinting the backgroun
 
 
 test('contact field coefficients stay identical between prepared and live paths while the contour fades', () => {
-  for (const ratio of [1, 1.5, 2, 2.7, 3]) {
-    const prepared = navContactValues(55.8 * ratio, 55.8);
+  for (const ratio of [1, 1.5, 2, 2.7, 3]) for (const side of [-1, 1]) {
+    const prepared = navContactValues(55.8 * ratio, 55.8, side);
     for (const height of [52, 54.4186, 55.8, 56.4186, 58]) {
-      const live = navContactValues(height * ratio, height);
+      const live = navContactValues(height * ratio, height, side);
       for (let i = 0; i < 20; i++) near(live[i], prepared[i], 'Prepared/live contact maps agree at the same aspect ratio');
     }
   }

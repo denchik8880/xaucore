@@ -57,7 +57,7 @@ function optics() {
   const bar = new Element('bar'); bar.clientWidth = 384; bar.clientHeight = 60;
   bar.querySelector = selector => selector === '.nr-optics' ? source : null;
   const ctx = {
-    Math, LG_LENS: true, LG_UI: { refract: 1 }, DISP: { on: true, drops: true, str: 50 },
+    Math, LG_LENS: true, LG_UI: { refract: 1 }, LGQ: { r: 2.155 }, DISP: { on: true, drops: true, str: 50 },
     NB: { clear: 1, opticalEnergy: 1, a: 1, b: 2, lift: 0, optical: null },
     clamp: (v, a, b) => Math.max(a, Math.min(b, v)), glassOn: () => true,
     navBox: () => box, lgDefsReady() {}, _lgDefs: defs,
@@ -80,62 +80,48 @@ function applyMatrix(node, rgba) {
 }
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} ≈ ${b}`);
 
-test('both coordinate components feed side contact while the same three RGB samples keep their original source', () => {
+test('both cap surfaces retain three RGB samples from the complete original source', () => {
   const h = optics(), images = h.filter.querySelectorAll('feImage');
-  const correction = h.ctx.NB.optical.contact;
-  assert.equal(images[1].getAttribute('href'), h.NAV_OPTICS.coordinates);
-  assert.equal(correction.getAttribute('in'), 'contactCoordinates');
+  for (const [i, correction] of h.ctx.NB.optical.contact.entries()) {
+    assert.equal(images[i+1].getAttribute('href'), h.NAV_OPTICS.coordinates);
+    assert.equal(correction.getAttribute('in'), (i ? 'right' : 'left') + 'Coordinates');
+    const topLeft = applyMatrix(correction, [.1,.2,.5,1]), bottomRight = applyMatrix(correction, [.9,.8,.5,1]);
+    assert.ok(topLeft[0] < bottomRight[0] && topLeft[1] < bottomRight[1]);
+    for (const n of [topLeft,bottomRight]) { near(n[2],.5); near(n[3],1); }
+  }
   const passes = h.filter.querySelectorAll('feDisplacementMap'); assert.equal(passes.length, 3);
   for (const dm of passes) {
     assert.equal(dm.getAttribute('in'), 'SourceGraphic'); assert.equal(dm.getAttribute('in2'), 'normals');
     assert.equal(dm.getAttribute('xChannelSelector'), 'R'); assert.equal(dm.getAttribute('yChannelSelector'), 'G');
   }
-  assert.ok(h.filter.children.indexOf(correction) < h.filter.children.indexOf(passes[0]));
-  const center = applyMatrix(correction, [.5,.5,.5,1]); near(center[0],.5); near(center[1],.5);
-  const topLeft = applyMatrix(correction, [.1,.2,.5,1]), bottomRight = applyMatrix(correction, [.9,.8,.5,1]);
-  assert.ok(topLeft[0] < .5 && topLeft[1] < .5);
-  assert.ok(bottomRight[0] > .5 && bottomRight[1] > .5);
-  for (const n of [topLeft,bottomRight]) { near(n[2],.5); near(n[3],1); }
+  for (const image of images) assert.equal(image.getAttribute('crossorigin'), 'anonymous');
 });
 
-test('the original field feeds the lens core and only image-masked side arcs receive the contact correction', () => {
+test('the original field remains the core while separate circular caps supply curved contact', () => {
   const h = optics(), byResult = name => h.filter.children.find(n => n.getAttribute('result') === name);
-  const correction = byResult('contactNormals'), mask = byResult('rimMask');
-  const core = byResult('originalCore'), contact = byResult('contactRim'), mixed = byResult('normals');
-  assert.equal(correction.getAttribute('in'), 'contactCoordinates');
-  for (const [node, input, op] of [[core, 'rawNormals', 'out'], [contact, 'contactNormals', 'in']]) {
-    assert.equal(node.getAttribute('in'), input); assert.equal(node.getAttribute('in2'), 'rimMask');
-    assert.equal(node.getAttribute('operator'), op);
-  }
-  assert.equal(mixed.tag, 'feComposite'); assert.equal(mixed.getAttribute('operator'), 'arithmetic');
+  const core = byResult('originalCore'), mixed = byResult('normals');
+  assert.equal(core.getAttribute('in'), 'rawNormals'); assert.equal(core.getAttribute('in2'), 'rimMask');
+  assert.equal(core.getAttribute('operator'), 'out');
   assert.equal(mixed.getAttribute('in'), 'contactRim'); assert.equal(mixed.getAttribute('in2'), 'originalCore');
+  assert.equal(mixed.getAttribute('operator'), 'arithmetic');
   assert.equal(+mixed.getAttribute('k2'), 1); assert.equal(+mixed.getAttribute('k3'), 1);
-  assert.equal(mask.tag, 'feGaussianBlur'); assert.equal(mask.getAttribute('in'), 'rimShape');
-  assert.equal(+mask.getAttribute('stdDeviation'), h.NAV_OPTICS.rimBlur);
-  const shape = byResult('rimShape'); assert.equal(shape.tag, 'feMerge');
-  assert.deepEqual(shape.children.map(n => n.getAttribute('in')), ['leftRim', 'rightRim']);
-  const images = h.filter.querySelectorAll('feImage'); assert.equal(images.length, 5);
-  for (const [i, image] of images.slice(2, 4).entries()) {
+  for (const side of ['left', 'right']) {
+    const mask = byResult(side+'Mask'), contact = byResult(side+'Contact');
+    assert.equal(mask.tag, 'feGaussianBlur'); assert.equal(mask.getAttribute('in'), side+'Rim');
+    assert.equal(+mask.getAttribute('stdDeviation'), h.NAV_OPTICS.rimBlur);
+    assert.equal(contact.getAttribute('in'), side+'ContactNormals'); assert.equal(contact.getAttribute('in2'), side+'Mask');
+    assert.equal(contact.getAttribute('operator'), 'in');
+  }
+  const images = h.filter.querySelectorAll('feImage'); assert.equal(images.length, 6);
+  for (const [i, image] of images.slice(3, 5).entries()) {
     const href = image.getAttribute('href'); assert.ok(href.startsWith('data:image/svg+xml,'));
     const svg = decodeURIComponent(href.slice(href.indexOf(',') + 1));
-    assert.match(svg, /viewBox="0 0 120 120"/); assert.ok(svg.includes(`stroke-width="${h.NAV_OPTICS.rimStroke}"`));
+    assert.ok(svg.includes(`stroke-width="${h.NAV_OPTICS.rimStroke}"`));
     assert.ok(svg.includes(i ? 'M60 10 A50 50 0 0 1 60 110' : 'M60 10 A50 50 0 0 0 60 110'));
-    assert.doesNotMatch(svg, /href=|<use|<foreignObject|<script|<image/);
+    assert.doesNotMatch(svg, /href=|<use|<foreignObject|<script|<image|<rect/);
     const x = 76.8 * h.box.left, w = 76.8 * h.box.sx, height = 51 * h.box.sy;
     assert.ok(Math.abs(+image.getAttribute('width') - 1.2 * height) < .001);
     assert.ok(Math.abs(+image.getAttribute('x') - (x + (i ? w - 1.1 * height : -.1 * height))) < .001);
-    // Separate circular caps cover icons and captions, without a horizontal mask across the middle.
-    assert.doesNotMatch(svg, /<rect/);
-  }
-  // Complementary masks plus arithmetic addition preserve all raw channels when mask alpha is zero,
-  // and preserve B/A at every feathered value. In particular, no global horizontal reversal remains.
-  for (const [x, y] of [[40, 70], [120, 185], [248, 70]]) {
-    const raw = field.at(x, y), corrected = applyMatrix(correction, raw);
-    for (const alpha of [0, .1, .5, 1]) {
-      const normal = raw.map((v, c) => v * (1 - alpha) + corrected[c] * alpha);
-      for (const c of [2, 3]) near(normal[c], raw[c]);
-      if (!alpha) assert.deepEqual(normal, raw);
-    }
   }
 });
 
@@ -152,7 +138,7 @@ test('opaque source padding covers displaced samples while the existing outer ca
   assert.ok(outer['clip-path'].includes('var(--u,0)') && outer['clip-path'].includes('var(--sx,1)') && outer['clip-path'].includes('var(--sy,1)'));
   assert.equal(source['clip-path'], undefined); assert.notEqual(source.overflow, 'hidden');
   assert.ok(html.includes('<span class="nr-optics"><span class="nr-in">'), 'The complete source is nested inside the outer clip');
-  h.ctx.LG_UI.refract = 1.5; h.ctx.DISP.str = 100; h.navLens(1);
+  h.ctx.LG_UI.refract = 1.5; h.ctx.LGQ.r = 2.65; h.ctx.DISP.str = 100; h.navLens(1);
   const maximumScale = Math.max(...h.filter.querySelectorAll('feDisplacementMap').map(n => +n.getAttribute('scale')));
   // Both encoded displacement channels are clamped to [0,1]. This conservative bound covers every
   // prepared ratio and the live coordinate field, including the largest slider values.
@@ -179,12 +165,12 @@ test('animation and rebinding reuse the same side images, normal correction and 
   h.navLens(0); assert.equal(h.source.style.filter, ''); assert.equal(h.counts.created, created);
 });
 
-const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v2.bin', import.meta.url));
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v3.bin', import.meta.url));
 const packBase = 4 + packBytes.readUInt32LE(0);
 const packMeta = JSON.parse(packBytes.toString('utf8', 4, packBase));
 
 test('prepared fields retain the original core and sample icons and captions at the first cap contact', () => {
-  assert.equal(packMeta.version, 2); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+  assert.equal(packMeta.version, 3); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
   assert.equal(packMeta.offsets.length, 130); assert.equal(packMeta.offsets[0], 0);
   assert.equal(packMeta.offsets.at(-1), packBytes.length - packBase);
   let maximumVerticalError = 0;
@@ -236,6 +222,26 @@ test('the shipped field reaches the first intersected icon row and caption on bo
     }
   }
   t.diagnostic(`Prepared inverse source reach ${minimum.toFixed(4)}..${maximum.toFixed(4)} local px at icon/caption cap contacts`);
+});
+
+test('the shipped cap pixels magnify the first captured fragment instead of cancelling its refraction', t => {
+  const index = 64, map = normalMap(packBytes.subarray(packBase + packMeta.offsets[index], packBase + packMeta.offsets[index + 1]));
+  const h = packMeta.height, w = 2 * h, r = h / 2;
+  const normalX = (x,y) => {
+    const px = 16+x/w*256-.5, py = 16+y/h*200-.5, ix = Math.floor(px), iy = Math.floor(py), fx = px-ix, fy = py-iy;
+    return (map.at(ix,iy)[0]*(1-fx)+map.at(ix+1,iy)[0]*fx)*(1-fy)
+      + (map.at(ix,iy+1)[0]*(1-fx)+map.at(ix+1,iy+1)[0]*fx)*fy;
+  };
+  let minimum = Infinity;
+  for(const y of [18,r,45]) for(const side of [-1,1]){
+    const inset = r-Math.sqrt(r*r-(y-r)**2), edge = side < 0 ? inset : w-inset;
+    const inverse = x => w/2 + (x+27*.74*(normalX(x,y)-.5)-w/2)/(1+.14*.74);
+    const x0 = edge-side*.25, x1 = edge-side*1.75;
+    const magnification = Math.abs((x1-x0)/(inverse(x1)-inverse(x0)));
+    minimum = Math.min(minimum,magnification);
+    assert.ok(magnification > 1.05 && magnification < 2, `Visible curved contact at saved 74%: y=${y}, side=${side}, magnification=${magnification}`);
+  }
+  t.diagnostic(`Minimum first-fragment magnification at 74%: ${minimum.toFixed(3)}x`);
 });
 
 function fieldLoader(h, { bytes = packBytes, status = true, rejectDecode = false } = {}) {
@@ -296,4 +302,21 @@ test('failed preparation waits for the other decoders before releasing every cre
   const h = optics(), stats = fieldLoader(h, { rejectDecode: true });
   assert.equal(await h.navFieldsPrepare(), null); assert.equal(stats.active, 0); assert.equal(h.getFields(), null);
   assert.deepEqual(stats.revoked.toSorted(), stats.urls.toSorted()); assert.ok(stats.urls.length <= 4);
+});
+
+// Exercise the actual frame entry point: unchanged clarity retains calibration, and setting endpoints
+// must visibly remove/reapply the complete effect rather than only moving the settings knob.
+test('navigation responds to the saved refraction dial and theme clarity without changing its contour', () => {
+  const h = optics(), geometry = {...h.box};
+  h.ctx.LG_UI.refract = .74; h.navLens(1);
+  const middle = () => +h.ctx.NB.optical.dms[1].getAttribute('scale');
+  near(middle(), 22.94);
+  h.ctx.LGQ.r = 0; h.navLens(1);
+  assert.equal(h.source.style.filter, '');
+  h.ctx.LGQ.r = 2.65; h.navLens(1);
+  assert.equal(h.source.style.filter, 'url(#xc-nav-optics)');
+  assert.ok(Math.abs(middle() - 22.94 * 2.65 / 2.155) < .001);
+  h.ctx.LG_UI.refract = 0; h.navLens(1); assert.equal(h.source.style.filter, '');
+  h.ctx.LG_UI.refract = 1.5; h.navLens(1); assert.ok(middle() > 57);
+  assert.deepEqual(h.box, geometry, 'Optical settings do not alter the accepted contour');
 });
