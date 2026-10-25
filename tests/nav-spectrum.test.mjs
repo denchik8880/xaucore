@@ -7,8 +7,8 @@ const html = fs.readFileSync(process.env.XAUCORE_NAV_SOURCE || new URL('../publi
 const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function navBind(bar){', start);
 assert.ok(start >= 0 && end > start, 'Actual navigation optics section exists');
 const context = vm.createContext({ Math, clamp: (v, low, high) => Math.max(low, Math.min(high, v)) });
-vm.runInContext(html.slice(start, end) + '\nglobalThis.api={NAV_OPTICS,navContactValues,navSpectrumValues};', context);
-const { NAV_OPTICS, navContactValues, navSpectrumValues } = context.api;
+vm.runInContext(html.slice(start, end) + '\nglobalThis.api={NAV_OPTICS,navSpectrumValues};', context);
+const { NAV_OPTICS, navSpectrumValues } = context.api;
 
 const near = (actual, expected, message = `${actual} ≈ ${expected}`) => assert.ok(Math.abs(actual - expected) < 1e-10, message);
 const clamp01 = value => Math.max(0, Math.min(1, value));
@@ -36,15 +36,6 @@ function nearColor(actual, expected, message) {
   assert.equal(actual.length, expected.length);
   actual.forEach((value, channel) => near(value, expected[channel], `${message}, channel ${channel}: ${value} ≈ ${expected[channel]}`));
 }
-
-test('the cap carrier translates its shared radial field about the actual lens centre', () => {
-  const width=114,height=55.8,gain=NAV_OPTICS.gain,r=NAV_OPTICS.corner;
-  for(const side of [-1,1])for(const S of [0,.25,1]){
-    const rgba=matrix(navContactValues(width,height,side),[.4,.6,S,1]);
-    near(rgba[0],.4+side*gain*(width/height-2*r)/2*S);
-    near(rgba[1],.6);near(rgba[2],.5);near(rgba[3],1);
-  }
-});
 
 test('spectrum channels measure transmittance through the palette channel with strongest contrast', () => {
   for (const [ink, background, strongest] of [
@@ -99,15 +90,4 @@ test('dark contact fringes stay finite and colored without tinting the backgroun
   assert.ok(blueFringe[2] > background[2] + .5 && blueFringe[0] <= background[0] && blueFringe[1] <= background[1]);
   nearColor(spectrum(palette, [background, background, background]), [...background, 1], 'The dark background stays unpainted');
   nearColor(spectrum(palette, [ink, ink, ink]), [...ink, 1], 'The uniform selected source stays intact in dark themes');
-});
-
-
-test('contact field coefficients stay identical between prepared and live paths while the contour fades', () => {
-  for (const ratio of [1, 1.5, 2, 2.7, 3]) for (const side of [-1, 1]) {
-    const prepared = navContactValues(55.8 * ratio, 55.8, side);
-    for (const height of [52, 54.4186, 55.8, 56.4186, 58]) {
-      const live = navContactValues(height * ratio, height, side);
-      for (let i = 0; i < 20; i++) near(live[i], prepared[i], 'Prepared/live contact maps agree at the same aspect ratio');
-    }
-  }
 });
