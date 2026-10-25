@@ -43,6 +43,8 @@ try{
     await page.evaluate(()=>{_navFields=globalThis.qaFields;NB.optical.key='';navLens(1);});
    }
    await pose(page,2);
+   const unchangedWrites=await page.evaluate(async()=>{let writes=0;const observer=new MutationObserver(records=>writes+=records.length);observer.observe(NB.optical.backdrop.source,{attributes:true,attributeFilter:['style']});for(let i=0;i<50;i++)navLens(1);await Promise.resolve();observer.disconnect();return writes;});
+   assert.equal(unchangedWrites,0,'A held lens cannot reassign its backdrop filter on every animation frame');
    const r=await page.locator('.nav-rest').boundingBox(),clip={x:Math.ceil(r.x+r.width*.2),y:Math.ceil(r.y+r.height*.2),width:Math.floor(r.width*.6),height:Math.floor(r.height*.6)};
    await page.locator('.nav-red').evaluate(el=>el.style.visibility='hidden');const masked=await page.screenshot({clip});
    await page.locator('.nav-neutral').evaluate(el=>el.style.visibility='hidden');const empty=await page.screenshot({clip});
@@ -57,7 +59,7 @@ try{
     const r=await page.locator('.bottomnav button').nth(i).boundingBox();await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:r.x+r.width/2,y:r.y+r.height/2,id:1}]});await page.waitForTimeout(70);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForFunction(()=>!NB.raf,{},{timeout:6000});
     assert.equal(await page.locator('.bottomnav button.on').getAttribute('data-nav'),['markets','chart','positions','orders','more'][i]);
    }
-   assert.equal(blobs.length,0);assert.deepEqual(await page.evaluate(()=>[NB.optical.source.style.filter,getComputedStyle(NB.optical.backdrop.parent).visibility]),['','hidden']);
+   assert.equal(blobs.length,0);assert.deepEqual(await page.evaluate(()=>[NB.optical.source.style.filter,NB.optical.backdrop.source.style.backdropFilter,getComputedStyle(NB.optical.backdrop.parent).visibility]),['','','hidden']);
    await page.evaluate(()=>{document.documentElement.dataset.glass='off';navBind(document.querySelector('.bottomnav'));});
    const boxes=await page.locator('.bottomnav button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return{x:r.x,w:r.width};}));
    assert.equal(boxes.length,5);for(let i=0;i<5;i++){assert.ok(boxes[i].w>30);if(i)assert.ok(boxes[i].x>boxes[i-1].x);}

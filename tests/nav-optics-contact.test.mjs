@@ -9,7 +9,7 @@ const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function n
 assert.ok(start >= 0 && end > start, 'Actual navigation optics section exists');
 
 // Decode the committed field without browser/image packages or generated fixture files.
-function normalMap(png = fs.readFileSync(new URL('../public/nav-core-v8.png', import.meta.url))) {
+function normalMap(png = fs.readFileSync(new URL('../public/nav-core-v9.png', import.meta.url))) {
   let width, height, channels;
   const chunks = [];
   for (let p = 8; p < png.length;) {
@@ -80,7 +80,7 @@ function applyMatrix(node, rgba) {
 }
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-10, `${a} ≈ ${b}`);
 
-const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v8.bin', import.meta.url));
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v9.bin', import.meta.url));
 const packBase=4+packBytes.readUInt32LE(0),packMeta=JSON.parse(packBytes.toString('utf8',4,packBase));
 const prepared=index=>normalMap(packBytes.subarray(packBase+packMeta.offsets[index],packBase+packMeta.offsets[index+1]));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -98,7 +98,7 @@ test('the complete six live inputs decode before live displacement starts',()=>{
 
 test('all live carriers, fallback orb and background normals are embedded with their committed pixels',()=>{
   const h=optics();
-  for(const[key,file]of[['map','nav-core-v8.png'],['coordinates','nav-cap-v8.png'],['circle','nav-circle-v8.png'],['background','nav-background-v8.png'],['rims','nav-half-left-v8.png'],['rims','nav-half-right-v8.png']]){
+  for(const[key,file]of[['map','nav-core-v9.png'],['coordinates','nav-cap-v9.png'],['circle','nav-circle-v9.png'],['background','nav-background-v9.png'],['rims','nav-half-left-v9.png'],['rims','nav-half-right-v9.png']]){
     const url=key==='rims'?h.NAV_OPTICS.rims[file.includes('left')?0:1]:h.NAV_OPTICS[key];
     assert.ok(url.startsWith('data:image/png;base64,'));assert.deepEqual(Buffer.from(url.split(',')[1],'base64'),fs.readFileSync(new URL('../public/'+file,import.meta.url)));
   }
@@ -129,7 +129,7 @@ test('the live field combines complementary half planes without the former overl
 });
 
 test('all cached fields are opaque, neutral in the magnifier core and symmetric at either contact',t=>{
-  assert.equal(packMeta.version,8);assert.equal(packMeta.offsets.length,130);assert.equal(packMeta.offsets.at(-1),packBytes.length-packBase);
+  assert.equal(packMeta.version,9);assert.equal(packMeta.offsets.length,130);assert.equal(packMeta.offsets.at(-1),packBytes.length-packBase);
   let min=Infinity,max=0;
   for(let i=0;i<129;i++){
     const map=prepared(i),ratio=1+i/64;assert.equal(map.width,288);assert.equal(map.height,232);
@@ -145,6 +145,32 @@ test('all cached fields are opaque, neutral in the magnifier core and symmetric 
     }
   }
   t.diagnostic(`Boundary source reach ${min.toFixed(3)}..${max.toFixed(3)}px`);
+});
+
+test('tab-centre captions retain the accepted refraction while sidewalls change',()=>{
+  const oldBytes=fs.readFileSync(new URL('../public/nav-optics-fields-v8.bin',import.meta.url)),base=4+oldBytes.readUInt32LE(0),meta=JSON.parse(oldBytes.toString('utf8',4,base));
+  for(const i of[0,16,32,64,96,128]){
+    const old=normalMap(oldBytes.subarray(base+meta.offsets[i],base+meta.offsets[i+1])),current=prepared(i);
+    for(let y=1;y<199;y++)for(const x of[128,142,144,146,160])for(const channel of[0,1])assert.ok(Math.abs(old.at(x,y+16)[channel]-current.at(x,y+16)[channel])<=1/255,'Centre glyphs cannot acquire the new sidewall compression');
+  }
+});
+
+test('entering icons expand through a broad sidewall band and rise inside its shoulder',t=>{
+  let minimum=Infinity,smallestLift=Infinity;
+  for(const i of[0,32,64,112]){
+    const map=prepared(i),h=55.8,w=(1+i/64)*h,r=.4*h,y=.3*h,dy=y-r,inset=r-Math.sqrt(r*r-dy*dy);
+    const inverse=(x,y)=>{const p=sample(map,x/w,y/h);return[w/2+(x+27*(p[0]-.5)-w/2)/1.14,h/2+(y+27*(p[1]-.5)-h/2)/1.14];};
+    for(const side of[-1,1]){
+      const edge=side<0?inset:w-inset,x0=edge-side*1,x1=edge-side*6,a=inverse(x0,y),b=inverse(x1,y),zoom=Math.abs((x1-x0)/(b[0]-a[0]));
+      minimum=Math.min(minimum,zoom);assert.ok(zoom>1.35&&zoom<2.2,'Five pixels inside contact must still magnify, instead of collapsing after the first pixel');
+      const cx=side<0?r:w-r,vx=side*Math.sqrt((.8*r)**2-dy*dy),x=cx+vx,p=sample(map,x/w,y/h);
+      const K=(p[0]-.5-(.2893333333333333*(cx-w/2)/h))/(.2893333333333333*vx/h);
+      const baseG=.5+.2893333333333333*((r-h/2)+dy*K)/h;
+      const lift=27*(p[1]-baseG)/1.14;smallestLift=Math.min(smallestLift,lift);
+      assert.ok(lift>1.5,'The captured upper shoulder must rise, rather than bow down into the icon');
+    }
+  }
+  t.diagnostic(`Broad-band magnification at least ${minimum.toFixed(3)}x; shoulder lift at least ${smallestLift.toFixed(3)}px`);
 });
 
 test('the field keeps bounded source derivatives across both medial joins',t=>{
@@ -221,8 +247,9 @@ test('one bounded preparation replaces the mask graph for frames, without changi
   assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'preparedNormals');
   assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'edgeSafeNormals'));
   for (const name of ['x', 'y', 'width', 'height']) assert.equal(h.ctx.NB.optical.prepared.getAttribute(name), h.ctx.NB.optical.image.getAttribute(name), 'The prepared field keeps the same padded sampling rectangle');
-  near(+h.filter.getAttribute('width'), 114 + h.NAV_OPTICS.padding*2);
-  near(+h.filter.getAttribute('height'), 55.8 + h.NAV_OPTICS.padding*2);
+  const pad=Math.min(h.NAV_OPTICS.padding,Math.ceil(+h.ctx.NB.optical.dms[2].getAttribute("scale")/2+1));
+  near(+h.filter.getAttribute('width'), 114 + pad*2);
+  near(+h.filter.getAttribute('height'), 55.8 + pad*2);
   assert.equal(h.navFieldAt(55.8, 55.8), stats.urls[0]); assert.equal(h.navFieldAt(167.4, 55.8), stats.urls[128]);
   assert.equal(h.navFieldAt(200, 55.8), null); assert.equal(h.navFieldAt(20, 55.8), stats.urls[0]);
   assert.equal(h.navFieldAt(168,84),stats.urls[64],'Tall orbs reuse the same normalized prepared field');
