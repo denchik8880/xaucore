@@ -9,7 +9,7 @@ const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function n
 assert.ok(start >= 0 && end > start, 'Actual navigation optics section exists');
 
 // Decode the committed field without browser/image packages or generated fixture files.
-function normalMap(png = fs.readFileSync(new URL('../public/nav-normal-map-v2.png', import.meta.url))) {
+function normalMap(png = fs.readFileSync(new URL('../public/nav-normal-map-orb.png', import.meta.url))) {
   let width, height, channels;
   const chunks = [];
   for (let p = 8; p < png.length;) {
@@ -90,7 +90,7 @@ test('live refraction waits for both contact masks as well as both source maps',
 
 test('the loaded page contains the complete live lens inputs, independent of further network requests', () => {
   const h = optics();
-  for(const [key,file] of [['map','nav-normal-map-v2.png'],['coordinates','nav-contact-surface-v3.png']]){
+  for(const [key,file] of [['map','nav-normal-map-orb.png'],['coordinates','nav-contact-orb.png']]){
     const url = h.NAV_OPTICS[key];
     assert.ok(url.startsWith('data:image/png;base64,'), 'A missing network image cannot silently disable the only live fallback');
     const embedded = Buffer.from(url.slice(url.indexOf(',')+1), 'base64');
@@ -113,6 +113,12 @@ test('both cap surfaces retain three RGB samples from the complete original sour
     for (const n of [topLeft,bottomRight]) { near(n[2],.5); near(n[3],1); }
   }
   const passes = h.filter.querySelectorAll('feDisplacementMap'); assert.equal(passes.length, 3);
+  assert.equal(h.ctx.NB.optical.output.getAttribute('in'),'spectrum');
+  assert.equal(h.ctx.NB.optical.output.getAttribute('k3'),'0','The orb uses direct RGB rather than palette-projected cyan fringes');
+  for(const [i,node]of h.ctx.NB.optical.channels.entries()){
+    const expected=Array(20).fill(0);expected[i*6]=expected[18]=1;
+    assert.deepEqual(node.getAttribute('values').split(' ').map(Number),expected);
+  }
   const safe = h.ctx.NB.optical.safeNormals;
   assert.equal(safe.getAttribute('in'), 'normals');
   assert.deepEqual(safe.getAttribute('values').split(' ').map(Number), [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0]);
@@ -175,6 +181,9 @@ test('opaque source padding covers displaced samples while the existing outer ca
   // Both encoded displacement channels are clamped to [0,1]. This conservative bound covers every
   // prepared ratio and the live coordinate field, including the largest slider values.
   assert.ok(maximumScale * .5 < h.NAV_OPTICS.sourcePadding);
+  h.box.sy=84/51;h.box.sx=85/76.8;h.navLens(1);
+  const tallMaximum=Math.max(...h.filter.querySelectorAll('feDisplacementMap').map(n=>+n.getAttribute('scale')));
+  assert.ok(tallMaximum*.5<h.NAV_OPTICS.sourcePadding,'The tall held orb retains opaque source coverage at maximum settings');
   t.diagnostic(`Maximum possible sample displacement ${(maximumScale * .5).toFixed(3)}px within ${h.NAV_OPTICS.sourcePadding}px backing; output padding stays ${h.NAV_OPTICS.padding}px`);
 });
 
@@ -197,16 +206,16 @@ test('animation and rebinding reuse the same side images, normal correction and 
   h.navLens(0); assert.equal(h.source.style.filter, ''); assert.equal(h.counts.created, created);
 });
 
-const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v5.bin', import.meta.url));
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v6.bin', import.meta.url));
 const packBase = 4 + packBytes.readUInt32LE(0);
 const packMeta = JSON.parse(packBytes.toString('utf8', 4, packBase));
 
 test('prepared fields retain the original core and sample icons and captions at the first cap contact', () => {
-  assert.equal(packMeta.version, 5); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+  assert.equal(packMeta.version, 6); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
   assert.equal(packMeta.contactSlope, 2.25); assert.equal(packMeta.contactSpan, 1.6);
   assert.equal(packMeta.contactTau,1.5);assert.equal(packMeta.contactBand,10);
   assert.equal(packMeta.contactLead,1.5);
-  assert.equal(packMeta.verticalTop,.02);assert.equal(packMeta.verticalBottom,.8);
+  assert.equal(packMeta.verticalTop,.02);assert.equal(packMeta.verticalBottom,.5);
   assert.equal(packMeta.offsets.length, 130); assert.equal(packMeta.offsets[0], 0);
   assert.equal(packMeta.offsets.at(-1), packBytes.length - packBase);
   let maximumVerticalError = 0;
@@ -302,6 +311,35 @@ test('the prepared cap joins do not retain the former abrupt sampling jump', t =
   t.diagnostic(`Maximum inverse sampling gradient ${maximum.toFixed(3)}`);
 });
 
+test('the compact orb keeps maximum displaced source samples within its bounded filter region', t => {
+  const ctx={NB:{railWidth:384,clear:1,opticalEnergy:0},Math,clamp:(v,a,b)=>Math.max(a,Math.min(b,v))};
+  vm.createContext(ctx);
+  vm.runInContext(html.slice(html.indexOf('const NAV_DROP ='),html.indexOf('function navEase('))+'\nglobalThis.api={navTrackBuild,navBox};',ctx);
+  ctx.NB.track=ctx.api.navTrackBuild(384,64);
+  const maxima=new Map(),strength=1.5*2.65/2.155;
+  const limits=index=>{
+    if(maxima.has(index))return maxima.get(index);
+    const map=normalMap(packBytes.subarray(packBase+packMeta.offsets[index],packBase+packMeta.offsets[index+1]));
+    const height=packMeta.height,width=(1+index/64)*height,r=height/2,out=[0,0];
+    for(let y=-1;y<=200;y++)for(let x=-1;x<=256;x++){
+      const px=(x+.5)/256*width,py=(y+.5)/200*height,cx=Math.max(r,Math.min(width-r,px));
+      if(Math.hypot(px-cx,py-r)>r+.6)continue;
+      const p=map.at(x+16,y+16);out[0]=Math.max(out[0],Math.abs(p[0]-.5));out[1]=Math.max(out[1],Math.abs(p[1]-.5));
+    }
+    maxima.set(index,out);return out;
+  };
+  let maximum=0;
+  for(const clear of [.25,.5,.75,1])for(const energy of [0,.25,.5,.75,1])for(let u=0;u<=4;u+=.5){
+    Object.assign(ctx.NB,{clear,opticalEnergy:energy});const box=ctx.api.navBox(u,u+1,0),height=55*box.sy,width=76.8*box.sx;
+    const index=Math.round((width/height-1)*64);assert.ok(index>=0&&index<=128,'Every orb state remains in the prepared aspect range');
+    const n=limits(index),scale=clear*(27+4*energy)*strength*height/55.8*1.18;
+    maximum=Math.max(maximum,n[0]*scale,n[1]*scale/strength);
+  }
+  const padding=optics().NAV_OPTICS.padding;
+  assert.ok(maximum+.5<padding,`Maximum sampling offset ${maximum}px plus antialiasing must fit ${padding}px`);
+  t.diagnostic(`Maximum visible sample offset ${maximum.toFixed(3)}px within ${padding}px filter padding`);
+});
+
 function fieldLoader(h, { bytes = packBytes, status = true, rejectDecode = false } = {}) {
   const stats = { fetched: 0, active: 0, maximumActive: 0, decoded: 0, urls: [], revoked: [], preloadModes: [] };
   h.ctx.Blob = Blob; h.ctx.TextDecoder = TextDecoder;
@@ -334,15 +372,19 @@ test('one bounded preparation replaces the mask graph for frames, without changi
   assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'preparedNormals');
   assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'edgeSafeNormals'));
   for (const name of ['x', 'y', 'width', 'height']) assert.equal(h.ctx.NB.optical.prepared.getAttribute(name), h.ctx.NB.optical.image.getAttribute(name), 'The prepared field keeps the same padded sampling rectangle');
-  near(+h.filter.getAttribute('width'), 114 + 48);
-  near(+h.filter.getAttribute('height'), 55.8 + 48);
+  near(+h.filter.getAttribute('width'), 114 + h.NAV_OPTICS.padding*2);
+  near(+h.filter.getAttribute('height'), 55.8 + h.NAV_OPTICS.padding*2);
   assert.equal(h.navFieldAt(55.8, 55.8), stats.urls[0]); assert.equal(h.navFieldAt(167.4, 55.8), stats.urls[128]);
   assert.equal(h.navFieldAt(200, 55.8), null); assert.equal(h.navFieldAt(20, 55.8), null);
+  assert.equal(h.navFieldAt(168,84),stats.urls[64],'Tall orbs reuse the same normalized prepared field');
   const rawImage = h.ctx.NB.optical.image, rims = h.ctx.NB.optical.rims;
   const frozen = [rawImage, ...rims].map(n => [...n.attrs]), created = h.counts.created;
   for (let i = 0; i < 300; i++) { h.box.left = 1 + i / 100; h.box.sx = (90 + i % 60) / 76.8; h.navLens(1); }
   assert.deepEqual([rawImage, ...rims].map(n => [...n.attrs]), frozen, 'No animated mask/image geometry on the prepared path');
   assert.equal(stats.urls.length, 129); assert.equal(stats.decoded, 129); assert.equal(h.counts.created, created);
+  h.box.sy=84/51;h.box.sx=168/76.8;h.navLens(1);
+  assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'),'preparedNormals');
+  h.ctx.NB.optical.dms.forEach((dm,i)=>assert.ok(Math.abs(+dm.getAttribute('scale')-Number(scales[i])*84/55.8)<.002,'Refraction scales with orb height without decoding another map'));
   h.box.sx = 4; h.navLens(1);
   assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'normals', 'Uncached shapes retain the accepted live field');
   h.box.sx = 1.5; h.navLens(1);

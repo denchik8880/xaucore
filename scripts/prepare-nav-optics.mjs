@@ -19,6 +19,9 @@ const read = key => {
   return value;
 };
 const calibration = Object.fromEntries(['contactGain','contactSlope','contactSpan','contactTau','contactBand','contactLead','verticalTop','verticalBottom','verticalStart','verticalEnd','rimBlur'].map(key => [key, read(key)]));
+const outputPadding=read('padding');
+const packetName=config.match(/\bfields: "\/([^"/]+\.bin)"/)?.[1];
+if(packetName!=='nav-optics-fields-v6.bin')throw new Error('Expected the compact-orb v6 field configuration');
 const { contactSlope, contactSpan, contactTau, contactBand, contactLead, verticalTop, verticalBottom, verticalStart, verticalEnd } = calibration;
 if(contactSpan <= 0 || contactTau <= 0 || contactLead < 0 || contactBand <= contactLead || verticalEnd <= verticalStart || calibration.rimBlur !== 0) throw new Error('Invalid navigation surface calibration');
 const clamp01 = value => Math.max(0, Math.min(1, value));
@@ -66,10 +69,13 @@ for(let y = 0; y < 256; y++) for(let x = 0; x < 256; x++){
     mask[p+3] = (i ? dx>0 : dx<0) ? alpha : 0;
   }
 }
-const coordinates = await png(coordinatesPixels,256,256), rims = await Promise.all(rimPixels.map(pixels => png(pixels,256,256)));
-await fs.writeFile(path.join(root,'public/nav-normal-map-v2.png'),normal);
-await fs.writeFile(path.join(root,'public/nav-contact-surface-v3.png'),coordinates);
-for(let i = 0; i < 2; i++) await fs.writeFile(path.join(root,`public/nav-contact-rim-${i?'right':'left'}.png`),rims[i]);
+const coordinates = await png(coordinatesPixels,256,256), generatedRims = await Promise.all(rimPixels.map(pixels => png(pixels,256,256)));
+// This variant shares the proven cap masks. Refuse a silent mask-calibration change: any future
+// changed mask needs its own versioned asset rather than overwriting an already published input.
+const rims=await Promise.all(['left','right'].map(side=>fs.readFile(path.join(root,`public/nav-contact-rim-${side}.png`))));
+for(let i=0;i<2;i++)if(!generatedRims[i].equals(rims[i]))throw new Error('Shared navigation rim calibration changed; version its asset first');
+await fs.writeFile(path.join(root,'public/nav-normal-map-orb.png'),normal);
+await fs.writeFile(path.join(root,'public/nav-contact-orb.png'),coordinates);
 // Reread immediately before this one narrow HTML edit: other work may have changed unrelated source
 // while the immutable PNGs were built. Frame updates never rewrite these embedded URLs.
 html = (await fs.readFile(htmlPath,'utf8')).replaceAll('\r\n','\n');
@@ -107,17 +113,17 @@ try{
   for(let i = 0; i <= 128; i++){
     const h = referenceHeight, w = (1+i/64)*h;
     await page.setContent(`<body style="margin:0"><svg xmlns="http://www.w3.org/2000/svg" width="288" height="232" viewBox="${-w*16/256} ${-h*16/200} ${w*1.125} ${h*1.16}" preserveAspectRatio="none"><defs>${template}</defs><rect width="${w}" height="${h}" filter="url(#xc-nav-optics)"/></svg>`);
-    await page.evaluate(({w,h}) => {
+    await page.evaluate(({w,h,padding}) => {
       const filter=document.querySelector('filter'),images=[...filter.querySelectorAll('feImage')];
       const set=(node,values)=>{for(const[k,v]of Object.entries(values))node.setAttribute(k,v);};
-      set(filter,{x:-24,y:-24,width:w+48,height:h+48});
+      set(filter,{x:-padding,y:-padding,width:w+padding*2,height:h+padding*2});
       set(images[0],{x:-w*16/256,y:-h*16/200,width:w*1.125,height:h*1.16});
       for(let i=0;i<2;i++){
         const region={x:i?w-1.1*h:-.1*h,y:-.1*h,width:1.2*h,height:1.2*h};
         set(images[i+1],region);set(images[i+3],region);
         filter.querySelector(`[result="${i?'right':'left'}ContactNormals"]`).setAttribute('values',navContactValues(w,h,i?1:-1).join(' '));
       }
-    },{w,h});
+    },{w,h,padding:outputPadding});
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const captured = await sharp(await page.screenshot()).removeAlpha().raw().toBuffer({resolveWithObject:true});
     const pixels = Buffer.from(captured.data), stride=captured.info.width*3;
@@ -132,10 +138,10 @@ try{
     buffers.push(field);offsets.push(offsets.at(-1)+field.length);
   }
   const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-  const header=Buffer.from(JSON.stringify({version:5,min:1,step:1/64,height:referenceHeight,width:288,rows:232,...calibration,
+  const header=Buffer.from(JSON.stringify({version:6,min:1,step:1/64,height:referenceHeight,width:288,rows:232,...calibration,
     sourceOriginal:hash(original),sourceMap:hash(normal),coordinateMap:hash(coordinates),rimMaps:rims.map(hash),offsets}));
   const length=Buffer.alloc(4);length.writeUInt32LE(header.length);
-  const output=path.join(root,'public/nav-optics-fields-v5.bin');
+  const output=path.join(root,'public',packetName);
   await fs.writeFile(output,Buffer.concat([length,header,...buffers]));
   console.log(`Prepared 129 fields: ${output}`);
   await context.close();
