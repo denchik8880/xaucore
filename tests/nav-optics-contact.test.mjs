@@ -100,8 +100,15 @@ test('both cap surfaces retain three RGB samples from the complete original sour
     for (const n of [topLeft,bottomRight]) { near(n[2],.5); near(n[3],1); }
   }
   const passes = h.filter.querySelectorAll('feDisplacementMap'); assert.equal(passes.length, 3);
+  const safe = h.ctx.NB.optical.safeNormals;
+  assert.equal(safe.getAttribute('in'), 'normals');
+  assert.deepEqual(safe.getAttribute('values').split(' ').map(Number), [1,0,0,0,0,0,.3,0,0,.35,0,0,1,0,0,0,0,0,1,0]);
+  h.ctx.LG_UI.refract = 1.5; h.navLens(1);
+  const strong = safe.getAttribute('values').split(' ').map(Number);
+  assert.equal(strong[0], 1, 'First-contact horizontal bending keeps the full selected strength');
+  assert.equal(strong[6], .2, 'Vertical bending is bounded before content reaches the capsule edge');
   for (const dm of passes) {
-    assert.equal(dm.getAttribute('in'), 'SourceGraphic'); assert.equal(dm.getAttribute('in2'), 'normals');
+    assert.equal(dm.getAttribute('in'), 'SourceGraphic'); assert.equal(dm.getAttribute('in2'), 'edgeSafeNormals');
     assert.equal(dm.getAttribute('xChannelSelector'), 'R'); assert.equal(dm.getAttribute('yChannelSelector'), 'G');
   }
   for (const image of images) assert.equal(image.getAttribute('crossorigin'), 'anonymous');
@@ -284,7 +291,8 @@ test('one bounded preparation replaces the mask graph for frames, without changi
   assert.equal(stats.decoded, 129); assert.equal(stats.maximumActive, 4); assert.equal(stats.revoked.length, 0);
   assert.deepEqual(stats.preloadModes, Array(129).fill(null), 'Prepared PNGs use feImage\'s default fetch mode, so animation reuses the same loaded resources');
   assert.deepEqual(h.ctx.NB.optical.dms.map(n => n.getAttribute('scale')), scales);
-  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'preparedNormals'));
+  assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'preparedNormals');
+  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'edgeSafeNormals'));
   for (const name of ['x', 'y', 'width', 'height']) assert.equal(h.ctx.NB.optical.prepared.getAttribute(name), h.ctx.NB.optical.image.getAttribute(name), 'The prepared field keeps the same padded sampling rectangle');
   near(+h.filter.getAttribute('width'), 114 + 48);
   near(+h.filter.getAttribute('height'), 55.8 + 48);
@@ -296,9 +304,9 @@ test('one bounded preparation replaces the mask graph for frames, without changi
   assert.deepEqual([rawImage, ...rims].map(n => [...n.attrs]), frozen, 'No animated mask/image geometry on the prepared path');
   assert.equal(stats.urls.length, 129); assert.equal(stats.decoded, 129); assert.equal(h.counts.created, created);
   h.box.sx = 4; h.navLens(1);
-  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'normals'), 'Uncached shapes retain the accepted live field');
+  assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'normals', 'Uncached shapes retain the accepted live field');
   h.box.sx = 1.5; h.navLens(1);
-  assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'preparedNormals'));
+  assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'preparedNormals');
   h.navOpticsBind(h.bar); await h.navFieldsPrepare(); assert.equal(stats.fetched, 1);
 });
 
@@ -306,7 +314,7 @@ test('a missing or corrupt pack preserves live refraction and does not retry eve
   for (const options of [{ status: false }, { bytes: Buffer.from([1, 2]) }, { bytes: Buffer.alloc(16, 255) }]) {
     const h = optics(), stats = fieldLoader(h, options);
     assert.equal(await h.navFieldsPrepare(), null); assert.equal(h.getFields(), null);
-    assert.ok(h.ctx.NB.optical.dms.every(n => n.getAttribute('in2') === 'normals'));
+    assert.equal(h.ctx.NB.optical.safeNormals.getAttribute('in'), 'normals');
     h.navOpticsBind(h.bar); await h.navFieldsPrepare(); assert.equal(stats.fetched, 1); assert.equal(stats.urls.length, 0);
   }
 });

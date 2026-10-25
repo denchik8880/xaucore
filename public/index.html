@@ -378,11 +378,11 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    that swells with it blanks out whole tabs; so both fade out with the lift and the lens goes back to being
    clear glass over the ordinary row. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-bg{position:absolute;inset:0;background:var(--nav-hole);opacity:calc(1 - var(--lf,0))}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:block;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:block;--nmy:min(var(--nm,1),1.17);
   transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;
   /* Compose the centred rail scale and lens magnifier in one source transform, avoiding another composited
      surface inside the SVG filter. */
-  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nm,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nm,1) * var(--nrsy,1)));will-change:transform}
+  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nmy,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nmy,1) * var(--nrsy,1)));will-change:transform}
 /* Filter the complete source BEFORE the existing drop clip, as in VANTA. Sampling a pre-clipped label
    folds its cut edge back into the lens. The opaque, themed source also keeps RGB blending neutral. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;border-radius:inherit;background:var(--nav-hole)}
@@ -9788,8 +9788,11 @@ function navOpticsBind(bar){
     add("feComposite", { in: "rawNormals", in2: "rimMask", operator: "out", result: "originalCore" });
     add("feComposite", { in: "contactRim", in2: "originalCore", operator: "arithmetic", k2: 1, k3: 1, result: "normals" });
     add("feImage", { preserveAspectRatio: "none", result: "preparedNormals" });
+    // The vertical map was pulling enlarged icon tops and caption bottoms into the capsule edge.
+    // Keep the side contact (R) intact; soften only vertical (G) displacement around neutral .5.
+    add("feColorMatrix", { in: "normals", type: "matrix", values: "1 0 0 0 0 0 .3 0 0 .35 0 0 1 0 0 0 0 0 1 0", result: "edgeSafeNormals" });
     for(let i = 0; i < 3; i++){
-      add("feDisplacementMap", { in: "SourceGraphic", in2: "normals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "sample" + i });
+      add("feDisplacementMap", { in: "SourceGraphic", in2: "edgeSafeNormals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "sample" + i });
       const matrix = Array(20).fill(0); matrix[i * 6] = 1; matrix[18] = 1;
       add("feColorMatrix", { in: "sample" + i, type: "matrix", values: matrix.join(" "), result: "channel" + i });
     }
@@ -9801,7 +9804,7 @@ function navOpticsBind(bar){
   }
   const images = [...filter.querySelectorAll("feImage")];
   const matrices = [...filter.querySelectorAll("feColorMatrix")], result = name => filter.querySelector('[result="' + name + '"]');
-  NB.optical = { bar, source, filter, image: images[0], coordinates: images.slice(1,3), contact: [result("leftContactNormals"),result("rightContactNormals")], rims: images.slice(3,5), prepared: images[5], channels: matrices.filter(m => /^sample\d$/.test(m.getAttribute("in"))), delta: result("spectralDelta"), output: result("navigationColour"), spectrum: navSpectrumRead(bar), spectral: null, dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
+  NB.optical = { bar, source, filter, image: images[0], coordinates: images.slice(1,3), contact: [result("leftContactNormals"),result("rightContactNormals")], rims: images.slice(3,5), prepared: images[5], safeNormals: result("edgeSafeNormals"), channels: matrices.filter(m => /^sample\d$/.test(m.getAttribute("in"))), delta: result("spectralDelta"), output: result("navigationColour"), spectrum: navSpectrumRead(bar), spectral: null, dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
   navLens(NB.clear);
 }
 function navLens(clear){
@@ -9816,6 +9819,10 @@ function navLens(clear){
   const split = DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 : 0;
   const magnify = 1 + k * (.14 + .025 * energy) * strength;
   o.bar.style.setProperty("--nm", magnify.toFixed(4));
+  // Large slider values must not drag icon tops or label bottoms across the optical contour.
+  // Horizontal cap displacement still follows the full user setting and the first-contact curve.
+  const vertical = .3 / Math.max(1, strength), verticalValues = `1 0 0 0 0 0 ${vertical.toFixed(4)} 0 0 ${(.5-vertical/2).toFixed(4)} 0 0 1 0 0 0 0 0 1 0`;
+  if(o.safeNormals.getAttribute("values") !== verticalValues) o.safeNormals.setAttribute("values", verticalValues);
   // Fully plain at rest / with refraction off. Clearing the CSS filter also removes its sampling region.
   const field = navFieldAt(w, h), input = field ? "preparedNormals" : "normals";
   if(!k || !strength || (!_navMapReady && !field)){ o.source.style.filter = ""; o.key = ""; return; }
@@ -9839,7 +9846,8 @@ function navLens(clear){
       });
       o.rims.forEach((rim,i) => set(rim, { x: x + (i ? w - 1.1 * h : -.1 * h), y: y - .1 * h, width: 1.2 * h, height: 1.2 * h }));
     }
-    o.dms.forEach((dm,i) => { if(dm.getAttribute("in2") !== input) dm.setAttribute("in2", input); set(dm, { ...region, scale: bend * (1 + (i - 1) * split) }); });
+    if(o.safeNormals.getAttribute("in") !== input) o.safeNormals.setAttribute("in", input);
+    o.dms.forEach((dm,i) => set(dm, { ...region, scale: bend * (1 + (i - 1) * split) }));
   }
   if(!o.source.style.filter) o.source.style.filter = "url(#xc-nav-optics)";
 }
