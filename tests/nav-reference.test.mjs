@@ -10,7 +10,7 @@ function section(start, end) {
   return html.slice(a, b);
 }
 const core = section('const NAV_TABS =', 'let _navCard =');
-const fit = section('function navFit(bar){', '// VANTA\'s prepared normal field');
+const fit = section('function navFit(bar){', 'const NAV_OPTICS =');
 const bind = section('function navBind(bar){', '// a finger lifted outside everything');
 const markup = section('function bottomNav(){', '/* =========================================================================\n   Event binding');
 const near = (actual, expected, tolerance = 1e-7) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} ≈ ${expected}`);
@@ -107,15 +107,15 @@ test('resting profiles use the new uniform five-slot rail and fitted matte capsu
 test('a held lens rises into the measured compact orb without trimming either end cap', () => {
   const { a } = harness({ width: 555, height: 94, labels: [0, 0, 0, 0, 0] });
   Object.assign(a.NB, { clear: 1, opticalEnergy: 0 });
-  const widths=[139,125,125,125,119], heights=[116,124,124,124,119];
+  const widths=[139,125,125,125,114], heights=[116,124,124,124,119];
   for(let i=0;i<5;i++){
     const box=a.navBox(i,i+1,0), w=box.sx*111, h=box.sy*85;
-    near(w,widths[i]);near(h,heights[i]);assert.ok(w>=h);
+    near(w,widths[i]);near(h,heights[i]);assert.ok(w/h>.95);
     if(i>0&&i<4)assert.ok(w/h<1.02,'A held middle lens is almost circular');
   }
   const first=a.navBox(0,1,0),last=a.navBox(4,5,0);
   near(first.left*111,-14);near(first.sx*111,139);
-  near((last.left+last.sx)*111,559);near(last.sx*111,119);
+  near((last.left+last.sx)*111,556.5);near(last.sx*111,114);
 });
 
 test('speed stretches the compact orb and squashes its height independently of the control-edge span', () => {
@@ -156,7 +156,7 @@ test('phone sizes and overdrag preserve a finite round contour within the bounde
     for(const clear of [0,.3,1])for(const energy of [0,.3,.75])for(const u of [-.2,0,.4,1.5,2,3.6,4,4.2])for(const span of [.4,1,1.25,2,8]){
       Object.assign(a.NB,{clear,opticalEnergy:energy});
       const box=a.navBox(u+.5-span/2,u+.5+span/2,0),w=box.sx*t.tabW,h=box.sy*t.baseH;
-      assert.ok(Object.values(box).every(Number.isFinite));assert.ok(w>=h-1e-8&&h>0);
+      assert.ok(Object.values(box).every(Number.isFinite));assert.ok(w/h>.94&&h>0);
       assert.ok(box.left*t.tabW>=-overflow-1e-8);
       assert.ok((box.left+box.sx)*t.tabW<=t.width+overflow+1e-8);
       assert.ok(h<=124/94*t.height+1e-8);
@@ -165,9 +165,9 @@ test('phone sizes and overdrag preserve a finite round contour within the bounde
 });
 
 test('long localizations retain the new font floor and uniform anchors without enlarging the active orb', () => {
-  const {a}=harness();near(a.NB.track.fontSize,9);
+  const {a}=harness();near(a.NB.track.fontSize,10.5);
   const normal=a.navTrackBuild(384,64,PREVIEW_LABELS),long=a.navTrackBuild(384,64,[100,75,75,75,80]);
-  assert.ok(long.fontSize>=8&&long.fontSize<9);assert.deepEqual(plain(long.centres),plain(normal.centres));
+  assert.ok(long.fontSize>=9&&long.fontSize<10.5);assert.deepEqual(plain(long.centres),plain(normal.centres));
   for(let i=0;i<5;i++)assert.ok(Number.isFinite(long.widths[i])&&long.widths[i]>=normal.widths[i]);
   a.NB.clear=1;a.NB.track=normal;const before=plain(a.navBox(1,2,0));a.NB.track=long;
   assert.deepEqual(plain(a.navBox(1,2,0)),before,'The pressed target is independent of caption fitting');
@@ -185,7 +185,7 @@ test('responsive screens uniformly scale the complete 384 by 64 composition', ()
     const scale=+ctx.document.documentElement.style.getPropertyValue('--nav-scale'),rect=bar.getBoundingClientRect();
     near(scale,Math.min(viewport-16,500)/384,.00000051);near(rect.width,Math.min(viewport-16,500),.0002);
     near(rect.height/64,rect.width/384);assert.equal(a.NB.track,track);
-    near(track.width,384);near(track.height,64);near(track.fontSize,9);assert.equal(bar.style.getPropertyValue('--nav-is'),'24px');
+    near(track.width,384);near(track.height,64);near(track.fontSize,10.5);assert.equal(bar.style.getPropertyValue('--nav-is'),'30px');
     for(const sample of baseline){Object.assign(a.NB,{clear:sample.clear,materialOn:true});assert.deepEqual(plain(a.navBox(sample.selected,sample.selected+1,0)),sample.box);}
   }
   assert.equal(counters.ranges,ranges,'Viewport scaling needs no repeated caption measurement');

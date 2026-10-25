@@ -37,36 +37,13 @@ function nearColor(actual, expected, message) {
   actual.forEach((value, channel) => near(value, expected[channel], `${message}, channel ${channel}: ${value} ≈ ${expected[channel]}`));
 }
 
-test('contact coordinates recover a small outward source sample from either capsule edge', t => {
-  near(NAV_OPTICS.contactGain, .0057);
-  const width = 114, height = 55.8, center = [width / 2, height / 2];
-  let largestOutward = 0;
-  for (const y of [18, center[1], 45]) {
-    const radius = height / 2, inset = radius - Math.sqrt(radius ** 2 - (y - radius) ** 2);
-    for (const side of [-1, 1]) {
-      const x = side < 0 ? inset : width - inset;
-      // This is the documented coordinate image at the actual left/right capsule intersection.
-      const capX = side < 0 ? radius : width - radius;
-      const input = [.5 + (x - capX) / (height * NAV_OPTICS.contactSpan), .5 + (y - radius) / (height * NAV_OPTICS.contactSpan), .27, 1];
-      const normal = matrix(navContactValues(width, height, side), input);
-      near(normal[2], .27); near(normal[3], 1);
-      assert.ok(normal.slice(0, 2).every(value => value > 0 && value < 1), 'The contact coordinate matrix does not clip');
-      for (const energy of [0, 1]) for (const clear of [.25, 1]) for (const refraction of [.5, 1.5]) {
-        const bend = clear * (NAV_OPTICS.bend + NAV_OPTICS.motion * energy) * refraction;
-        const magnify = 1 + clear * (.14 + .025 * energy) * refraction;
-        for (const [axis, position] of [x, y].entries()) {
-          const displacement = bend * (normal[axis] - .5);
-          near(displacement, bend * .0057 * (position - center[axis]), 'Contact displacement follows the logical coordinate in local pixels');
-          const source = center[axis] + (position + displacement - center[axis]) / magnify;
-          const outward = Math.sign(position - center[axis]) * (source - position);
-          assert.ok(outward >= -1e-10 && outward <= 1, `The inverse source reaches the incoming glyph by at most one local pixel (${outward})`);
-          largestOutward = Math.max(largestOutward, outward);
-          if (axis === 0) assert.ok(side * (source - x) > 0, 'Both side arcs sample beyond their first contact');
-        }
-      }
-    }
+test('the cap carrier translates its shared radial field about the actual lens centre', () => {
+  const width=114,height=55.8,gain=NAV_OPTICS.gain,r=NAV_OPTICS.corner;
+  for(const side of [-1,1])for(const S of [0,.25,1]){
+    const rgba=matrix(navContactValues(width,height,side),[.4,.6,S,1]);
+    near(rgba[0],.4+side*gain*(width/height-2*r)/2*S);
+    near(rgba[1],.6);near(rgba[2],.5);near(rgba[3],1);
   }
-  t.diagnostic(`Maximum outward source reach ${largestOutward.toFixed(6)} local px across both caps, three heights and eight optical states`);
 });
 
 test('spectrum channels measure transmittance through the palette channel with strongest contrast', () => {
