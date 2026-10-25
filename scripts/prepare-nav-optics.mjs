@@ -21,7 +21,7 @@ const read = key => {
 const calibration = Object.fromEntries(['contactGain','contactSlope','contactSpan','contactTau','contactBand','contactLead','verticalTop','verticalBottom','verticalStart','verticalEnd','rimBlur'].map(key => [key, read(key)]));
 const outputPadding=read('padding');
 const packetName=config.match(/\bfields: "\/([^"/]+\.bin)"/)?.[1];
-if(packetName!=='nav-optics-fields-v6.bin')throw new Error('Expected the compact-orb v6 field configuration');
+if(packetName!=='nav-optics-fields-v7.bin')throw new Error('Expected the clear-orb v7 field configuration');
 const { contactSlope, contactSpan, contactTau, contactBand, contactLead, verticalTop, verticalBottom, verticalStart, verticalEnd } = calibration;
 if(contactSpan <= 0 || contactTau <= 0 || contactLead < 0 || contactBand <= contactLead || verticalEnd <= verticalStart || calibration.rimBlur !== 0) throw new Error('Invalid navigation surface calibration');
 const clamp01 = value => Math.max(0, Math.min(1, value));
@@ -74,8 +74,8 @@ const coordinates = await png(coordinatesPixels,256,256), generatedRims = await 
 // changed mask needs its own versioned asset rather than overwriting an already published input.
 const rims=await Promise.all(['left','right'].map(side=>fs.readFile(path.join(root,`public/nav-contact-rim-${side}.png`))));
 for(let i=0;i<2;i++)if(!generatedRims[i].equals(rims[i]))throw new Error('Shared navigation rim calibration changed; version its asset first');
-await fs.writeFile(path.join(root,'public/nav-normal-map-orb.png'),normal);
-await fs.writeFile(path.join(root,'public/nav-contact-orb.png'),coordinates);
+await fs.writeFile(path.join(root,'public/nav-normal-map-clear.png'),normal);
+await fs.writeFile(path.join(root,'public/nav-contact-clear.png'),coordinates);
 // Reread immediately before this one narrow HTML edit: other work may have changed unrelated source
 // while the immutable PNGs were built. Frame updates never rewrite these embedded URLs.
 html = (await fs.readFile(htmlPath,'utf8')).replaceAll('\r\n','\n');
@@ -138,7 +138,7 @@ try{
     buffers.push(field);offsets.push(offsets.at(-1)+field.length);
   }
   const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-  const header=Buffer.from(JSON.stringify({version:6,min:1,step:1/64,height:referenceHeight,width:288,rows:232,...calibration,
+  const header=Buffer.from(JSON.stringify({version:7,min:1,step:1/64,height:referenceHeight,width:288,rows:232,...calibration,
     sourceOriginal:hash(original),sourceMap:hash(normal),coordinateMap:hash(coordinates),rimMaps:rims.map(hash),offsets}));
   const length=Buffer.alloc(4);length.writeUInt32LE(header.length);
   const output=path.join(root,'public',packetName);

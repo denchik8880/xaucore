@@ -40,7 +40,7 @@ function loadRuntime(context) {
 
 test('the reference preset replaces old extreme or corrupt glass settings before first paint and keeps account data', () => {
   const unrelated = { xc_token: 'account-token', xc_theme: 'aurora', xc_lang: 'ru', xc_state: '{"positions":[{"id":"trade-1","lot":0.7}]}', xc_sid: 'session-1' };
-  const saved = storage({ ...unrelated, xc_glass_v: '3-reference-2026-10-25', xc_glass: 'off',
+  const saved = storage({ ...unrelated, xc_glass_v: '4-orb-2026-10-25', xc_glass: 'off',
     xc_glass_clear_light: '100', xc_glass_clear_dark: '0', xc_glass_clear_aurora: '7', xc_glass_clear: '21',
     xc_lg_ui: '{"d":200,"r":-4,"t":true}', xc_glass_off: 'nav refract sheets', xc_disp: '{broken-json',
   });

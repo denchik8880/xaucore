@@ -9,7 +9,7 @@ const start = html.indexOf('const NAV_OPTICS ='), end = html.indexOf('function n
 assert.ok(start >= 0 && end > start, 'Actual navigation optics section exists');
 
 // Decode the committed field without browser/image packages or generated fixture files.
-function normalMap(png = fs.readFileSync(new URL('../public/nav-normal-map-orb.png', import.meta.url))) {
+function normalMap(png = fs.readFileSync(new URL('../public/nav-normal-map-clear.png', import.meta.url))) {
   let width, height, channels;
   const chunks = [];
   for (let p = 8; p < png.length;) {
@@ -90,7 +90,7 @@ test('live refraction waits for both contact masks as well as both source maps',
 
 test('the loaded page contains the complete live lens inputs, independent of further network requests', () => {
   const h = optics();
-  for(const [key,file] of [['map','nav-normal-map-orb.png'],['coordinates','nav-contact-orb.png']]){
+  for(const [key,file] of [['map','nav-normal-map-clear.png'],['coordinates','nav-contact-clear.png']]){
     const url = h.NAV_OPTICS[key];
     assert.ok(url.startsWith('data:image/png;base64,'), 'A missing network image cannot silently disable the only live fallback');
     const embedded = Buffer.from(url.slice(url.indexOf(',')+1), 'base64');
@@ -163,19 +163,22 @@ test('the original field remains the core while separate circular caps supply cu
   }
 });
 
-test('opaque source padding covers displaced samples while the existing outer capsule supplies the clip', t => {
+test('opaque sampling padding survives before the real rail viewport clips its visible backing', t => {
   const rules = [...html.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)];
   const rule = suffix => {
     const item = rules.find(m => m[1].trim().endsWith(suffix)); assert.ok(item, `CSS rule exists: ${suffix}`);
     return Object.fromEntries(item[2].split(';').filter(s => s.includes(':')).map(s => { const i = s.indexOf(':'); return [s.slice(0, i).trim(), s.slice(i + 1).trim()]; }));
   };
-  const h = optics(), pad = rule('.nav-red .nr-optics::after'), outer = rule(' .nav-red'), source = rule('.nav-red .nr-optics');
+  const h = optics(), pad = rule('.nav-red .nr-optics::after'), outer = rule(' .nav-red'), source = rule('.nav-red .nr-optics'), viewport=rule('.nav-red .nr-viewport');
   assert.equal(pad.inset, `-${h.NAV_OPTICS.sourcePadding}px`); assert.equal(pad.background, 'var(--nav-hole)');
   assert.equal(pad.position, 'absolute'); assert.equal(pad['z-index'], '-1'); assert.equal(pad['pointer-events'], 'none');
   for (const color of html.matchAll(/--nav-hole\s*:\s*([^;}]+)/g)) assert.match(color[1].trim(), /^#[\da-f]{3}(?:[\da-f]{3})?$/i, 'Theme backing remains opaque');
   assert.ok(outer['clip-path'].includes('var(--u,0)') && outer['clip-path'].includes('var(--sx,1)') && outer['clip-path'].includes('var(--sy,1)'));
   assert.equal(source['clip-path'], undefined); assert.notEqual(source.overflow, 'hidden');
   assert.ok(html.includes('<span class="nr-optics"><span class="nr-in">'), 'The complete source is nested inside the outer clip');
+  assert.equal(viewport.overflow,'hidden');assert.equal(viewport['border-radius'],'inherit');
+  assert.ok(html.includes('<span class="nr-viewport"><i class="nr-bg"></i><span class="nr-optics">'),'The real rail bounds clip both opaque backings after the inner source filter');
+  for(const name of ['--u','--sx','--sy','--nm'])assert.ok(rules.some(r=>r[1].includes('.nr-viewport')&&r[2].includes(name+':inherit')),'The postfilter viewport passes registered geometry and magnification to the optical source');
   h.ctx.LG_UI.refract = 1.5; h.ctx.LGQ.r = 2.65; h.ctx.DISP.str = 100; h.navLens(1);
   const maximumScale = Math.max(...h.filter.querySelectorAll('feDisplacementMap').map(n => +n.getAttribute('scale')));
   // Both encoded displacement channels are clamped to [0,1]. This conservative bound covers every
@@ -206,16 +209,16 @@ test('animation and rebinding reuse the same side images, normal correction and 
   h.navLens(0); assert.equal(h.source.style.filter, ''); assert.equal(h.counts.created, created);
 });
 
-const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v6.bin', import.meta.url));
+const packBytes = fs.readFileSync(new URL('../public/nav-optics-fields-v7.bin', import.meta.url));
 const packBase = 4 + packBytes.readUInt32LE(0);
 const packMeta = JSON.parse(packBytes.toString('utf8', 4, packBase));
 
 test('prepared fields retain the original core and sample icons and captions at the first cap contact', () => {
-  assert.equal(packMeta.version, 6); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
+  assert.equal(packMeta.version, 7); assert.equal(packMeta.min, 1); assert.equal(packMeta.step, 1 / 64);
   assert.equal(packMeta.contactSlope, 2.25); assert.equal(packMeta.contactSpan, 1.6);
   assert.equal(packMeta.contactTau,1.5);assert.equal(packMeta.contactBand,10);
   assert.equal(packMeta.contactLead,1.5);
-  assert.equal(packMeta.verticalTop,.02);assert.equal(packMeta.verticalBottom,.5);
+  assert.equal(packMeta.verticalTop,1);assert.equal(packMeta.verticalBottom,1);
   assert.equal(packMeta.offsets.length, 130); assert.equal(packMeta.offsets[0], 0);
   assert.equal(packMeta.offsets.at(-1), packBytes.length - packBase);
   let maximumVerticalError = 0;
