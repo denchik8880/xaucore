@@ -36,7 +36,8 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
     glassOn: () => true, L: value => value,
     requestAnimationFrame: fn => { raf.set(++nextRaf, fn); return nextRaf; },
     MO: { dt0: 1 / 120, P: { leadDrag: { k: 518.4, z: 0.62 }, trailDrag: { k: 300, z: 0.65 } },
-      sp: (v, x, to, p, dt) => v + (-p.k * (x - to) - 2 * Math.sqrt(p.k) * p.z * v) * dt },
+      sp: (v, x, to, p, dt) => v + (-p.k * (x - to) - 2 * Math.sqrt(p.k) * p.z * v) * dt,
+      steps: dt => Math.max(1, Math.ceil(dt * 240 - 1e-6)) },
     nav: tab => { counters.nav.push(tab); ctx.S.ui.tab = tab; },
     navLens() {}, navOpticsBind() {}, lgGlass() {},
     openNavCard: () => { counters.cards++; },
@@ -49,13 +50,13 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
         return { selectNodeContents: text => { selected = text; }, getBoundingClientRect() {
           counters.ranges++;
           const scale = +ctx.document.documentElement.style.getPropertyValue('--nav-scale') || 1;
-          return { width: selected.width * scale * (1 + ctx.api.NB.rail * 0.70) };
+          return { width: selected.width * scale * (1 + ctx.api.NB.rail) };
         } };
       },
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navEase,navMaterialFrame,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -87,108 +88,228 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
     setViewport(value) { ctx.window.innerWidth = value; },
     point(u, offset = 0) {
       const rect = currentBar.getBoundingClientRect(), t = a.NB.track;
-      return rect.left + rect.width / 2 + (a.navTrackAt(u).centre * t.tabW - t.width / 2) * (rect.width / t.width) * (1 + a.NB.rail * .70) + offset;
+      return rect.left + rect.width / 2 + (a.navTrackAt(u).centre * t.tabW - t.width / 2) * (rect.width / t.width) * (1 + a.NB.rail) + offset;
     },
     frame(value) { now = value; raf.clear(); a.navBubFrame(value); },
     replaceBar(w = width, h = height) { currentBar = makeBar(w, h); a.navBind(currentBar); return currentBar; },
   };
 }
 
-test('resting profiles use the new uniform five-slot rail and fitted matte capsules', () => {
+// ---- the measured model (2026-11-15 reference: cTrader on iOS 26, 60 fps) ----
+// Runs a tap from tab `from` to tab `to`, frames at 120 Hz from t = 100 ms, and returns per-frame samples.
+function hop(runtime, from, to, ms = 1300, options = {}) {
+  const { a } = runtime, t = a.NB.track;
+  Object.assign(a.NB, { a: from, b: from + 1, u: from, target: from, va: 0, vb: 0, infl: 0, it: 0, vs: 0, clear: 0, cs: 0, t: 0, _pm: null, pulseAt: 0, tapAt: 0, homeAt: 0 });
+  runtime.setNow(100); a.navGo(to);
+  const rest = a.navBox(to, to + 1), samples = [];
+  for (let i = 1; i * 1000 / 120 <= ms; i++) {
+    const time = i * 1000 / 120;
+    runtime.frame(100 + time);
+    const box = a.navBox(a.NB.a, a.NB.b);
+    samples.push({ time, u: a.NB.u, a: a.NB.a, b: a.NB.b, w: box.sx * t.tabW, h: box.sy * t.baseH, clear: a.NB.clear, cs: a.NB.cs, raf: a.NB.raf, rail: a.NB.rail });
+    if (options.until && options.until(a)) break;
+  }
+  return { samples, rest: { w: rest.sx * t.tabW, h: rest.sy * t.baseH }, at: ms => samples.reduce((best, s) => Math.abs(s.time - ms) < Math.abs(best.time - ms) ? s : best) };
+}
+
+test('resting profiles use the uniform five-slot rail and fitted matte capsules', () => {
   const { a } = harness({ width: 555, height: 94, labels: [0, 0, 0, 0, 0] });
   const centres = [55.5, 166.5, 277.5, 388.5, 499.5], widths = [105, 120, 120, 120, 105];
   for (let i = 0; i < 5; i++) {
-    const box = a.navBox(i, i + 1, 0);
+    const box = a.navBox(i, i + 1);
     near((box.left + box.sx / 2) * 111, centres[i]);
     near(box.sx * 111, widths[i]); near(box.sy * 85, 80);
   }
 });
 
-test('a held lens rises into the measured compact orb without trimming either end cap', () => {
-  const { a } = harness({ width: 555, height: 94, labels: [0, 0, 0, 0, 0] });
-  Object.assign(a.NB, { clear: 1, opticalEnergy: 0 });
-  const widths=[139,125,125,125,114], heights=[116,124,124,124,119];
-  for(let i=0;i<5;i++){
-    const box=a.navBox(i,i+1,0), w=box.sx*111, h=box.sy*85;
-    near(w,widths[i]);near(h,heights[i]);assert.ok(w/h>.95);
-    if(i>0&&i<4)assert.ok(w/h<1.02,'A held middle lens is almost circular');
+test('a hop follows the measured edge springs: the edge in front leads, the centre lands without overshoot', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS }), { samples, at } = hop(runtime, 2, 1);
+  const progress = s => 2 - s.u;
+  // the reference's centre (fraction of the hop): .26 at 50 ms, .49 at 83, .80 at 150, .91 at 200
+  for (const [ms, expected] of [[50, .26], [83, .49], [150, .80], [200, .91]]) near(progress(at(ms)), expected, .07);
+  const early = at(50);
+  assert.ok(2 - early.a > 3 - early.b + .05, 'The leading (left) edge is ahead of the trailing one');
+  assert.ok(samples.every(s => progress(s) <= 1.01), 'The centre barely passes its tab (the tail lands a hair late)');
+  const last = samples.at(-1);
+  near(last.a, 1); near(last.b, 2);
+});
+
+test('a hop stretches the drop about a quarter, and it gathers up again on arrival', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS }), { samples, rest, at } = hop(runtime, 2, 1);
+  const widest = Math.max(...samples.map(s => s.w)) / rest.w;
+  assert.ok(widest > 1.15 && widest < 1.4, `widest ${widest}`);
+  assert.ok(at(250).w / rest.w < 1.06);
+  near(samples.at(-1).w, rest.w, 1e-6);
+});
+
+test('the drop swells taller on landing, not in flight, and settles back to its pill', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS }), { samples, rest } = hop(runtime, 2, 1);
+  const inFlight = samples.filter(s => s.time <= 80).map(s => s.h / rest.h);
+  assert.ok(Math.max(...inFlight) < 1.08, 'Fast, the air goes into its length');
+  const peak = samples.reduce((best, s) => s.h > best.h ? s : best);
+  near(peak.h / rest.h, 1 + 0.28, .03);
+  assert.ok(peak.time > 150 && peak.time < 300, `peak at ${peak.time} ms`);
+  near(samples.at(-1).h, rest.h, 1e-6);
+});
+
+test('a long jump lands blown up too, and its stretch gives out softly', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, t = a.NB.track;
+  const { samples, rest } = hop(runtime, 0, 4);
+  const stretch = Math.max(...samples.map(s => s.w - rest.w)) / t.tabW;
+  assert.ok(stretch > .35 && stretch < .7, `stretch ${stretch} tabs`);
+  const peak = Math.max(...samples.map(s => s.h)) / rest.h;
+  assert.ok(peak > 1.2, `landing swell ${peak}`);
+});
+
+test('the glass clears at once and greys back in two speeds, then the frames stop', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS }), { bar } = runtime, { samples, at } = hop(runtime, 2, 1);
+  assert.ok(at(33).clear > .4 && at(33).cs > .4);
+  assert.ok(at(150).clear > .9);
+  const later = at(330);
+  assert.ok(later.cs > later.clear + .1, 'The grey pill fills back in slower than the bend goes');
+  const end = samples.at(-1);
+  assert.equal(end.clear, 0); assert.equal(end.cs, 0); assert.equal(end.raf, 0);
+  assert.equal(bar.style.getPropertyValue('--ng'), '0'); assert.equal(bar.style.getPropertyValue('--ngs'), '0');
+});
+
+test('the terminal frame writes the exact resting box once and stops', () => {
+  const runtime = harness({ viewport: 360, labels: PREVIEW_LABELS }), { a, bar } = runtime;
+  const writes = [], write = bar.style.setProperty;
+  bar.style.setProperty = (name, value) => { if (name === '--sy' || name === '--sx') writes.push([name, value]); write(name, value); };
+  hop(runtime, 1, 3);
+  assert.equal(a.NB.raf, 0);
+  assert.ok(writes.every(([, value]) => /^\d+\.\d{4}$/.test(value)));
+  const rest = a.navBox(3, 4);
+  assert.equal(bar.style.getPropertyValue('--sx'), rest.sx.toFixed(4));
+  assert.equal(bar.style.getPropertyValue('--sy'), rest.sy.toFixed(4));
+});
+
+test('the bar breathes once per press: +2 % in ~100 ms, back by 200 ms, a shallow dip, then nothing', () => {
+  const { a, setNow } = harness();
+  let max = 0, min = 0, at200 = null;
+  for (let ms = 0; ms <= 400; ms += 1) {
+    const v = a.navPulse(ms); max = Math.max(max, v); min = Math.min(min, v);
+    if (ms === 200) at200 = v;
   }
-  const first=a.navBox(0,1,0),last=a.navBox(4,5,0);
-  near(first.left*111,-14);near(first.sx*111,139);
-  near((last.left+last.sx)*111,556.5);near(last.sx*111,114);
+  near(max, .02, 1e-4); near(a.navPulse(100), .02, 1e-4);
+  near(at200, 0, 1e-9); assert.ok(min < -.001 && min >= -.0016);
+  assert.equal(a.navPulse(390), 0);
+  a.NB.pulseAt = 100; setNow(200); a.navRailFrame(200);
+  near(+a.navRailValues()['--nrsx'], 1.02, 1e-4); near(+a.navRailValues()['--nrsy'], 1.02, 1e-4);
+  assert.equal(a.navRailValues()['--nrl'], '0', 'Its white never darkens');
+  a.navRailFrame(100 + 381); assert.equal(a.NB.pulseAt, 0); assert.equal(a.NB.rail, 0);
 });
 
-test('speed stretches the compact orb and squashes its height independently of the control-edge span', () => {
-  const { a } = harness({ width:555,height:94,labels:[0,0,0,0,0] });
-  Object.assign(a.NB,{clear:1,opticalEnergy:0});const held=a.navBox(2,3,0);
-  a.NB.opticalEnergy=.75;const moving=a.navBox(2,3,0);
-  near(moving.sx*111,200);near(moving.sy*85,90);
-  assert.ok(moving.sx>held.sx&&moving.sy<held.sy);
-  assert.deepEqual(plain(a.navBox(1.5,3.5,0)),plain(moving),'Temporary control-edge separation does not add a second width stretch');
-  a.NB.opticalEnergy=.3;const q=Math.pow(.3/.75,1.5),mid=a.navBox(2,3,0);
-  near(mid.sx*111,125+75*q);near(mid.sy*85,124-34*Math.sqrt(q));
+test('a press seeds the breath; its own release and a mid-breath tap do not restart it', () => {
+  const { a, bar, setNow } = harness();
+  bar.onpointerdown({ button: 0, pointerId: 1, clientX: 300, clientY: 500 });
+  assert.equal(a.NB.pulseAt, 100); assert.equal(a.NB.tapAt, 100);
+  setNow(150); bar.onpointerup({ pointerId: 1 });
+  assert.equal(a.NB.pulseAt, 100); assert.equal(a.NB.tapAt, 100, 'The release ends the press that began at pointerdown');
+  setNow(180); a.navGo(0);
+  assert.equal(a.NB.pulseAt, 100, 'Half way up the breath is not restarted');
+  setNow(400); a.navGo(2);
+  assert.equal(a.NB.pulseAt, 400);
 });
 
-test('swelling near an end cannot feed the constrained silhouette centre back into motion energy', () => {
-  const runtime=harness(),{a}=runtime,t=a.NB.track;
-  const logical=a.navTrackAt(0).centre*t.tabW;
-  Object.assign(a.NB,{a:0,b:1,u:0,target:0,drag:{u:0},clear:1,materialOn:true,materialTween:null,opticalEnergy:.75,_pm:logical,t:100});
-  const before=a.navBox(0,1,0);assert.ok((before.left+before.sx/2)*t.tabW>logical+1);
-  runtime.frame(100+1000/120);
-  near(a.NB.opticalEnergy,.75*Math.exp(-(1/120)/.06));
-  near(a.NB._pm,logical);
+test('retargeting in flight keeps both edges where they are and moves them on continuously', () => {
+  const runtime = harness(), { a } = runtime;
+  hop(runtime, 1, 4, 80);
+  const before = { a: a.NB.a, b: a.NB.b };
+  runtime.setNow(190); a.navGo(0);
+  near(a.NB.a, before.a); near(a.NB.b, before.b);
+  runtime.frame(190 + 1000 / 120);
+  // one 120 Hz frame at the ~20 tabs/s it was flying: momentum, not a jump
+  assert.ok(Math.abs(a.NB.a - before.a) < .25 && Math.abs(a.NB.b - before.b) < .25);
+  for (let i = 2; i < 150; i++) runtime.frame(190 + i * 1000 / 120);
+  near(a.NB.a, 0); near(a.NB.b, 1); assert.equal(a.NB.target, 0);
 });
 
-test('profile interpolation stays continuous through hold, movement and the shared fade', () => {
-  const { a }=harness({width:555,height:94,labels:[0,0,0,0,0]});
-  for(const clear of [0,.2,.7,1])for(const energy of [0,.3,.75]){
-    Object.assign(a.NB,{clear,opticalEnergy:energy});
-    for(const u of [0,.25,.5,.75,1,1.5,2,2.5,3,3.25,3.5,3.75,4]){
-      const box=x=>a.navBox(x,x+1,0),before=box(u-1e-7),after=box(u+1e-7);
-      for(const key of ['left','sx','sy'])assert.ok(Math.abs(before[key]-after[key])<.0001);
+test('a held lens is tall when the finger is slow and long and low when it is fast', () => {
+  const { a } = harness({ labels: PREVIEW_LABELS }), t = a.NB.track;
+  Object.assign(a.NB, { infl: 1, it: 1, vs: 0 });
+  near(a.navBox(2, 3).sy * t.baseH, t.restH * 1.28);
+  a.NB.vs = 8;
+  assert.ok(a.navBox(2, 3).sy * t.baseH < t.restH * 1.04);
+  Object.assign(a.NB, { infl: 0, it: 0, vs: 0 });
+  near(a.navBox(2, 3).sy * t.baseH, t.restH);
+});
+
+test('phone sizes, overdrag and every inflation keep a finite round contour within the bounded shoulder overflow', () => {
+  for (const width of [280, 320, 360, 385, 430, 500]) {
+    const { a } = harness({ width, labels: [0, 0, 0, 0, 0] }), t = a.NB.track, overflow = 14 / 94 * t.height;
+    for (const it of [0, .5, 1]) for (const vs of [0, 2, 8]) for (const u of [-.2, 0, .4, 1.5, 2, 3.6, 4, 4.2]) for (const span of [.4, 1, 1.25, 2, 8]) {
+      Object.assign(a.NB, { it, vs });
+      const box = a.navBox(u + .5 - span / 2, u + .5 + span / 2), w = box.sx * t.tabW, h = box.sy * t.baseH;
+      assert.ok(Object.values(box).every(Number.isFinite)); assert.ok(h > 0 && w / h > .7);
+      assert.ok(box.left * t.tabW >= -overflow - 1e-8);
+      assert.ok((box.left + box.sx) * t.tabW <= t.width + overflow + 1e-8);
+      assert.ok(h <= t.restH * 1.28 + 1e-8);
     }
   }
 });
 
-test('phone sizes and overdrag preserve a finite round contour within the bounded shoulder overflow', () => {
-  for(const width of [280,320,360,385,430,500]){
-    const {a}=harness({width,labels:[0,0,0,0,0]}),t=a.NB.track,overflow=14/94*t.height;
-    for(const clear of [0,.3,1])for(const energy of [0,.3,.75])for(const u of [-.2,0,.4,1.5,2,3.6,4,4.2])for(const span of [.4,1,1.25,2,8]){
-      Object.assign(a.NB,{clear,opticalEnergy:energy});
-      const box=a.navBox(u+.5-span/2,u+.5+span/2,0),w=box.sx*t.tabW,h=box.sy*t.baseH;
-      assert.ok(Object.values(box).every(Number.isFinite));assert.ok(w/h>.94&&h>0);
-      assert.ok(box.left*t.tabW>=-overflow-1e-8);
-      assert.ok((box.left+box.sx)*t.tabW<=t.width+overflow+1e-8);
-      assert.ok(h<=124/94*t.height+1e-8);
-    }
-  }
-});
-
-test('long localizations retain the new font floor and uniform anchors without enlarging the active orb', () => {
-  const {a}=harness();near(a.NB.track.fontSize,10.5);
-  const normal=a.navTrackBuild(384,64,PREVIEW_LABELS),long=a.navTrackBuild(384,64,[100,75,75,75,80]);
-  assert.ok(long.fontSize>=9&&long.fontSize<10.5);assert.deepEqual(plain(long.centres),plain(normal.centres));
-  for(let i=0;i<5;i++)assert.ok(Number.isFinite(long.widths[i])&&long.widths[i]>=normal.widths[i]);
-  a.NB.clear=1;a.NB.track=normal;const before=plain(a.navBox(1,2,0));a.NB.track=long;
-  assert.deepEqual(plain(a.navBox(1,2,0)),before,'The pressed target is independent of caption fitting');
+test('long localizations retain the font floor and the uniform anchors', () => {
+  const { a } = harness(); near(a.NB.track.fontSize, 10.5);
+  const normal = a.navTrackBuild(384, 64, PREVIEW_LABELS), long = a.navTrackBuild(384, 64, [100, 75, 75, 75, 80]);
+  assert.ok(long.fontSize >= 9 && long.fontSize < 10.5); assert.deepEqual(plain(long.centres), plain(normal.centres));
+  for (let i = 0; i < 5; i++) assert.ok(Number.isFinite(long.widths[i]) && long.widths[i] >= normal.widths[i]);
 });
 
 test('responsive screens uniformly scale the complete 384 by 64 composition', () => {
-  const runtime=harness({labels:PREVIEW_LABELS}),{a,ctx,counters,bar}=runtime,track=a.NB.track;
-  const baseline=[];
-  for(const clear of [0,1])for(let selected=0;selected<5;selected++){
-    Object.assign(a.NB,{clear,materialOn:true});baseline.push({clear,selected,box:plain(a.navBox(selected,selected+1,0))});
+  const runtime = harness({ labels: PREVIEW_LABELS }), { a, ctx, counters, bar } = runtime, track = a.NB.track;
+  const baseline = [];
+  for (const it of [0, 1]) for (let selected = 0; selected < 5; selected++) {
+    Object.assign(a.NB, { it, vs: 0 }); baseline.push({ it, selected, box: plain(a.navBox(selected, selected + 1)) });
   }
-  const ranges=counters.ranges;
-  for(const viewport of [308,360,412,450,528,960]){
-    runtime.setViewport(viewport);a.navFit(bar);
-    const scale=+ctx.document.documentElement.style.getPropertyValue('--nav-scale'),rect=bar.getBoundingClientRect();
-    near(scale,Math.min(viewport-16,500)/384,.00000051);near(rect.width,Math.min(viewport-16,500),.0002);
-    near(rect.height/64,rect.width/384);assert.equal(a.NB.track,track);
-    near(track.width,384);near(track.height,64);near(track.fontSize,10.5);assert.equal(bar.style.getPropertyValue('--nav-is'),'30px');
-    for(const sample of baseline){Object.assign(a.NB,{clear:sample.clear,materialOn:true});assert.deepEqual(plain(a.navBox(sample.selected,sample.selected+1,0)),sample.box);}
+  const ranges = counters.ranges;
+  for (const viewport of [308, 360, 412, 450, 528, 960]) {
+    runtime.setViewport(viewport); a.navFit(bar);
+    const scale = +ctx.document.documentElement.style.getPropertyValue('--nav-scale'), rect = bar.getBoundingClientRect();
+    near(scale, Math.min(viewport - 16, 500) / 384, .00000051); near(rect.width, Math.min(viewport - 16, 500), .0002);
+    near(rect.height / 64, rect.width / 384); assert.equal(a.NB.track, track);
+    near(track.width, 384); near(track.height, 64); near(track.fontSize, 10.5); assert.equal(bar.style.getPropertyValue('--nav-is'), '30px');
+    for (const sample of baseline) { Object.assign(a.NB, { it: sample.it, vs: 0 }); assert.deepEqual(plain(a.navBox(sample.selected, sample.selected + 1)), sample.box); }
   }
-  assert.equal(counters.ranges,ranges,'Viewport scaling needs no repeated caption measurement');
+  assert.equal(counters.ranges, ranges, 'Viewport scaling needs no repeated caption measurement');
+});
+
+test('holding, travelling and fading need no per-tab colour writes or colour handover at arrival', () => {
+  const runtime = harness(), { a, bar } = runtime;
+  const items = bar.querySelectorAll('.nav-red .nb');
+  let writes = 0;
+  for (const item of items) {
+    const original = item.style.setProperty;
+    item.style.setProperty = (...args) => { writes++; original(...args); };
+  }
+  Object.assign(a.NB, { drag: { u: 1, moved: false } });
+  runtime.frame(110);
+  a.NB.drag = null; runtime.setNow(120); a.navGo(3);
+  for (let i = 1; i <= 150; i++) runtime.frame(120 + i * 1000 / 120);
+  assert.equal(a.NB.clear, 0);
+  assert.equal(a.NB.raf, 0);
+  assert.equal(writes, 0);
+});
+
+test('gesture frames reuse the frozen track and do not read layout or label ranges', () => {
+  const runtime = harness(), { a, counters } = runtime;
+  const track = a.NB.track;
+  a.navGo(4);
+  const reads = { layout: counters.layout, ranges: counters.ranges };
+  for (let i = 0; i <= 180; i++) runtime.frame(100 + i * (1000 / 120));
+  assert.equal(a.NB.track, track);
+  assert.deepEqual({ layout: counters.layout, ranges: counters.ranges }, reads);
+  assert.equal(a.NB.clear, 0);
+  assert.equal(a.NB.raf, 0);
+});
+
+test('light, dark and Aurora use the same trajectory geometry', () => {
+  const { a, ctx } = harness();
+  Object.assign(a.NB, { it: .8, vs: 1 });
+  ctx.WATER = 1;
+  const normal = plain(a.navBox(0.65, 1.9));
+  ctx.WATER = 1.35;
+  assert.deepEqual(plain(a.navBox(0.65, 1.9)), normal);
 });
 
 test('the authoritative phone composition has evenly spaced tabs and the new matte height', () => {
@@ -197,74 +318,6 @@ test('the authoritative phone composition has evenly spaced tabs and the new mat
   for(let i=0;i<5;i++){
     const box=a.navBox(i,i+1,0);near((box.left+box.sx/2)*t.tabW,38.4+i*76.8);
     near(box.sx*t.tabW,(i===0||i===4?105:120)*64/94);near(box.sy*t.baseH,80*64/94);
-  }
-});
-
-test('all active height endpoints and the complete fade share one contour envelope', () => {
-  for(const profile of [{viewport:360,labels:PREVIEW_LABELS},{width:555,height:94,labels:[0,0,0,0,0]}]){
-    const {a}=harness(profile),t=a.NB.track;
-    for(let selected=0;selected<5;selected++)for(const materialOn of [true,false]){
-      Object.assign(a.NB,{clear:1,materialOn,opticalEnergy:0});const held=a.navBox(selected,selected+1,0);
-      near(held.sy*t.baseH,a.NAV_DROP.activeHeights[selected]/94*t.height);
-      a.NB.clear=0;const idle=a.navBox(selected,selected+1,0);near(idle.sy*t.baseH,t.restH);
-      for(let i=0;i<=100;i++){
-        const clear=i/100;a.NB.clear=clear;const box=a.navBox(selected,selected+1,0);
-        near(box.sy,idle.sy+(held.sy-idle.sy)*clear);
-        near(box.sx,idle.sx+(held.sx-idle.sx)*clear);
-      }
-    }
-  }
-});
-
-test('the terminal navigation frame uses the same four-decimal height as the optical tail', () => {
-  const runtime = harness({ viewport: 360, labels: PREVIEW_LABELS }), { a, bar } = runtime;
-  const write = bar.style.setProperty, writes = [];
-  bar.style.setProperty = (name, value) => { if(name === '--sy') writes.push(value); write(name, value); };
-  Object.assign(a.NB, { a: 0, b: 1, u: 0, target: 0, clear: 1, materialOn: true, materialTween: null });
-  a.navGo(0);
-  runtime.frame(116);
-  assert.ok(writes.length > 0 && writes.every(value => /^\d+\.\d{4}$/.test(value)), 'A moving frame must not quantize height to three decimals');
-  writes.length = 0;
-  runtime.frame(299.99);
-  const tail = writes.at(-1);
-  assert.match(tail, /^\d+\.\d{4}$/);
-  writes.length = 0;
-  runtime.frame(300);
-  assert.equal(a.NB.clear, 0);
-  assert.equal(a.NB.raf, 0, 'This is the terminal frame, not another moving sample');
-  assert.ok(writes.length > 0);
-  assert.ok(writes.every(value => /^\d+\.\d{4}$/.test(value)));
-  assert.deepEqual([...new Set(writes)], [tail], 'Stopping the RAF must not write a second, differently rounded height');
-  assert.equal(bar.style.getPropertyValue('--sy'), tail);
-});
-
-test('a short attack can release and be re-grabbed without jumping either contour endpoint', () => {
-  for(const profile of [
-    { viewport: 360, labels: PREVIEW_LABELS },
-    { width: 555, height: 94, labels: [0, 0, 0, 0, 0] },
-  ]) {
-    const { a } = harness(profile);
-    Object.assign(a.NB, { clear: 0, materialOn: false, materialTween: null });
-    const sameContour = (before, after) => {
-      for(const key of ['left', 'sx', 'sy']) near(after[key], before[key]);
-    };
-    a.navMaterialFrame(100, true);
-    a.navMaterialFrame(150, true);
-    assert.ok(a.NB.clear > 0 && a.NB.clear < 1, 'The finger releases before the attack reaches its full endpoint');
-    const attack = a.navBox(2, 3, 0), attackClear = a.NB.clear;
-    a.navMaterialFrame(150, false);
-    near(a.NB.clear, attackClear);
-    sameContour(attack, a.navBox(2, 3, 0));
-    a.navMaterialFrame(210, false);
-    assert.ok(a.NB.clear > 0 && a.NB.clear < attackClear);
-    const fading = a.navBox(2, 3, 0), fadingClear = a.NB.clear;
-    a.navMaterialFrame(210, true);
-    near(a.NB.clear, fadingClear);
-    sameContour(fading, a.navBox(2, 3, 0));
-    a.navMaterialFrame(410, true);
-    near(a.NB.clear, 1);
-    near(a.navBox(2, 3, 0).sy * a.NB.track.baseH,
-      a.NAV_DROP.activeHeights[2] / a.NAV_DROP.referenceH * a.NB.track.height);
   }
 });
 
@@ -314,19 +367,6 @@ test('desktop mouse input retains its continuous pointer position', () => {
   near(a.NB.drag.u, a.navUAt(x + 4, rect));
 });
 
-test('the active flight keeps its compact held target and derives stretching from speed', () => {
-  const { a } = harness({ labels: PREVIEW_LABELS }), t = a.NB.track;
-  Object.assign(a.NB, { clear: 1, materialOn: true, opticalEnergy: 0 });
-  const centred = a.navBox(1.5, 2.5, 0);
-  near(centred.sx * t.tabW, 125*64/94);
-  near(centred.sy * t.baseH, 124*64/94);
-  const stretched = a.navBox(1.25, 2.75, 0);
-  assert.deepEqual(plain(stretched),plain(centred));
-  a.NB.opticalEnergy=.75;const fast=a.navBox(1.5,2.5,0);
-  near(fast.sx*t.tabW,200*64/94);near(fast.sy*t.baseH,90*64/94);
-  near(fast.left+fast.sx/2,centred.left+centred.sx/2);
-});
-
 test('piecewise pointer inverse cancels both whole-bar scale and the independent centred rail pulse', () => {
   const runtime = harness(), { a } = runtime, track = a.NB.track;
   for(const viewport of [308, 360, 412, 528, 960]) for (const rail of [0, 0.012, 0.026]) {
@@ -362,17 +402,6 @@ test('ordinary and accent rows receive exactly the same five centre styles', () 
   assert.deepEqual(plainStyles, accentStyles);
 });
 
-test('a held current tab releases directly into the 200 ms fade with no empty flight', () => {
-  const { a, setNow } = harness();
-  Object.assign(a.NB, { clear: 1, materialOn: true, materialTween: null });
-  a.navGo(1);
-  assert.equal(a.NB.tw, null);
-  assert.equal(a.NB.materialTween.to, 0);
-  assert.equal(a.NB.materialTween.ms, 200);
-  setNow(300); a.navMaterialFrame(300, false);
-  near(a.NB.clear, 0); assert.equal(a.NB.materialTween, null);
-});
-
 test('every optical letter and icon has the theme accent, with colour restricted by the existing outer clip', () => {
   const { a } = harness();
   const css = html.slice(html.indexOf('<style'), html.indexOf('</style>'));
@@ -387,56 +416,6 @@ test('every optical letter and icon has the theme accent, with colour restricted
     assert.equal(opticalItems.length, 5);
     for(const [, style] of opticalItems) assert.doesNotMatch(style, /--na:|\bcolor:|opacity:/, 'The outer capsule clips the full accent copy, including neighbouring letters');
   }
-});
-
-test('holding, travelling and fading need no per-tab colour writes or colour handover at arrival', () => {
-  const runtime = harness(), { a, bar } = runtime;
-  const items = bar.querySelectorAll('.nav-red .nb');
-  let writes = 0;
-  for(const item of items) {
-    const original = item.style.setProperty;
-    item.style.setProperty = (...args) => { writes++; original(...args); };
-  }
-  Object.assign(a.NB, { clear: 1, materialOn: true, drag: { u: 1, moved: false } });
-  runtime.frame(110);
-  a.NB.drag = null; runtime.setNow(120); a.navGo(3);
-  for(let i = 1; i <= 150; i++) runtime.frame(120 + i * 1000 / 120);
-  assert.equal(a.NB.clear, 0);
-  assert.equal(a.NB.tw, null);
-  assert.equal(a.NB.raf, 0);
-  assert.equal(writes, 0);
-});
-
-test('appearance starts at the initiating event and an adjacent flight takes 200 ms plus its tail', () => {
-  const { a } = harness();
-  a.navGo(2);
-  assert.equal(a.NB.materialTween.t0, 100);
-  assert.equal(a.NB.materialTween.ms, 200);
-  near(Math.min(a.NB.tw.da, a.NB.tw.db), 200);
-  near(a.NB.tw.end, 220);
-  a.navMaterialFrame(116, true);
-  assert.ok(a.NB.clear > 0); // The first display frame retains the event's elapsed 16 ms.
-  a.navMaterialFrame(300, true); near(a.NB.clear, 1);
-});
-
-test('a fresh pointer press seeds the rail pulse without restarting it on immediate release', () => {
-  const { a, bar, setNow } = harness();
-  bar.onpointerdown({ button: 0, pointerId: 1, clientX: 300, clientY: 500 });
-  assert.equal(a.NB.pulseAt, 100);
-  setNow(150); bar.onpointerup({ pointerId: 1 });
-  assert.equal(a.NB.pulseAt, 100);
-  setNow(300); a.navGo(0);
-  assert.equal(a.NB.pulseAt, 300);
-});
-
-test('retargeting an in-flight capsule preserves both edge positions', () => {
-  const { a, frame } = harness();
-  a.navGo(4); frame(100); frame(180);
-  const before = { a: a.NB.a, b: a.NB.b };
-  a.navGo(0);
-  near(a.NB.a, before.a); near(a.NB.b, before.b);
-  near(a.NB.tw.a0, before.a); near(a.NB.tw.b0, before.b);
-  assert.equal(a.NB.target, 0);
 });
 
 test('pointer cancel returns to the selected tab and the upward middle gesture still opens its card', () => {
@@ -459,51 +438,4 @@ test('a screen rebuilt mid-gesture keeps its pointer and refreshes the cached re
   near(a.NB.drag.rect.width, 384);
   next.onpointerup({ pointerId: 7 });
   assert.equal(a.NB.drag, null);
-});
-
-test('gesture frames reuse the frozen track and do not read layout or label ranges', () => {
-  const runtime = harness(), { a, counters } = runtime;
-  const track = a.NB.track;
-  a.navGo(4);
-  const reads = { layout: counters.layout, ranges: counters.ranges };
-  for (let i = 0; i <= 180; i++) runtime.frame(100 + i * (1000 / 120));
-  assert.equal(a.NB.track, track);
-  assert.deepEqual({ layout: counters.layout, ranges: counters.ranges }, reads);
-  assert.equal(a.NB.clear, 0);
-  assert.equal(a.NB.tw, null);
-});
-
-test('light, dark and Aurora use the same trajectory geometry', () => {
-  const { a, ctx } = harness();
-  a.NB.clear = 0.8;
-  ctx.WATER = 1;
-  const normal = plain(a.navBox(0.65, 1.9, 0));
-  ctx.WATER = 1.35;
-  assert.deepEqual(plain(a.navBox(0.65, 1.9, 0)), normal);
-});
-
-test('the 200 ms landing keeps the contour coupled to the same optical decay', () => {
-  const { a } = harness({ width: 555, height: 94, labels: [0, 0, 0, 0, 0] });
-  Object.assign(a.NB, { clear: 1, materialOn: true, materialTween: null, opticalEnergy:0 });
-  a.navMaterialFrame(100, false);
-  for (const time of [0,33,66,100,133,166,200]) {
-    a.navMaterialFrame(100 + time, false);
-    const clear=(1-time/200)**2;near(a.NB.clear,clear);
-    const box=a.navBox(2,3,0);near(box.sx*111,120+(125-120)*clear);near(box.sy*85,80+(124-80)*clear);
-  }
-});
-
-test('the entire rail gives one centred 3% pulse and settles while its held lens stays clear', () => {
-  const { a, setNow } = harness();
-  Object.assign(a.NB, { pulseAt: 100, clear: 1, materialOn: true });
-  let maximum = 1;
-  for (let i = 1; i <= 60; i++) {
-    setNow(100 + i * 1000 / 120); a.navRailFrame(1 / 120);
-    const values = a.navRailValues(), sx = +values['--nrsx'], sy = +values['--nrsy'];
-    near(sx, sy); assert.equal(values['--nry'], '0px');
-    maximum = Math.max(maximum, sx);
-    if (i >= 36) near(sx, 1, .001);
-  }
-  assert.ok(maximum > 1.025 && maximum < 1.04);
-  assert.equal(a.NB.clear, 1);
 });
