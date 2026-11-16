@@ -35,6 +35,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
     clamp: (v, lo, hi) => Math.max(lo, Math.min(hi, v)),
     glassOn: () => true, L: value => value,
     requestAnimationFrame: fn => { raf.set(++nextRaf, fn); return nextRaf; },
+    setTimeout: fn => { fn(); return 0; },
     MO: { dt0: 1 / 120, P: { leadDrag: { k: 518.4, z: 0.62 }, trailDrag: { k: 300, z: 0.65 } },
       sp: (v, x, to, p, dt) => v + (-p.k * (x - to) - 2 * Math.sqrt(p.k) * p.z * v) * dt,
       steps: dt => Math.max(1, Math.ceil(dt * 240 - 1e-6)) },
