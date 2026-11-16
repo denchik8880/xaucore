@@ -5444,23 +5444,24 @@ function updateCandles(){
      ≤1 lot unlimited, ≤10 1:10000, ≤25 1:2000, ≤50 1:1000, ≤100 1:888, ≤200 1:500, ≤300 1:200, ≤400 1:100, then 1:50;
      each band of the volume at its own rate). The price starts at the day's real quote (1.1005) and from there moves
      on its own: no range, nothing pulls it anywhere.
-   - Boom / Crash 1000 as Deriv's: 3 digits, 1 lot = $1 a point, min 0.20, step 0.01, at most 250 lots open on one
+   - Boom / Crash 1000 as Deriv's: 4 digits, 1 lot = $1 a point, min 0.20, step 0.01, at most 250 lots open on one
      index, effective leverage at most 1:600; swaps in % a year on the notional (Deriv's table: -36 both ways); a
-     spike has a 1/1000 chance on every tick. */
+     spike has a 1/1000 chance on every tick. Boom starts where the user's cTrader screenshot had it (14 885.3322 /
+     14 887.0507: S 17185), its spread a share of the price as Deriv sets it (0.0115 %, ~1.72 there). */
 const INS = Object.freeze({
   EURUSD: Object.freeze({ sym: "EURUSD", label: "Euro vs US Dollar", kind: "fx", digits: 5, pip: .0001,
     contractSize: 100000, minLot: .01, lotStep: .01, maxLot: 30,
     commissionPer10k: .35, swapLong: -8.9, swapShort: 1.9, swapUnit: "points", tripleDay: 3,
     tiers: Object.freeze([[1, 0], [10, 10000], [25, 2000], [50, 1000], [100, 888], [200, 500], [300, 200], [400, 100], [Infinity, 50]]),
     start: 1.1005, dayVol: .0048, spreadBase: .00003, spreadVar: .00003, rho: .42, rhoNews: .7, newsNoise: 1.5, tickRate: .5 }),
-  BOOM1000: Object.freeze({ sym: "BOOM1000", label: "Boom 1000 Index", kind: "spike", dir: 1, digits: 3, pip: .001,
+  BOOM1000: Object.freeze({ sym: "BOOM1000", label: "Boom 1000 Index", kind: "spike", dir: 1, digits: 4, pip: .0001,
     contractSize: 1, minLot: .2, lotStep: .01, maxLot: 30, volumeLimit: 250, maxLeverage: 600,
     commissionPer10k: 0, swapLong: -36, swapShort: -36, swapUnit: "pctYear", tripleDay: -1,
-    start: 12000, spread: .4, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 }),
-  CRASH1000: Object.freeze({ sym: "CRASH1000", label: "Crash 1000 Index", kind: "spike", dir: -1, digits: 3, pip: .001,
+    start: 14886, spreadPct: .000115, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 }),
+  CRASH1000: Object.freeze({ sym: "CRASH1000", label: "Crash 1000 Index", kind: "spike", dir: -1, digits: 4, pip: .0001,
     contractSize: 1, minLot: .2, lotStep: .01, maxLot: 30, volumeLimit: 250, maxLeverage: 600,
     commissionPer10k: 0, swapLong: -36, swapShort: -36, swapUnit: "pctYear", tripleDay: -1,
-    start: 6800, spread: .4, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 })
+    start: 6800, spreadPct: .000115, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 })
 });
 const INS_ORDER = ["EURUSD", "BOOM1000", "CRASH1000"];
 // bars kept per timeframe (lighter than gold's TF_CAP: three instruments ride in the state)
@@ -5549,7 +5550,7 @@ function insNewState(sym, nowMs, seed){
   if(seed === undefined) seed = (Date.now() ^ Math.floor((typeof performance !== "undefined" ? performance.now() : 0) * 1e3) ^ (sym.length * 0x9E3779B1)) >>> 0;
   const st = { sym, seed: seed >>> 0, t: nowMs, gold: 0, gv: INS_GOLD_DAYVOL * INS_GOLD_DAYVOL / 86400, spikes: 0, price: null, candles: {} };
   const mid = spec.start;
-  st.price = insQuote(spec, mid, spec.kind === "fx" ? spec.spreadBase + spec.spreadVar / 2 : spec.spread);
+  st.price = insQuote(spec, mid, spec.kind === "fx" ? spec.spreadBase + spec.spreadVar / 2 : mid * spec.spreadPct);
   st.price.prevMid = mid; st.price.lastVol = 1;
   insHistory(st, nowMs);
   return st;
@@ -5649,7 +5650,7 @@ function insStepTo(st, nowMs, gold){
   }
   st.t = nowMs;
   if(!moved) return false;
-  const q = insQuote(spec, x, fx ? insFxSpread(st, spec, insHour(tEnd), gold.news) : spec.spread);
+  const q = insQuote(spec, x, fx ? insFxSpread(st, spec, insHour(tEnd), gold.news) : x * spec.spreadPct);
   q.prevMid = prev; q.lastVol = vol; if(spiked) q.spiked = true;
   st.price = q;
   return true;

@@ -49,7 +49,7 @@ test('the specifications are the brokers\': FxPro EURUSD, Deriv Boom/Crash 1000'
   const E = A.INS.EURUSD, B = A.INS.BOOM1000, C = A.INS.CRASH1000;
   assert.equal(E.digits, 5); assert.equal(E.contractSize, 100000); assert.equal(E.minLot, .01); assert.equal(E.lotStep, .01);
   assert.equal(E.start, 1.1005);
-  assert.equal(B.digits, 3); assert.equal(B.contractSize, 1); assert.equal(B.minLot, .2); assert.equal(B.every, 1000); assert.equal(B.dir, 1);
+  assert.equal(B.digits, 4); assert.equal(B.start, 14886); assert.equal(B.contractSize, 1); assert.equal(B.minLot, .2); assert.equal(B.every, 1000); assert.equal(B.dir, 1);
   assert.equal(C.dir, -1); assert.equal(C.minLot, .2);
   assert.equal(JSON.stringify(A.INS_ORDER), JSON.stringify(['EURUSD', 'BOOM1000', 'CRASH1000']));
   const ms = A.FX_HOUR.reduce((s, f) => s + f * f, 0) / 24;
@@ -151,6 +151,16 @@ test('EURUSD: ~0.48 % a day (60-100 pips of range), +0.42 with gold, sub-pip spr
     A.insStepTo(s2, tt, { mid: g, news: true, closed: false }); a.push(g / g0 - 1); b.push(s2.price.mid / e0 - 1); }
   assert.ok(corr(a, b) > .55, `release correlation ${corr(a, b)}`);
   assert.ok(s2.price.ask - s2.price.bid > .00009, 'release spread is wide');
+});
+
+test('Boom/Crash spread is a share of the price, ~1.72 at 14 886 as on the cTrader screenshot', () => {
+  const box = {};
+  A.insAdvance(box, T0, { mid: 4600, news: false, closed: false });
+  A.insAdvance(box, T0 + 60e3, { mid: 4600, news: false, closed: false });
+  const p = box.BOOM1000.price, sp = p.ask - p.bid;
+  assert.ok(Math.abs(sp - p.mid * .000115) < .0002, `spread ${sp}`);
+  assert.ok(sp > 1.6 && sp < 1.85, `spread ${sp} near 1.72`);
+  assert.equal(String(p.bid).split('.')[1]?.length <= 4, true, 'four decimals');
 });
 
 test('EURUSD stands still while the market is closed; spike indices trade 24/7', () => {
