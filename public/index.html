@@ -1254,18 +1254,26 @@ html:has(body.route-wallet){background:#0c0a08}
    and the lit rim all running off one number, --sdk - this bar's own, set on .subtabs, so the two drops on the
    XAUUSD screen clear independently. The tint is written out here and not taken from a :root token, because a
    token that carries a var() has it substituted where the TOKEN is declared. */
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;width:var(--sw0,80px);pointer-events:none;z-index:3;
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{display:block;position:absolute;top:6px;bottom:6px;left:0;width:var(--sw0,80px);pointer-events:none;z-index:1;   /* under its caption, as a plate is (the labels are z 1 after it, the blue window z 2) */
   border-radius:calc(var(--sh,30px) / 2 * var(--ssy,1) / var(--ssx,1)) / 50%;
   transform-origin:0 50%;transform:translateX(var(--sbl,0px)) scaleX(var(--ssx,1)) scaleY(var(--ssy,1));will-change:transform;
-  background:rgba(16,24,40,calc(.09 * var(--sdk,1)));
-  box-shadow:inset 0 6px 7px -6px rgba(16,24,40,calc(.15 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(16,24,40,calc(.15 * (1 + (1 - var(--sdk,1)) * .7))),
-    inset 0 0 0 1px rgba(255,255,255,calc(.4 * (1 + (1 - var(--sdk,1))))),0 0 10px rgba(16,24,40,.03)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  /* AT REST IT IS ONE OF OUR PLATES (user 2026-11-16, a screenshot of ОБЗОР / ПОЗИЦИИ / ОРДЕРА / ГРАФИК: «не такое серое,
+     а похожее на то, как у нас выглядят плашки» - the «‹ Назад» ones): white, outlined on its two ends only, a soft lift
+     under it, no grey fill and no inner shade. Clearing as it flies (--sdk → 0) it turns into the lens it always was:
+     the lips top and bottom and the lit inner rim come in as the plate goes out. */
+  background:rgba(255,255,255,calc(.94 * var(--sdk,1)));
+  box-shadow:-.6px 0 0 0 rgba(16,24,40,calc(.12 * var(--sdk,1))),.6px 0 0 0 rgba(16,24,40,calc(.12 * var(--sdk,1))),0 0 0 .5px rgba(16,24,40,calc(.045 * var(--sdk,1))),
+    0 1px 2px rgba(16,24,40,calc(.05 * var(--sdk,1))),0 6px 14px -6px rgba(16,24,40,calc(.1 * var(--sdk,1))),
+    inset 0 6px 7px -6px rgba(16,24,40,calc(.26 * (1 - var(--sdk,1)))),inset 0 -6px 7px -6px rgba(16,24,40,calc(.26 * (1 - var(--sdk,1)))),
+    inset 0 0 0 1px rgba(255,255,255,calc(.8 * (1 - var(--sdk,1)))),0 0 10px rgba(16,24,40,calc(.03 * (1 - var(--sdk,1))))}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;opacity:calc(1 - .75 * var(--sdk,1));
   background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,calc(.9 * (1 + (1 - var(--sdk,1))))) 0%,transparent 26%,rgba(16,24,40,.13) 50%,transparent 74%,rgba(255,255,255,calc(.55 * (1 + (1 - var(--sdk,1))))) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:rgba(255,255,255,calc(.14 * var(--sdk,1)));
-  box-shadow:inset 0 6px 7px -6px rgba(0,0,0,calc(.5 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(0,0,0,calc(.5 * (1 + (1 - var(--sdk,1)) * .7))),
-    inset 0 0 0 1px rgba(255,255,255,calc(.14 * (1 + (1 - var(--sdk,1)) * 3))),0 0 10px rgba(0,0,0,.2)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:rgba(255,255,255,calc(.15 * var(--sdk,1)));
+  box-shadow:-.6px 0 0 0 rgba(255,255,255,calc(.16 * var(--sdk,1))),.6px 0 0 0 rgba(255,255,255,calc(.16 * var(--sdk,1))),0 0 0 .5px rgba(255,255,255,calc(.07 * var(--sdk,1))),
+    0 1px 2px rgba(0,0,0,calc(.34 * var(--sdk,1))),0 8px 18px -6px rgba(0,0,0,calc(.46 * var(--sdk,1))),
+    inset 0 6px 7px -6px rgba(0,0,0,calc(.85 * (1 - var(--sdk,1)))),inset 0 -6px 7px -6px rgba(0,0,0,calc(.85 * (1 - var(--sdk,1)))),
+    inset 0 0 0 1px rgba(255,255,255,calc(.56 * (1 - var(--sdk,1)))),0 0 10px rgba(0,0,0,calc(.2 * (1 - var(--sdk,1))))}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{
   background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,calc(.62 * (1 + (1 - var(--sdk,1))))) 0%,transparent 26%,rgba(0,0,0,.3) 50%,transparent 74%,rgba(255,255,255,calc(.3 * (1 + (1 - var(--sdk,1))))) 100%)}
 /* the BLUE is a window that travels with the drop: the row drawn a second time in the accent colour and shown
@@ -9411,7 +9419,7 @@ function navBarKey(html){
 // a, b: the drop's left and right edges in tabs (at rest on tab i they are i and i+1); u is the tab they
 // straddle, kept because the drag reads it. infl 0…1: how far the drop is blown up (pressed or travelling);
 // clear 0…1: its glass (refraction, lit skin); cs 0…1: the same glass with the slower grey return (the matte pill)
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, track: null, pulseAt: 0, tapAt: 0, homeAt: 0, clear: 0, cs: 0, infl: 0, it: 0, vs: 0, optical: null, opticalEnergy: 0, rail: 0, railLight: 0 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, track: null, pulseAt: 0, tapAt: 0, homeAt: 0, clear: 0, cs: 0, infl: 0, it: 0, vs: 0, optical: null, opticalEnergy: 0, rail: 0, railLight: 0, fromEnd: 0 };
 let _navByDrop = 0;
 /* THE MOTION, MEASURED (2026-11-15). The user's two recordings of cTrader on iOS 26 (880×272 at 60 fps and
    576×160 at 30 fps), read frame by frame — the bar's ends, the drop's edges, its paint along a clean row:
@@ -9524,12 +9532,22 @@ function navBox(a, b){
   if(st > NAV_MO.stretchKnee) st = NAV_MO.stretchKnee + (st - NAV_MO.stretchKnee) / (1 + (st - NAV_MO.stretchKnee) / NAV_MO.stretchSoft);
   let width = Math.max(rest * .9, rest + st * t.tabW);
   let height = t.restH * (1 + NAV_MO.tall * I * slow);
+  const room = t.height - 2 * NAV_MO.endGap * scale;
+  // LEAVING AN END TAB (user 2026-11-16: «капля не распухает как в оригинальном видео с котирування»; the reference's
+  // Котирування → Чарт, frame by frame): the drop comes off the wall at once and, fast as it is, fills the bar's
+  // height in flight - 0.88 → 0.93 → 0.96 → 0.98 of it by 200 ms, ~0.92 as it lands - and no more. Before, the end's
+  // hold below kept it pulled to the wall and at its resting height until it was a tab away: a flat empty pill.
+  // (a long jump from the end still lands blown up past the bar like any other: the ceiling is the next tab's only)
+  if(NB.fromEnd){
+    height = Math.max(height, t.restH + (room - t.restH) * I);
+    if(NB.fromEnd < 1.5) height = Math.min(height, Math.max(room, t.restH));
+  }
   // AT AN END THE BAR'S WALL STOPS IT (2026-11-16, the reference's hop onto «Котирування»): the drop does not
   // swell up into a ball there - it rises only to the bar's full inner height, the rest of its swell goes into
-  // its length, and its outer end is pressed into the bar's end, a long capsule hugging the wall.
-  const end = navEndness(u);
+  // its length, and its outer end is pressed into the bar's end, a long capsule hugging the wall. Only coming to
+  // (or sitting on) that end tab - navEndHold.
+  const end = navEndHold(u);
   if(end > 0){
-    const room = t.height - 2 * NAV_MO.endGap * scale;
     if(height > room){ const k = height / room; height += (room - height) * end; width *= 1 + (k - 1) * end; }
   }
   // Keep both ends round. A bounded shoulder may project outside the rail, without trimming one cap.
@@ -9549,9 +9567,22 @@ function navEndness(u){
   const e = Math.max(clamp((1 - u) / .6, 0, 1), clamp((u - 3) / .6, 0, 1));
   return e * e * (3 - 2 * e);
 }
+// The end's hold on the drop: its endness, but only while the drop is going to (or sitting on) that end tab -
+// the tap's tab, or under a dragging finger. Leaving it, nothing holds it to the wall.
+function navEndHold(u){
+  const e = navEndness(u);
+  if(!e) return 0;
+  const home = NB.drag ? NB.drag.u : NB.target;
+  return (u < 2 ? home <= .5 : home >= 3.5) ? e : 0;
+}
+// a press that sends the drop away from an end tab: the departure swell of navBox (NB.fromEnd = the hop's length)
+function navMarkDeparture(to){
+  const from = NB.u == null ? NB.target : NB.u;
+  NB.fromEnd = (from < .3 || from > 3.7) && Math.abs(to - from) > .5 ? Math.abs(to - from) : 0;   // how far it goes
+}
 // The drop's corner (share of its height): a capsule at rest; a squarer squircle while it is clear glass - except
 // pressed into an end of the bar, where its outer end follows the bar's own round end.
-function navCorner(clear){ return .5 - .1 * clamp(clear, 0, 1) * (1 - navEndness(NB.u == null ? NB.target : NB.u)); }
+function navCorner(clear){ return .5 - .1 * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)); }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
 // 8.8 % of the curve this replaces. x is solved by halving; y1 = 0, so its y half is 2.76t²(1-t) + t³.
 function navEase(x){
@@ -9569,8 +9600,9 @@ function navEase(x){
 // where. Anything but a lifted finger also starts a press: its clock (the drop stays blown up for NAV_MO.holdMs)
 // and the bar's breath, never restarted half way up. A lifted finger is the end of the press that pointerdown began.
 function navGo(i, release){
+  if(NB.a == null){ NB.target = i; NB.a = i; NB.b = i + 1; NB.u = i; return; }
+  if(!release) navMarkDeparture(i);
   NB.target = i;
-  if(NB.a == null){ NB.a = i; NB.b = i + 1; NB.u = i; return; }
   const now = performance.now();
   if(!release){ NB.tapAt = now; if(!NB.pulseAt || now - NB.pulseAt >= NAV_MO.pulseMs) NB.pulseAt = now; }
   navBubKick();
@@ -9645,7 +9677,7 @@ function navBubFrame(now){
   navLens(NB.clear);                           // the bend rides the same number as the glass - no swap, no lag
   // Home, flat and grey, the breath over: one last exact write and the frames stop.
   if(settled && !active && !NB.infl && !NB.it && !NB.clear && !NB.cs && !NB.pulseAt){
-    NB.u = NB.target; NB.t = 0; NB._pm = null; NB.opticalEnergy = NB.vs = 0;
+    NB.u = NB.target; NB.t = 0; NB._pm = null; NB.opticalEnergy = NB.vs = 0; NB.fromEnd = 0;
     bar.style.setProperty("--ng", "0"); bar.style.setProperty("--ngs", "0");
     navLens(0);
     const r = navBox(NB.target, NB.target + 1);
@@ -9995,6 +10027,7 @@ function navBind(bar){
     if(e.button > 0) return;
     const br = bar.getBoundingClientRect(), pointerU = uAt(e.clientX, br), touch = e.pointerType !== "mouse";
     const start = touch ? clamp(Math.round(pointerU), 0, 4) : pointerU;
+    navMarkDeparture(start);
     NB.drag = { id: e.pointerId, u: start, start, pointerU, moved: !touch, lastX: e.clientX, x0: e.clientX, y0: e.clientY, rect: br, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
     const now = performance.now(); NB.tapAt = now; if(!NB.pulseAt || now - NB.pulseAt >= NAV_MO.pulseMs) NB.pulseAt = now;
     try{ bar.setPointerCapture(e.pointerId); }catch(_){}
