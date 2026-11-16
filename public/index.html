@@ -887,20 +887,36 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-tools{display:flex;align-items:center;gap:22px}
 .wl-caret{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:8px solid var(--ink3);margin-right:14px}
 .wl-tools .ic{display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer}
-.wl-row{display:flex;gap:12px;align-items:stretch;padding:16px 16px 14px;margin:0 -14px;width:calc(100% + 28px);border-bottom:1px solid var(--wl-div);background:none;cursor:pointer;text-align:left}
-
-.wl-left{flex:0 0 41%;min-width:0;display:flex;flex-direction:column;gap:1px}
+.wl-row{display:flex;flex-direction:column;padding:13px 18px 16px;margin:0 -14px;width:calc(100% + 28px);border-bottom:1px solid var(--wl-div);background:none;cursor:pointer;text-align:left}
+/* THE WATCHLIST ROW OF CTRADER'S 2026-11 UPDATE (user 2026-11-16, three screenshots: «UI дизайн смените, вышло
+   обновление»): the instrument's round icon and its name on top; under them the day's sparkline with the change
+   below it on the left, and H / S / L over two rounded outlined boxes on the right. Measured on the screenshots
+   (1440 px = 411 dp): icon 34, name 24, boxes 112×50 with 9.5 between and a 9 radius, captions in sentence case,
+   the cells of H / S / L cut with an ellipsis when a long price does not fit. The colours are the update's: an
+   orange-red #f05424 and a green #009042 on the boxes, lighter on the change line and the sparkline. */
+:root{--wl-up:#009042;--wl-dn:#f05424;--wl-chg-up:#1e9c5a;--wl-chg-dn:#f0602e;--wl-spark-up:#5fb38a;--wl-spark-dn:#f08a68;--wl-stat:#8a8a8a}
+:root[data-theme="dark"]{--wl-up:var(--green-ink);--wl-dn:var(--red-ink);--wl-chg-up:var(--green-ink);--wl-chg-dn:var(--red-ink);--wl-spark-up:#3fa874;--wl-spark-dn:#e8704a;--wl-stat:var(--ink3)}
+:root[data-theme="dark"][data-tone="aurora"]{--wl-spark-up:#34c77f;--wl-spark-dn:#f0727a}
+.wl-top{display:flex;align-items:center;gap:10px;min-width:0}
+.wl-ic{flex:none;width:34px;height:34px}
+.wl-ic svg{display:block;width:100%;height:100%}
+.wl-body{display:flex;gap:14px;align-items:stretch;margin-top:1px}
+.wl-left{flex:0 0 34%;min-width:0;display:flex;flex-direction:column;padding-bottom:5px}
 .wl-right{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
-.wl-sym{font-weight:500;font-size:22px;line-height:1.15;display:flex;align-items:center;white-space:nowrap}
-.wl-sym .ck{color:var(--green-ink);margin-right:12px;font-size:19px}
+.wl-sym{font-weight:500;font-size:24px;line-height:1.2;display:flex;align-items:center;white-space:nowrap;min-width:0}
 .wl-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;
   margin-left:8px;border:1.5px solid var(--ink3);border-radius:6px;font-size:12px;font-weight:600;
   font-variant-numeric:tabular-nums;color:var(--ink2);vertical-align:2px;line-height:1}
-.wl-chg{font-size:14px;white-space:nowrap}
-.wl-spark{display:block;width:100%;height:30px;margin-top:5px;overflow:hidden}
+.wl-chg{font-size:15px;line-height:20px;white-space:nowrap;margin-top:auto;overflow:hidden}
+.wl-chg.pos{color:var(--wl-chg-up)!important}
+.wl-chg.neg{color:var(--wl-chg-dn)!important}
+.wl-spark{display:block;width:100%;height:38px;margin-top:3px;overflow:hidden}
 .wl-spark svg{display:block;width:100%;height:100%}
-.wl-stats{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;color:var(--ink2);white-space:nowrap}
-.wl-quote{display:flex;gap:8px}
+.wl-stats{display:flex;gap:6px;font-size:13px;line-height:17px;color:var(--wl-stat);white-space:nowrap;font-variant-numeric:tabular-nums}
+.wl-stats>span{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.wl-stats>span:nth-child(2){text-align:center}
+.wl-stats>span:nth-child(3){text-align:right}
+.wl-quote{display:flex;gap:10px}
 /* «+ Добавить инструменты» — cTrader's centred blue button; «Новый ордер» — its floating action button */
 .wl-addbtn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 0;width:64%;min-width:230px;height:36px;border:0;border-radius:4px;background:#1f4e9c;color:#fff;font-size:15px;font-weight:500}
 .wl-addbtn span{font-size:20px;line-height:1}
@@ -912,10 +928,10 @@ body.trade-locked .fabnew{opacity:.5;pointer-events:none}
 /* cTrader tints each box — caption, price and border — by ITS OWN price's last tick: ПРОДАТЬ by
    the Bid, КУПИТЬ by the Ask, green after an uptick, red after a downtick (.dn on the box). A
    spread change moves the two apart, so they can differ (a cTrader video: green ПРОДАТЬ, red КУПИТЬ) */
-.wl-q{flex:1 1 0;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;border:1px solid currentColor;border-radius:4px;padding:2px 2px 3px;color:var(--green-ink)}
-.wl-q b{font-size:12.5px;font-weight:500;letter-spacing:.02em;line-height:1.25;color:inherit}
-.wl-q span{font-size:17px;font-weight:500;line-height:1.2;font-variant-numeric:tabular-nums}
-.wl-q.dn{color:var(--red-ink)}
+.wl-q{flex:1 1 0;min-width:0;height:50px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1.5px solid currentColor;border-radius:9px;padding:0 3px;color:var(--wl-up)}
+.wl-q b{font-size:14px;font-weight:400;line-height:18px;color:inherit}
+.wl-q span{font-size:18.5px;font-weight:500;line-height:22px;font-variant-numeric:tabular-nums;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.wl-q.dn{color:var(--wl-dn)}
 /* same pill as the search field beside it — cTrader gives them equal weight;
    ours used to sit noticeably smaller */
 .ab-bal{flex:0 0 auto;background:var(--line);color:var(--ink);font-weight:600;font-size:15px;
@@ -7771,16 +7787,16 @@ function watchSparkSVG(){
   const pts = c.map((v,i) => `${(i/(c.length-1)*W).toFixed(1)},${(H - 2 - (v-lo)/rng*(H-4)).toFixed(1)}`).join(" ");
   const D = S.day;
   const up = (D ? (S.price.mid - D.open) : (c[c.length-1] - c[0])) >= 0;
-  const col = up ? "var(--green)" : "var(--red)";
+  const col = up ? "var(--wl-spark-up)" : "var(--wl-spark-dn)";
   // cTrader tints the area under the line in the day's colour, fading to nothing
   const gid = up ? "wsg-up" : "wsg-dn";
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
     <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${col}" stop-opacity=".30"/>
+      <stop offset="0" stop-color="${col}" stop-opacity=".22"/>
       <stop offset="1" stop-color="${col}" stop-opacity="0"/>
     </linearGradient></defs>
     <polygon points="${pts} ${W},${H} 0,${H}" fill="url(#${gid})" stroke="none"/>
-    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
   </svg>`;
 }
 function watchStats(){
@@ -7794,6 +7810,49 @@ function watchStats(){
 function wlChgText(w){
   const pip = Math.pow(10, -S.symbol.digits), s = w.chg > 0 ? "+" : "";
   return `${s}${(w.chg / pip).toFixed(1)} (${w.chgPct > 0 ? "+" : ""}${fmt(w.chgPct, 2)}%)`;
+}
+/* THE INSTRUMENT'S ROUND ICON, as the 2026-11 cTrader update draws it in the watchlist (user's screenshots): a pair is
+   two coins - the quote currency's flag behind at the top right, the base in front at the bottom left, a thin gap
+   cut between them (a mask, so it shows on any background); XAUUSD's front coin is gold with three bars; the
+   synthetic indices are one red coin with their glyph (Boom's zigzag ends in an arrow up, Crash's in one down).
+   Each call gets its own ids: a clip or mask id shared with a hidden copy can fail to resolve. */
+let _symIcN = 0;
+function symIconStar(cx, cy, r){
+  let d = "";
+  for(let i = 0; i < 10; i++){
+    const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .42 : r;
+    d += (i ? " " : "") + (cx + q * Math.cos(a)).toFixed(2) + "," + (cy + q * Math.sin(a)).toFixed(2);
+  }
+  return `<polygon points="${d}"/>`;
+}
+function symIconSVG(sym){
+  const id = "sic" + (++_symIcN), R = 11.6, fx = 11.9, fy = 24.1, bx = 24.1, by = 11.9;   // coins of 23 dp, as on the screenshots
+  if(sym === "BOOM1000" || sym === "CRASH1000"){
+    const flip = sym === "CRASH1000" ? ' transform="matrix(1 0 0 -1 0 36)"' : "";
+    return `<svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="16" fill="#f2464f"/>`
+      + `<g fill="none" stroke="#fff" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"${flip}>`
+      + `<polyline points="6.4,13.3 10.4,20.2 12.7,15.2 17.2,25.4 24,10.6"/><polyline points="20.9,12.4 24,10.6 24.6,14.1"/></g></svg>`;
+  }
+  // the US flag on the back coin: 13 stripes, the blue canton with its stars
+  const top = by - R, left = bx - R, h = 2 * R / 13;
+  let flag = `<rect x="${left}" y="${top}" width="${2 * R}" height="${2 * R}" fill="#fff"/><g fill="#c8403c">`;
+  for(let i = 0; i < 13; i += 2) flag += `<rect x="${left}" y="${(top + i * h).toFixed(3)}" width="${2 * R}" height="${h.toFixed(3)}"/>`;
+  flag += `</g><rect x="${left}" y="${top}" width="${(R * 1.02).toFixed(2)}" height="${(7 * h).toFixed(3)}" fill="#26397c"/><g fill="#fff">`;
+  for(let r = 0; r < 3; r++) for(let c = 0; c < 3; c++) flag += symIconStar(left + 3.8 + c * 2.8 + (r % 2) * 1.2, top + 2.6 + r * 3.05, 1);
+  flag += `</g>`;
+  let front;
+  if(sym === "EURUSD"){
+    front = `<circle cx="${fx}" cy="${fy}" r="${R}" fill="#0f47af"/><g fill="#ffcc00">`;
+    for(let i = 0; i < 12; i++){ const a = i * Math.PI / 6; front += symIconStar(fx + 7 * Math.cos(a), fy + 7 * Math.sin(a), 1.7); }
+    front += `</g>`;
+  }else{
+    const bar = (x, y) => `<path d="M${(x - 2.6).toFixed(2)} ${(y - 2).toFixed(2)}H${(x + 2.6).toFixed(2)}L${(x + 3.8).toFixed(2)} ${(y + 2).toFixed(2)}H${(x - 3.8).toFixed(2)}Z"/>`;
+    front = `<linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7dc7e"/><stop offset=".55" stop-color="#e6bd48"/><stop offset="1" stop-color="#d9ac3a"/></linearGradient>`
+      + `<circle cx="${fx}" cy="${fy}" r="${R}" fill="url(#${id}g)"/><g fill="#fff6dc">${bar(fx, fy - 2.5)}${bar(fx - 4, fy + 2.5)}${bar(fx + 4, fy + 2.5)}</g>`;
+  }
+  return `<svg viewBox="0 0 36 36" aria-hidden="true"><defs><clipPath id="${id}c"><circle cx="${bx}" cy="${by}" r="${R}"/></clipPath>`
+    + `<mask id="${id}m" maskUnits="userSpaceOnUse" x="0" y="0" width="36" height="36"><rect width="36" height="36" fill="#fff"/><circle cx="${fx}" cy="${fy}" r="${R + 1.6}" fill="#000"/></mask></defs>`
+    + `<g mask="url(#${id}m)"><g clip-path="url(#${id}c)">${flag}</g></g>${front}</svg>`;
 }
 /* open positions on XAUUSD — pending orders do NOT count until they fill */
 function xauOpenCount(){ return S.positions.filter(p => p.symbol === S.symbol.name).length; }
@@ -8104,16 +8163,21 @@ function screenMarketsList(){
       </span>
     </div>
     <div class="wl-row" role="button" tabindex="0" data-act="openxau">
-      <div class="wl-left">
-        <span class="wl-sym" id="wlSym"><span class="ck">✓</span>XAUUSD${wlCountBadge()}</span>
-        <span class="wl-chg ${w.chg>=0?'pos':'neg'}" id="wlChg">${wlChgText(w)}</span>
-        <span class="wl-spark" id="wlSparkBox">${watchSparkSVG()}</span>
+      <div class="wl-top">
+        <span class="wl-ic">${symIconSVG("XAUUSD")}</span>
+        <span class="wl-sym" id="wlSym">XAUUSD${wlCountBadge()}</span>
       </div>
-      <div class="wl-right">
-        <div class="wl-stats"><span>H: <span id="wlHi">${chartPx(w.hi)}</span></span><span>S: <span id="wlSp">${w.spr}</span></span><span>L: <span id="wlLo">${chartPx(w.lo)}</span></span></div>
-        <div class="wl-quote">
-          <span class="wl-q sell ${tickDirs().bd}" id="wlQS"><b>${L("ПРОДАТЬ")}</b><span id="wlBid">${chartPx(S.price.bid)}</span></span>
-          <span class="wl-q buy ${_tick.ad}" id="wlQB"><b>${L("КУПИТЬ")}</b><span id="wlAsk">${chartPx(S.price.ask)}</span></span>
+      <div class="wl-body">
+        <div class="wl-left">
+          <span class="wl-spark" id="wlSparkBox">${watchSparkSVG()}</span>
+          <span class="wl-chg ${w.chg>=0?'pos':'neg'}" id="wlChg">${wlChgText(w)}</span>
+        </div>
+        <div class="wl-right">
+          <div class="wl-stats"><span>H: <span id="wlHi">${chartPx(w.hi)}</span></span><span>S: <span id="wlSp">${w.spr}</span></span><span>L: <span id="wlLo">${chartPx(w.lo)}</span></span></div>
+          <div class="wl-quote">
+            <span class="wl-q sell ${tickDirs().bd}" id="wlQS"><b>${L("Продать")}</b><span id="wlBid">${chartPx(S.price.bid)}</span></span>
+            <span class="wl-q buy ${_tick.ad}" id="wlQB"><b>${L("Купить")}</b><span id="wlAsk">${chartPx(S.price.ask)}</span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -12719,7 +12783,8 @@ function updateLive(){
     setTxt("wlHi", chartPx(w.hi)); setTxt("wlLo", chartPx(w.lo)); setTxt("wlSp", String(w.spr));
     setTxt("wlChg", wlChgText(w), w.chg>=0?"pos":"neg");
     const sym = document.getElementById("wlSym");
-    if(sym){ const want = `<span class="ck">✓</span>XAUUSD${wlCountBadge()}`; if(sym.innerHTML !== want) sym.innerHTML = want; }
+    if(sym){ const want = `XAUUSD${wlCountBadge()}`; if(sym.innerHTML !== want) sym.innerHTML = want; }
+    fitText(document.getElementById("wlChg"), 11);                // a long change line shrinks, never runs under the box
     const sb = document.getElementById("wlSparkBox");
     if(sb && Date.now() - (sb._t||0) > 1500){ sb.innerHTML = watchSparkSVG(); sb._t = Date.now(); }
   }
