@@ -407,8 +407,9 @@ test('every optical letter and icon has the theme accent, with colour restricted
   const css = html.slice(html.indexOf('<style'), html.indexOf('</style>'));
   assert.match(css, /\.nav-red \.nb\{[^}]*color:var\(--nav-on\)/);
   assert.match(css, /\.nav-red \.nb>\.ic\{color:inherit\}/);
-  assert.match(css, /\.bottomnav button\.on\{color:var\(--ink\)\}/);
-  assert.match(css, /\.bottomnav button>\.ic\{color:var\(--nav-ic\)\}/);
+  assert.match(css, /\.bottomnav button\.on\{color:var\(--nav-item\)\}/);
+  assert.match(css, /\.bottomnav button>\.ic\{color:var\(--nav-item\)\}/);
+  assert.match(css, /\.bottomnav\{--nav-item:#000\}/, 'The other tabs are black, as on the reference');
   assert.match(css, /\.nav-red\{[^}]*clip-path:[^}]*var\(--u,0\)[^}]*var\(--sx,1\)/);
   for(let selected = 0; selected < 5; selected++) {
     Object.assign(a.NB, { u: selected, target: selected, a: selected, b: selected + 1 });

@@ -352,9 +352,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* The ordinary row stays neutral outside the lens. The complete optical copy uses the theme's accent;
    the existing capsule clip decides which parts of its letters and icons are visible in that colour. */
+/* Every other tab - icon and caption alike - in the label colour, as on the reference (user 2026-11-16: «сделайте
+   черными … как на оригинальном видео»; measured ~#171717 through the video's codec = iOS label black). On the
+   dark themes the same label colour is white. */
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-item:#000}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-item:#fff}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button,
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--ink)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-ic)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button.on{color:var(--nav-item)}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button>.ic{color:var(--nav-item)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:var(--nav-is,30px);height:var(--nav-is,30px)}
 /* The matte and optical layers share one measured contour throughout their crossfade.
    --ng is the optical envelope; --u/--sx express the leading edge/width in fifths of the rail. */
