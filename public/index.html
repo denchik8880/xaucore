@@ -5403,6 +5403,262 @@ function updateCandles(){
   }
 }
 
+/* ======== OTHER INSTRUMENTS (2026-11-16, docs/multi-instrument-plan.md) ========
+   XAUUSD stays the gold engine above (S.price / S.candles), untouched. The others are light generators of their own,
+   kept per symbol in a box ({ EURUSD: st, BOOM1000: st, CRASH1000: st }), and stepped to the game clock after gold's
+   ticks (insAdvance), so their candles share the chart's time axis and the accelerated day.
+   They draw from their OWN seeded generator (st.seed), never Math.random: gold gets exactly the random numbers it
+   always got, so it moves exactly as before, and an instrument's path is reproducible from its state.
+   - EURUSD (user: «по котировкам похожие на реальные, но не реальные … оно само должно двигаться как настоящее»):
+     FX hours (Tokyo quiet, London and the London-New York overlap busiest), a free walk, and the dollar it shares with gold: its step leans on gold's own, so their returns
+     correlate about +0.42 in quiet hours and +0.7 in a release, when its own noise grows too. Spread 0.6-1.2 pips,
+     wider at the roll-over, in thin hours and in a release. Quotes only while gold's market is open.
+   - Boom 1000 / Crash 1000, as Deriv's: a tick every game second, 24/7, no news; between spikes a slow drift (down
+     for Boom, up for Crash) in small steps - ~9 ticks in 10 go its way, so the minute candles between spikes are
+     nearly all one colour, a staircase - and on average once in 1000 ticks (a 1/1000 chance on every tick) a spike
+     the other way, of an exponential size over a floor. The drift pays the spikes back on average, so the index
+     wanders, never runs off. (User 2026-11-16: «муб и краш должны быть с такой логикой как и у дерив».)
+   History: one path walked backwards from the current price (1-minute steps for the newest 200 hours, 15-minute
+   steps before) and cut into every timeframe at once, so the timeframes agree with each other. */
+/* The specifications are the brokers' own (read 2026-11-16):
+   - EURUSD as FxPro's cTrader account: 0.01 lot = 1 000 EUR, step 0.01; commission $0.35 per 10K traded a side
+     (1 lot ≈ €3.50 = ~$3.85 in, the same out); swaps -8.9 / +1.9 points a lot a night, three on Wednesday; average raw
+     spread ~0.46 pip; daily range 60-100 pips. Margin = lots × 100 000 × price / leverage, in dollars, where the
+     leverage is the account's, but never above FxPro's dynamic tier for the instrument's open volume (FX majors:
+     ≤1 lot unlimited, ≤10 1:10000, ≤25 1:2000, ≤50 1:1000, ≤100 1:888, ≤200 1:500, ≤300 1:200, ≤400 1:100, then 1:50;
+     each band of the volume at its own rate). The price starts at the day's real quote (1.1005) and from there moves
+     on its own: no range, nothing pulls it anywhere.
+   - Boom / Crash 1000 as Deriv's: 3 digits, 1 lot = $1 a point, min 0.20, step 0.01, at most 250 lots open on one
+     index, effective leverage at most 1:600; swaps in % a year on the notional (Deriv's table: -36 both ways); a
+     spike has a 1/1000 chance on every tick. */
+const INS = Object.freeze({
+  EURUSD: Object.freeze({ sym: "EURUSD", label: "Euro vs US Dollar", kind: "fx", digits: 5, pip: .0001,
+    contractSize: 100000, minLot: .01, lotStep: .01, maxLot: 30,
+    commissionPer10k: .35, swapLong: -8.9, swapShort: 1.9, swapUnit: "points", tripleDay: 3,
+    tiers: Object.freeze([[1, 0], [10, 10000], [25, 2000], [50, 1000], [100, 888], [200, 500], [300, 200], [400, 100], [Infinity, 50]]),
+    start: 1.1005, dayVol: .0048, spreadBase: .00003, spreadVar: .00003, rho: .42, rhoNews: .7, newsNoise: 1.5, tickRate: .5 }),
+  BOOM1000: Object.freeze({ sym: "BOOM1000", label: "Boom 1000 Index", kind: "spike", dir: 1, digits: 3, pip: .001,
+    contractSize: 1, minLot: .2, lotStep: .01, maxLot: 30, volumeLimit: 250, maxLeverage: 600,
+    commissionPer10k: 0, swapLong: -36, swapShort: -36, swapUnit: "pctYear", tripleDay: -1,
+    start: 12000, spread: .4, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 }),
+  CRASH1000: Object.freeze({ sym: "CRASH1000", label: "Crash 1000 Index", kind: "spike", dir: -1, digits: 3, pip: .001,
+    contractSize: 1, minLot: .2, lotStep: .01, maxLot: 30, volumeLimit: 250, maxLeverage: 600,
+    commissionPer10k: 0, swapLong: -36, swapShort: -36, swapUnit: "pctYear", tripleDay: -1,
+    start: 6800, spread: .4, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 })
+});
+const INS_ORDER = ["EURUSD", "BOOM1000", "CRASH1000"];
+// bars kept per timeframe (lighter than gold's TF_CAP: three instruments ride in the state)
+const INS_CAP = Object.freeze({ M1: 400, M5: 300, M15: 200, M30: 200, H1: 200, H4: 150, D1: 120 });
+const INS_NEAR_MIN = 12000;          // history in 1-minute steps this far back (H1's 200 bars), 15-minute steps before
+const INS_REBUILD_S = 3 * 86400;     // a clock jump longer than this rebuilds the history instead of filling it
+const INS_GOLD_DAYVOL = .015;        // gold's daily move before the instrument has measured it (D1 ~$70 at $4 600)
+// FX activity by UTC hour; its mean square is 1, so dayVol stays the daily volatility
+const FX_HOUR = [.55, .5, .5, .55, .6, .65, .75, 1.15, 1.35, 1.3, 1.2, 1.15, 1.3, 1.55, 1.6, 1.5, 1.35, 1.0, .85, .75, .7, .55, .45, .5];
+// the drift that pays the spikes back: the expected spike over the ticks between them
+const insDrift = spec => (spec.spikeMin + spec.spikeMean) / spec.every;
+
+// mulberry32 on the instrument's own seed
+function insRand(st){
+  let t = (st.seed = (st.seed + 0x6D2B79F5) >>> 0);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function insGauss(st){
+  let u = 0; while(u === 0) u = insRand(st);
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * insRand(st));
+}
+function insPoisson(st, lambda){
+  if(!(lambda > 0)) return 0;
+  if(lambda > 30) return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * insGauss(st)));
+  const L = Math.exp(-lambda); let k = 0, p = 1;
+  do{ k++; p *= insRand(st); }while(p > L);
+  return k - 1;
+}
+const insHour = tSec => ((Math.floor(tSec / 3600) % 24) + 24) % 24;
+function insQuote(spec, mid, spread){
+  return { bid: roundTo(mid - spread / 2, spec.digits), ask: roundTo(mid + spread / 2, spec.digits), mid, spread };
+}
+// margin in dollars for `lots` more of an instrument that already has `openLots` open, at the account's leverage.
+// One lot's notional is contractSize × price dollars (EURUSD: 100 000 EUR at the rate; Boom/Crash: $1 a point).
+// With tiers (FxPro), each band of the volume is margined at its own tier, never looser than the account's leverage
+// (a tier of 0 is FxPro's "unlimited": the account's leverage); without, the account's leverage up to the maximum.
+function insMargin(spec, lots, price, accLev, openLots){
+  const one = spec.contractSize * price, from = Math.max(0, openLots || 0), to = from + lots;
+  if(!spec.tiers) return lots * one / Math.min(accLev, spec.maxLeverage || Infinity);
+  let m = 0, lo = 0;
+  for(const [cap, lev] of spec.tiers){
+    const a = Math.max(from, lo), b = Math.min(to, cap);
+    if(b > a) m += (b - a) * one / (lev ? Math.min(accLev, lev) : accLev);
+    lo = cap; if(lo >= to) break;
+  }
+  return m;
+}
+// one side's commission in dollars: FxPro's $0.35 per 10 000 of the traded notional
+function insCommission(spec, lots, price){ return lots * spec.contractSize * price / 10000 * (spec.commissionPer10k || 0); }
+// one night's swap in dollars (before the triple day): FxPro's in points a lot, Deriv's in % a year on the notional
+function insSwap(spec, side, lots, price){
+  const r = side === "buy" ? spec.swapLong : spec.swapShort;
+  return spec.swapUnit === "points" ? lots * r * spec.contractSize * Math.pow(10, -spec.digits)
+                                    : lots * spec.contractSize * price * r / 100 / 365;
+}
+function insFxSpread(st, spec, hr, news){
+  const roll = hr === 21 || hr === 22 ? 3 : 1;                      // the daily roll-over: thin books
+  const thin = FX_HOUR[hr] < .7 ? 1.3 : 1;
+  return (spec.spreadBase + spec.spreadVar * insRand(st)) * roll * thin * (news ? 4 : 1);
+}
+// m ticks of a spike index: the drift, the noise and any spikes. Returns the net move and the extremes on the way,
+// both from the start (a spike lands at a random tick inside the batch)
+function insSpikeMove(st, spec, m){
+  const drift = insDrift(spec), n = insPoisson(st, m / spec.every);
+  let net = -spec.dir * drift * m + spec.noise * Math.sqrt(m) * insGauss(st);
+  let hi = Math.max(0, net), lo = Math.min(0, net);
+  for(let i = 0; i < n; i++){
+    const at = -spec.dir * drift * m * insRand(st), size = spec.spikeMin + -Math.log(1 - insRand(st)) * spec.spikeMean;
+    net += spec.dir * size;
+    if(spec.dir > 0) hi = Math.max(hi, at + size); else lo = Math.min(lo, at - size);
+  }
+  return { net, hi: Math.max(hi, net), lo: Math.min(lo, net), spikes: n };
+}
+// one EURUSD step of dtS game seconds from x; goldRel = gold's relative move over it
+function insFxMove(st, spec, x, dtS, hr, goldRel, news){
+  const se = spec.dayVol * FX_HOUR[hr] * Math.sqrt(dtS / 86400);
+  const rho = news ? spec.rhoNews : spec.rho;
+  const beta = clamp(rho * spec.dayVol * FX_HOUR[hr] / Math.sqrt(Math.max(st.gv, 1e-14) * 86400), 0, .8);
+  const rel = beta * goldRel + se * Math.sqrt(1 - rho * rho) * (news ? spec.newsNoise : 1) * insGauss(st);
+  return x * (1 + clamp(rel, -.05, .05));
+}
+function insNewState(sym, nowMs, seed){
+  const spec = INS[sym];
+  if(seed === undefined) seed = (Date.now() ^ Math.floor((typeof performance !== "undefined" ? performance.now() : 0) * 1e3) ^ (sym.length * 0x9E3779B1)) >>> 0;
+  const st = { sym, seed: seed >>> 0, t: nowMs, gold: 0, gv: INS_GOLD_DAYVOL * INS_GOLD_DAYVOL / 86400, spikes: 0, price: null, candles: {} };
+  const mid = spec.start;
+  st.price = insQuote(spec, mid, spec.kind === "fx" ? spec.spreadBase + spec.spreadVar / 2 : spec.spread);
+  st.price.prevMid = mid; st.price.lastVol = 1;
+  insHistory(st, nowMs);
+  return st;
+}
+// the history: one path walked backwards from the current price to nowMs's past, cut into every timeframe at once
+function insHistory(st, nowMs){
+  const spec = INS[st.sym], fx = spec.kind === "fx", tNow = nowMs / 1000;
+  const near = Math.floor(tNow / 900) * 900 - INS_NEAR_MIN * 60;
+  const tStart = (Math.floor(tNow / 86400) - (INS_CAP.D1 - 1)) * 86400;
+  const out = {}; for(const tf of TF_ORDER) out[tf] = [];
+  let tB = tNow, x = st.price.mid;
+  while(tB > tStart){
+    const step = tB > near ? 60 : 900, tA = (Math.ceil(tB / step) - 1) * step, dt = tB - tA;
+    let a, hi, lo, v;
+    if(fx){
+      const se = spec.dayVol * FX_HOUR[insHour(tA)] * Math.sqrt(dt / 86400);
+      a = x / (1 + clamp(se * insGauss(st), -.05, .05));
+      const w = se * .45 * x;                                          // the wicks inside the step
+      hi = Math.max(a, x) + Math.abs(insGauss(st)) * w; lo = Math.min(a, x) - Math.abs(insGauss(st)) * w;
+      v = Math.max(1, Math.round(dt * spec.tickRate * FX_HOUR[insHour(tA)]));
+    }else{
+      const mv = insSpikeMove(st, spec, Math.round(dt));
+      a = Math.max(spec.floor, x - mv.net); hi = a + mv.hi; lo = a + mv.lo; v = Math.round(dt);
+      st.spikes += mv.spikes;
+    }
+    for(const tf of TF_ORDER){
+      const sec = TF[tf], bt = Math.floor(tA / sec) * sec, arr = out[tf], last = arr[arr.length - 1];
+      if(last && last.t === bt){ last.o = a; if(hi > last.h) last.h = hi; if(lo < last.l) last.l = lo; last.v += v; }
+      else if(arr.length < INS_CAP[tf]) arr.push({ t: bt, o: a, h: hi, l: lo, c: x, v });
+    }
+    x = a; tB = tA;
+  }
+  const d = spec.digits;
+  for(const tf of TF_ORDER){
+    const arr = out[tf].reverse();
+    for(const b of arr){
+      b.o = roundTo(b.o, d); b.c = roundTo(b.c, d);
+      b.h = Math.max(roundTo(b.h, d), b.o, b.c); b.l = Math.min(roundTo(b.l, d), b.o, b.c);
+    }
+    st.candles[tf] = arr;
+  }
+}
+// a step's mini-bar onto every timeframe (a new bar opens at the previous close: no gaps)
+function insCandle(st, tSec, hi, lo, c, v){
+  const d = INS[st.sym].digits, p = roundTo(c, d), H = roundTo(hi, d), Lo = roundTo(lo, d);
+  for(const tf of TF_ORDER){
+    const sec = TF[tf], arr = st.candles[tf] || (st.candles[tf] = []);
+    const bt = Math.floor(tSec / sec) * sec, last = arr[arr.length - 1];
+    if(!last || last.t < bt){
+      const o = last ? last.c : p;
+      arr.push({ t: bt, o, h: Math.max(o, H, p), l: Math.min(o, Lo, p), c: p, v });
+      if(arr.length > INS_CAP[tf]) arr.splice(0, arr.length - INS_CAP[tf]);
+    }else{
+      if(H > last.h) last.h = H; if(Lo < last.l) last.l = Lo;
+      if(p > last.h) last.h = p; if(p < last.l) last.l = p;
+      last.c = p; last.v += v;
+    }
+  }
+}
+// one instrument up to the game clock. gold = { mid, news, closed } at this moment
+function insStepTo(st, nowMs, gold){
+  const spec = INS[st.sym], fx = spec.kind === "fx";
+  const dt = (nowMs - st.t) / 1000;
+  if(!(dt > 0)){ if(dt < 0) st.t = nowMs; return false; }            // the clock went back: just follow it
+  let goldRel = 0;
+  if(fx){
+    goldRel = st.gold > 0 && gold.mid > 0 ? (gold.mid - st.gold) / st.gold : 0;
+    st.gold = gold.mid;
+    if(!gold.news && dt < 600){                                      // gold's own pace, per game second (not in a release)
+      const inst = goldRel * goldRel / dt;
+      st.gv += (Math.min(inst, 25 * st.gv) - st.gv) * (1 - Math.exp(-dt / 3600));
+    }
+    if(gold.closed){ st.t = nowMs; return false; }
+  }
+  if(dt > INS_REBUILD_S){                                            // away for days: a fresh history up to now
+    st.t = nowMs; insHistory(st, nowMs); return true;
+  }
+  const prev = st.price.mid, tEnd = nowMs / 1000;
+  let t = st.t / 1000, x = prev, moved = false, spiked = false, vol = 0;
+  while(t < tEnd){
+    const nt = dt > 90 ? Math.min(tEnd, (Math.floor(t / 60) + 1) * 60) : tEnd;   // a long gap is filled minute by minute
+    const hr = insHour(t);
+    let nx, hi, lo, v;
+    if(fx){
+      nx = insFxMove(st, spec, x, nt - t, hr, goldRel, gold.news); goldRel = 0;
+      hi = Math.max(x, nx); lo = Math.min(x, nx);
+      v = Math.max(1, Math.round((nt - t) * spec.tickRate * FX_HOUR[hr] * (gold.news ? 3 : 1)));
+    }else{
+      const m = Math.floor(nt) - Math.floor(t);                      // the ticks on whole game seconds inside (t, nt]
+      if(m <= 0){ t = nt; continue; }
+      const mv = insSpikeMove(st, spec, m);
+      nx = Math.max(spec.floor, x + mv.net); hi = x + mv.hi; lo = Math.max(spec.floor, x + mv.lo); v = m;
+      if(mv.spikes){ st.spikes += mv.spikes; spiked = true; }
+    }
+    insCandle(st, Math.floor(nt), hi, lo, nx, v);
+    x = nx; t = nt; moved = true; vol += v;
+  }
+  st.t = nowMs;
+  if(!moved) return false;
+  const q = insQuote(spec, x, fx ? insFxSpread(st, spec, insHour(tEnd), gold.news) : spec.spread);
+  q.prevMid = prev; q.lastVol = vol; if(spiked) q.spiked = true;
+  st.price = q;
+  return true;
+}
+// every instrument of a box up to the game clock (made on first use); returns the symbols that moved
+function insAdvance(box, nowMs, gold){
+  const moved = [];
+  for(const sym of INS_ORDER){
+    if(!box[sym] || !box[sym].price){ box[sym] = insNewState(sym, nowMs); box[sym].gold = gold.mid; moved.push(sym); continue; }
+    if(insStepTo(box[sym], nowMs, gold)) moved.push(sym);
+  }
+  return moved;
+}
+// shiftSimTime moves the whole recorded time by whole days: the instruments go along
+function insShift(box, ms){
+  if(!box || !ms) return;
+  const sec = ms / 1000;
+  for(const sym of INS_ORDER){
+    const st = box[sym]; if(!st) continue;
+    st.t += ms;
+    for(const tf in st.candles) for(const b of (st.candles[tf] || [])) b.t += sec;
+  }
+}
+/* ======== END OTHER INSTRUMENTS ======== */
+
 /* ---------------- commission ---------------- */
 function commissionFor(volume, price){
   const t = S.trading.commissionType;
