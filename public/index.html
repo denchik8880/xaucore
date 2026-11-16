@@ -4326,11 +4326,39 @@ function finishFrame(nowR, newsOn){
    jumps, and nothing on screen looked faster. Now ×N brings the ticks N times as often (as often as the timer can
    go - one every 40 ms; past that each one covers the rest of the time), each moving the price as an ordinary tick
    does: the gold, the ticks, the candles and the spread's breathing all run N times as fast. */
+/* THE TICK RATE FOLLOWS THE MARKET (user 2026-11-16: «котировки золота двигаются по 3 доллара за раз … посмотрите
+   оригинальное золото как движется в том же FxPro»). At the set 2 a second a tick covers 16 game-seconds (the
+   45-minute day runs 32× the wall clock), and in the New York hours 16 seconds of gold is $0.6-3 - right as a move,
+   wrong as ONE print: a real feed shows a busy market as MORE ticks, not bigger ones (FxPro's own page: $0.5-0.6 in
+   5-11 s, in many small ticks). So ordinary ticks come as often as it takes for one of them to be worth about
+   TICK_SD of the price (σ ~$0.23 at $4 600): from TICK_RATE_MIN times the set rate in the Asian night up to TICK_RATE_MAX
+   times it at the US open (4-12 a second at the default 2), never past the 40 ms floor. The day, the candles and the price's path through game time are untouched:
+   only how finely that path is printed. (The chart draws at most CHART_LIVE_MS apart, so the cost stays.) */
+const TICK_SD = 0.00005, TICK_RATE_MIN = 2, TICK_RATE_MAX = 6;
+// the standard deviation per √game-second of what ONE tick carries right now: the fast part of priceStep's move (the
+// slow swing legs hardly move within a tick) - the same terms it moves by, read only, no state moves
+function goldSdPerSec(){
+  const P = S.price, RG = regimeCfg(), ps = pxVolScale(P.mid);
+  const dayStdev = (S.day ? S.day.targetRange : 35) * ps / 3.2;
+  const regVol = RG.rangePull > 0 ? Math.max(RG.vol, RANGE_VOL_FLOOR) : RG.vol;
+  const hourVol = clamp(HOUR_VOL[simDate().getUTCHours()] * _sessJitter, 0.4, 2.6);
+  return dayStdev / Math.sqrt(86400) * regVol * hourVol * (P.volCluster || 1) * (S.market.intradayNoise || 1) / VOL_NORM * newsAfterVol()
+    * Math.sqrt(1 - SWING_SHARE) * 1.1;                              // (+ the bid/ask wiggle: 0.45 σ, taken back next tick)
+}
+// ordinary ticks per real second, the accelerator included: TICK_RATE_MIN-TICK_RATE_MAX times the set rate (TPS)
+function normalTickRate(){
+  const set = normalTps() * simSpeed();
+  if(S.manual.enabled) return set;                 // manual control: exactly five ticks to an M1 candle, as it always was
+  const per = goldSdPerSec();
+  if(!(per > 0) || !(S.price.mid > 0)) return set;
+  const gameDt = Math.pow(TICK_SD * S.price.mid / per, 2);           // the game-seconds one tick may cover
+  return clamp(daySpeedNow() * simSpeed() / Math.max(gameDt, 1e-3), set * TICK_RATE_MIN, set * TICK_RATE_MAX);
+}
 let normalTickTimer = null, _normalTickMs = 500;
 function restartNormalTicks(){
   if(normalTickTimer){ clearInterval(normalTickTimer); normalTickTimer = null; }
   if(!_loopRunning || XC.follower) return;         // don't run ticks while paused / hidden / mirroring
-  _normalTickMs = Math.max(40, Math.round(1000 / (normalTps() * simSpeed())));
+  _normalTickMs = Math.max(40, Math.round(1000 / normalTickRate()));
   normalTickTimer = setInterval(normalTickFire, _normalTickMs);
 }
 function normalTickFire(){
@@ -4366,6 +4394,9 @@ function normalTickFire(){
     recalcAccount();
     checkStopOut();
     save();
+    // the market's pace changed (an hour turned, a busier spell): the next ticks come at the new rate
+    const ms = Math.max(40, Math.round(1000 / normalTickRate()));
+    if(Math.abs(ms - _normalTickMs) > _normalTickMs * .15) restartNormalTicks();
   }catch(e){ console.error(e); }
 }
 
@@ -4427,9 +4458,12 @@ function priceStep(dt){
   P.swing = (P.swing || 0) * keep + Math.sqrt(1 - keep*keep) * perSec * Math.sqrt(SWING_SHARE / (2*tau)) * gauss();
   move += P.swing * dt;
 
-  // short-lived impulse left by a breakout, news follow-through or a manual impulse
-  P.vel = (P.vel || 0) * 0.55;
-  move += P.vel;
+  // short-lived impulse left by a breakout, news follow-through or a manual impulse - fading in GAME time (×0.55 over the
+  // 16 game-seconds a tick used to be) and printing the same total at any tick rate (normalTickRate); at 16 s it is the
+  // old ×0.55 a tick exactly
+  const vk = Math.pow(0.55, dt / 16);
+  P.vel = (P.vel || 0) * vk;
+  move += P.vel * (0.55 / 0.45) * (1 - vk) / vk;
 
   // regime directional drift ($ per game-day). Scale with daily stdev but CAP it so an
   // extreme-vol day does not create runaway trend drift.
@@ -4484,7 +4518,7 @@ function priceStep(dt){
   const want = move + (P.carry || 0), over = Math.abs(want) - cap;
   if(over > 0){                                                    // a knee, not a wall: past it a tick still grows, slower and slower
     move = Math.sign(want) * cap * (1 + 0.45 * (1 - Math.exp(-over / cap)));
-    P.carry = (want - move) * 0.82;
+    P.carry = (want - move) * Math.pow(0.82, dt / 16);             // fading in game time: ×0.82 per 16 s, at any tick rate
   }else{ move = want; P.carry = 0; }
 
   P.mid += move;
@@ -4530,8 +4564,11 @@ function microShock(dt){
   const r = Math.random();
   const mag = (r < 0.70 ? rnd(2,5) : r < 0.93 ? rnd(5,10) : rnd(10,20)) * pxVolScale(S.price.mid) * 0.75;
   const dir = Math.random() < 0.5 ? 1 : -1;
-  const n = Math.max(4, Math.round(rnd(3, 6) + mag / 2.2));        // the bigger the sweep the more ticks it prints on
-  S.price.burst = { push: n, step: dir * mag / n, moved: 0, retrace: rnd(0.2, 0.6), pull: Math.round(rnd(5, 14)), back: 0 };
+  // the bigger the sweep the more ticks it prints on - counted in the 16-game-second ticks it was made for, so a sweep
+  // takes the same game time at any tick rate and a faster feed prints it in more, smaller steps (normalTickRate)
+  const k = Math.max(1, 16 / Math.max(dt, 0.5));
+  const n = Math.max(4, Math.round((rnd(3, 6) + mag / 2.2) * k));
+  S.price.burst = { push: n, step: dir * mag / n, moved: 0, retrace: rnd(0.2, 0.6), pull: Math.max(1, Math.round(rnd(5, 14) * k)), back: 0 };
   S.price.volCluster = Math.min(5, (S.price.volCluster || 1) + 0.7);
   S.price.lastVol = Math.round(mag*9);
 }
@@ -12392,6 +12429,7 @@ function liveDrawKey(tf){
 }
 let _lgFly = 0;                                                    // a drop is in the air: hold the live updates
 let _bgLiveT = 0;
+const CHART_LIVE_MS = 200;
 function updateLive(){
   if(!S || _lgFly) return;
   recalcAccount();
@@ -12527,8 +12565,12 @@ function updateLive(){
   // gesture or a re-render draws by itself; once a second they redraw anyway, whatever the key misses.
   const nowD = performance.now();
   if(S.ui.tab === "chart" || (S.ui.tab === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")){
-    const k = liveDrawKey(S.ui.chartTF);
-    if(k !== chart._liveKey || nowD - (chart._liveAt || 0) > 1000){
+    const k = liveDrawKey(S.ui.chartTF), since = nowD - (chart._liveAt || 0);
+    // a tick redraws the chart at most every CHART_LIVE_MS: the quotes show every tick, the chart catches up on the
+    // last one (the busy hours bring up to 12 ticks a second, and a whole chart is the one costly thing a tick draws)
+    if(k !== chart._liveKey && since < CHART_LIVE_MS && !chart._dragRaf && !chart.fling){
+      if(!chart._liveT) chart._liveT = setTimeout(() => { chart._liveT = 0; uiKick(); }, CHART_LIVE_MS - since);
+    }else if(k !== chart._liveKey || since > 1000){
       chart._liveKey = k; chart._liveAt = nowD;
       if(!chart._dragRaf && !chart.fling){ if(_chartRaf){ cancelAnimationFrame(_chartRaf); _chartRaf = 0; } drawChart(); }   // this frame, with the prices
       else chartDraw();                                             // a gesture owns the frames: it joins the gesture's
