@@ -14,9 +14,10 @@ function lgSavedClarity(th){try{for(var key of ["xc_glass_clear_"+th,"xc_glass_c
 function lgq(v){var c=(Number.isFinite(v)?Math.min(100,Math.max(0,v)):LG_DEFAULTS.clarity)/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.15,1+lo*.5-hi*.978),b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
 <script>/* Apply the reference glass preset once per browser, before first paint (user 2026-10-25; again 2026-11-15,
-   «настройки автоматом стекла выставьте правильные», with the tab bar re-measured against the iOS 26 recordings).
+   «настройки автоматом стекла выставьте правильные», with the tab bar re-measured against the iOS 26 recordings;
+   2026-11-16 «настройки жидкого стекла подведите к тому, что справа»: the flat plates of cTrader's «‹ Назад»).
    All themes, dials and dispersion start from the shared defaults, with glass enabled. Later user edits persist. */
-var LG_PRESET_VERSION="8-ios26-tabbar-2026-11-15";
+var LG_PRESET_VERSION="9-flat-plates-2026-11-16";
 try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_light","xc_glass_clear_dark","xc_glass_clear_aurora","xc_glass_clear","xc_lg_ui","xc_glass_off","xc_disp"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("xc_glass","on");localStorage.setItem("xc_glass_v",LG_PRESET_VERSION);}}catch(e){}
 </script>
 <script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{document.documentElement.dataset.glass=localStorage.getItem("xc_glass")==="off"?"off":"on";var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=lgSavedClarity(th);var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return lgNumber("depth",v)};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
@@ -64,7 +65,7 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-w1:rgba(0,0,0,.07); --ripple-w2:rgba(0,0,0,.03); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
-  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .16 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
+  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .04 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
   /* the depth tokens exist even with the mode OFF: a few rules that only ever show in glass are not gated by the
      attribute, and an undefined custom property makes the whole box-shadow invalid, not just that one layer */
   --lg-body:inset 0 0 0 0 transparent; --lg-lift1:0 0 0 0 transparent; --lg-lift2:0 0 0 0 transparent; --lg-lift3:0 0 0 0 transparent;
@@ -92,7 +93,7 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
   --exec-bg:#3a3a3d;
   --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(0,0,0,.3); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
-  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.66 + .3 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.3 + .35 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
+  --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.36 + .14 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.18 + .12 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* an app is not a document: holding a finger on a title used to raise the system's blue selection block over it
@@ -505,7 +506,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
     linear-gradient(0deg,transparent 10px,var(--lg-glow) 11.8px,transparent 14.4px),
     linear-gradient(180deg,rgba(16,24,40,calc(.09 * var(--lgdk,1))) 10px,transparent 24px),
     linear-gradient(0deg,var(--lg-foot) 10px,transparent 26px),
-    linear-gradient(var(--lg-tint),var(--lg-tint));
+    linear-gradient(var(--cap-glass),var(--cap-glass));
   -webkit-backdrop-filter:blur(calc(1px * var(--lgb,1))) saturate(1.35) brightness(1.03);backdrop-filter:blur(calc(1px * var(--lgb,1))) saturate(1.35) brightness(1.03)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-rim,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chp-shade{display:block;position:absolute;left:-10px;top:-10px;width:calc(100% + 100px);height:calc(100% + 20px);overflow:visible;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo.flux .chp-goo{-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -550,7 +551,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill.sym{transform:translateX(var(--pms,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills .chpill[data-act="charttf"]{transform:translateX(var(--pmx,0px)) translateY(var(--pmy,0px)) translate(var(--pdx,0px),var(--pdy,0px)) scale(calc(var(--psx,1) * var(--jsx,1)),calc(var(--psy,1) * var(--jsy,1))) skewX(var(--jk,0deg))}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast{isolation:isolate;border:0;
-  background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  background:radial-gradient(48px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--cap-glass),var(--cap-glass));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);text-shadow:var(--lg-text-shadow)}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chfs::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chzoom button::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpill::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chlast::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
@@ -867,6 +868,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-search{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:9px;background:var(--line);
   color:var(--ink2);border-radius:999px;padding:11px 16px;font-size:15px;font-weight:400;text-align:left}
 .wl-search-ic{flex:none;opacity:.75}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search{color:var(--ink)}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-search-ic{opacity:1}
 .wl-search:active{filter:brightness(.97)}
 /* the watchlist, cTrader's: a name row, then instrument rows edge to edge with a divider (no card) */
 .wl-head{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 14px;border-bottom:1px solid var(--wl-div);margin:0 -14px;padding-left:16px;padding-right:16px}
@@ -1142,7 +1145,7 @@ html:has(body.route-wallet){background:#0c0a08}
   --seg-track:rgba(120,120,128,.13); --ctl-glass:rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,calc(.42 * var(--lgk,1)));
   --toast-glass:rgba(22,24,28,calc(.6 * max(.75, var(--lgs,1)))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:rgba(255,255,255,calc(.62 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92); --pop-glass:rgba(255,255,255,calc(.12 + .5 * var(--lgs,1)));
+  --cap-glass:rgba(255,255,255,calc(.45 + .5 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92); --pop-glass:rgba(255,255,255,calc(.12 + .5 * var(--lgs,1)));
   /* THE THREE DIALS (Настройки стекла writes them; 1 = as designed). Everything below is expressed through them,
      so one slider changes the whole system and nothing has to be re-authored. */
   --lgd:1; --lgh:1; --lgsh:1;
@@ -1153,17 +1156,20 @@ html:has(body.route-wallet){background:#0c0a08}
   /* THE BODY: glass is not a tinted rectangle, it is a slab with a thickness. Top lip lit, bottom lip lit from
      underneath, a wall between them, and the shadow that wall casts into the pane — which is what the eye reads
      as depth. The last line deepens under a finger (--pk, set by the press loop). */
-  --lg-rimd:rgba(16,24,40,calc(.17 * var(--lgdk,1)));
+  /* FLAT, AS THE REFERENCE'S (user 2026-11-16, cTrader's «‹ Назад» on iOS 26 beside our «Поиск»): a near-white
+     capsule, one light hairline, a faint lift - no slab. The shades below are whispers now (they were .17/.45/.34,
+     which read as a bevelled button); the dials still scale them, and the press still deepens it. */
+  --lg-rimd:rgba(16,24,40,calc(.05 * var(--lgdk,1)));
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
-    inset 0 0 11px -4px rgba(16,24,40,calc(.17 * var(--lgd,1))),
-    inset 0 7px 13px -9px rgba(16,24,40,calc(.45 * var(--lgdk,1))),
-    inset 0 -12px 18px -15px rgba(16,24,40,calc(.34 * var(--lgdk,1))),
+    inset 0 0 11px -4px rgba(16,24,40,calc(.04 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(16,24,40,calc(.07 * var(--lgdk,1))),
+    inset 0 -12px 18px -15px rgba(16,24,40,calc(.05 * var(--lgdk,1))),
     inset 0 5px 11px -7px rgba(16,24,40,calc(.45 * var(--pk,0)));
   /* IT SITS ABOVE THE PAGE: a tight contact shadow where it nearly touches and a wide ambient one. The pair is
      what separates a floating surface from a printed one; three heights for three kinds of thing. */
-  --lg-lift1:0 1px 2px rgba(16,24,40,calc(.085 * var(--lgsh,1))),0 8px 20px -6px rgba(16,24,40,calc(.16 * var(--lgsh,1)));
-  --lg-lift2:0 1.5px 3px rgba(16,24,40,calc(.09 * var(--lgsh,1))),0 16px 34px -8px rgba(16,24,40,calc(.20 * var(--lgsh,1)));
-  --lg-lift3:0 2px 5px rgba(16,24,40,calc(.09 * var(--lgsh,1))),0 28px 62px -14px rgba(16,24,40,calc(.26 * var(--lgsh,1)));
+  --lg-lift1:0 1px 2px rgba(16,24,40,calc(.04 * var(--lgsh,1))),0 6px 16px -6px rgba(16,24,40,calc(.07 * var(--lgsh,1)));
+  --lg-lift2:0 1.5px 3px rgba(16,24,40,calc(.05 * var(--lgsh,1))),0 14px 30px -8px rgba(16,24,40,calc(.11 * var(--lgsh,1)));
+  --lg-lift3:0 2px 5px rgba(16,24,40,calc(.06 * var(--lgsh,1))),0 26px 58px -14px rgba(16,24,40,calc(.16 * var(--lgsh,1)));
   --lg-spot:rgba(255,255,255,calc(.42 * var(--lgh,1))); --lg-foot:rgba(16,24,40,calc(.055 * var(--lgdk,1)));
 }
 :root[data-theme="dark"][data-glass="on"]{
@@ -1172,13 +1178,13 @@ html:has(body.route-wallet){background:#0c0a08}
   --seg-track:rgba(255,255,255,.08); --ctl-glass:rgba(24,24,27,calc(.9 + .08 * var(--lgs,1))); --seg-bub:rgba(120,120,128,calc(.2 + .55 * var(--lgs,1))); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,calc(.4 * var(--lgk,1)));
   --toast-glass:rgba(52,52,56,calc(.58 * max(.75, var(--lgs,1)))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.16); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:rgba(34,34,38,calc(.6 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86); --pop-glass:rgba(30,30,34,calc(.16 + .55 * var(--lgs,1)));
-  --lg-rimd:rgba(0,0,0,calc(.34 * var(--lgdk,1)));
+  --cap-glass:rgba(34,34,38,calc(.45 + .5 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86); --pop-glass:rgba(30,30,34,calc(.16 + .55 * var(--lgs,1)));
+  --lg-rimd:rgba(0,0,0,calc(.12 * var(--lgdk,1)));
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
     inset 0 0 0 .7px rgba(255,255,255,calc(.10 * var(--lgh,1))),
-    inset 0 0 12px -5px rgba(0,0,0,calc(.5 * var(--lgd,1))),
-    inset 0 7px 13px -9px rgba(0,0,0,calc(.62 * var(--lgdk,1))),
-    inset 0 -12px 18px -15px rgba(0,0,0,calc(.46 * var(--lgdk,1))),
+    inset 0 0 12px -5px rgba(0,0,0,calc(.18 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(0,0,0,calc(.2 * var(--lgdk,1))),
+    inset 0 -12px 18px -15px rgba(0,0,0,calc(.15 * var(--lgdk,1))),
     inset 0 5px 11px -7px rgba(0,0,0,calc(.55 * var(--pk,0)));
   --lg-lift1:0 1px 2px rgba(0,0,0,calc(.34 * var(--lgsh,1))),0 8px 20px -6px rgba(0,0,0,calc(.46 * var(--lgsh,1)));
   --lg-lift2:0 1.5px 3px rgba(0,0,0,calc(.36 * var(--lgsh,1))),0 16px 34px -8px rgba(0,0,0,calc(.52 * var(--lgsh,1)));
@@ -1304,6 +1310,9 @@ html:has(body.route-wallet){background:#0c0a08}
 /* the subtabs are dragged like the tab bar: they fit the capsule (no scrolling), a sideways drag is ours,
    a vertical one still scrolls the page */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color var(--mo-std)}
+/* the other tabs of the plate in the label colour, black (white on the dark themes) - as the tab bar's, after the
+   reference (user 2026-11-16: «у нас серый текст а нужен черный»); the chosen one keeps its blue */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button:not(.on){color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs .cnt{margin-left:4px}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--blue-ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
@@ -1322,7 +1331,7 @@ html:has(body.route-wallet){background:#0c0a08}
    goes, the X floats in a ball of glass that bends the list under it and swells under the finger — and the drawer
    flows straight out of that ball. Flat, it is cTrader's solid round mark exactly as before. */
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-logo{position:relative;isolation:isolate;border-radius:50%;
-  background:radial-gradient(42px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  background:radial-gradient(42px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--cap-glass),var(--cap-glass));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
@@ -1347,17 +1356,17 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-bar button{border-radius:999px;padding:8px 18px;background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body)}
 /* the overview mini chart's ⛶ / м1: glass drops over the candles, like the Charts tab's */
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button{position:relative;isolation:isolate;border:0;border-radius:999px;color:var(--ink);text-shadow:var(--lg-text-shadow);
-  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--cap-glass),var(--cap-glass));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+:root[data-glass="on"]:not([data-lgoff~="chart"]) .mini-tools button:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--cap-glass),var(--cap-glass))}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn{position:relative;isolation:isolate;width:40px;height:40px;flex:none;border-radius:50%;color:var(--ink);font-size:22px;
-  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint));
+  background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--cap-glass),var(--cap-glass));
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);
   box-shadow:0 0 0 .5px var(--lg-line),var(--lg-lift1),var(--lg-body);
   transform:translate(var(--pdx,0px),var(--pdy,0px)) scale(var(--psx,1),var(--psy,1))}
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--lg-tint),var(--lg-tint))}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .appbar .iconbtn:active{background:radial-gradient(40px circle at var(--lx,50%) var(--ly,30%),rgba(255,255,255,var(--la,0)),transparent 72%),linear-gradient(var(--cap-glass),var(--cap-glass))}
 /* CRYSTAL for the four rainbow places - «XAUUSD», «‹», the tab capsule, «Новый ордер» (user 2026-09-25, phone
    screenshot: «вкладки слабо кристально чистые, особенно золото … новый ордер чуть лучше надо»). Three layers laid
    over their glass were clouding it: a tint of 60 % page colour times the clarity slider (thick and grey anywhere
@@ -2100,15 +2109,16 @@ body.amenu-open .wl-logo{opacity:0}
   --info-glass:rgba(24,27,44,calc(.4 * var(--lgk,1))); --toast-glass:rgba(45,48,73,calc(.6 * max(.75, var(--lgs,1))));
   --bn-glass:rgba(245,246,250,calc(.66 * var(--lgk,1))); --fab-glass:rgba(110,115,178,calc(.6 * var(--lgk,1)));
   --lw-bar:rgba(195,206,230,.05); --lw-band:rgba(195,206,230,.05); --sheet-rim:rgba(195,210,230,.2);
-  --cap-glass:rgba(45,50,77,calc(.5 * var(--lgk,1))); --edge-fade:rgba(27,32,51,.8); --pop-glass:rgba(41,44,67,calc(.16 + .55 * var(--lgs,1)));
+  --cap-glass:rgba(45,50,77,calc(.42 + .45 * var(--lgk,1))); --edge-fade:rgba(27,32,51,.8); --pop-glass:rgba(41,44,67,calc(.16 + .55 * var(--lgs,1)));
   --crys-cap:rgba(54,60,92,calc(.16 * var(--lgk,1))); --crys:69,74,115;
-  --lg-rimd:rgba(97,86,145,calc(.3 * var(--lgdk,1)));
-  /* the thickness is a shade of the night, not black: black inside a blue pane reads as a stain */
+  --lg-rimd:rgba(97,86,145,calc(.1 * var(--lgdk,1)));
+  /* the thickness is a shade of the night, not black: black inside a blue pane reads as a stain. Flat like the
+     reference's plates (2026-11-16): whispers of it now, a hairline the dial «Обводка» still owns */
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
     inset 0 0 0 .7px rgba(210,220,235,calc(.11 * var(--lgh,1))),
-    inset 0 0 12px -5px rgba(15,15,29,calc(.45 * var(--lgd,1))),
-    inset 0 7px 13px -9px rgba(15,15,29,calc(.5 * var(--lgdk,1))),
-    inset 0 -12px 18px -15px rgba(64,56,104,calc(.4 * var(--lgdk,1))),
+    inset 0 0 12px -5px rgba(15,15,29,calc(.16 * var(--lgd,1))),
+    inset 0 7px 13px -9px rgba(15,15,29,calc(.18 * var(--lgdk,1))),
+    inset 0 -12px 18px -15px rgba(64,56,104,calc(.14 * var(--lgdk,1))),
     inset 0 5px 11px -7px rgba(15,15,29,calc(.5 * var(--pk,0)));
   /* it floats in light: a navy shadow under it and a faint halo of the sky's own blue round it, the glow the
      screenshot's field sits in */
