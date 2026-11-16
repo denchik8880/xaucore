@@ -51,23 +51,23 @@ test('one generated rim field, drawn once, is the only foreground refraction fie
   assert.equal(h.ctx.NB.optical.dms.length,3);
   for(const dm of h.ctx.NB.optical.dms)assert.equal(dm.getAttribute('in2'),'normals');
   assert.ok(!html.includes('navFieldsPrepare')&&!html.includes('navFieldAt')&&!html.includes('nav-optics-fields-v9.bin'));
-  assert.equal(h.NAV_OPTICS.bend,28);assert.equal(h.NAV_OPTICS.motion,20);
+  assert.equal(h.NAV_OPTICS.reach,.18);assert.equal(h.NAV_OPTICS.reachMotion,.22);assert.equal(h.NAV_OPTICS.gamma,6);
+  assert.equal(h.filter.querySelector('[result="normals"]').tag,'feColorMatrix','The field reaches per axis through one matrix');
 });
 
-test('the field pulls in what lies just outside the rim and leaves the middle alone',()=>{
+test('the fitted field pulls towards the middle as rho to the sixth, strongest at the sides',()=>{
   const h=fixture(),O=h.NAV_OPTICS,img=h.counts.canvases[0].image,W=img.width,H=img.height;
   assert.equal(W,O.mapW);assert.equal(H,O.mapH);
   const px=(x,y)=>{const i=(y*W+x)*4;return [img.data[i],img.data[i+1]];};
   const cx=W/2|0,cy=H/2|0,m=O.mapM;
   assert.deepEqual(px(cx,cy),[128,128],'No bend in the middle: the magnifier is the source transform');
-  assert.deepEqual(px(cx-60,cy),[128,128]);
-  assert.ok(px(W-m-1,cy)[0]>220,'Right rim samples further right (outside)');
-  assert.ok(px(m,cy)[0]<36,'Left rim samples further left');
-  assert.ok(px(cx,m)[1]<36,'Top rim samples above');
-  assert.ok(px(cx,H-m-1)[1]>220,'Foot samples below');
-  assert.deepEqual(px(2,2),[128,128],'Outside the lens nothing moves');
+  assert.ok(Math.abs(px(cx-60,cy)[0]-128)<=2,'Barely any half way out');
+  assert.ok(px(W-m-1,cy)[0]<36,'Right rim samples inward (to the left)');
+  assert.ok(px(m,cy)[0]>220,'Left rim samples inward (to the right)');
+  assert.ok(px(cx,m)[1]>150&&px(cx,m)[1]<200,'Top rim samples below it, gentler than the sides');
+  assert.ok(px(cx,H-m-1)[1]<106&&px(cx,H-m-1)[1]>56,'Foot samples above it, gentler than the sides');
   // monotonic rise across the band to the rim
-  let last=0;for(let x=cx;x<W-m;x++){const v=px(x,cy)[0]-128;assert.ok(v>=last-1);last=v;}
+  let last=0;for(let x=cx;x<W-m;x++){const v=128-px(x,cy)[0];assert.ok(v>=last-1);last=v;}
 });
 
 test('the generated field and existing backdrop decode before either effect begins',()=>{
@@ -88,10 +88,14 @@ test('transparent glyph coverage and RGB dispersion remain intact',()=>{
 
 test('the saved refraction settings control the field without changing drop geometry',()=>{
   const h=fixture(),shape={...h.box},scale=()=>+h.ctx.NB.optical.dms[1].getAttribute('scale');
-  assert.equal(scale(),28);
-  h.ctx.LG_UI.refract=.74;h.navLens(1);assert.ok(Math.abs(scale()-28*.74)<.001);
-  h.ctx.LGQ.r=2.65;h.navLens(1);assert.ok(Math.abs(scale()-28*.74*2.65/2.155)<.001);
-  h.ctx.NB.opticalEnergy=1;h.navLens(1);assert.ok(Math.abs(scale()-48*.74*2.65/2.155)<.001);
+  const O=h.NAV_OPTICS,w=384/5*h.box.sx,hh=55*h.box.sy,half=Math.max(w,hh)/2,base=2*O.reach*O.gmax*half;
+  assert.ok(Math.abs(scale()-base)<.001,'scale '+scale()+' vs '+base);
+  h.ctx.LG_UI.refract=.74;h.navLens(1);assert.ok(Math.abs(scale()-base*.74)<.001);
+  h.ctx.LGQ.r=2.65;h.navLens(1);assert.ok(Math.abs(scale()-base*.74*2.65/2.155)<.001);
+  h.ctx.NB.opticalEnergy=1;h.navLens(1);assert.ok(Math.abs(scale()-base*(O.reach+O.reachMotion)/O.reach*.74*2.65/2.155)<.001);
+  // the shorter axis reaches proportionally less, through the matrix on the field
+  const m=h.filter.querySelector('[result="normals"]').getAttribute('values').split(' ').map(Number);
+  assert.ok(Math.abs(m[6]-hh/w)<.001&&Math.abs(m[0]-1)<.001);
   h.ctx.LG_UI.refract=0;h.navLens(1);assert.equal(h.source.style.filter,'');
   h.ctx.LG_UI.refract=1;h.navLens(1);assert.equal(h.source.style.filter,'url(#xc-nav-optics)');
   assert.deepEqual(h.box,shape);
