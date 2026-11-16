@@ -56,7 +56,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navCorner,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -152,9 +152,27 @@ test('the drop swells taller on landing, not in flight, and settles back to its 
   near(samples.at(-1).h, rest.h, 1e-6);
 });
 
+test('on an end tab the landing drop is pressed into the bar end as a long capsule, not a ball', () => {
+  for (const [from, to] of [[1, 0], [3, 4]]) {
+    const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, t = a.NB.track, scale = t.height / 94;
+    const { samples, rest } = hop(runtime, from, to);
+    const room = t.height - 2 * a.NAV_MO.endGap * scale;
+    const near_end = samples.filter(s => to === 0 ? s.u <= .25 : s.u >= 3.75);
+    assert.ok(near_end.length && near_end.every(s => s.h <= room + 1e-6), 'At the end it never rises past the bar');
+    const landing = samples.filter(s => s.time > 120 && s.time < 320);
+    const tallest = landing.reduce((best, s) => s.h > best.h ? s : best);
+    assert.ok(tallest.h > room - 1 && tallest.w > rest.w * 1.08, `long and full height: ${tallest.w}x${tallest.h} vs ${rest.w}x${rest.h}`);
+    // pressed into the wall: the outer end reaches the bar's end
+    Object.assign(a.NB, { a: to, b: to + 1, u: to, it: 1, vs: 0 });
+    const box = a.navBox(to, to + 1), outer = to === 0 ? box.left * t.tabW : t.width - (box.left + box.sx) * t.tabW;
+    assert.ok(outer <= -a.NAV_MO.endPush * scale + 1e-6 && outer >= -14 * scale - 1e-6, `outer end ${outer}`);
+    near(samples.at(-1).w, rest.w, 1e-6); near(samples.at(-1).h, rest.h, 1e-6);
+  }
+});
+
 test('a long jump lands blown up too, and its stretch gives out softly', () => {
   const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, t = a.NB.track;
-  const { samples, rest } = hop(runtime, 0, 4);
+  const { samples, rest } = hop(runtime, 0, 3);
   const stretch = Math.max(...samples.map(s => s.w - rest.w)) / t.tabW;
   assert.ok(stretch > .35 && stretch < .7, `stretch ${stretch} tabs`);
   const peak = Math.max(...samples.map(s => s.h)) / rest.h;

@@ -9317,7 +9317,7 @@ let _navByDrop = 0;
    - the grey leaves the pill and the glass clears at once (τ 50 ms); they return in two
      speeds from ~200 ms: the bend and the lit skin first (τ 60 ms), the grey slower (τ 120 ms). */
 const NAV_MO = Object.freeze({ lead: 24, trail: 14, trailZ: .8, pulse: .02, pulseMs: 200, dip: .0015, dipMs: 180,
-  tall: .28, vTall: 4, tallLag: .045, inflIn: .035, inflOut: .065, clearIn: .05, greyIn: .05, clearOut: .06, greyOut: .12, holdMs: 250, clearMs: 200, home: .1, landMs: 70, stretchKnee: .35, stretchSoft: .25 });
+  tall: .28, vTall: 4, tallLag: .045, inflIn: .035, inflOut: .065, clearIn: .05, greyIn: .05, clearOut: .06, greyOut: .12, holdMs: 250, clearMs: 200, home: .1, landMs: 70, stretchKnee: .35, stretchSoft: .25, endGap: 1, endPush: 2 });
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 function navRailValues(){
   return { "--nrsx": (1 + NB.rail).toFixed(5), "--nrsy": (1 + NB.rail).toFixed(5),
@@ -9412,12 +9412,33 @@ function navBox(a, b){
   // A hop's stretch (~0.3 tab) is the measured one; a longer jump's softly gives out past it (4 tabs: ~0.55).
   let st = clamp(b - a - 1, -.08, 4);
   if(st > NAV_MO.stretchKnee) st = NAV_MO.stretchKnee + (st - NAV_MO.stretchKnee) / (1 + (st - NAV_MO.stretchKnee) / NAV_MO.stretchSoft);
-  const width = Math.max(rest * .9, rest + st * t.tabW);
-  const height = t.restH * (1 + NAV_MO.tall * I * slow);
+  let width = Math.max(rest * .9, rest + st * t.tabW);
+  let height = t.restH * (1 + NAV_MO.tall * I * slow);
+  // AT AN END THE BAR'S WALL STOPS IT (2026-11-16, the reference's hop onto «Котирування»): the drop does not
+  // swell up into a ball there - it rises only to the bar's full inner height, the rest of its swell goes into
+  // its length, and its outer end is pressed into the bar's end, a long capsule hugging the wall.
+  const end = navEndness(u);
+  if(end > 0){
+    const room = t.height - 2 * NAV_MO.endGap * scale;
+    if(height > room){ const k = height / room; height += (room - height) * end; width *= 1 + (k - 1) * end; }
+  }
   // Keep both ends round. A bounded shoulder may project outside the rail, without trimming one cap.
-  const overflow = 14 * scale, centre = clamp(p.centre * t.tabW, width / 2 - overflow, t.width - width / 2 + overflow);
+  const overflow = 14 * scale;
+  let centre = clamp(p.centre * t.tabW, width / 2 - overflow, t.width - width / 2 + overflow);
+  if(end > 0 && I > 0){
+    const wall = u < 2 ? Math.min(centre, width / 2 - NAV_MO.endPush * scale) : Math.max(centre, t.width - width / 2 + NAV_MO.endPush * scale);
+    centre += (wall - centre) * end * I;
+  }
   return { left: (centre - width / 2) / t.tabW, sx: width / t.tabW, sy: height / t.baseH };
 }
+// 1 within 0.4 tab of an end tab (or past it), 0 from the second tab in, smooth between
+function navEndness(u){
+  const e = Math.max(clamp((1 - u) / .6, 0, 1), clamp((u - 3) / .6, 0, 1));
+  return e * e * (3 - 2 * e);
+}
+// The drop's corner (share of its height): a capsule at rest; a squarer squircle while it is clear glass - except
+// pressed into an end of the bar, where its outer end follows the bar's own round end.
+function navCorner(clear){ return .5 - .1 * clamp(clear, 0, 1) * (1 - navEndness(NB.u == null ? NB.target : NB.u)); }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
 // 8.8 % of the curve this replaces. x is solved by halving; y1 = 0, so its y half is 2.76t²(1-t) + t³.
 function navEase(x){
@@ -9788,7 +9809,7 @@ function navLens(clear){
   // Cut the neutral row in the unscaled rail coordinate plane, including at rest. Its own rail
   // pulse cannot move this hole away from the independent red optical source.
   if(o.neutral){
-    const radius=.5-.1*clamp(clear,0,1),rx=Math.min(w,h)*radius,ry=h*radius,f=v=>v.toFixed(3);
+    const radius=navCorner(clear),rx=Math.min(w,h)*radius,ry=h*radius,f=v=>v.toFixed(3);
     const d=`M-64 -64H${f(o.tabW*5+64)}V${f(o.h+64)}H-64Z M${f(x+rx)} ${f(y)}H${f(x+w-rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+w)} ${f(y+ry)}V${f(y+h-ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+w-rx)} ${f(y+h)}H${f(x+rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x)} ${f(y+h-ry)}V${f(y+ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+rx)} ${f(y)}Z`;
     if(o.holeKey!==d){o.holeKey=d;o.neutral.style.clipPath=`path(evenodd,"${d}")`;}
   }
@@ -9805,12 +9826,12 @@ function navLens(clear){
   const split = DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 * (NAV_OPTICS.dispRest + (1 - NAV_OPTICS.dispRest) * Math.min(1, energy / .5)) : 0;
   const magnify = 1 + k * (NAV_OPTICS.magnify + NAV_OPTICS.magnifyMotion * energy) * strength;
   o.bar.style.setProperty("--nm", magnify.toFixed(4));
-  o.bar.style.setProperty("--ncr",(.5-.1*clamp(clear,0,1)).toFixed(4));
+  o.bar.style.setProperty("--ncr",navCorner(clear).toFixed(4));
   if(o.backdrop){
     const bg=o.backdrop, active=!!(k && strength && _navMapReady);
     bg.parent.classList.toggle("material-idle",!active);
     if(active){
-      const radius=.5-.1*clamp(clear,0,1),geometry=[x,y,w,h,radius].map(v=>v.toFixed(4)).join(",");
+      const radius=navCorner(clear),geometry=[x,y,w,h,radius].map(v=>v.toFixed(4)).join(",");
       if(bg.geometry!==geometry){
         bg.geometry=geometry;
         Object.assign(bg.source.style,{left:x.toFixed(4)+"px",top:y.toFixed(4)+"px",width:w.toFixed(4)+"px",height:h.toFixed(4)+"px",borderRadius:(Math.min(w,h)*radius).toFixed(4)+"px / "+(h*radius).toFixed(4)+"px"});
