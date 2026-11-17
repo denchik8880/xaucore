@@ -3540,7 +3540,7 @@ const DEFAULTS = () => { const m0 = randomStartMid(); return {
   /* NORMAL MARKET — regime-switching autonomous engine (no static anchor) */
   market: {
     initialBid: roundTo(m0 - 0.11, 2), initialAsk: roundTo(m0 + 0.11, 2),   // random start per account
-    dayDurationMin: 45,     // SIMULATED DAY DURATION — 45 real minutes = 1 simulated trading day
+    dayDurationMin: 240,    // SIMULATED DAY DURATION — 4 real hours = 1 simulated trading day (45 min until 2026-11-17)
     dayVolProbs: dayVolProbDefaults(),
     intradayNoise: 1.0,     // global multiplier on the amplitude of a tick's own swing
     regimeDriftScale: 1.0,  // global multiplier on regime directional drift
@@ -3627,7 +3627,21 @@ function migrateState(){
   for(const k in d.symbol) if(S.symbol[k] === undefined) S.symbol[k] = d.symbol[k];
   lockLotLimits();
   if(!S.market.dayVolProbs) S.market.dayVolProbs = dayVolProbDefaults();
-  if(!(S.market.dayDurationMin > 0) || S.market.dayDurationMin === 50) S.market.dayDurationMin = 45;   // day = 45 real min
+  // THE DAY RUNS FOUR HOURS (user 2026-11-17, asked: «медленнее, день = 4 часа»). At 45 minutes the market ran 32× the
+  // wall clock and gold went $2-3 in a second or two (FxPro's goes that in about a minute). An account still on the old
+  // default (45, or the 50 before it) gets 240 once; its running day and regime keep the share of a day they had run,
+  // so the game clock does not run past midnight before the day rolls over. A length set by hand is left alone.
+  if(!S.market.dayRev){
+    const was = S.market.dayDurationMin;
+    if(!(was > 0) || was === 45 || was === 50){
+      const k = 240 / (was > 0 ? was : 45);
+      S.market.dayDurationMin = 240;
+      if(S.day) S.day.elapsedMs = (S.day.elapsedMs || 0) * k;
+      if(S.regime) S.regime.ageMs = (S.regime.ageMs || 0) * k;
+    }
+    S.market.dayRev = 2;
+  }
+  if(!(S.market.dayDurationMin > 0)) S.market.dayDurationMin = 240;
   if(S.symbol.leverage === 100 || !(S.symbol.leverage > 0)) S.symbol.leverage = 2000;                 // default 1:2000
   if(!(S.market.ticksPerSecond > 0)) S.market.ticksPerSecond = 2.0;
   S.market.ticksPerSecond = clamp(S.market.ticksPerSecond, 0.1, 20);
@@ -4077,7 +4091,7 @@ function releaseEvent(ev){
      circulating around a DYNAMIC EMA equilibrium (which itself follows price, so a
      flat can form at ANY level — 2100, 5800, anywhere).  Trend regimes have pure
      directional drift + momentum + noise and no pull.
-   * 1 simulated trading day = market.dayDurationMin real minutes (default 50).
+   * 1 simulated trading day = market.dayDurationMin real minutes (default 240).
      Each day draws its own volatility band (target intraday Range) — LOW / NORMAL
      / ACTIVE / EXTREME — with volatility CLUSTERING across days.
    * NEWS + MANUAL IMPULSE are added ON TOP of the auto price and persist afterward.
@@ -4108,7 +4122,7 @@ function nextRegimeName(cur){
 /* real-time within one game-day (ms). Time is ACCUMULATED, never derived from
    an absolute Date.now() endpoint — so the whole simulation stays frozen while
    the user is away and resumes exactly where it stopped. */
-function dayDurationMs(){ return Math.max(S.market.dayDurationMin || 45, 1) * 60000; }
+function dayDurationMs(){ return Math.max(S.market.dayDurationMin || 240, 1) * 60000; }
 function regimeDurationMs(){ return (S.regime ? S.regime.durDays : 8) * dayDurationMs(); }
 
 function startRegime(forcedName){
@@ -4233,7 +4247,7 @@ function marketActivity(){
        * (S.day ? clamp(S.day.targetRange / 42, 0.6, 3.2) : 1);
 }
 
-function daySpeedNow(){ return 1440 / Math.max(S.market.dayDurationMin || 45, 1); }   // sim-minutes per real-minute
+function daySpeedNow(){ return 1440 / Math.max(S.market.dayDurationMin || 240, 1); }  // sim-minutes per real-minute (6 at the 4-hour day)
 function normalTps(){ return clamp(S.market.ticksPerSecond || 2, 0.1, 20); }
 
 /* accumulate ACTIVE wall-time (capped) into the day/regime clocks. A big delta —
@@ -4327,32 +4341,22 @@ function finishFrame(nowR, newsOn){
    go - one every 40 ms; past that each one covers the rest of the time), each moving the price as an ordinary tick
    does: the gold, the ticks, the candles and the spread's breathing all run N times as fast. */
 /* THE TICK RATE FOLLOWS THE MARKET (user 2026-11-16: «котировки золота двигаются по 3 доллара за раз … посмотрите
-   оригинальное золото как движется в том же FxPro»). At the set 2 a second a tick covers 16 game-seconds (the
-   45-minute day runs 32× the wall clock), and in the New York hours 16 seconds of gold is $0.6-3 - right as a move,
-   wrong as ONE print: a real feed shows a busy market as MORE ticks, not bigger ones (FxPro's own page: $0.5-0.6 in
-   5-11 s, in many small ticks). So ordinary ticks come as often as it takes for one of them to be worth about
-   TICK_SD of the price (σ ~$0.23 at $4 600): from TICK_RATE_MIN times the set rate in the Asian night up to TICK_RATE_MAX
-   times it at the US open (4-12 a second at the default 2), never past the 40 ms floor. The day, the candles and the price's path through game time are untouched:
-   only how finely that path is printed. (The chart draws at most CHART_LIVE_MS apart, so the cost stays.) */
-const TICK_SD = 0.00005, TICK_RATE_MIN = 2, TICK_RATE_MAX = 6;
-// the standard deviation per √game-second of what ONE tick carries right now: the fast part of priceStep's move (the
-// slow swing legs hardly move within a tick) - the same terms it moves by, read only, no state moves
-function goldSdPerSec(){
-  const P = S.price, RG = regimeCfg(), ps = pxVolScale(P.mid);
-  const dayStdev = (S.day ? S.day.targetRange : 35) * ps / 3.2;
-  const regVol = RG.rangePull > 0 ? Math.max(RG.vol, RANGE_VOL_FLOOR) : RG.vol;
-  const hourVol = clamp(HOUR_VOL[simDate().getUTCHours()] * _sessJitter, 0.4, 2.6);
-  return dayStdev / Math.sqrt(86400) * regVol * hourVol * (P.volCluster || 1) * (S.market.intradayNoise || 1) / VOL_NORM * newsAfterVol()
-    * Math.sqrt(1 - SWING_SHARE) * 1.1;                              // (+ the bid/ask wiggle: 0.45 σ, taken back next tick)
-}
+   оригинальное золото как движется в том же FxPro»). A real feed shows a busy market as MORE ticks, not bigger ones
+   (FxPro's own page: $0.5-0.6 in 5-11 s, in many small ticks). So the ordinary ticks come as often as the hour is busy:
+   the set rate (TPS) in a quiet Asian hour, the square of the hour's activity (HOUR_VOL and its drift, the hour after
+   the Fed) times it elsewhere - its variance, which is what a tick count follows - up to TICK_RATE_MAX times it at the
+   US open: 2-12 a second at the default 2, never past the 40 ms floor. With the 4-hour day (2026-11-17, 6× the wall
+   clock) a tick is then $0.1-0.2 at the median and under $1 at the 99th percentile in every hour, as real gold's.
+   The day, the candles and the price's path through game time are untouched: only how finely that path is printed.
+   (The chart draws at most CHART_LIVE_MS apart, so the cost stays.) An estimate of gold's own σ for this ran about
+   twice the realised one and pinned the rate high in every hour: the hour's activity is what a feed's pace follows. */
+const TICK_ACT_REF = 0.7, TICK_RATE_MIN = 1, TICK_RATE_MAX = 6;
 // ordinary ticks per real second, the accelerator included: TICK_RATE_MIN-TICK_RATE_MAX times the set rate (TPS)
 function normalTickRate(){
   const set = normalTps() * simSpeed();
   if(S.manual.enabled) return set;                 // manual control: exactly five ticks to an M1 candle, as it always was
-  const per = goldSdPerSec();
-  if(!(per > 0) || !(S.price.mid > 0)) return set;
-  const gameDt = Math.pow(TICK_SD * S.price.mid / per, 2);           // the game-seconds one tick may cover
-  return clamp(daySpeedNow() * simSpeed() / Math.max(gameDt, 1e-3), set * TICK_RATE_MIN, set * TICK_RATE_MAX);
+  const act = clamp(HOUR_VOL[simDate().getUTCHours()] * _sessJitter, 0.4, 2.6) * newsAfterVol() / TICK_ACT_REF;
+  return clamp(set * act * act, set * TICK_RATE_MIN, set * TICK_RATE_MAX);
 }
 let normalTickTimer = null, _normalTickMs = 500;
 function restartNormalTicks(){
