@@ -57,7 +57,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navCorner,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navCorner,navOval,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -107,7 +107,7 @@ function hop(runtime, from, to, ms = 1300, options = {}) {
     const time = i * 1000 / 120;
     runtime.frame(100 + time);
     const box = a.navBox(a.NB.a, a.NB.b);
-    samples.push({ time, u: a.NB.u, a: a.NB.a, b: a.NB.b, w: box.sx * t.tabW, h: box.sy * t.baseH, clear: a.NB.clear, cs: a.NB.cs, raf: a.NB.raf, rail: a.NB.rail });
+    samples.push({ time, u: a.NB.u, a: a.NB.a, b: a.NB.b, left: box.left, w: box.sx * t.tabW, h: box.sy * t.baseH, clear: a.NB.clear, cs: a.NB.cs, raf: a.NB.raf, rail: a.NB.rail });
     if (options.until && options.until(a)) break;
   }
   return { samples, rest: { w: rest.sx * t.tabW, h: rest.sy * t.baseH }, at: ms => samples.reduce((best, s) => Math.abs(s.time - ms) < Math.abs(best.time - ms) ? s : best) };
@@ -168,6 +168,23 @@ test('on an end tab the landing drop is pressed into the bar end as a long capsu
     const box = a.navBox(to, to + 1), outer = to === 0 ? box.left * t.tabW : t.width - (box.left + box.sx) * t.tabW;
     assert.ok(outer <= -a.NAV_MO.endPush * scale + 1e-6 && outer >= -14 * scale - 1e-6, `outer end ${outer}`);
     near(samples.at(-1).w, rest.w, 1e-6); near(samples.at(-1).h, rest.h, 1e-6);
+  }
+});
+
+test('leaving an end tab the drop comes off the wall at once and fills the bar in flight, as the reference (Котирування → Чарт)', () => {
+  for (const [from, to] of [[0, 1], [4, 3]]) {
+    const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, T = a.NB.track;
+    const { samples, at } = hop(runtime, from, to);
+    const ratio = ms => at(ms).h / T.height;
+    // the reference, as a share of the bar: 0.88 at rest, ~0.93 at 100 ms, ~0.96 at 133, ~0.98 at 200, ~0.92 landing
+    assert.ok(ratio(67) > .9, `lifted at 67 ms: ${ratio(67)}`);
+    assert.ok(ratio(133) > .94, `filling the bar at 133 ms: ${ratio(133)}`);
+    const room = (T.height - 2 * a.NAV_MO.endGap * T.height / a.NAV_DROP.referenceH) / T.height;
+    assert.ok(Math.max(...samples.map(s => s.h)) / T.height <= room + 1e-9, 'no higher than the bar');
+    // nothing pulls it back to the wall: its centre only ever moves towards the new tab
+    const centre = s => s.left + s.w / T.tabW / 2;                    // the box's centre, after the wall's pull
+    for (let i = 1; i < samples.length && samples[i].time < 250; i++) assert.ok((centre(samples[i]) - centre(samples[i - 1])) * (to - from) >= -1e-9, `moves on at ${samples[i].time}`);
+    assert.ok(a.navOval(1) > 1.3, 'clear and off the wall it is the oval of the reference, not the end capsule');
   }
 });
 

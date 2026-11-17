@@ -25,7 +25,7 @@ function fixture(load=true){
   const box={left:1.2,sx:1.5,sy:1},ctx={
     Math,LG_LENS:true,LG_UI:{refract:1},LGQ:{r:2.155},DISP:{on:true,drops:true,str:50},
     NB:{clear:1,opticalEnergy:0,a:1,b:2,lift:0,optical:null},
-    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:c=>.5-.1*Math.max(0,Math.min(1,c)),lgDefsReady(){},_lgDefs:defs,
+    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),lgDefsReady(){},_lgDefs:defs,
     Image:class{constructor(){counts.images.push(this);}},
     document:{getElementById:id=>defs.children.find(n=>n.getAttribute('id')===id)||null,
       createElementNS:(_,tag)=>{counts.nodes++;return new Element(tag);},
@@ -51,7 +51,7 @@ test('one generated rim field, drawn once, is the only foreground refraction fie
   assert.equal(h.ctx.NB.optical.dms.length,3);
   for(const dm of h.ctx.NB.optical.dms)assert.equal(dm.getAttribute('in2'),'normals');
   assert.ok(!html.includes('navFieldsPrepare')&&!html.includes('navFieldAt')&&!html.includes('nav-optics-fields-v9.bin'));
-  assert.equal(h.NAV_OPTICS.reach,.18);assert.equal(h.NAV_OPTICS.reachMotion,.22);assert.equal(h.NAV_OPTICS.gamma,6);
+  assert.equal(h.NAV_OPTICS.reach,.18);assert.equal(h.NAV_OPTICS.reachMotion,.05,'in flight the reference bends about as softly as at rest (2026-11-17)');assert.equal(h.NAV_OPTICS.gamma,6);
   assert.equal(h.filter.querySelector('[result="normals"]').tag,'feColorMatrix','The field reaches per axis through one matrix');
 });
 
