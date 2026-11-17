@@ -287,6 +287,7 @@ test('the driver applies a queued pending edit through the same locked trading p
     guardMirror: () => false,
     guardLock: () => locked,
     roundTo: (value, digits) => Number(value.toFixed(digits)),
+    symOf: x => (x && x.symbol) || 'XAUUSD', specOf: () => ({ digits: 2 }),   // an order rounds to its own instrument's digits
     toast() {}, L: x => x,
     save: () => { saves++; },
     xcPushState: () => { pushed++; },

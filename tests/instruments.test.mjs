@@ -46,12 +46,12 @@ function checkBars(bars, sec, label) {
 }
 
 test('the specifications are the brokers\': FxPro EURUSD, Deriv Boom/Crash 1000', () => {
-  const E = A.INS.EURUSD, B = A.INS.BOOM1000, C = A.INS.CRASH1000;
+  const E = A.INS.EURUSD, B = A.INS.BOOM1000;   // (Crash 1000 dropped 2026-11-17: «краш не нужен»)
   assert.equal(E.digits, 5); assert.equal(E.contractSize, 100000); assert.equal(E.minLot, .01); assert.equal(E.lotStep, .01);
   assert.equal(E.start, 1.1005);
   assert.equal(B.digits, 4); assert.equal(B.start, 14886); assert.equal(B.contractSize, 1); assert.equal(B.minLot, .2); assert.equal(B.every, 1000); assert.equal(B.dir, 1);
-  assert.equal(C.dir, -1); assert.equal(C.minLot, .2);
-  assert.equal(JSON.stringify(A.INS_ORDER), JSON.stringify(['EURUSD', 'BOOM1000', 'CRASH1000']));
+  assert.equal(JSON.stringify(A.INS_ORDER), JSON.stringify(['EURUSD', 'BOOM1000']));
+  assert.equal(A.INS.CRASH1000, undefined);
   const ms = A.FX_HOUR.reduce((s, f) => s + f * f, 0) / 24;
   assert.ok(Math.abs(ms - 1) < .03, `FX hours keep the daily volatility (mean square ${ms})`);
 });
@@ -80,7 +80,7 @@ test('margin, commission and swaps are counted as FxPro and Deriv count them', (
 });
 
 test('Boom and Crash spike on 1 tick in 1000, the right way, and the drift pays them back', () => {
-  for (const sym of ['BOOM1000', 'CRASH1000']) {
+  for (const sym of ['BOOM1000']) {
     const spec = A.INS[sym], st = { seed: 12345 };
     let ticks = 0, spikes = 0, net = 0, quiet = [], up = 0, moves = 0;
     for (let i = 0; i < 200000; i++) {
@@ -191,11 +191,11 @@ test('live candles: no missing minute, a long jump filled minute by minute, days
   const tall = boom.candles.M1.some(b => b.h - Math.max(b.o, b.c) > 2 || b.c - b.o > 2);
   assert.ok(tall, 'a spike is on the M1 chart');
   // four days away: the history is rebuilt up to now, the price carries on
-  const p = box.CRASH1000.price.mid;
+  const p = box.BOOM1000.price.mid;
   t += 4 * 86400e3; A.insAdvance(box, t, { mid: 4600, news: false, closed: false });
-  assert.equal(box.CRASH1000.candles.M1.at(-1).t, Math.floor(t / 60000) * 60);
-  assert.ok(Math.abs(box.CRASH1000.candles.D1[0].t - (Math.floor(t / 86400e3) - 119) * 86400) < 1);
-  assert.ok(box.CRASH1000.price.mid === p);
+  assert.equal(box.BOOM1000.candles.M1.at(-1).t, Math.floor(t / 60000) * 60);
+  assert.ok(Math.abs(box.BOOM1000.candles.D1[0].t - (Math.floor(t / 86400e3) - 119) * 86400) < 1);
+  assert.ok(box.BOOM1000.price.mid === p);
   // shiftSimTime's whole days move the instruments too
   const before = box.EURUSD.candles.H1.at(-1).t, st0 = box.EURUSD.t;
   A.insShift(box, -2 * 86400e3);

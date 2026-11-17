@@ -931,7 +931,7 @@ body.trade-locked .fabnew{opacity:.5;pointer-events:none}
    spread change moves the two apart, so they can differ (a cTrader video: green ПРОДАТЬ, red КУПИТЬ) */
 .wl-q{flex:1 1 0;min-width:0;height:50px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1.5px solid currentColor;border-radius:9px;padding:0 3px;color:var(--wl-up)}
 .wl-q b{font-size:14px;font-weight:400;line-height:18px;color:inherit}
-.wl-q span{font-size:18.5px;font-weight:500;line-height:22px;font-variant-numeric:tabular-nums;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.wl-q span{font-size:18.5px;font-weight:500;line-height:22px;font-variant-numeric:tabular-nums;max-width:100%;overflow:hidden;white-space:nowrap;letter-spacing:-.01em}
 .wl-q.dn{color:var(--wl-dn)}
 /* same pill as the search field beside it — cTrader gives them equal weight;
    ours used to sit noticeably smaller */
@@ -2667,6 +2667,7 @@ const I18N = {
 "КУПИТЬ":["BUY","КУПИТИ","ACHETER","AL"],
 "Добавить инструменты":["Add instruments","Додати інструменти","Ajouter des instruments","Enstrüman ekle"],
 "Доступно только XAUUSD":["Only XAUUSD is available","Доступний лише XAUUSD","Seul XAUUSD est disponible","Yalnızca XAUUSD kullanılabilir"],
+"Доступны XAUUSD, EURUSD и BOOM1000":["Available: XAUUSD, EURUSD and BOOM1000","Доступні XAUUSD, EURUSD і BOOM1000","Disponibles : XAUUSD, EURUSD et BOOM1000","Mevcut: XAUUSD, EURUSD ve BOOM1000"],
 "ОБЗОР":["OVERVIEW","ОГЛЯД","APERÇU","GENEL"],
 "ПОЗИЦИИ":["POSITIONS","ПОЗИЦІЇ","POSITIONS","POZİSYONLAR"],
 "ОРДЕРА":["ORDERS","ОРДЕРИ","ORDRES","EMİRLER"],
@@ -3751,6 +3752,7 @@ function stateJSON(){
   const rest = {}, parts = [], rows = [];
   for(const k of Object.keys(S)){
     if(k === "candles") continue;
+    if(k === "ins" && S.ins && typeof S.ins === "object"){ rows.push('"ins":' + insJSON(S.ins)); continue; }
     if(ROWS_CACHED.includes(k) && Array.isArray(S[k])){ rows.push(JSON.stringify(k) + ":" + rowsJSON(S[k])); continue; }
     rest[k] = S[k];
   }
@@ -3806,9 +3808,11 @@ function walletFmt(x){                                       // "3,000,000,000 U
   const dec = Number.isInteger(n) ? 0 : 2;
   return n.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: 2 }) + " USD";
 }
-function pxfmt(x){ return fmt(x, S.symbol.digits); }
+function pxfmt(x, sym){ return fmt(x, (sym ? specOf(sym) : S.symbol).digits); }
+const vpx = x => pxfmt(x, curSym());           // a price of the instrument on the screen
 /* prices drawn on the chart read like cTrader's — 4307.02, no thousands separator */
-function chartPx(x){ return Number(x).toFixed(S.symbol.digits); }
+function chartPx(x, sym){ return Number(x).toFixed((sym ? specOf(sym) : S.symbol).digits); }
+const vcx = x => chartPx(x, curSym());
 function pad2(n){ return String(n).padStart(2,"0"); }
 function simDate(){ return new Date(S.simClock); }
 function simTimeStr(){ const d = simDate(); return pad2(d.getUTCHours())+":"+pad2(d.getUTCMinutes())+":"+pad2(d.getUTCSeconds()); }
@@ -3896,6 +3900,7 @@ function seedMarket(){
   const startMid = S.price.mid;
 
   S.candles = {};
+  S.ins = null;                                                      // the other instruments start over with the market
   const counts = { M1:720, M5:520, M15:420, M30:380, H1:360, H4:300, D1:200 };
   for(const tf of TF_ORDER){
     S.candles[tf] = genBars(counts[tf], TF[tf], startMid, now);
@@ -4189,6 +4194,7 @@ function shiftSimTime(ms){
   S.simClock += ms;
   S.lastSimDay = day(S.lastSimDay);
   for(const tf in S.candles) for(const b of (S.candles[tf] || [])) b.t += sec;
+  if(S.ins) insShift(S.ins, ms);
   if(S.hist) S.hist.shift = (S.hist.shift || 0) + sec;             // the kept chunks carry their time before every shift
   histShiftLoaded(sec);
   for(const p of (S.positions || [])){ p.openTime += ms; p.lastSwapDay = day(p.lastSwapDay); }
@@ -5467,6 +5473,7 @@ function updateCandles(){
       last.v += vol;
     }
   }
+  insTick();
 }
 
 /* ======== OTHER INSTRUMENTS (2026-11-16, docs/multi-instrument-plan.md) ========
@@ -5499,21 +5506,17 @@ function updateCandles(){
      spike has a 1/1000 chance on every tick. Boom starts where the user's cTrader screenshot had it (14 885.3322 /
      14 887.0507: S 17185), its spread a share of the price as Deriv sets it (0.0115 %, ~1.72 there). */
 const INS = Object.freeze({
-  EURUSD: Object.freeze({ sym: "EURUSD", label: "Euro vs US Dollar", kind: "fx", digits: 5, pip: .0001,
+  EURUSD: Object.freeze({ sym: "EURUSD", name: "EURUSD", label: "Euro vs US Dollar", kind: "fx", digits: 5, pip: .0001,
     contractSize: 100000, minLot: .01, lotStep: .01, maxLot: 30,
     commissionPer10k: .35, swapLong: -8.9, swapShort: 1.9, swapUnit: "points", tripleDay: 3,
     tiers: Object.freeze([[1, 0], [10, 10000], [25, 2000], [50, 1000], [100, 888], [200, 500], [300, 200], [400, 100], [Infinity, 50]]),
     start: 1.1005, dayVol: .0048, spreadBase: .00003, spreadVar: .00003, rho: .42, rhoNews: .7, newsNoise: 1.5, tickRate: .5 }),
-  BOOM1000: Object.freeze({ sym: "BOOM1000", label: "Boom 1000 Index", kind: "spike", dir: 1, digits: 4, pip: .0001,
+  BOOM1000: Object.freeze({ sym: "BOOM1000", name: "BOOM1000", label: "Boom 1000 Index", kind: "spike", dir: 1, digits: 4, pip: .0001,
     contractSize: 1, minLot: .2, lotStep: .01, maxLot: 30, volumeLimit: 250, maxLeverage: 600,
     commissionPer10k: 0, swapLong: -36, swapShort: -36, swapUnit: "pctYear", tripleDay: -1,
-    start: 14886, spreadPct: .000115, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 }),
-  CRASH1000: Object.freeze({ sym: "CRASH1000", label: "Crash 1000 Index", kind: "spike", dir: -1, digits: 4, pip: .0001,
-    contractSize: 1, minLot: .2, lotStep: .01, maxLot: 30, volumeLimit: 250, maxLeverage: 600,
-    commissionPer10k: 0, swapLong: -36, swapShort: -36, swapUnit: "pctYear", tripleDay: -1,
-    start: 6800, spreadPct: .000115, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 })
+    start: 14886, spreadPct: .000115, every: 1000, noise: .012, spikeMin: 3, spikeMean: 12, floor: 100 })
 });
-const INS_ORDER = ["EURUSD", "BOOM1000", "CRASH1000"];
+const INS_ORDER = ["EURUSD", "BOOM1000"];
 // bars kept per timeframe (lighter than gold's TF_CAP: three instruments ride in the state)
 const INS_CAP = Object.freeze({ M1: 400, M5: 300, M15: 200, M30: 200, H1: 200, H4: 150, D1: 120 });
 const INS_NEAR_MIN = 12000;          // history in 1-minute steps this far back (H1's 200 bars), 15-minute steps before
@@ -5725,9 +5728,62 @@ function insShift(box, ms){
   }
 }
 /* ======== END OTHER INSTRUMENTS ======== */
+/* ======== ONE ACCOUNT, THREE INSTRUMENTS (2026-11-17) ========
+   A position or an order carries its .symbol ("XAUUSD" for every old one). Everything the account counts reads that
+   instrument's own quote and specification: quoteOf(sym) is S.price for gold and S.ins[sym].price for the others,
+   specOf(sym) is S.symbol for gold and the INS spec (with the account's leverage, capped by its maximum) for the others.
+   The screens show one instrument at a time, S.ui.sym (curSym): VQ() / VS() are its quote and spec. */
+const GOLD = "XAUUSD";
+const SYMS = [GOLD].concat(INS_ORDER);
+function curSym(){ const v = S && S.ui && S.ui.sym; return v && v !== GOLD && INS[v] ? v : GOLD; }
+function quoteOf(sym){ return sym && sym !== GOLD && S.ins && S.ins[sym] && S.ins[sym].price ? S.ins[sym].price : S.price; }
+const _specView = {};
+function specOf(sym){
+  if(!sym || sym === GOLD || !INS[sym]) return S.symbol;
+  const lev = Math.min(S.symbol.leverage || 2000, INS[sym].maxLeverage || Infinity), k = sym + ":" + lev;
+  return _specView[k] || (_specView[k] = Object.assign({}, INS[sym], { name: sym, leverage: lev }));
+}
+function candlesOf(sym, tf){ return sym && sym !== GOLD ? (S.ins && S.ins[sym] && S.ins[sym].candles[tf]) || [] : chartData(tf); }
+const VQ = () => quoteOf(curSym()), VS = () => specOf(curSym());
+const symOf = x => (x && x.symbol) || GOLD;
+// the margin (USD) for lots more of an instrument that already has openLots open: gold at the account's leverage,
+// EURUSD by FxPro's tiers, Boom at the account's leverage up to 1:600
+function marginFor(sym, lots, price, openLots){
+  if(!sym || sym === GOLD || !INS[sym]) return lots * S.symbol.contractSize * price / S.symbol.leverage;
+  return insMargin(INS[sym], lots, price, S.symbol.leverage, openLots || 0);
+}
+function openLotsOf(sym){ let n = 0; for(const p of S.positions) if(symOf(p) === sym) n += p.volume; return n; }
+// the other instruments move with gold's clock - after its every step (updateCandles); EURUSD stands still while gold's
+// market is closed, Boom never does
+function insTick(){
+  if(!S || !S.price || !(S.simClock > 0)) return;
+  if(!S.ins || typeof S.ins !== "object") S.ins = {};
+  for(const k of Object.keys(S.ins)) if(!INS[k]) delete S.ins[k];      // an instrument dropped (Crash 1000)
+  insAdvance(S.ins, S.simClock, { mid: S.price.mid, news: !!(S.news && S.news.active), closed: marketClosed() });
+}
+// their state for the save: the bars through the same per-bar cache as gold's (barJSON)
+function insJSON(box){
+  const parts = [];
+  for(const sym of Object.keys(box || {})){
+    const st = box[sym]; if(!st) continue;
+    const head = {}; for(const k of Object.keys(st)) if(k !== "candles") head[k] = st[k];
+    const tfs = [];
+    for(const tf of Object.keys(st.candles || {})){
+      const arr = st.candles[tf]; if(!Array.isArray(arr)) continue;
+      const bars = new Array(arr.length); for(let i = 0; i < arr.length; i++) bars[i] = barJSON(arr[i]);
+      tfs.push(JSON.stringify(tf) + ":[" + bars.join(",") + "]");
+    }
+    const h = JSON.stringify(head);
+    parts.push(JSON.stringify(sym) + ":" + h.slice(0, -1) + (h === "{}" ? "" : ",") + '"candles":{' + tfs.join(",") + "}}");
+  }
+  return "{" + parts.join(",") + "}";
+}
+/* ======== END ONE ACCOUNT ======== */
+
 
 /* ---------------- commission ---------------- */
-function commissionFor(volume, price){
+function commissionFor(volume, price, sym){
+  if(sym && sym !== GOLD && INS[sym]) return insCommission(INS[sym], volume, price || quoteOf(sym).mid);   // FxPro's / Deriv's own
   const t = S.trading.commissionType;
   const c = S.trading.commission;
   const cs = S.symbol.contractSize;
@@ -5741,15 +5797,15 @@ function commissionFor(volume, price){
 
 /* ---------------- P/L ---------------- */
 function grossPL(pos, bid, ask){
-  const b = bid==null?S.price.bid:bid, a = ask==null?S.price.ask:ask;
-  const cs = S.symbol.contractSize;
+  const q = quoteOf(symOf(pos)), b = bid==null?q.bid:bid, a = ask==null?q.ask:ask;
+  const cs = specOf(symOf(pos)).contractSize;
   if(pos.side === "buy")  return (b - pos.entry) * pos.volume * cs;
   else                    return (pos.entry - a) * pos.volume * cs;
 }
-function closePriceFor(pos){ return pos.side === "buy" ? S.price.bid : S.price.ask; }
+function closePriceFor(pos){ const q = quoteOf(symOf(pos)); return pos.side === "buy" ? q.bid : q.ask; }
 function posMetrics(pos){
   const gross = grossPL(pos);
-  const closeComm = commissionFor(pos.volume, closePriceFor(pos));
+  const closeComm = commissionFor(pos.volume, closePriceFor(pos), symOf(pos));
   const comm = pos.openCommission + closeComm;
   const swap = pos.swap;
   const net = gross + swap - comm;
@@ -5758,11 +5814,10 @@ function posMetrics(pos){
 
 /* ---------------- account / margin ---------------- */
 function usedMargin(){
-  const cs = S.symbol.contractSize, lev = S.symbol.leverage;
+  const by = {};
+  for(const p of S.positions){ const k = symOf(p); by[k] = (by[k] || 0) + p.volume; }
   let m = 0;
-  for(const p of S.positions){
-    m += (p.volume * cs * S.price.mid) / lev;
-  }
+  for(const k in by) m += marginFor(k, by[k], quoteOf(k).mid, 0);   // gold: Σ lots × 100 × mid / leverage, as it always was
   return m;
 }
 function recalcAccount(){
@@ -5781,8 +5836,8 @@ function recalcAccount(){
 
 /* ---------------- slippage ----------------
    depends on volatility, spread, speed and (during news) the event's slip curve */
-function slippage(){
-  if(!S.trading.slippageOn) return 0;
+function slippage(sym){
+  if(!S.trading.slippageOn || (sym && sym !== GOLD)) return 0;   // EURUSD and Boom fill at the quote
   let mx = S.market.normalSlippage;                       // normal: 0 .. normalSlippage
   if(S.news.active){
     const cfg = S.newsEngine.perEvent[S.news.type];
@@ -5798,8 +5853,8 @@ function slippage(){
 }
 
 /* ---------------- open / close ---------------- */
-function validateLot(v){
-  const {minLot,maxLot,lotStep} = S.symbol;
+function validateLot(v, sym){
+  const {minLot,maxLot,lotStep} = specOf(sym);
   if(!isFinite(v) || v <= 0) return L("Объём должен быть больше 0");
   if(v < minLot) return L("Минимальный объём {0}", fmt(minLot,2));
   if(v > maxLot) return L("Максимальный объём {0}", fmt(maxLot,2));
@@ -5826,7 +5881,7 @@ function execRemoteOps(ops){
   if(!ops || !ops.length) return;
   for(const o of ops){
     try{
-      if(o.kind === "open")               openPosition(o.side, o.volume, { sl:o.sl, tp:o.tp, slPips:o.slPips, tpPips:o.tpPips, tp1:o.tp1, range:o.range, ref:o.ref });
+      if(o.kind === "open")               openPosition(o.side, o.volume, { sym:o.sym, sl:o.sl, tp:o.tp, slPips:o.slPips, tpPips:o.tpPips, tp1:o.tp1, range:o.range, ref:o.ref });
       else if(o.kind === "close")         closePosition(o.id, o.reason || "manual");
       else if(o.kind === "modify")        modifyPosition(o.id, o.sl, o.tp);
       else if(o.kind === "pending")       addPending(o.order);
@@ -5839,16 +5894,17 @@ function execRemoteOps(ops){
 }
 function openPosition(side, volume, opts){
   opts = opts || {};
-  if(guardMirror("open", { side, volume, sl:opts.sl, tp:opts.tp, slPips:opts.slPips, tpPips:opts.tpPips, tp1:opts.tp1, range:opts.range, ref:opts.ref })) return null;
+  const sym = opts.sym && INS[opts.sym] ? opts.sym : GOLD, Q = quoteOf(sym), SP = specOf(sym);
+  if(guardMirror("open", { sym, side, volume, sl:opts.sl, tp:opts.tp, slPips:opts.slPips, tpPips:opts.tpPips, tp1:opts.tp1, range:opts.range, ref:opts.ref })) return null;
   if(guardLock()) return null;
-  if(marketClosed()){ toast("r", L("Рынок закрыт — исполнение недоступно")); return null; }
-  const err = validateLot(volume);
+  if(SP.kind !== "spike" && marketClosed()){ toast("r", L("Рынок закрыт — исполнение недоступно")); return null; }   // Boom trades 24/7
+  const err = validateLot(volume, sym);
   if(err){ toast("r", err); return null; }
   recalcAccount();
-  let px = side === "buy" ? S.price.ask : S.price.bid;
-  const slip = slippage();
-  if(slip>0) px = roundTo(px + (side==="buy" ? slip : -slip), S.symbol.digits);
-  const pip = Math.pow(10, -S.symbol.digits), dir = side === "buy" ? 1 : -1;
+  let px = side === "buy" ? Q.ask : Q.bid;
+  const slip = slippage(sym);
+  if(slip>0) px = roundTo(px + (side==="buy" ? slip : -slip), SP.digits);
+  const pip = Math.pow(10, -SP.digits), dir = side === "buy" ? 1 : -1;
   // the market range (the ticket's «Макс. проскальзывание»): a fill further than that from the price the order was
   // sent at is refused, as cTrader does
   if(opts.range != null && isFinite(opts.ref) && (px - opts.ref) * dir > opts.range * pip + 1e-9){
@@ -5857,20 +5913,21 @@ function openPosition(side, volume, opts){
   }
 
   // margin check
-  const reqM = (volume * S.symbol.contractSize * S.price.mid) / S.symbol.leverage;
+  const reqM = marginFor(sym, volume, Q.mid, openLotsOf(sym));
+  if(SP.volumeLimit && openLotsOf(sym) + volume > SP.volumeLimit + 1e-9){ toast("r", L("Максимальный объём {0}", fmt(SP.volumeLimit, 0))); return null; }
   if(reqM > S._acc.freeMargin + 1e-6){
     toast("r", L("Недостаточно свободной маржи (нужно {0})", money(reqM)));
     return null;
   }
   // SL / TP given in points are set from the fill (cTrader: relative to the opening price)
-  if(opts.slPips != null) opts.sl = roundTo(px - dir * opts.slPips * pip, S.symbol.digits);
-  if(opts.tpPips != null) opts.tp = roundTo(px + dir * opts.tpPips * pip, S.symbol.digits);
+  if(opts.slPips != null) opts.sl = roundTo(px - dir * opts.slPips * pip, SP.digits);
+  if(opts.tpPips != null) opts.tp = roundTo(px + dir * opts.tpPips * pip, SP.digits);
   // take profit 1 closes a part of the volume; the position's TP (2) closes the rest
   let tp1 = null;
   if(opts.tp1){
-    const t1 = opts.tp1, p1 = t1.pips != null ? roundTo(px + dir * t1.pips * pip, S.symbol.digits) : t1.price, v1 = roundTo(t1.volume, 2);
+    const t1 = opts.tp1, p1 = t1.pips != null ? roundTo(px + dir * t1.pips * pip, SP.digits) : t1.price, v1 = roundTo(t1.volume, 2);
     if(!(isFinite(p1) && (p1 - px) * dir > 0)){ toast("r", L("Тейк-профит 1 должен быть за ценой входа")); return null; }
-    if(validateLot(v1) || v1 > volume - S.symbol.minLot + 1e-9){ toast("r", L("Неверный объём тейк-профита 1")); return null; }
+    if(validateLot(v1, sym) || v1 > volume - SP.minLot + 1e-9){ toast("r", L("Неверный объём тейк-профита 1")); return null; }
     tp1 = { price: p1, volume: v1 };
   }
   // validate SL/TP sides
@@ -5882,9 +5939,9 @@ function openPosition(side, volume, opts){
     if(side==="buy"  && opts.tp <= px){ toast("r", L("TP для BUY должен быть выше цены входа")); return null; }
     if(side==="sell" && opts.tp >= px){ toast("r", L("TP для SELL должен быть ниже цены входа")); return null; }
   }
-  const openComm = commissionFor(volume, px);
+  const openComm = commissionFor(volume, px, sym);
   const pos = {
-    id: S.seq.pos++, symbol: S.symbol.name, side, volume: roundTo(volume,2),
+    id: S.seq.pos++, symbol: sym, side, volume: roundTo(volume,2),
     entry: px, openTime: S.simClock, sl: opts.sl||null, tp: opts.tp||null, tp1,
     openCommission: openComm, swap: 0, slippage: slip,
     lastSwapDay: simDateStr()
@@ -5893,7 +5950,7 @@ function openPosition(side, volume, opts){
   S.positions.push(pos);
   recalcAccount();
   if(!opts.quiet)                  // the quick-trade pill is the confirmation there
-    toast("g", (side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+L(" по ")+pxfmt(px)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip):""));
+    toast("g", (sym !== GOLD ? sym + " " : "")+(side==="buy"?"BUY":"SELL")+" "+fmt(volume,2)+L(" по ")+pxfmt(px, sym)+"  •  comm "+money(openComm)+(slip>0?"  •  slip "+pxfmt(slip, sym):""));
   save();
   return pos;
 }
@@ -5928,7 +5985,7 @@ function closePartial(id, vol, reason){
   vol = roundTo(Math.min(vol, pos.volume), 2);
   if(vol >= pos.volume - 1e-9){ closePosition(id, reason); return; }
   const k = vol / pos.volume, exit = closePriceFor(pos);
-  const gross = grossPL(pos) * k, swap = pos.swap * k, openC = pos.openCommission * k, closeC = commissionFor(vol, exit);
+  const gross = grossPL(pos) * k, swap = pos.swap * k, openC = pos.openCommission * k, closeC = commissionFor(vol, exit, symOf(pos));
   S.account.balance += gross + swap - closeC;                      // its opening commission was taken at open
   pos.volume = roundTo(pos.volume - vol, 2); pos.swap -= swap; pos.openCommission -= openC;
   S.history.unshift({
@@ -5950,25 +6007,25 @@ function modifyPosition(id, sl, tp){
   if(!p) return;
   // Reject an SL/TP that already sits on the wrong side of the market — that would
   // trigger on the very next tick. Editing a position must NEVER auto-close it.
-  const bid = S.price.bid, ask = S.price.ask;
+  const ps = symOf(p), pq = quoteOf(ps), bid = pq.bid, ask = pq.ask;
   if(sl != null && isFinite(sl)){
-    if(p.side === "buy"  && sl >= bid){ toast("r", L("SL для BUY должен быть ниже текущей цены {0} — позиция не изменена", pxfmt(bid))); return; }
-    if(p.side === "sell" && sl <= ask){ toast("r", L("SL для SELL должен быть выше текущей цены {0} — позиция не изменена", pxfmt(ask))); return; }
+    if(p.side === "buy"  && sl >= bid){ toast("r", L("SL для BUY должен быть ниже текущей цены {0} — позиция не изменена", pxfmt(bid, ps))); return; }
+    if(p.side === "sell" && sl <= ask){ toast("r", L("SL для SELL должен быть выше текущей цены {0} — позиция не изменена", pxfmt(ask, ps))); return; }
   }
   if(tp != null && isFinite(tp)){
-    if(p.side === "buy"  && tp <= bid){ toast("r", L("TP для BUY должен быть выше текущей цены {0} — позиция не изменена", pxfmt(bid))); return; }
-    if(p.side === "sell" && tp >= ask){ toast("r", L("TP для SELL должен быть ниже текущей цены {0} — позиция не изменена", pxfmt(ask))); return; }
+    if(p.side === "buy"  && tp <= bid){ toast("r", L("TP для BUY должен быть выше текущей цены {0} — позиция не изменена", pxfmt(bid, ps))); return; }
+    if(p.side === "sell" && tp >= ask){ toast("r", L("TP для SELL должен быть ниже текущей цены {0} — позиция не изменена", pxfmt(ask, ps))); return; }
   }
   p.sl = (sl != null && isFinite(sl)) ? sl : null;
   p.tp = (tp != null && isFinite(tp)) ? tp : null;
-  toast("g", L("Позиция #{0} изменена — SL {1} · TP {2}", id, (p.sl?pxfmt(p.sl):"—"), (p.tp?pxfmt(p.tp):"—")));
+  toast("g", L("Позиция #{0} изменена — SL {1} · TP {2}", id, (p.sl?pxfmt(p.sl, ps):"—"), (p.tp?pxfmt(p.tp, ps):"—")));
   save();
 }
 
 /* ---------------- SL / TP ---------------- */
 function processPositionSLTP(){
   for(const p of [...S.positions]){
-    const bid = S.price.bid, ask = S.price.ask;
+    const pq = quoteOf(symOf(p)), bid = pq.bid, ask = pq.ask;
     // take profit 1 closes its part first; the rest runs on to TP (2) / SL
     if(p.tp1 && !XC.follower && (p.side === "buy" ? bid >= p.tp1.price : ask <= p.tp1.price)){
       const v = p.tp1.volume; p.tp1 = null; closePartial(p.id, v, "TP1");
@@ -5988,17 +6045,18 @@ function processPositionSLTP(){
 function addPending(o){
   if(guardMirror("pending", { order:o })) return null;
   if(guardLock()) return null;
-  const err = validateLot(o.volume);
+  const osym = o.sym && INS[o.sym] ? o.sym : (o.symbol && INS[o.symbol] ? o.symbol : GOLD);
+  const err = validateLot(o.volume, osym);
   if(err){ toast("r", err); return null; }
   const ord = {
-    id: S.seq.ord++, symbol: S.symbol.name, type: o.type, volume: roundTo(o.volume,2),
+    id: S.seq.ord++, symbol: osym, type: o.type, volume: roundTo(o.volume,2),
     price: o.price, sl: o.sl||null, tp: o.tp||null, createTime: S.simClock
   };
   if(o.type.includes("stop")) ord.trig = o.trig || "trade";                     // which price sets it off (cTrader's trigger)
   if(o.type.endsWith("stop_limit")) ord.lim = Math.max(0, Math.round(o.lim || 0));   // the limit range, points
   if(o.tp1 && o.tp1.price && o.tp1.volume) ord.tp1 = { price: o.tp1.price, volume: roundTo(o.tp1.volume, 2) };
   S.pendings.push(ord);
-  toast("", ordTypeName(o.type)+" "+fmt(o.volume,2)+L(" по ")+pxfmt(o.price));
+  toast("", (osym !== GOLD ? osym + " " : "")+ordTypeName(o.type)+" "+fmt(o.volume,2)+L(" по ")+pxfmt(o.price, osym));
   save();
   return ord;
 }
@@ -6013,9 +6071,9 @@ function cancelPending(id){
    slippage. A stop-limit set off becomes a limit at its price ± its range: it fills at the market only inside it,
    else it waits there (armed). */
 function processPendings(){
-  const bid = S.price.bid, ask = S.price.ask, pip = Math.pow(10, -S.symbol.digits);
   let acc = false;                                                 // the account brought up to date once a fill is near
   for(const o of [...S.pendings]){
+    const osym = symOf(o), oq = quoteOf(osym), osp = specOf(osym), bid = oq.bid, ask = oq.ask, pip = Math.pow(10, -osp.digits);
     const side = o.type.startsWith("buy") ? "buy" : "sell", buy = side === "buy", dir = buy ? 1 : -1;
     const isStop = o.type.includes("stop"), stopLimit = o.type.endsWith("stop_limit");
     let px = null;
@@ -6032,7 +6090,7 @@ function processPendings(){
         }
         else if(!past) continue;
         if(stopLimit) o.armed = true;
-        else { const sl = slippage(); px = roundTo((buy ? ask : bid) + dir * sl, S.symbol.digits); }
+        else { const sl = slippage(osym); px = roundTo((buy ? ask : bid) + dir * sl, osp.digits); }
       }
       if(stopLimit){
         const lim = o.price + dir * (o.lim || 0) * pip, m = buy ? ask : bid;
@@ -6043,19 +6101,19 @@ function processPendings(){
     if(px == null) continue;
     const i = S.pendings.findIndex(x=>x.id===o.id);
     if(i>=0) S.pendings.splice(i,1);
-    const openComm = commissionFor(o.volume, px);
+    const openComm = commissionFor(o.volume, px, osym);
     if(!acc){ recalcAccount(); acc = true; }                        // what the fills before this one took is counted
-    if((o.volume*S.symbol.contractSize*S.price.mid)/S.symbol.leverage > (S._acc?S._acc.freeMargin:1e9)+1e-6){
+    if(marginFor(osym, o.volume, oq.mid, openLotsOf(osym)) > (S._acc?S._acc.freeMargin:1e9)+1e-6){
       toast("r", L("Ордер #{0} не исполнен — недостаточно маржи", o.id)); save(); continue;
     }
     S.account.balance -= openComm;
     S.positions.push({
-      id: S.seq.pos++, symbol: S.symbol.name, side, volume: o.volume, entry: px,
+      id: S.seq.pos++, symbol: osym, side, volume: o.volume, entry: px,
       openTime: S.simClock, sl: o.sl, tp: o.tp, tp1: o.tp1 || null, openCommission: openComm, swap: 0,
-      slippage: isStop?roundTo(Math.abs(px-o.price),S.symbol.digits):0, lastSwapDay: simDateStr()
+      slippage: isStop?roundTo(Math.abs(px-o.price),osp.digits):0, lastSwapDay: simDateStr()
     });
     recalcAccount();
-    toast("g", L("Исполнен {0} #{1} по {2}", ordTypeName(o.type), o.id, pxfmt(px)));
+    toast("g", L("Исполнен {0} #{1} по {2}", (osym !== GOLD ? osym + " " : "") + ordTypeName(o.type), o.id, pxfmt(px, osym)));
     save();
   }
 }
@@ -6079,8 +6137,11 @@ function checkRollover(){
 
   let anySwap = false;
   for(const p of S.positions){
-    const rate = p.side === "buy" ? S.trading.swapLong : S.trading.swapShort;
-    const amt = rate * p.volume * mult;   // USD per lot per day
+    const ps = symOf(p), spec = INS[ps];
+    // gold: the account's swap a lot a night; EURUSD: FxPro's points (triple on its own day); Boom: Deriv's % a year, every night
+    const m = spec ? 1 + (daysCrossed - 1) + (spec.tripleDay === wd ? 2 : 0) : mult;
+    const amt = spec ? insSwap(spec, p.side, p.volume, quoteOf(ps).mid) * m
+                     : (p.side === "buy" ? S.trading.swapLong : S.trading.swapShort) * p.volume * mult;   // USD per lot per day
     p.swap += amt;
     p.lastSwapDay = day;
     anySwap = true;
@@ -7830,17 +7891,18 @@ function appbar(title, opts){
    "Рынки" is a watchlist. Tapping the XAUUSD row opens the EXISTING XAUUSD
    terminal screen (screenMarkets) against the SAME simulator state — no copy.
    S.ui.marketOpen toggles between the two; the terminal's ‹ back returns here. */
-function watchSparkSVG(){
-  const c = (S.candles.M1 || []).slice(-48).map(b => b.c);
+function watchSparkSVG(sym){
+  sym = sym || GOLD;
+  const c = (candlesOf(sym, "M1") || []).slice(-48).map(b => b.c);
   if(c.length < 2) return "";
   const lo = Math.min(...c), hi = Math.max(...c), rng = (hi - lo) || 1;
   const W = 118, H = 38;
   const pts = c.map((v,i) => `${(i/(c.length-1)*W).toFixed(1)},${(H - 2 - (v-lo)/rng*(H-4)).toFixed(1)}`).join(" ");
-  const D = S.day;
-  const up = (D ? (S.price.mid - D.open) : (c[c.length-1] - c[0])) >= 0;
+  const D = dayStatsOf(sym);
+  const up = (D ? (quoteOf(sym).mid - D.open) : (c[c.length-1] - c[0])) >= 0;
   const col = up ? "var(--wl-spark-up)" : "var(--wl-spark-dn)";
   // cTrader tints the area under the line in the day's colour, fading to nothing
-  const gid = up ? "wsg-up" : "wsg-dn";
+  const gid = (up ? "wsg-up-" : "wsg-dn-") + sym;
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
     <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="${col}" stop-opacity=".22"/>
@@ -7850,16 +7912,29 @@ function watchSparkSVG(){
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
   </svg>`;
 }
-function watchStats(){
-  const D = S.day;
-  const chg = D ? (S.price.mid - D.open) : 0;
+// the trading day of an instrument: gold's own day (S.day), the others' today's D1 candle
+function dayStatsOf(sym){
+  if(!sym || sym === GOLD) return S.day ? { open: S.day.open, high: S.day.high, low: S.day.low } : null;
+  const d = candlesOf(sym, "D1"), b = d && d[d.length - 1];
+  return b ? { open: b.o, high: b.h, low: b.l } : null;
+}
+// an instrument's line under its name, as cTrader writes it
+function symDesc(sym){ return sym === "EURUSD" ? "Euro vs US Dollar" : sym === "BOOM1000" ? "Boom 1000 Index" : "Gold Ounce vs US Dollar"; }
+function watchStats(sym){
+  sym = sym || GOLD;
+  const D = dayStatsOf(sym), q = quoteOf(sym);
+  const chg = D ? (q.mid - D.open) : 0;
   const chgPct = D ? chg / (D.open || 1) * 100 : 0;
-  const spr = Math.round((S.price.ask - S.price.bid) / Math.pow(10, -S.symbol.digits));
-  return { chg, chgPct, spr, hi: D ? D.high : S.price.mid, lo: D ? D.low : S.price.mid };
+  // the spread as cTrader's watchlist writes it: in points for gold and Boom («S: 16», «S: 17185»), in pips with a tenth
+  // for a currency pair («S: 1.4»)
+  const sp = specOf(sym), pip = symPip(sym), spr = sp.kind === "fx" ? ((q.ask - q.bid) / pip).toFixed(1) : String(Math.round((q.ask - q.bid) / pip));
+  return { chg, chgPct, spr, hi: D ? D.high : q.mid, lo: D ? D.low : q.mid };
 }
 /* the watchlist change line, cTrader's: in pips (0.01 for gold) and % — «-4596.0 (-1.06%)» */
-function wlChgText(w){
-  const pip = Math.pow(10, -S.symbol.digits), s = w.chg > 0 ? "+" : "";
+// an instrument's pip as cTrader counts it: 0.01 for gold, 0.0001 for EURUSD and for Boom
+function symPip(sym){ const sp = specOf(sym || GOLD); return sp.pip || Math.pow(10, -sp.digits); }
+function wlChgText(w, sym){
+  const pip = symPip(sym), s = w.chg > 0 ? "+" : "";
   return `${s}${(w.chg / pip).toFixed(1)} (${w.chgPct > 0 ? "+" : ""}${fmt(w.chgPct, 2)}%)`;
 }
 /* THE INSTRUMENT'S ROUND ICON, as the 2026-11 cTrader update draws it in the watchlist (user's screenshots): a pair is
@@ -7906,9 +7981,9 @@ function symIconSVG(sym){
     + `<g mask="url(#${id}m)"><g clip-path="url(#${id}c)">${flag}</g></g>${front}</svg>`;
 }
 /* open positions on XAUUSD — pending orders do NOT count until they fill */
-function xauOpenCount(){ return S.positions.filter(p => p.symbol === S.symbol.name).length; }
-function wlCountBadge(){ const n = xauOpenCount(); return n > 0 ? ` <span class="wl-count" id="wlCount">${n}</span>` : ""; }
-function xauOrderCount(){ return S.pendings.filter(o => o.symbol === S.symbol.name).length; }
+function xauOpenCount(sym){ sym = sym || curSym(); return S.positions.filter(p => symOf(p) === sym).length; }
+function wlCountBadge(sym){ const n = xauOpenCount(sym || GOLD); return n > 0 ? ` <span class="wl-count">${n}</span>` : ""; }
+function xauOrderCount(sym){ sym = sym || curSym(); return S.pendings.filter(o => symOf(o) === sym).length; }
 function fabNewMarkup(){
   return `<button class="fabnew" data-act="newticket"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 3h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2V4a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M8 11h8M8 14.5h8M8 18h5" stroke="var(--fab-bg)" stroke-width="1.8" stroke-linecap="round"/></svg>${L("Новый ордер")}</button>`;
 }
@@ -7922,13 +7997,15 @@ function abBalCls(){ const a = S._acc; if(!a) return ""; const v = (a.floating |
    both sides alike). Compared on the DISPLAYED prices (rounded to the symbol's digits), so a
    sub-pip wiggle can't flip a colour; an unchanged price keeps its last direction. Read from
    S.price, so a mirroring device follows too. Advanced from updateLive() (and the markup). */
-const _tick = { b: null, a: null, bd: "up", ad: "up" };
-function tickDirs(){
-  const k = Math.pow(10, S.symbol.digits), b = Math.round(S.price.bid * k), a = Math.round(S.price.ask * k);
-  if(_tick.b !== null && b !== _tick.b) _tick.bd = b > _tick.b ? "up" : "dn";
-  if(_tick.a !== null && a !== _tick.a) _tick.ad = a > _tick.a ? "up" : "dn";
-  _tick.b = b; _tick.a = a;
-  return _tick;
+const _ticks = {};
+function tickDirs(sym){
+  sym = sym || curSym();
+  const t = _ticks[sym] || (_ticks[sym] = { b: null, a: null, bd: "up", ad: "up" });
+  const q = quoteOf(sym), k = Math.pow(10, specOf(sym).digits), bb = Math.round(q.bid * k), aa = Math.round(q.ask * k);
+  if(t.b !== null && bb !== t.b) t.bd = bb > t.b ? "up" : "dn";
+  if(t.a !== null && aa !== t.a) t.ad = aa > t.a ? "up" : "dn";
+  t.b = bb; t.a = aa;
+  return t;
 }
 const dirArrow = d => d === "dn" ? "↓" : "↑";
 /* ---------- the app drawer (the logo opens it) ---------- */
@@ -8213,40 +8290,53 @@ function screenMarketsList(){
         <span class="ic" data-act="addinstr" aria-label="${L("Изменить список")}"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3.5 20.5h4.2L19.4 8.8a2.2 2.2 0 0 0 0-3.1l-1.1-1.1a2.2 2.2 0 0 0-3.1 0L3.5 16.3z" fill="currentColor"/></svg></span>
       </span>
     </div>
-    <div class="wl-row" role="button" tabindex="0" data-act="openxau">
+    ${SYMS.map(wlRow).join("")}
+    <button class="wl-addbtn" data-act="addinstr"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:block"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>${L("Добавить инструменты")}</button>
+    ${fabNewMarkup()}
+  </div>`;
+}
+// one row of the watchlist: the instrument's icon and name, its day's sparkline and change, H / S / L, its two boxes
+function wlRow(sym){
+  const w = watchStats(sym), q = quoteOf(sym), td = tickDirs(sym), px = x => chartPx(x, sym);
+  return `<div class="wl-row" role="button" tabindex="0" data-act="opensym" data-sym="${sym}">
       <div class="wl-top">
-        <span class="wl-ic">${symIconSVG("XAUUSD")}</span>
-        <span class="wl-sym" id="wlSym">XAUUSD${wlCountBadge()}</span>
+        <span class="wl-ic">${symIconSVG(sym)}</span>
+        <span class="wl-sym" id="wlSym-${sym}">${sym}${wlCountBadge(sym)}</span>
       </div>
       <div class="wl-body">
         <div class="wl-left">
-          <span class="wl-spark" id="wlSparkBox">${watchSparkSVG()}</span>
-          <span class="wl-chg ${w.chg>=0?'pos':'neg'}" id="wlChg">${wlChgText(w)}</span>
+          <span class="wl-spark" id="wlSpark-${sym}">${watchSparkSVG(sym)}</span>
+          <span class="wl-chg ${w.chg>=0?'pos':'neg'}" id="wlChg-${sym}">${wlChgText(w, sym)}</span>
         </div>
         <div class="wl-right">
-          <div class="wl-stats"><span>H: <span id="wlHi">${chartPx(w.hi)}</span></span><span>S: <span id="wlSp">${w.spr}</span></span><span>L: <span id="wlLo">${chartPx(w.lo)}</span></span></div>
+          <div class="wl-stats"><span>H: <span id="wlHi-${sym}">${px(w.hi)}</span></span><span>S: <span id="wlSp-${sym}">${w.spr}</span></span><span>L: <span id="wlLo-${sym}">${px(w.lo)}</span></span></div>
           <div class="wl-quote">
-            <span class="wl-q sell ${tickDirs().bd}" id="wlQS"><b>${L("Продать")}</b><span id="wlBid">${chartPx(S.price.bid)}</span></span>
-            <span class="wl-q buy ${_tick.ad}" id="wlQB"><b>${L("Купить")}</b><span id="wlAsk">${chartPx(S.price.ask)}</span></span>
+            <span class="wl-q sell ${td.bd}" id="wlQS-${sym}"><b>${L("Продать")}</b><span id="wlBid-${sym}">${px(q.bid)}</span></span>
+            <span class="wl-q buy ${td.ad}" id="wlQB-${sym}"><b>${L("Купить")}</b><span id="wlAsk-${sym}">${px(q.ask)}</span></span>
           </div>
         </div>
       </div>
-    </div>
-    <button class="wl-addbtn" data-act="addinstr"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:block"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>${L("Добавить инструменты")}</button>
-    <div class="hint" style="text-align:center;margin-top:16px">${L("Доступно только XAUUSD")}</div>
-    ${fabNewMarkup()}
-  </div>`;
+    </div>`;
+}
+// the quick lot chips of the instrument on the screen: its minimum first, nothing under it (Boom: 0.20, 0.50, 1 …)
+function quickLots(){ const mn = VS().minLot; return [mn].concat([0.10, 0.50, 1.00, 5.00, 10.00].filter(v => v > mn + 1e-9)); }
+// the instrument on the screen changes: its lot is brought inside its own bounds (Boom trades from 0.20)
+function setSym(sym){
+  sym = sym && INS[sym] ? sym : GOLD;
+  S.ui.sym = sym;
+  const sp = specOf(sym), l = Number(S.ui.lot);
+  S.ui.lot = clamp(roundTo(isFinite(l) && l > 0 ? l : sp.minLot, 2), sp.minLot, sp.maxLot);
 }
 const xcLogoSVG = () => `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#111418"/><circle cx="20" cy="20" r="19.5" fill="none" stroke="#fff" stroke-opacity=".1"/><text x="20" y="27.35" font-size="23.4" text-anchor="middle" fill="#f5820d" font-family="Arial,'Liberation Sans',Arimo,Helvetica,sans-serif" font-weight="bold">X</text></svg>`;
 function screenMarkets(){
   const sub = S.ui.subtab;
   let inner = "";
   if(sub === "overview")   inner = mktOverview();
-  else if(sub === "positions") inner = listPositions();
-  else if(sub === "orders")    inner = listOrders();
+  else if(sub === "positions") inner = listPositions(curSym());      // an instrument's screen: its own positions and orders
+  else if(sub === "orders")    inner = listOrders(curSym());
   else if(sub === "chart")     inner = `<div class="wrap"><div class="card chartcard" style="padding:0;overflow:hidden">${chartMarkup(260, { sub: true })}</div></div>`;
   const cnt = (id, n) => ` <span class="cnt" id="${id}"${n ? "" : " hidden"}>${n}</span>`;   // cTrader's boxed count «ОРДЕРА [1]», kept live by updateLive
-  return appbar("XAUUSD", {back:true, caret:true}) + `
+  return appbar(curSym(), {back:true, caret:true}) + `
     <div class="subtabs">
       <button data-sub="overview" class="${sub==="overview"?"on":""}">${L("ОБЗОР")}</button>
       <button data-sub="positions" class="${sub==="positions"?"on":""}">${L("ПОЗИЦИИ")}${cnt("stPos", xauOpenCount())}</button>
@@ -8315,15 +8405,15 @@ const MINI_RANGES = { "1Д":["M15",96], "5Д":["H1",120], "1М":["H4",180], "3М
 /* cTrader's instrument header numbers: change since the trading day's open in % and in pips
    (0.01 for gold, so -60.68 reads -6068.0), the day's low / high, and the spread in pips */
 function ovHeadData(){
-  const D = S.day || {}, pip = Math.pow(10, -S.symbol.digits);
-  const open = D.open || S.price.mid, chg = S.price.mid - open, pct = open ? chg / open * 100 : 0;
+  const D = dayStatsOf(curSym()) || {}, pip = symPip(curSym());
+  const open = D.open || VQ().mid, chg = VQ().mid - open, pct = open ? chg / open * 100 : 0;
   return {
     pct: (pct > 0 ? "+" : "") + fmt(pct, 2) + "%",
     pips: (chg > 0 ? "+" : "") + (chg / pip).toFixed(1),
     cls: chg < 0 ? "neg" : "pos",
-    low: chartPx(D.low != null ? D.low : S.price.bid),
-    high: chartPx(D.high != null ? D.high : S.price.ask),
-    spr: String(Math.round(S.price.spread / pip))
+    low: vcx(D.low != null ? D.low : VQ().bid),
+    high: vcx(D.high != null ? D.high : VQ().ask),
+    spr: VS().kind === "fx" ? (VQ().spread / pip).toFixed(1) : String(Math.round(VQ().spread / pip))
   };
 }
 function mktOverview(){
@@ -8335,7 +8425,7 @@ function mktOverview(){
         <div class="ovh-top">
           <span class="ovh-ico star" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7z" fill="currentColor"/></svg></span>
           <span class="ovh-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <div class="ovh-name"><div class="ovh-sym">${S.symbol.name}</div><div class="ovh-desc">Gold Ounce vs US Dollar</div></div>
+          <div class="ovh-name"><div class="ovh-sym">${VS().name}</div><div class="ovh-desc">${symDesc(curSym())}</div></div>
           <div class="ovh-chg ${h.cls}" id="ovChg"><div class="ovh-pct" id="ovChgPct">${h.pct}</div><div class="ovh-pips" id="ovChgPips">${h.pips}</div></div>
         </div>
         <div class="ovh-lsh"><span>L: <b id="ovLow">${h.low}</b></span><span>S: <b id="ovSprPts">${h.spr}</b></span><span>H: <b id="ovHigh">${h.high}</b></span></div>
@@ -8347,16 +8437,16 @@ function mktOverview(){
           <input class="ctp-lot-val mono" id="ovLot" value="${fmt(lot,2)}" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="${L("Объём в лотах")}">
           <button type="button" class="ctp-caret-btn" data-act="lotwheel" aria-label="${L("Выбрать объём колесом")}"><span class="ctp-caret" aria-hidden="true"></span></button>
         </div>
-        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">${L("КУПИТЬ")}</span><span class="tx">✕</span><span class="ctp-dir ${_tick.ad}" id="ovDirB"></span></button>
-        <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${chartPx(S.price.bid)}</span></button>
-        <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${chartPx(S.price.ask)}</span></button>
+        <button class="ctp-cap buy" data-act="quickbuy"><span class="tcap">${L("КУПИТЬ")}</span><span class="tx">✕</span><span class="ctp-dir ${tickDirs().ad}" id="ovDirB"></span></button>
+        <button class="ctp-px sell" data-act="quicksell" id="btnSell"><span class="v mono" id="ovBid">${vcx(VQ().bid)}</span></button>
+        <button class="ctp-px buy" data-act="quickbuy" id="btnBuy"><span class="v mono" id="ovAsk">${vcx(VQ().ask)}</span></button>
       </div>
       <div class="miniquick">
-        ${[0.01,0.10,0.50,1.00,5.00,10.00].map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
-        <button data-lot="max">MAX ${fmt(S.symbol.maxLot,0)}</button>
+        ${quickLots().map(v=>`<button data-lot="${v}">${fmt(v,2)}</button>`).join("")}
+        <button data-lot="max">MAX ${fmt(VS().maxLot,0)}</button>
       </div>
       <div>
-        <span class="spreadchip">${L("Спред")} <span class="mono" id="ovSpread">${pxfmt(S.price.spread)}</span></span>
+        <span class="spreadchip">${L("Спред")} <span class="mono" id="ovSpread">${vpx(VQ().spread)}</span></span>
         <span class="spreadchip" id="ovSess">${sessL(" · ")}</span>
       </div>
     </div>
@@ -8444,7 +8534,7 @@ function ovDepthRows(){
   let bp = B.bid, ap = B.ask, html = "";
   for(let i = 0; i < 5; i++){
     if(i){ bp = roundTo(bp - B.b[i].g, 2); ap = roundTo(ap + B.a[i].g, 2); }
-    html += `<div class="dp-row"><div class="dp-h b"><span>${fmt(B.b[i].sz, 2)}</span><span class="dp-p">${chartPx(bp)}<i style="width:${tick(B.b[i].sz)}px"></i></span></div><div class="dp-h a"><span class="dp-p">${chartPx(ap)}<i style="width:${tick(B.a[i].sz)}px"></i></span><span>${fmt(B.a[i].sz, 2)}</span></div></div>`;
+    html += `<div class="dp-row"><div class="dp-h b"><span>${fmt(B.b[i].sz, 2)}</span><span class="dp-p">${vcx(bp)}<i style="width:${tick(B.b[i].sz)}px"></i></span></div><div class="dp-h a"><span class="dp-p">${vcx(ap)}<i style="width:${tick(B.a[i].sz)}px"></i></span><span>${fmt(B.a[i].sz, 2)}</span></div></div>`;
   }
   return html;
 }
@@ -8548,9 +8638,10 @@ function upcomingEventsMarkup(n){
 
 /* ---------- POSITIONS ---------- */
 function screenPositions(){ return appbar(L("Позиции")) + listPositions(); }
-function listPositions(){
+function listPositions(sym){
   recalcAccount();
-  if(!S.positions.length) return `<div class="wrap">
+  const list = sym ? S.positions.filter(p => symOf(p) === sym) : S.positions;
+  if(!list.length) return `<div class="wrap">
     <div class="card">
       <div class="row"><span class="k">${L("Средства")}</span><span class="v mono">${money(S._acc.equity)}</span></div>
       <div class="row"><span class="k">${L("Свободная маржа")}</span><span class="v mono">${money(S._acc.freeMargin)}</span></div>
@@ -8565,7 +8656,7 @@ function listPositions(){
       <div class="row"><span class="k">${L("Уровень маржи")}</span><span class="v mono" id="pML">${isFinite(S._acc.marginLevel)?fmt(S._acc.marginLevel,1)+"%":"—"}</span></div>
     </div>
     ${closeAllBar()}
-    ${S.positions.map(posRow).join("")}
+    ${list.map(posRow).join("")}
   </div>`;
 }
 /* cTrader offers a single "close everything" action once more than one position
@@ -8597,8 +8688,8 @@ function posRow(p){
       <span class="pnl mono ${net>=0?"pos":"neg"}" id="pr-${p.id}-net">${signMoney(net)}</span>
     </div>
     <div class="mid">
-      <span>${L("Вход~entry")} <span class="mono">${pxfmt(p.entry)}</span> → <span class="mono" id="pr-${p.id}-cur">${pxfmt(closePriceFor(p))}</span></span>
-      <span>SL <span class="mono">${p.sl?pxfmt(p.sl):"—"}</span> · ${p.tp1 ? `TP1 <span class="mono">${pxfmt(p.tp1.price)}</span> · ` : ""}TP <span class="mono">${p.tp?pxfmt(p.tp):"—"}</span></span>
+      <span>${L("Вход~entry")} <span class="mono">${pxfmt(p.entry, p.symbol)}</span> → <span class="mono" id="pr-${p.id}-cur">${pxfmt(closePriceFor(p), p.symbol)}</span></span>
+      <span>SL <span class="mono">${p.sl?pxfmt(p.sl, p.symbol):"—"}</span> · ${p.tp1 ? `TP1 <span class="mono">${pxfmt(p.tp1.price, p.symbol)}</span> · ` : ""}TP <span class="mono">${p.tp?pxfmt(p.tp, p.symbol):"—"}</span></span>
     </div>
     <div class="mid">
       <span>${L("Брутто")} <span class="mono ${m.gross>=0?"pos":"neg"}" id="pr-${p.id}-gross">${signMoney(m.gross)}</span></span>
@@ -8620,9 +8711,9 @@ function ordTypeName(t){
              buy_stop_limit: "КУПИТЬ СТОП-ЛИМИТ", sell_stop_limit: "ПРОДАТЬ СТОП-ЛИМИТ" }[t] || String(t).replace(/_/g, " ").toUpperCase());
 }
 function lotsTxt(v){ return String(roundTo(v, 2)) + " " + L("Лоты"); }        // 0.01 Лоты, 1 Лоты
-function orderDist(o){ return (o.type.includes("buy") ? S.price.ask : S.price.bid) - o.price; }
-function pipsTxt(d){                                                    // a price distance in pips: 324.46 → «32 446.0»
-  const [i, f] = (Math.abs(d) / Math.pow(10, -S.symbol.digits)).toFixed(1).split(".");
+function orderDist(o){ const q = quoteOf(symOf(o)); return (o.type.includes("buy") ? q.ask : q.bid) - o.price; }
+function pipsTxt(d, sym){                                               // a price distance in pips: 324.46 → «32 446.0»
+  const [i, f] = (Math.abs(d) / Math.pow(10, -specOf(sym).digits)).toFixed(1).split(".");
   return i.replace(/\B(?=(\d{3})+$)/g, " ") + "." + f;
 }
 /* the order-type glyph: a bar and an arrow, as on the chart pills — limit = the arrow leaves
@@ -8635,17 +8726,18 @@ function orderGlyph(type){
   const flip = (buy ? !limit : limit) ? "" : ` transform="matrix(1 0 0 -1 0 21)"`;
   return `<svg class="og ${buy ? "buy" : "sell"}" viewBox="0 0 12 21" width="12" height="21" aria-hidden="true"><g${flip}><rect x="0.3" width="11.4" height="2.3"/>${body}</g></svg>`;
 }
-function listOrders(){
-  if(!S.pendings.length) return `<div class="wrap"><div class="muted">${L("Нет отложенных ордеров")}<br><br>
+function listOrders(sym){
+  const list = sym ? S.pendings.filter(o => symOf(o) === sym) : S.pendings;
+  if(!list.length) return `<div class="wrap"><div class="muted">${L("Нет отложенных ордеров")}<br><br>
     <button class="btn ghost" data-act="newticket" style="max-width:220px;margin:0 auto">${L("Создать ордер")}</button></div></div>`;
   return `<div class="otbl">
     <div class="otbl-row otbl-head"><span></span><span>${L("Инструмент")}</span><span>${L("Направление")}</span><span>${L("Размер")}</span><span class="r">${L("Расстояние")}</span><span></span></div>
-    ${S.pendings.map(o=>`<div class="otbl-row" data-modord="${o.id}">
+    ${list.map(o=>`<div class="otbl-row" data-modord="${o.id}">
       <span class="ok"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 12.5l5.8 5.8L21 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span>${o.symbol}</span>
       <span title="${ordTypeName(o.type)}">${orderGlyph(o.type)}</span>
       <span>${lotsTxt(o.volume)}</span>
-      <span class="r" id="od-${o.id}">${pipsTxt(orderDist(o))}</span>
+      <span class="r" id="od-${o.id}">${pipsTxt(orderDist(o), symOf(o))}</span>
       <button type="button" class="x" data-cancelord="${o.id}" aria-label="${L("Отменить ордер #")}${o.id}"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>`).join("")}
   </div>`;
@@ -9002,7 +9094,7 @@ function histRow(t){
       <span class="sym">${t.symbol} <span class="tag ${t.side}">${t.side.toUpperCase()} ${fmt(t.volume,2)}</span></span>
       <span class="pnl mono ${t.net>=0?"pos":"neg"}">${signMoney(t.net)}</span>
     </div>
-    <div class="mid"><span>${pxfmt(t.entry)} → ${pxfmt(t.exit)}</span><span>${dstr} · ${fmtDur(t.closeTime-t.openTime)}</span></div>
+    <div class="mid"><span>${pxfmt(t.entry, t.symbol)} → ${pxfmt(t.exit, t.symbol)}</span><span>${dstr} · ${fmtDur(t.closeTime-t.openTime)}</span></div>
     <div class="mid"><span>${L("Брутто")} ${signMoney(t.gross)}</span><span>${L("Комис.")} ${money(-t.commission)} · ${L("Своп")} ${signMoney(t.swap)}${t.reason&&t.reason!=="manual"?" · "+L(t.reason):""}</span></div>
   </div>`;
 }
@@ -9079,7 +9171,7 @@ function domPassed(side, dist){
   return n;
 }
 function domStep(){
-  const bid = S.price.bid, ask = S.price.ask;
+  const bid = VQ().bid, ask = VQ().ask;
   if(!_book){
     _book = { bid, ask, a: [], b: [] };
     for(let i=0;i<DOM_LEVELS;i++){ _book.a.push(domLevel(i)); _book.b.push(domLevel(i)); }
@@ -9117,12 +9209,12 @@ function domRows(){
   let html = "";
   for(let i=DOM_LEVELS-1;i>=0;i--){
     const l = B.a[i];
-    html += `<div></div><div class="dom-px mono">${pxfmt(aPx[i])}</div><div class="dom-ask mono${fl(l.f)}"><span class="dom-bar a" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div>`;
+    html += `<div></div><div class="dom-px mono">${vpx(aPx[i])}</div><div class="dom-ask mono${fl(l.f)}"><span class="dom-bar a" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div>`;
   }
-  html += `<div class="dom-bid mono" style="color:var(--ink2)">${L("спред")}</div><div class="dom-px mono" style="color:var(--orange-ink)">${pxfmt(S.price.spread)}</div><div class="dom-ask mono" style="color:var(--ink2)"></div>`;
+  html += `<div class="dom-bid mono" style="color:var(--ink2)">${L("спред")}</div><div class="dom-px mono" style="color:var(--orange-ink)">${vpx(VQ().spread)}</div><div class="dom-ask mono" style="color:var(--ink2)"></div>`;
   for(let i=0;i<DOM_LEVELS;i++){
     const l = B.b[i];
-    html += `<div class="dom-bid mono${fl(l.f)}"><span class="dom-bar b" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div><div class="dom-px mono">${pxfmt(bPx[i])}</div><div></div>`;
+    html += `<div class="dom-bid mono${fl(l.f)}"><span class="dom-bar b" style="width:${(l.sz/maxSz*100).toFixed(1)}%"></span>${domLot(l.sz)}</div><div class="dom-px mono">${vpx(bPx[i])}</div><div></div>`;
   }
   return html;
 }
@@ -9262,7 +9354,7 @@ function chartMarkup(h, o){
     </div>
     <div class="chpills${!o.sub && pmMerged() ? " goo merged" : ""}"${!o.sub && pmMerged() ? ` style="--pmx:${-PM_D}px"` : ""}>
       ${o.sub ? "" : PM_SVG}
-      ${o.sub ? "" : `<button type="button" class="chpill sym" data-act="chartsym">XAUUSD<svg viewBox="0 0 7 12" width="7" height="12" aria-hidden="true"><path d="M1.5 1.5L5.5 6l-4 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}
+      ${o.sub ? "" : `<button type="button" class="chpill sym" data-act="chartsym">${curSym()}<svg viewBox="0 0 7 12" width="7" height="12" aria-hidden="true"><path d="M1.5 1.5L5.5 6l-4 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}
       <button type="button" class="chpill" data-act="charttf" aria-label="${L("Таймфрейм")}">${L(MINI_TF_LABEL[S.ui.chartTF] || S.ui.chartTF)}</button>
     </div>
     <div class="chlast-wrap"><button class="chlast${!o.sub && chart.offset > 1 ? " on" : ""}" id="chLast" data-chz="last" aria-label="${L("К последним свечам")}" tabindex="${!o.sub && chart.offset > 1 ? 0 : -1}"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M6.5 3.5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 3.5v10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 18v-1.6M7 18v-2.6M10 18v-1.2M13 18v-2.2M16 18v-1.6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg></button></div>
@@ -9270,11 +9362,11 @@ function chartMarkup(h, o){
   ${full ? "" : `<div class="chtrade-wrap"><div class="chtrade">
     <button class="cht sell" data-act="quicksell">${CH_GRIP}
       <span class="cht-lbl"><span class="tcap">${L("Продать")}</span><span class="tx">✕</span></span>
-      <span class="cht-px mono"><span id="chBid">${chartPx(S.price.bid)}</span> <span class="cht-dir" id="chDirS">${dirArrow(tickDirs().bd)}</span></span>
+      <span class="cht-px mono"><span id="chBid">${vcx(VQ().bid)}</span> <span class="cht-dir" id="chDirS">${dirArrow(tickDirs().bd)}</span></span>
     </button>
     <button class="cht buy" data-act="quickbuy">${CH_GRIP}
       <span class="cht-lbl"><span class="tcap">${L("Купить")}</span><span class="tx">✕</span></span>
-      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${dirArrow(_tick.ad)}</span> <span id="chAsk">${chartPx(S.price.ask)}</span></span>
+      <span class="cht-px mono"><span class="cht-dir" id="chDirB">${dirArrow(tickDirs().ad)}</span> <span id="chAsk">${vcx(VQ().ask)}</span></span>
     </button>
     <button class="cht-lot" data-act="lotpick" aria-label="${L("Выбрать объём")}">
       <span class="cht-lbl">${L("Лоты")} <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -9997,9 +10089,9 @@ let _navCard = null;
 function navCardBody(){
   if(!S._acc) recalcAccount();
   const a = S._acc, fl = a.floating + a.swaps;
-  return `<div class="nc-sym"><span>XAUUSD</span><span class="mono" style="font-size:13px;color:var(--ink3)">${sessL(" · ")}</span></div>
-    <div class="nc-q"><span class="s">${L("Продать")} <b class="mono">${chartPx(S.price.bid)}</b></span><span class="b">${L("Купить")} <b class="mono">${chartPx(S.price.ask)}</b></span></div>
-    <div class="nc-meta"><span>${L("Спред")} <span class="mono">${pxfmt(S.price.spread)}</span></span></div>
+  return `<div class="nc-sym"><span>${curSym()}</span><span class="mono" style="font-size:13px;color:var(--ink3)">${sessL(" · ")}</span></div>
+    <div class="nc-q"><span class="s">${L("Продать")} <b class="mono">${vcx(VQ().bid)}</b></span><span class="b">${L("Купить")} <b class="mono">${vcx(VQ().ask)}</b></span></div>
+    <div class="nc-meta"><span>${L("Спред")} <span class="mono">${vpx(VQ().spread)}</span></span></div>
     <div class="nc-rows"><p class="nc-h">${L("Счёт")}</p>
       <div><span>${L("Баланс")}</span><span class="mono">${money(a.balance)}</span></div>
       <div><span>${L("Средства")}</span><span class="mono">${money(a.equity)}</span></div>
@@ -11202,8 +11294,8 @@ function bindScreen(){
     else toast("", L("Номер: {0}", t));
   });
   act("wlegal", ()=> toast("o", L("Раздел в разработке")));
-  act("openxau", ()=>{ S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
-  act("addinstr", ()=> toast("o", L("Доступно только XAUUSD")));
+  act("opensym", e=>{ setSym(e && e.currentTarget && e.currentTarget.dataset.sym); S.ui.marketOpen = true; S.ui.subtab = "overview"; render(); save(); });
+  act("addinstr", ()=> toast("o", L("Доступны XAUUSD, EURUSD и BOOM1000")));
   act("search", ()=> toast("o", L("Поиск инструментов будет добавлен позже")));
   act("langpick", e => openLangMenu(e.currentTarget));
   act("symmenu", e => openSymMenu(e.currentTarget));
@@ -11320,7 +11412,7 @@ function bindScreen(){
   // lot presets under the Markets trade panel (the «Количество» dropdown itself is "lotpick")
   root.querySelectorAll("[data-lot]").forEach(b=> b.onclick = ()=>{
     const raw = b.dataset.lot;
-    S.ui.lot = raw==="max" ? S.symbol.maxLot : roundTo(parseFloat(raw),2);
+    S.ui.lot = raw==="max" ? VS().maxLot : roundTo(parseFloat(raw),2);
     save(); render();
   });
 
@@ -11432,7 +11524,7 @@ function bindScreen(){
 /* Charts tab: the volume picker behind the cTrader-style «Лоты» tab between SELL and BUY */
 function openLotSheet(){
   if(guardLock()) return;
-  const quick = [0.01, 0.10, 0.50, 1.00, 5.00, 10.00];
+  const quick = quickLots();
   openSheet(`
     <h2>${L("Объём (лоты)")}</h2>
     <div class="lotsheet">
@@ -11441,27 +11533,27 @@ function openLotSheet(){
       <button class="ls-step" data-ls="1" aria-label="${L("Больше")}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="display:block"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
     </div>
     <div class="loterr" id="lsErr"></div>
-    <div class="miniquick">${quick.map(v=>`<button data-lsv="${v}">${fmt(v,2)}</button>`).join("")}<button data-lsv="max">MAX ${fmt(S.symbol.maxLot,0)}</button></div>
-    <div class="hint" style="margin-top:10px">${L("От")} ${fmt(S.symbol.minLot,2)} ${L("до")} ${fmt(S.symbol.maxLot,2)} ${L("· маржа ≈")} <b class="mono" id="lsMargin"></b></div>
+    <div class="miniquick">${quick.map(v=>`<button data-lsv="${v}">${fmt(v,2)}</button>`).join("")}<button data-lsv="max">MAX ${fmt(VS().maxLot,0)}</button></div>
+    <div class="hint" style="margin-top:10px">${L("От")} ${fmt(VS().minLot,2)} ${L("до")} ${fmt(VS().maxLot,2)} ${L("· маржа ≈")} <b class="mono" id="lsMargin"></b></div>
     <button class="btn dark" id="lsDone" style="margin-top:14px">${L("Готово")}</button>`);
   const inp = document.getElementById("lsInput"), err = document.getElementById("lsErr");
   const show = ()=>{
     inp.value = fmt(S.ui.lot, 2);
     err.textContent = "";
     const m = document.getElementById("lsMargin");
-    if(m) m.textContent = money(S.ui.lot * S.symbol.contractSize * S.price.mid / S.symbol.leverage);
+    if(m) m.textContent = money(S.ui.lot * VS().contractSize * VQ().mid / VS().leverage);
     setTxt("chLot", fmt(S.ui.lot, 2));
     setTxt("ovLot", fmt(S.ui.lot, 2));
   };
-  const setLot = v => { S.ui.lot = clamp(roundTo(v, 2), S.symbol.minLot, S.symbol.maxLot); save(); show(); };
+  const setLot = v => { S.ui.lot = clamp(roundTo(v, 2), VS().minLot, VS().maxLot); save(); show(); };
   const commit = ()=>{
     const v = parseFloat(String(inp.value).replace(/[\s,]/g, ""));
     const e = validateLot(v);
     if(e){ err.textContent = "⚠ " + e; return false; }
     setLot(v); return true;
   };
-  modalEl.querySelectorAll("[data-ls]").forEach(b=> b.onclick = ()=> setLot(S.ui.lot + (+b.dataset.ls) * S.symbol.lotStep));
-  modalEl.querySelectorAll("[data-lsv]").forEach(b=> b.onclick = ()=> setLot(b.dataset.lsv === "max" ? S.symbol.maxLot : parseFloat(b.dataset.lsv)));
+  modalEl.querySelectorAll("[data-ls]").forEach(b=> b.onclick = ()=> setLot(S.ui.lot + (+b.dataset.ls) * VS().lotStep));
+  modalEl.querySelectorAll("[data-lsv]").forEach(b=> b.onclick = ()=> setLot(b.dataset.lsv === "max" ? VS().maxLot : parseFloat(b.dataset.lsv)));
   inp.onfocus = ()=> inp.select();
   inp.onchange = commit;
   inp.addEventListener("keydown", e=>{ if(e.key === "Enter") inp.blur(); });
@@ -11480,7 +11572,7 @@ function lotPicker(){
 function openLotList(anchor, value, pick){
   if(guardLock() || !anchor) return;
   closeLotList();
-  const min = S.symbol.minLot, max = S.symbol.maxLot, set = new Set([min, max]);
+  const min = VS().minLot, max = VS().maxLot, set = new Set([min, max]);
   for(const v of LOT_WHEEL) if(v > min && v < max) set.add(v);
   if(Number.isFinite(value) && !validateLot(value)) set.add(roundTo(value, 2));
   const vals = [...set].sort((a, b) => a - b), cur = v => Math.abs(v - value) < 1e-9;
@@ -11526,7 +11618,7 @@ function openLotWheel(o){
   if(guardLock()) return;
   if(document.getElementById("lotWheel")) return;
   o = o && o.commit ? o : null;                                      // the order ticket's volume, or (a click) the Markets lot
-  const min = S.symbol.minLot, max = S.symbol.maxLot, opened = o ? o.value : S.ui.lot;
+  const min = VS().minLot, max = VS().maxLot, opened = o ? o.value : S.ui.lot;
   const ROW = 33, VH = 216, MID = VH / 2, RAD = 88, BH = 34, FS = 21;   // row arc, drum height, centre, cylinder radius, band height, digits (px)
   let vals = [], labels = [], n = 0, maxPos = 0, shown = -1;
   const ladder = (...extra)=>{
@@ -11738,7 +11830,7 @@ function quickTrade(side){
   setTimeout(()=>{
     if(!xcSessionCurrent(session)) return;
     const mirroring = XC.follower;
-    const p = openPosition(side, v, { quiet: true });
+    const p = openPosition(side, v, { quiet: true, sym: curSym() });
     execMark(side, false);
     if(p){ execPill("ok", v); render(); }
     else if(mirroring) execPill("sent", v);        // queued for the device driving the market
@@ -11760,7 +11852,7 @@ function execPill(state, lot){
   }
   clearTimeout(_xpillT);
   if(state === "hide"){ _xpill.classList.remove("on"); return; }
-  const sym = S.symbol.name;
+  const sym = VS().name;
   const HOURGLASS = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h8M4 14.5h8M5 1.8c0 3.2 3 3.9 3 6.2s-3 3-3 6.2M11 1.8c0 3.2-3 3.9-3 6.2s3 3 3 6.2" fill="none" stroke="#f5820d" stroke-width="1.7" stroke-linecap="round"/></svg>`;
   const CHECK = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.6l3.4 3.3L13.2 4.6" fill="none" stroke="#1faa5b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   if(state === "run"){
@@ -11781,14 +11873,14 @@ function confirmMarket(side){
   const v = S.ui.lot;
   const err = validateLot(v);
   if(err){ toast("r", err); return; }
-  const px = side==="buy" ? S.price.ask : S.price.bid;
+  const px = side==="buy" ? VQ().ask : VQ().bid;
   const comm = commissionFor(v, px);
-  const reqM = (v*S.symbol.contractSize*S.price.mid)/S.symbol.leverage;
+  const reqM = (v*VS().contractSize*VQ().mid)/VS().leverage;
   openSheet(`
     <h2>${side==="buy"?L("КУПИТЬ (BUY)"):L("ПРОДАТЬ (SELL)")} XAUUSD</h2>
     <div class="card">
       <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(v,2)} ${L("лот")}</span></div>
-      <div class="row"><span class="k">${L("Цена")}</span><span class="v mono" id="ck-px">${pxfmt(px)}</span></div>
+      <div class="row"><span class="k">${L("Цена")}</span><span class="v mono" id="ck-px">${vpx(px)}</span></div>
       <div class="row"><span class="k">${L("Исполнение")}</span><span class="v">${L("Рыночное")}${S.trading.slippageOn?" "+L("(± проскальзывание)"):""}</span></div>
       <div class="row"><span class="k">${L("Комиссия (открытие)")}</span><span class="v mono">${money(comm)}</span></div>
       <div class="row"><span class="k">${L("Комиссия туда-обратно")}</span><span class="v mono">${money(comm*2)}</span></div>
@@ -11800,16 +11892,16 @@ function confirmMarket(side){
     <button class="btn ${side==="buy"?"green buy":"red sell"}" id="ck-go">${side==="buy"?L("Купить"):L("Продать")} ${fmt(v,2)} XAUUSD</button>
     <button class="btn ghost" data-close>${L("Отмена")}</button>
   `);
-  const upd = ()=>{ const e = document.getElementById("ck-px"); if(e) e.textContent = pxfmt(side==="buy"?S.price.ask:S.price.bid); };
+  const upd = ()=>{ const e = document.getElementById("ck-px"); if(e) e.textContent = vpx(side==="buy"?VQ().ask:VQ().bid); };
   modalEl._live = upd;
   document.getElementById("ck-go").onclick = ()=>{
     const sl = parseFloat((document.getElementById("ck-sl").value||"").replace(/[\s,]/g,""));
     const tp = parseFloat((document.getElementById("ck-tp").value||"").replace(/[\s,]/g,""));
-    const opts = {};
+    const opts = { sym: curSym() };
     if(isFinite(sl)) opts.sl = sl;
     if(isFinite(tp)) opts.tp = tp;
     // sanity check SL/TP sides
-    const ref = side==="buy"?S.price.ask:S.price.bid;
+    const ref = side==="buy"?VQ().ask:VQ().bid;
     if(opts.sl){ if(side==="buy" && opts.sl>=ref){ toast("r", L("SL для BUY должен быть ниже цены")); return; } if(side==="sell" && opts.sl<=ref){ toast("r", L("SL для SELL должен быть выше цены")); return; } }
     if(opts.tp){ if(side==="buy" && opts.tp<=ref){ toast("r", L("TP для BUY должен быть выше цены")); return; } if(side==="sell" && opts.tp>=ref){ toast("r", L("TP для SELL должен быть ниже цены")); return; } }
     const p = openPosition(side, v, opts);
@@ -11839,8 +11931,8 @@ const OT_MINUS = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="t
 const OT_PLUS = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 const OT_INFO = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.6v.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 const OT_TICK = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const pipSz = () => Math.pow(10, -S.symbol.digits);                 // a point: 0.01 for gold
-const pxIn = v => Number(v).toFixed(S.symbol.digits);                // a price in a field: 4378.84, no separators
+const pipSz = () => Math.pow(10, -VS().digits);                     // a point of the instrument on the screen: 0.01 for gold
+const pxIn = v => Number(v).toFixed(VS().digits);                    // a price in a field: 4378.84, no separators
 const numIn = s => parseFloat(String(s).replace(/[\s,]/g, ""));
 const otPts = x => { const n = Math.round(x); return (n < 0 ? "-" : "") + String(Math.abs(n)).replace(/\B(?=(\d{3})+$)/g, " "); };
 function openTicket(){
@@ -11902,11 +11994,11 @@ function otBody(){
   const caret = `<span class="ot-caret" aria-hidden="true"></span>`;
   const trig = (OT_TRIG.find(x => x[0] === OT.trig) || OT_TRIG[0])[1];
   return `${pend ? "" : `<div class="ot-closed" id="otClosed" hidden>${OT_INFO}<span>${L("Рынок закрыт. Принимаются только отложенные ордера.")}</span></div>`}
-    <button type="button" class="otf otf-dd" id="otSym" data-otmenu="sym"><span class="otf-l">${L("Инструмент")}</span><span class="otf-v">${S.symbol.name}</span>${caret}</button>
+    <button type="button" class="otf otf-dd" id="otSym" data-otmenu="sym"><span class="otf-l">${L("Инструмент")}</span><span class="otf-v">${VS().name}</span>${caret}</button>
     ${pend ? `<div class="ot-q" id="otQuote"></div>` : ""}
     <div class="${G ? "seg seg-drag " : ""}ot-side ${OT.side}${pend ? "" : " px"}" id="otSide">
-      <button type="button" data-otside="sell" class="${buy ? "" : "on"}"><span>${L("Продать")}</span>${pend ? "" : `<b class="mono" id="otBid">${chartPx(S.price.bid)}</b>`}</button>
-      <button type="button" data-otside="buy" class="${buy ? "on" : ""}"><span>${L("Купить")}</span>${pend ? "" : `<b class="mono" id="otAsk">${chartPx(S.price.ask)}</b>`}</button>
+      <button type="button" data-otside="sell" class="${buy ? "" : "on"}"><span>${L("Продать")}</span>${pend ? "" : `<b class="mono" id="otBid">${vcx(VQ().bid)}</b>`}</button>
+      <button type="button" data-otside="buy" class="${buy ? "on" : ""}"><span>${L("Купить")}</span>${pend ? "" : `<b class="mono" id="otAsk">${vcx(VQ().ask)}</b>`}</button>
     </div>
     <div class="ot-day" id="otDay"></div>
     <div class="otf" id="otVolF"><span class="otf-l">${L("Количество (Лоты)")}</span><input class="otf-i mono" id="otVol" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="${OT.volTxt}"><button type="button" class="ot-dd" data-otwheel aria-label="${L("Выбрать объём колесом")}">${caret}</button></div>
@@ -11922,24 +12014,24 @@ function otBody(){
 }
 // the entry a pending order starts at: 100 points on its side of the market — a buy limit below, a buy stop above
 function otDefEntry(){
-  const buy = OT.side === "buy", cur = buy ? S.price.ask : S.price.bid, below = OT.type === "limit" ? buy : !buy;
-  return roundTo(cur + (below ? -100 : 100) * pipSz(), S.symbol.digits);
+  const buy = OT.side === "buy", cur = buy ? VQ().ask : VQ().bid, below = OT.type === "limit" ? buy : !buy;
+  return roundTo(cur + (below ? -100 : 100) * pipSz(), VS().digits);
 }
 function otHalf(vol){
-  const st = S.symbol.lotStep;
-  return Math.max(S.symbol.minLot, roundTo(Math.floor(vol / 2 / st + 1e-9) * st, 2));
+  const st = VS().lotStep;
+  return Math.max(VS().minLot, roundTo(Math.floor(vol / 2 / st + 1e-9) * st, 2));
 }
 /* everything the ticket shows, from OT and the market: the errors (cTrader's wording), the notes, the margin */
 function otCalc(){
-  const sym = S.symbol, pip = pipSz(), d = sym.digits, buy = OT.side === "buy", dir = buy ? 1 : -1, t = OT.type;
-  const bid = S.price.bid, ask = S.price.ask, cur = buy ? ask : bid, E = {}, N = {};
+  const sym = VS(), pip = pipSz(), d = sym.digits, buy = OT.side === "buy", dir = buy ? 1 : -1, t = OT.type;
+  const bid = VQ().bid, ask = VQ().ask, cur = buy ? ask : bid, E = {}, N = {};
   const vol = numIn(OT.volTxt), ve = validateLot(vol);
   if(ve) E.vol = ve;
   let ent = cur;
   if(t !== "market"){
     if(!OT.entryUser) OT.entry = otDefEntry();                     // untouched, it keeps its 100 points from the moving market (stays valid); typed or stepped, it holds
     ent = OT.entry;
-    const nm = L(t === "limit" ? "лимитного ордера" : t === "stop" ? "стоп ордера" : "стоп-лимит ордера"), cp = chartPx(cur);
+    const nm = L(t === "limit" ? "лимитного ордера" : t === "stop" ? "стоп ордера" : "стоп-лимит ордера"), cp = vcx(cur);
     if(!(ent > 0)) E.ent = L("Укажите цену входа");
     else if(t === "limit" ? (buy ? ent >= ask : ent <= bid) : (buy ? ent <= ask : ent >= bid))
       E.ent = t === "limit"
@@ -11962,14 +12054,14 @@ function otCalc(){
     if(!split) E.tp2 = L("Для двух тейк-профитов нужен объём от {0} лота", fmt(2 * sym.minLot, 2));
     else if(validateLot(v1) || v1 > vol - sym.minLot + 1e-9) E.tp1v = L("Объём тейк-профита 1: от {0} до {1} лота", fmt(sym.minLot, 2), fmt(vol - sym.minLot, 2));
   }
-  const tpBad = o => o.pips >= 1 ? null : L(buy ? "Тейк-профит должен быть выше цены входа ({0})" : "Тейк-профит должен быть ниже цены входа ({0})", ok ? chartPx(ent) : "—");
+  const tpBad = o => o.pips >= 1 ? null : L(buy ? "Тейк-профит должен быть выше цены входа ({0})" : "Тейк-профит должен быть ниже цены входа ({0})", ok ? vcx(ent) : "—");
   if(tp1){ const e = tpBad(OT.tp1); if(e) E.tp1 = e; }
   if(tp2 && !E.tp2){ const e = tpBad(OT.tp2); if(e) E.tp2 = e; else if(both && !E.tp1 && OT.tp2.pips <= OT.tp1.pips) E.tp2 = L("Тейк-профит 2 должен быть дальше тейк-профита 1"); }
   if(OT.sl.on){
     const o = OT.sl;
-    if(!(o.pips >= 1)) E.sl = L(buy ? "Стоп-лосс должен быть ниже цены входа ({0})" : "Стоп-лосс должен быть выше цены входа ({0})", ok ? chartPx(ent) : "—");
+    if(!(o.pips >= 1)) E.sl = L(buy ? "Стоп-лосс должен быть ниже цены входа ({0})" : "Стоп-лосс должен быть выше цены входа ({0})", ok ? vcx(ent) : "—");
     else if(t === "market" && (buy ? o.price >= bid : o.price <= ask))      // it would close the position on the next tick
-      E.sl = L(buy ? "Стоп-лосс должен быть ниже текущей цены продажи ({0})" : "Стоп-лосс должен быть выше текущей цены покупки ({0})", chartPx(buy ? bid : ask));
+      E.sl = L(buy ? "Стоп-лосс должен быть ниже текущей цены продажи ({0})" : "Стоп-лосс должен быть выше текущей цены покупки ({0})", vcx(buy ? bid : ask));
   }
   // what each level makes / loses: its share of the balance and the gross amount (cTrader)
   const bal = S.account.balance, cs = sym.contractSize;
@@ -11993,8 +12085,8 @@ function otSync(){
   const inp = (id, v) => { const e = $(id); if(e && document.activeElement !== e && e.value !== v) e.value = v; };
   const bad = (id, on) => { const f = $(id); if(f && f.classList.contains("bad") !== !!on) f.classList.toggle("bad", !!on); };
   const msg = (id, m) => { const e = $(id); if(!e) return; m = m || ""; if(e.textContent !== m) e.textContent = m; if(e.classList.contains("on") !== !!m) e.classList.toggle("on", !!m); };
-  setTxt("otBid", chartPx(S.price.bid)); setTxt("otAsk", chartPx(S.price.ask));
-  setTxt("otQuote", L("Продажа: {0}; покупка: {1}", chartPx(S.price.bid), chartPx(S.price.ask)));
+  setTxt("otBid", vcx(VQ().bid)); setTxt("otAsk", vcx(VQ().ask));
+  setTxt("otQuote", L("Продажа: {0}; покупка: {1}", vcx(VQ().bid), vcx(VQ().ask)));
   const h = ovHeadData();
   setTxt("otDay", L("Изм.: {0} ({1}); Выс.: {2}; Низ.: {3}", h.pips, h.pct, h.high, h.low));
   bad("otVolF", R.E.vol); msg("otVolE", R.E.vol); setTxt("otMargin", R.margin);
@@ -12017,7 +12109,7 @@ function otSync(){
   // the button: «Разместить ордер / КУПИТЬ ЛИМИТНЫЙ 0.77 Лоты XAUUSD», grey while something is wrong
   const go = $("otGo"), dis = !R.ok || R.closed || tradingLocked();
   if(go){ if(go.disabled !== dis) go.disabled = dis; if(go.classList.contains("sell") === buy) go.classList.toggle("sell", !buy); }
-  setTxt("otGoSub", `${t === "market" ? L(buy ? "КУПИТЬ" : "ПРОДАТЬ") : ordTypeName(OT.side + "_" + OT_PEND[t])} ${R.vol > 0 ? lotsTxt(R.vol) : OT.volTxt + " " + L("Лоты")} ${S.symbol.name}`);
+  setTxt("otGoSub", `${t === "market" ? L(buy ? "КУПИТЬ" : "ПРОДАТЬ") : ordTypeName(OT.side + "_" + OT_PEND[t])} ${R.vol > 0 ? lotsTxt(R.vol) : OT.volTxt + " " + L("Лоты")} ${VS().name}`);
 }
 function otBindBody(){
   const M = modalEl, $ = id => document.getElementById(id);
@@ -12060,10 +12152,10 @@ function otHold(btn, fn){
 }
 function otStep(k, d){
   const put = (id, v) => { const e = document.getElementById(id); if(e) e.value = String(v); };
-  if(k === "ent"){ OT.entry = roundTo((OT.entry > 0 ? OT.entry : otDefEntry()) + d * pipSz(), S.symbol.digits); OT.entryUser = true; put("otEnt", pxIn(OT.entry)); }
+  if(k === "ent"){ OT.entry = roundTo((OT.entry > 0 ? OT.entry : otDefEntry()) + d * pipSz(), VS().digits); OT.entryUser = true; put("otEnt", pxIn(OT.entry)); }
   else if(k === "lim"){ OT.lim = Math.max(0, Math.round((OT.lim >= 0 ? OT.lim : 0) + d)); put("otLim", OT.lim); }
   else if(k === "range"){ OT.range = Math.max(0, Math.round((OT.range >= 0 ? OT.range : 0) + d)); put("otRange", OT.range); }
-  else if(k === "tp1v"){ const s = S.symbol; OT.tp1.vol = clamp(roundTo((OT.tp1.vol > 0 ? OT.tp1.vol : s.minLot) + d * s.lotStep, 2), s.minLot, s.maxLot); put("ot_tp1v", fmt(OT.tp1.vol, 2)); }
+  else if(k === "tp1v"){ const s = VS(); OT.tp1.vol = clamp(roundTo((OT.tp1.vol > 0 ? OT.tp1.vol : s.minLot) + d * s.lotStep, 2), s.minLot, s.maxLot); put("ot_tp1v", fmt(OT.tp1.vol, 2)); }
   else { const lk = k.slice(0, -1), o = OT[lk]; if(!o) return; o.mode = "pips"; o.pips = Math.max(1, Math.round((o.pips >= 1 ? o.pips : 0) + d)); put("ot_" + lk + "p", o.pips); }
   otSync();
 }
@@ -12167,21 +12259,21 @@ function otMenuClose(now, outside){
   if(now === true || !P.G || !glassOn("morph") || !P.anchor.isConnected){ lgStop("otm"); P.pop.remove(); return; }
   lgFlow(P.pop, P.anchor.getBoundingClientRect(), "22px", 290, false, "otm", () => P.pop.remove());   // it drains back into its field
 }
-const otMenuSym = a => otMenu(a, [[S.symbol.name, S.symbol.name]], S.symbol.name, () => {}, L("Доступно только XAUUSD"));
+const otMenuSym = a => otMenu(a, SYMS.map(v => [v, v]), curSym(), v => { if(v === curSym()) return; setSym(v); OT.entry = null; OT.entryUser = false; closeModal(true); openTicket(); });
 const otMenuTrig = a => otMenu(a, OT_TRIG.map(([k, t]) => [k, L(t)]), OT.trig, v => { OT.trig = v; setTxt("otTrigV", L(OT_TRIG.find(x => x[0] === v)[1])); otSync(); });
 /* «Разместить ордер»: a market order goes through the execution pill like the quick trade; a pending one is placed */
 function otPlace(){
   if(!OT || OT.busy) return;
   const R = otCalc();
   if(!R.ok || R.closed || guardLock()) return;
-  const t = OT.type, side = OT.side, buy = side === "buy", vol = roundTo(R.vol, 2), d = S.symbol.digits;
+  const t = OT.type, side = OT.side, buy = side === "buy", vol = roundTo(R.vol, 2), d = VS().digits;
   const tp1 = OT.tp1.on, tp2 = OT.tpSeen && OT.tp2.on, both = tp1 && tp2;
   const main = both || !tp1 ? (tp2 ? OT.tp2 : null) : OT.tp1;       // the position's own TP: the last level
   const lvl = o => o.mode === "pips" ? { pips: o.pips } : { price: roundTo(o.price, d) };
   OT.busy = true;
   if(S.ui.lot !== vol){ S.ui.lot = vol; save(); }
   if(t === "market"){
-    const opts = { quiet: true, ref: buy ? S.price.ask : S.price.bid };
+    const opts = { quiet: true, sym: curSym(), ref: buy ? VQ().ask : VQ().bid };
     // (no market range any more: the ticket's maximum slippage is the stop-limit's alone, as in cTrader)
     if(OT.sl.on){ const l = lvl(OT.sl); if(l.pips != null) opts.slPips = l.pips; else opts.sl = l.price; }
     if(main){ const l = lvl(main); if(l.pips != null) opts.tpPips = l.pips; else opts.tp = l.price; }
@@ -12198,7 +12290,7 @@ function otPlace(){
     }, EXEC_MS);
     return;
   }
-  const o = { type: side + "_" + OT_PEND[t], volume: vol, price: roundTo(R.ent, d), sl: OT.sl.on ? OT.sl.price : null, tp: main ? main.price : null };
+  const o = { sym: curSym(), type: side + "_" + OT_PEND[t], volume: vol, price: roundTo(R.ent, d), sl: OT.sl.on ? OT.sl.price : null, tp: main ? main.price : null };
   if(t !== "limit") o.trig = OT.trig;
   if(t === "stoplimit") o.lim = OT.lim;
   if(both) o.tp1 = { price: OT.tp1.price, volume: R.v1 };
@@ -12218,13 +12310,13 @@ function openPosDetail(id){
       <h2>${L("Позиция #")}${cur.id} · ${cur.symbol} <span class="tag ${cur.side}">${cur.side.toUpperCase()} ${fmt(cur.volume,2)}</span></h2>
       <div class="card pl-tbl">
         <div class="row"><span class="k">${L("Объём")}</span><span class="v mono">${fmt(cur.volume,2)} ${L("лот")}</span></div>
-        <div class="row"><span class="k">${L("Вход~entry")}</span><span class="v mono">${pxfmt(cur.entry)}</span></div>
-        <div class="row"><span class="k">${L("Текущая цена")}</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur))}</span></div>
+        <div class="row"><span class="k">${L("Вход~entry")}</span><span class="v mono">${pxfmt(cur.entry, cur.symbol)}</span></div>
+        <div class="row"><span class="k">${L("Текущая цена")}</span><span class="v mono" id="pd-cur">${pxfmt(closePriceFor(cur), cur.symbol)}</span></div>
         <div class="row"><span class="k">${L("Время открытия")}</span><span class="v mono">${fmtYMD(cur.openTime)} ${fmtHM(cur.openTime)}</span></div>
         <div class="row"><span class="k">${L("Длительность")}</span><span class="v mono" id="pd-dur">${fmtDur(S.simClock-cur.openTime)}</span></div>
-        <div class="row"><span class="k">SL</span><span class="v mono">${cur.sl?pxfmt(cur.sl):"—"}</span></div>
-        ${cur.tp1 ? `<div class="row"><span class="k">TP1</span><span class="v mono">${pxfmt(cur.tp1.price)} · ${fmt(cur.tp1.volume,2)} ${L("лот")}</span></div>` : ""}
-        <div class="row"><span class="k">TP</span><span class="v mono">${cur.tp?pxfmt(cur.tp):"—"}</span></div>
+        <div class="row"><span class="k">SL</span><span class="v mono">${cur.sl?pxfmt(cur.sl, cur.symbol):"—"}</span></div>
+        ${cur.tp1 ? `<div class="row"><span class="k">TP1</span><span class="v mono">${pxfmt(cur.tp1.price, cur.symbol)} · ${fmt(cur.tp1.volume,2)} ${L("лот")}</span></div>` : ""}
+        <div class="row"><span class="k">TP</span><span class="v mono">${cur.tp?pxfmt(cur.tp, cur.symbol):"—"}</span></div>
       </div>
       <div class="card pl-tbl">
         <div class="row"><span class="k">${L("Валовая П/У")}</span><span class="v mono ${m.gross>=0?"pos":"neg"}" id="pd-gross">${signMoney(m.gross)}</span></div>
@@ -12233,8 +12325,8 @@ function openPosDetail(id){
         <div class="row"><span class="k"><b>${L("Чистая П/У")}</b></span><span class="v mono ${m.net>=0?"pos":"neg"}" id="pd-net"><b>${signMoney(m.net)}</b></span></div>
       </div>
       <div class="grid2">
-        <div class="field"><label>Stop Loss</label><input id="pd-sl" inputmode="decimal" value="${cur.sl?pxfmt(cur.sl):""}"></div>
-        <div class="field"><label>Take Profit</label><input id="pd-tp" inputmode="decimal" value="${cur.tp?pxfmt(cur.tp):""}"></div>
+        <div class="field"><label>Stop Loss</label><input id="pd-sl" inputmode="decimal" value="${cur.sl?pxfmt(cur.sl, cur.symbol):""}"></div>
+        <div class="field"><label>Take Profit</label><input id="pd-tp" inputmode="decimal" value="${cur.tp?pxfmt(cur.tp, cur.symbol):""}"></div>
       </div>
       <button class="btn ghost" id="pd-mod">${L("Изменить SL/TP")}</button>
       <button class="btn red" id="pd-close">${L("Закрыть позицию по рынку")}</button>
@@ -12247,7 +12339,7 @@ function openPosDetail(id){
             cu = document.getElementById("pd-cur"), du = document.getElementById("pd-dur");
       if(g){ g.textContent = signMoney(mm.gross); g.className = "v mono "+(mm.gross>=0?"pos":"neg"); }
       if(n){ n.innerHTML = "<b>"+signMoney(mm.net)+"</b>"; n.className = "v mono "+(mm.net>=0?"pos":"neg"); }
-      if(cu) cu.textContent = pxfmt(closePriceFor(c));
+      if(cu) cu.textContent = pxfmt(closePriceFor(c), c.symbol);
       if(du) du.textContent = fmtDur(S.simClock - c.openTime);
     };
     document.getElementById("pd-close").onclick = ()=>{ if(guardLock())return; closePosition(id,"manual"); closeModal(); render(); };
@@ -12266,7 +12358,7 @@ function modifyPending(id, price, sl, tp){
   if(guardLock()) return;
   const o = S.pendings.find(x => x.id === id);
   if(!o) return;
-  if(Number.isFinite(price)) o.price = roundTo(price, S.symbol.digits);
+  if(Number.isFinite(price)) o.price = roundTo(price, specOf(symOf(o)).digits);
   o.sl = Number.isFinite(sl) ? sl : null; o.tp = Number.isFinite(tp) ? tp : null;
   toast("", L("Ордер #{0} изменён", o.id)); save();
 }
@@ -12275,10 +12367,10 @@ function openOrderModify(id){
   if(!o) return;
   openSheet(`
     <h2>${L("Изменить~modify")} ${ordTypeName(o.type)} #${o.id}</h2>
-    <div class="field"><label>${L("Цена входа")}</label><input id="mo-px" inputmode="decimal" value="${pxfmt(o.price)}"></div>
+    <div class="field"><label>${L("Цена входа")}</label><input id="mo-px" inputmode="decimal" value="${pxfmt(o.price, o.symbol)}"></div>
     <div class="grid2">
-      <div class="field"><label>Stop Loss</label><input id="mo-sl" inputmode="decimal" value="${o.sl?pxfmt(o.sl):""}"></div>
-      <div class="field"><label>Take Profit</label><input id="mo-tp" inputmode="decimal" value="${o.tp?pxfmt(o.tp):""}"></div>
+      <div class="field"><label>Stop Loss</label><input id="mo-sl" inputmode="decimal" value="${o.sl?pxfmt(o.sl, o.symbol):""}"></div>
+      <div class="field"><label>Take Profit</label><input id="mo-tp" inputmode="decimal" value="${o.tp?pxfmt(o.tp, o.symbol):""}"></div>
     </div>
     <button class="btn dark" id="mo-go">${L("Сохранить")}</button>
     <button class="btn ghost" data-close>${L("Отмена")}</button>
@@ -12691,8 +12783,8 @@ function fitText(el, minPx){
 }
 /* everything a live redraw of a chart depends on, as one string */
 function liveDrawKey(tf){
-  const a = S.candles[tf] || [], b = a[a.length - 1] || {};
-  let k = S.price.bid + "|" + S.price.ask + "|" + a.length + "|" + b.t + "|" + b.o + "|" + b.h + "|" + b.l + "|" + b.c
+  const a = candlesOf(curSym(), tf) || [], b = a[a.length - 1] || {};
+  let k = VQ().bid + "|" + VQ().ask + "|" + a.length + "|" + b.t + "|" + b.o + "|" + b.h + "|" + b.l + "|" + b.c
         + "|" + Math.floor(S.simClock / 1000) + "|" + (document.documentElement.dataset.theme || "") + (document.documentElement.dataset.tone || "");
   for(const p of S.positions) k += "|" + p.id + ":" + p.side + ":" + p.entry + ":" + p.sl + ":" + p.tp + ":" + p.volume;
   for(const o of S.pendings) k += "|" + o.id + ":" + o.type + ":" + o.price + ":" + o.sl + ":" + o.tp + ":" + o.volume;
@@ -12714,8 +12806,8 @@ function updateLive(){
   }
   const A = S._acc;
   // overview
-  setTxt("ovBid", chartPx(S.price.bid));                     // no thousands separator, like cTrader's panel
-  setTxt("ovAsk", chartPx(S.price.ask));
+  setTxt("ovBid", vcx(VQ().bid));                           // no thousands separator, like cTrader's panel
+  setTxt("ovAsk", vcx(VQ().ask));
   if(document.getElementById("ovChg")){                     // Markets → instrument header
     const h = ovHeadData();
     setTxt("ovChgPct", h.pct); setTxt("ovChgPips", h.pips);
@@ -12726,7 +12818,7 @@ function updateLive(){
   fitText(document.getElementById("ovBid"), 13);
   fitText(document.getElementById("ovAsk"), 13);
   if(!document.getElementById("lotWheel")) setTxt("ovLot", fmt(S.ui.lot, 2));   // while the wheel is open it owns the field (it shows the value still rolling, not yet committed)
-  setTxt("ovSpread", pxfmt(S.price.spread));
+  setTxt("ovSpread", vpx(VQ().spread));
   setTxt("ovSess", sessL(" · "));
   setTxt("abBal", money(A.equity), abBalCls());
   setTxt("gpPx", pxfmt(S.price.mid));
@@ -12758,8 +12850,8 @@ function updateLive(){
   setTxt("acFree", money(A.freeMargin));
   setTxt("acML", isFinite(A.marginLevel)? fmt(A.marginLevel,1)+"%" : "—");
   setTxt("acFloat", signMoney(A.floating + A.swaps), (A.floating+A.swaps)>=0?"pos":"neg");
-  setTxt("chBid", chartPx(S.price.bid));
-  setTxt("chAsk", chartPx(S.price.ask));
+  setTxt("chBid", vcx(VQ().bid));
+  setTxt("chAsk", vcx(VQ().ask));
   // ▲/▼ of each price's last change — ПРОДАТЬ by the Bid, КУПИТЬ by the Ask: the Charts bar arrows,
   // the Markets panel triangles and the watchlist boxes
   const td = tickDirs();
@@ -12767,7 +12859,7 @@ function updateLive(){
     setTxt("chLot", fmt(S.ui.lot, 2));
     setTxt("chDirS", dirArrow(td.bd)); setTxt("chDirB", dirArrow(td.ad));
   }
-  for(const [id, cls] of [["ovDirS", "ctp-dir " + td.bd], ["ovDirB", "ctp-dir " + td.ad], ["wlQS", "wl-q sell " + td.bd], ["wlQB", "wl-q buy " + td.ad]]){
+  for(const [id, cls] of [["ovDirS", "ctp-dir " + td.bd], ["ovDirB", "ctp-dir " + td.ad]]){
     const el = document.getElementById(id);
     if(el && el.className !== cls) el.className = cls;
   }
@@ -12790,10 +12882,10 @@ function updateLive(){
     const m = posMetrics(p);
     setTxt(`pr-${p.id}-net`, signMoney(m.net), m.net>=0?"pos":"neg");
     setTxt(`pr-${p.id}-gross`, signMoney(m.gross), m.gross>=0?"pos":"neg");
-    setTxt(`pr-${p.id}-cur`, pxfmt(closePriceFor(p)));
+    setTxt(`pr-${p.id}-cur`, pxfmt(closePriceFor(p), p.symbol));
   }
   // pending distances
-  for(const o of S.pendings) setTxt(`od-${o.id}`, pipsTxt(orderDist(o)));
+  for(const o of S.pendings) setTxt(`od-${o.id}`, pipsTxt(orderDist(o), symOf(o)));
   for(const [id, n] of [["stPos", xauOpenCount()], ["stOrd", xauOrderCount()]]){   // the subtab counts (the overview isn't re-rendered when they change)
     const e = document.getElementById(id);
     if(e){ if(e.hidden !== !n) e.hidden = !n; if(n) setTxt(id, String(n)); }
@@ -12866,17 +12958,23 @@ function updateLive(){
     if(wt) wt.innerHTML = big;
     if(wa) wa.innerHTML = big;
   }
-  // watchlist row — keep prices/change/spark/position-count live
-  if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid")){
-    const w = watchStats();
-    setTxt("wlBid", chartPx(S.price.bid)); setTxt("wlAsk", chartPx(S.price.ask));
-    setTxt("wlHi", chartPx(w.hi)); setTxt("wlLo", chartPx(w.lo)); setTxt("wlSp", String(w.spr));
-    setTxt("wlChg", wlChgText(w), w.chg>=0?"pos":"neg");
-    const sym = document.getElementById("wlSym");
-    if(sym){ const want = `XAUUSD${wlCountBadge()}`; if(sym.innerHTML !== want) sym.innerHTML = want; }
-    fitText(document.getElementById("wlChg"), 11);                // a long change line shrinks, never runs under the box
-    const sb = document.getElementById("wlSparkBox");
-    if(sb && Date.now() - (sb._t||0) > 1500){ sb.innerHTML = watchSparkSVG(); sb._t = Date.now(); }
+  // watchlist rows — keep prices/change/spark/position-count live, each on its own instrument
+  if(S.ui.tab === "markets" && !S.ui.marketOpen && document.getElementById("wlBid-" + GOLD)){
+    for(const sym of SYMS){
+      const w = watchStats(sym), q = quoteOf(sym), td = tickDirs(sym), px = x => chartPx(x, sym);
+      setTxt("wlBid-" + sym, px(q.bid)); setTxt("wlAsk-" + sym, px(q.ask));
+      fitText(document.getElementById("wlBid-" + sym), 13); fitText(document.getElementById("wlAsk-" + sym), 13);
+      setTxt("wlHi-" + sym, px(w.hi)); setTxt("wlLo-" + sym, px(w.lo)); setTxt("wlSp-" + sym, String(w.spr));
+      setTxt("wlChg-" + sym, wlChgText(w, sym), w.chg>=0?"pos":"neg");
+      fitText(document.getElementById("wlChg-" + sym), 11);         // a long change line shrinks, never runs under the box
+      for(const [id, cls] of [["wlQS-" + sym, "wl-q sell " + td.bd], ["wlQB-" + sym, "wl-q buy " + td.ad]]){
+        const el = document.getElementById(id); if(el && el.className !== cls) el.className = cls;
+      }
+      const se = document.getElementById("wlSym-" + sym);
+      if(se){ const want = `${sym}${wlCountBadge(sym)}`; if(se.innerHTML !== want) se.innerHTML = want; }
+      const sb = document.getElementById("wlSpark-" + sym);
+      if(sb && Date.now() - (sb._t||0) > 1500){ sb.innerHTML = watchSparkSVG(sym); sb._t = Date.now(); }
+    }
   }
 }
 
@@ -12900,8 +12998,8 @@ function chartReset(){ chartStopFling(); chart.barW = CHART_BW_DEF; chart.offset
 function chartEnterManual(){
   if(chart.vCenter != null) return;
   const r = chart._lastRange;
-  const hi = r ? r.hi : (S ? S.price.mid + 1 : 1);
-  const lo = r ? r.lo : (S ? S.price.mid - 1 : -1);
+  const hi = r ? r.hi : (S ? VQ().mid + 1 : 1);
+  const lo = r ? r.lo : (S ? VQ().mid - 1 : -1);
   chart.vCenter = (hi + lo)/2;
   chart.vBase = ((hi - lo)/2) * chart.vZoom || 1;
 }
@@ -12957,7 +13055,7 @@ function chartDraw(){
    space — at most 40 bars and 30% of the plot (where a fling stops in a cTrader recording).
    Left: the oldest bar stops at the plot's left edge. */
 function chartOffsetLimits(){
-  const data = S ? chartData(S.ui.chartTF) : [];
+  const data = S ? candlesOf(curSym(), S.ui.chartTF) : [];
   const unit = chart.barW + chart.gap, barsW = chart._barsW || 300;
   return { min: -Math.min(40, 0.3 * barsW / unit), max: Math.max(0, data.length - Math.floor(barsW / unit)) };
 }
@@ -14236,7 +14334,7 @@ function niceStep(range, lines){
    in and out, and snapping it made the whole chart, and every position line drawn on it,
    jump a grid step at a time. Returns { lo, hi, step } ready for the gridline loop. */
 function autoScale(hi, lo, plotH, minPx){
-  if(!(hi > lo)){ const c = (hi + lo)/2 || S.price.mid; hi = c + 0.5; lo = c - 0.5; }
+  if(!(hi > lo)){ const c = (hi + lo)/2 || VQ().mid; hi = c + 0.5; lo = c - 0.5; }
   const pad = (hi - lo) * 0.08;
   hi += pad; lo -= pad;
   const lines = clamp(Math.round(plotH / (minPx || 52)), 3, 24);
@@ -14350,8 +14448,9 @@ function spreadYs(items, gap, top, bot){
    live bar is drawn whole; the Bid / Ask lines run under the candles. Raw S.candles / Price Engine / spread / P&L untouched;
    the two lines still anchor to the real S.price.bid / S.price.ask. */
 function bidCandles(vis){
-  const base = (SPREAD_MIN + SPREAD_MAX) / 2;                  // centre of the auto spread
-  const hs = base > 0 ? clamp(S.price.spread, base * 0.5, base * 4) / 2 : 0;
+  const base = (SPREAD_MIN + SPREAD_MAX) / 2;                  // centre of gold's auto spread
+  // gold's half spread kept inside its own band; another instrument's is simply its own (gold's band moved EURUSD 4 cents)
+  const hs = curSym() !== GOLD ? VQ().spread / 2 : base > 0 ? clamp(VQ().spread, base * 0.5, base * 4) / 2 : 0;
   if(!hs) return vis;
   return vis.map(b => ({ t: b.t, o: b.o - hs, h: b.h - hs, l: b.l - hs, c: b.c - hs, v: b.v }));
 }
@@ -14367,14 +14466,15 @@ function drawChart(){
   // cTrader's chart (2026-09-15 screenshot of a 360 px phone): a 58 px price scale with the prices
   // right-aligned 12 px from the edge, the plot running up to the top (the OHLC readout shows only
   // with the crosshair), a 21 px date / time axis at the foot, gridlines every ~33 px
-  const padR = W < 420 ? 58 : 66, padB = 21, padT = 8, GRID_PX = 33;
+  // the price column as wide as the instrument's price needs (Boom's 14900.0000 is three characters longer than gold's)
+  const padR = Math.max(W < 420 ? 58 : 66, vcx(VQ().ask).length * 7 + 12), padB = 21, padT = 8, GRID_PX = 33;
   const RB = S.ui.tab === "chart" && !_chartFull ? (chart._underBar || 0) : 0;   // px of the plot under the floating glass trade bar
   const infoEl = document.getElementById("chartInfo");
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
 
   const tf = S.ui.chartTF;
-  const data = chartData(tf);
+  const data = candlesOf(curSym(), tf);
   if(!data.length) return;
   const bw = chart.barW, gap = chart.gap, unit = bw+gap;
   const plotW = W - padR;               // gridlines / price lines end here, the axis begins
@@ -14406,7 +14506,7 @@ function drawChart(){
   // A bar only partly on screen (sliding in or out at either edge) widens the range by the
   // share of it that is visible, so the scale — and every line drawn on it — glides while
   // panning instead of jumping the moment a tall bar crosses the edge.
-  let dHi = S.price.ask, dLo = S.price.bid;
+  let dHi = VQ().ask, dLo = VQ().bid;
   const partial = [];
   for(let i = 0; i < vis.length; i++){
     const x0 = barsW - (vis.length - i - offF)*unit + gap/2;
@@ -14469,7 +14569,7 @@ function drawChart(){
   // Bid/Ask tag positions are needed before the grid so a scale label sitting
   // under a tag can be suppressed — cTrader does exactly this (its 4405.89 tag
   // hides what would be the 4406.00 label).
-  const yAsk = crispY(y(S.price.ask)), yBid = crispY(y(S.price.bid));
+  const yAsk = crispY(y(VQ().ask)), yBid = crispY(y(VQ().bid));
   let tAsk = yAsk, tBid = yBid;
   // cTrader never pushes the two tags apart: each is centred on its own line, and at a
   // tight spread they simply overlap (Bid drawn over Ask). Nudging them apart put the
@@ -14491,7 +14591,7 @@ function drawChart(){
     ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
     // hidden by the Bid/Ask tags (cTrader lets 4290.00 peek out under a ТП tag) or by the countdown
     if(Math.abs(yy - tAsk) < 13 || Math.abs(yy - tBid) < 13 || Math.abs(yy - yCount) < 12 || yy < 6) continue;
-    ctx.fillText(chartPx(p), W - 12, yy + 0.5);
+    ctx.fillText(vcx(p), W - 12, yy + 0.5);
   }
   // time scale — cTrader's: a bold date at the left, then a time on every bar whose time is a round
   // multiple (1 / 2 / 5 / 10 / 15 / 30 min, 1 / 2 / 4 / 6 / 12 h, days…) at least 60 px apart (~70 px
@@ -14581,7 +14681,7 @@ function drawChart(){
                 a thin vertical line (a buy's СЛ is green too, not red)
      pending  = OUTLINED pill + arrow-and-bar icon (limit / stop), DASH-DOT line
      green = buy · orange-red = sell                                        */
-  const sym = S.symbol.name;
+  const sym = VS().name;
   const marks = [];   // {y: pill (de-collided), ly: line, price, col, text, icon, filled, dash, dotX, grp}
   // A level outside the visible range gets NO marker. spreadYs() clamps labels
   // into the canvas, so without this an entry far above the highs was pinned to
@@ -14806,10 +14906,10 @@ function drawChart(){
   ctx.globalAlpha = 1;
   // right-axis tags, centred on their own line like cTrader (overlapping rather than
   // nudged apart); the live Bid/Ask tags go on last so they stay on top
-  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 18, chartPx(m.price), m.col, TC.tagBg); }
+  for(const m of marks) if(m.a > 0.001){ ctx.globalAlpha = m.a; axisTag(ctx, plotW + 2, m.ly, padR - 4, 18, vcx(m.price), m.col, TC.tagBg); }
   ctx.globalAlpha = 1;
-  priceTag(tAsk, CL_ASK, chartPx(S.price.ask));
-  priceTag(tBid, CL_BID, chartPx(S.price.bid));
+  priceTag(tAsk, CL_ASK, vcx(VQ().ask));
+  priceTag(tBid, CL_BID, vcx(VQ().bid));
 
   // crosshair: dashed lines, the price in a tag on the scale and the bar's time on the time axis;
   // the OHLC readout (DOM, written only on a change) shows only while it is up — cTrader's chart
@@ -14834,14 +14934,14 @@ function drawChart(){
     const price = lo + (hi-lo)*(1 - (cy-padT)/(H-padT-padB));
     ctx.font = AXF; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillStyle = TC.tag; ctx.fillRect(plotW, cy-9, padR, 18);
-    ctx.fillStyle = "#fff"; ctx.fillText(chartPx(price), plotW + padR/2, cy + 0.5);
+    ctx.fillStyle = "#fff"; ctx.fillText(vcx(price), plotW + padR/2, cy + 0.5);
     if(b){
       const rb = data[startIdx + idx] || b;         // raw OHLC for the text readout
       const d = new Date(rb.t*1000);
       const tl = daily ? `${d.getUTCDate()} ${MON[d.getUTCMonth()]}` : pad2(d.getHours()) + ":" + pad2(d.getMinutes());
       ctx.fillStyle = TC.tag; ctx.fillRect(cx - 26, H - padB, 52, padB);
       ctx.fillStyle = "#fff"; ctx.fillText(tl, cx, yTime);
-      setInfo(`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  ${L("О")} ${chartPx(rb.o)}  ${L("Н")} ${chartPx(rb.h)}  ${L("Л")} ${chartPx(rb.l)}  ${L("З")} ${chartPx(rb.c)}`);
+      setInfo(`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}  ${L("О")} ${vcx(rb.o)}  ${L("Н")} ${vcx(rb.h)}  ${L("Л")} ${vcx(rb.l)}  ${L("З")} ${vcx(rb.c)}`);
     }
     ctx.textBaseline = "alphabetic";
   }else setInfo(null);
@@ -14859,7 +14959,7 @@ function drawMini(){
   if(!c._w) fitCanvas(c);
   const ctx = c.getContext("2d");
   const TC = themeColors();
-  const W = c._w, H = c._h, padR = 64, padT = 10, padB = 30;
+  const W = c._w, H = c._h, padR = Math.max(64, vcx(VQ().ask).length * 7 + 14), padT = 10, padB = 30;
   const pxr = c.width / W || 1, pyr = c.height / H || 1;
   const hx = Math.max(1, Math.round(pxr)), hy = Math.max(1, Math.round(pyr));
   const hairX = hx / pxr, hairY = hy / pyr;
@@ -14868,17 +14968,17 @@ function drawMini(){
   const crispY = v => (hy % 2 ? Math.floor(v * pyr) + 0.5 : Math.round(v * pyr)) / pyr;
   ctx.clearRect(0, 0, W, H); ctx.fillStyle = TC.card; ctx.fillRect(0, 0, W, H);   // the card's own colour, like cTrader's overview (not the black main-chart ground)
   const tf = S.ui.miniTF || "M1", want = S.ui.miniBars || 50, tfSec = TF[tf] || 60;
-  const data = bidCandles((S.candles[tf] || []).slice(-want));
+  const data = bidCandles((candlesOf(curSym(), tf) || []).slice(-want));
   if(!data.length) return;
   const plotW = W - padR, plotH = H - padT - padB;
   const barsW = plotW * 0.86;                                         // free space right of the newest bar
   const unit = barsW / Math.max(want, data.length);
   const xOf = i => barsW - (data.length - i) * unit;
-  let hi = S.price.ask, lo = S.price.bid;
+  let hi = VQ().ask, lo = VQ().bid;
   for(const b of data){ if(b.h > hi) hi = b.h; if(b.l < lo) lo = b.l; }
   const pad = (hi - lo) * 0.06 || 0.5; hi += pad; lo -= pad;
   const y = p => padT + (hi - p) / (hi - lo) * plotH;
-  const yAsk = crispY(y(S.price.ask)), yBid = crispY(y(S.price.bid));
+  const yAsk = crispY(y(VQ().ask)), yBid = crispY(y(VQ().bid));
 
   // gridlines (one stroke) + price labels on the right + the date / time axis
   const step = niceStep(hi - lo, clamp(Math.round(plotH / 42), 3, 8));
@@ -14887,7 +14987,7 @@ function drawMini(){
   for(let p = Math.ceil(lo / step) * step; p <= hi; p += step){
     const yy = crispY(y(p));
     ctx.moveTo(0, yy); ctx.lineTo(plotW, yy);
-    if(Math.abs(yy - yBid) > 11 && Math.abs(yy - yAsk) > 11) ctx.fillText(chartPx(p), plotW + 6, yy + 4);
+    if(Math.abs(yy - yBid) > 11 && Math.abs(yy - yAsk) > 11) ctx.fillText(vcx(p), plotW + 6, yy + 4);
   }
   const DAYS = DAYS_L[LANG], MON = MON_L[LANG];
   const intraday = tfSec < 14400, d0 = new Date(data[0].t * 1000);
@@ -14933,8 +15033,8 @@ function drawMini(){
 
   // no position / order lines here: cTrader's overview chart has none (user 2026-09-18: a lone dash-dot line
   // «такого в cTrade нету») — they live on the Charts tab with their labels
-  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, chartPx(S.price.ask), TC.up, TC.tagBg);
-  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, chartPx(S.price.bid), TC.down, TC.tagBg);
+  axisTag(ctx, plotW + 2, yAsk, padR - 4, 18, vcx(VQ().ask), TC.up, TC.tagBg);
+  axisTag(ctx, plotW + 2, yBid, padR - 4, 18, vcx(VQ().bid), TC.down, TC.tagBg);
 }
 
 /* =========================================================================
@@ -15188,7 +15288,15 @@ async function xcClaimLease(force){
 function xcLiveFrame(){
   const tail = {};
   for(const tf in S.candles){ const a = S.candles[tf]; if(a && a.length) tail[tf] = a.slice(-3); }
+  // the other instruments' quotes and candle tips ride along, so a mirror shows them as live as gold
+  const ins = {};
+  for(const sym of Object.keys(S.ins || {})){
+    const st = S.ins[sym]; if(!st || !st.price) continue;
+    const t = {}; for(const tf in (st.candles || {})){ const a = st.candles[tf]; if(a && a.length) t[tf] = a.slice(-3); }
+    ins[sym] = { price: st.price, t: st.t, candles: t };
+  }
   return {
+    ins,
     simClock: S.simClock,
     price: S.price,
     day: S.day, regime: S.regime,
@@ -15225,6 +15333,20 @@ function xcApplyLive(L){
     const tail = S.history.filter(h => !known.has(key(h)));
     const cap = Number.isInteger(L.histLen) ? Math.min(500, Math.max(0, L.histLen)) : 500;
     S.history = L.histTop.concat(tail).slice(0, cap);
+  }
+  // the other instruments: their quotes and candle tips (a mirror that has no history of one yet waits for the state)
+  for(const sym of Object.keys(L.ins || {})){
+    const st = S.ins && S.ins[sym], f = L.ins[sym];
+    if(!st || !f) continue;
+    st.price = f.price; st.t = f.t;
+    for(const tf in (f.candles || {})){
+      const cur = st.candles[tf] || (st.candles[tf] = []);
+      for(const b of f.candles[tf]){
+        const last = cur[cur.length - 1];
+        if(last && last.t === b.t) cur[cur.length - 1] = b; else if(!last || b.t > last.t) cur.push(b);
+      }
+      if(cur.length > INS_CAP[tf]) cur.splice(0, cur.length - INS_CAP[tf]);
+    }
   }
   // merge the candle tips: update the forming bar, append new ones
   for(const tf in (L.candles || {})){
