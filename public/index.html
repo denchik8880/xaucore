@@ -378,7 +378,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:var(--nav-is,30px);height:var(--nav-is,30px)}
 /* The matte and optical layers share one measured contour throughout their crossfade.
    --ng is the optical envelope; --u/--sx express the leading edge/width in fifths of the rail. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:25%;
   /* Resolve the reference corner at the final physical size, then undo the parent scale.
      The raised rounded shape flattens into a capsule continuously with its optical envelope. */
   border-radius:min(calc(100% * var(--ncr,.5)),calc(55px * var(--ncr,.5) * var(--nov,1) * var(--sy,1) / var(--sx,1))) / calc(100% * var(--ncr,.5));pointer-events:none;
@@ -389,8 +389,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:3;
   pointer-events:none;color:var(--nav-on);border-radius:inherit;
-  -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round min(calc(20% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)));
-  clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round min(calc(20% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)))}
+  -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 25%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 25%) round min(calc(25% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)));
+  clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 25%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 25%) round min(calc(25% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)))}
 /* THE DROP IS A MAGNIFIER. The source grows 1.14x (up to 1.165x in motion), about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
@@ -405,10 +405,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-backdrop>.nb-refract{position:absolute;opacity:var(--ng,0);background:transparent;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-backdrop.material-idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:block;--nmy:var(--nm,1);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 25%) 50%;
   /* Compose the centred rail scale and lens magnifier in one source transform, avoiding another composited
      surface inside the SVG filter. */
-  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nmy,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nmy,1) * var(--nrsy,1)));will-change:transform}
+  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2) * 25% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nmy,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nmy,1) * var(--nrsy,1)));will-change:transform}
 /* Sample the full transparent glyph row before the moving lens clip. An opaque clone here
    would hide the actual background refraction and draw the rail boundary through the glass. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;background:transparent}
@@ -2421,6 +2421,10 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),rgba(195,207,230,calc(.12 * var(--sdk,1)));
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
+  /* the dark video's clear drop: a thin light outline - lit along its foot and round its ends, faint along its top -
+     no dark bands inside it */
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),inset 0 -1.5px 0 -.25px rgba(255,255,255,.5),inset 1.25px 0 0 -.25px rgba(255,255,255,.3),inset -1.25px 0 0 -.25px rgba(255,255,255,.3),0 6px 14px -6px rgba(0,0,0,.55)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
   box-shadow:inset 0 0 0 .5px var(--nav-ring),
     inset 0 calc(7px * var(--lgd,1)) calc(9px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-top),inset 0 calc(-5px * var(--lgd,1)) calc(7px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-foot),
@@ -2596,6 +2600,108 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-glass="on"] .seg.seg-drag button .lg-milk{display:none}
 :root[data-glass="on"] .seg.seg-drag .pressing>span,:root[data-glass="on"] .seg.seg-drag .pressing>b{transform:none}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .seg.seg-drag>button:active:not(.near){transform:none}
+
+/* ===== POSITIONS · ORDERS · HISTORY and THE DEAL - cTrader's Android update (user 2026-11-17) =====
+   The tables edge to edge (the coin and symbol, the side's arrow, «0.05 Лоты», the money, ✕), the top bar's own tool,
+   Android's orange / black plates in our blue: «Закрыть позиции», «Новый ордер» (the FAB and the symbol's wide button),
+   the deal card's head. With liquid glass on the blue ones are blue GLASS (tint, sheen, lit rim, the lens of lgGlass). */
+:root{--bl:47,123,246}
+:root[data-theme="dark"]{--bl:61,126,245}
+:root[data-tone="aurora"]{--bl:47,120,198}
+.wl-tool{flex:0 0 auto;width:40px;height:40px;margin:0 -4px 0 -2px;display:flex;align-items:center;justify-content:center;color:var(--ink);border-radius:50%}
+.wl-tool:active{background:var(--press)}
+.wl-tool.on{color:rgb(var(--bl))}
+.subtabs.trtabs{top:70px}
+:root:not([data-glass="on"]) .subtabs.trtabs{background:var(--bg);border-bottom:0;gap:8px;padding:2px 12px 0}
+:root:not([data-glass="on"]) .subtabs.trtabs button{font-size:17px;font-weight:500;padding:14px 8px 11px;color:var(--ink3);border-bottom-width:3px}
+:root:not([data-glass="on"]) .subtabs.trtabs button.on{color:var(--ink);border-bottom-color:rgb(var(--bl))}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs.trtabs{margin-top:2px;margin-bottom:6px}
+.ptbl-row{display:grid;grid-template-columns:minmax(0,34%) 9% minmax(0,1fr) 21% 15%;align-items:center;height:56px;padding-left:12px;border-bottom:1px solid var(--wl-div);font-size:16px;color:var(--ink);cursor:pointer}
+.ptbl.hist .ptbl-row{grid-template-columns:minmax(0,34%) 12% minmax(0,1fr) 24%;padding-right:18px}
+.ptbl-row>*{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ptbl-row .r{text-align:right;font-size:17px;font-variant-numeric:tabular-nums}
+.ptbl-row .pos{color:var(--buy)}
+.ptbl-row .neg{color:var(--sell)}
+.ptbl-row:active{background:var(--press)}
+.ptbl-head{height:62px;font-size:15.5px;color:var(--ink3);cursor:default}
+.ptbl-head:active{background:none}
+.ptbl-head>span:first-child{padding-left:38px}
+.ptbl-sym{display:flex;align-items:center;gap:8px}
+.ptbl-ic{flex:none;width:30px;height:30px}
+.ptbl-ic svg{display:block;width:100%;height:100%}
+.ptbl-sym .nm{font-size:19px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ptbl-dir{display:flex;justify-content:center}
+.ptbl-lot{padding-left:6px}
+.ptbl .x{display:flex;align-items:center;justify-content:center;height:100%;padding:0;color:var(--ink2)}
+.ptbl .x:active{background:var(--press)}
+.sarr.sell{fill:var(--sell)}
+.sarr.buy{fill:var(--buy)}
+.closepos{position:relative;display:block;width:100%;margin:18px 0 8px;padding:19px 16px;border-radius:16px;background:rgb(var(--bl));color:#fff;font-size:18px;font-weight:600;text-align:center}
+.closepos:active{filter:brightness(.92)}
+body.trade-locked .closepos{opacity:.5;pointer-events:none}
+.fabnew,:root[data-theme="dark"] .fabnew{--fab-bg:rgb(var(--bl));color:#fff;padding:17px 26px 17px 22px;gap:16px;font-size:18px;border-radius:18px}
+.bignew,:root[data-theme="dark"] .bignew{background:rgb(var(--bl));color:#fff}
+/* blue GLASS (the selectors are doubled to sit over the crystal and the Aurora rules of these buttons) */
+:root:root:root[data-glass="on"]:not([data-lgoff~="newbtn"]) :is(.bignew,.fabnew),:root:root:root[data-glass="on"] .closepos{--fab-bg:rgb(var(--bl));color:#fff;text-shadow:0 1px 2px rgba(0,22,70,.35);
+  background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 52%),rgba(var(--bl),.8);
+  -webkit-backdrop-filter:blur(.6px) saturate(1.5);backdrop-filter:blur(.6px) saturate(1.5);
+  box-shadow:0 0 0 .5px rgba(var(--bl),.9),var(--lg-lift2),inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -1.5px 2px rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.16)}
+:root:root:root[data-glass="on"] .closepos{box-shadow:0 0 0 .5px rgba(var(--bl),.9),var(--lg-lift1),inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -1.5px 2px rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.16)}
+:root:root:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew svg{filter:drop-shadow(0 1px 2px rgba(0,22,70,.35))}
+.menu-item.pick{width:100%;text-align:left;font-weight:500}
+.menu-item.pick.on{color:rgb(var(--bl))}
+/* the deal */
+.deal{padding-top:6px}
+.card.dl-card,.card.dl-sec{padding:0;overflow:hidden}
+.card.dl-card{border:1.5px solid rgba(var(--bl),.9)}
+.dl-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 10px 12px 18px;background:rgb(var(--bl));color:#fff}
+:root[data-glass="on"] .dl-hd{background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 60%),rgba(var(--bl),.88);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+.dl-hd-t{min-width:0}
+.dl-sym{font-size:21px;font-weight:500;line-height:1.2}
+.dl-desc{font-size:15px;opacity:.92}
+.dl-share{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fff;border-radius:50%}
+.dl-share:active{background:rgba(255,255,255,.18)}
+.dl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));row-gap:22px;padding:22px 4px 16px}
+.dl-st{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.dl-st .dl-ic{width:34px;height:34px;color:var(--ink);margin-bottom:10px}
+.dl-ic svg{display:block;width:100%;height:100%}
+.dl-v{font-size:23px;font-weight:500;line-height:1.15;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-v.neg{color:var(--sell)}
+.dl-v.pos{color:var(--buy)}
+.dl-u,.dl-l{font-size:14.5px;color:var(--ink3);line-height:1.35}
+.dl-l{white-space:nowrap;font-size:14px;letter-spacing:-.1px}
+.dl-chart{padding:4px 8px 0}
+.dl-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.dl-chart .buy,.dl-tag.buy{color:var(--buy)}
+.dl-chart .sell,.dl-tag.sell{color:var(--sell)}
+.dl-axis{stroke:var(--line);stroke-width:1}
+.dl-time text{font-size:12px;fill:var(--ink3)}
+.dl-pill{float:right;margin-right:2px;display:flex;align-items:stretch;height:22px;border:1.4px solid currentColor;border-radius:11px;background:var(--card);font-size:12.5px;line-height:1;white-space:nowrap;overflow:hidden}
+.dl-pill span{display:flex;align-items:center;padding:0 8px}
+.dl-pill span+span{border-left:1.4px solid currentColor}
+.dl-note{font-size:13.5px;color:var(--ink3);margin:6px 16px 16px;line-height:1.35}
+.dl-sh{display:flex;align-items:center;gap:14px;padding:17px 18px;border-bottom:1px solid var(--line);font-size:20px;font-weight:500;color:var(--ink)}
+.dl-sh .dl-ic{flex:none;width:28px;height:28px;color:var(--ink3)}
+.dl-rows{padding:12px 0}
+.dl-r{display:grid;grid-template-columns:48% 52%;padding:5px 18px;font-size:15px;line-height:1.35}
+.dl-r .k{color:var(--ink3);padding-right:8px}
+.dl-r .v{color:var(--ink);font-weight:400;overflow-wrap:anywhere}
+.dl-r .v.pos{color:var(--buy)}
+.dl-r .v b{font-weight:500}
+.dl-sub{color:var(--ink3)}
+.ptbl-head>span{padding-right:6px}
+.ptbl-head>span.r{padding-right:0}
+/* THE RIM AS THE REFERENCE (user 2026-11-17: the iOS «‹» and profile capsule, then the ticket's lens - «почему края
+   белые? так не должно быть»): a light glass edge is a thin grey hairline with a breath of light inside it, not a
+   white ring. The light theme's drops and lenses; the tab bar's drop (measured on the video) keeps its own. */
+:root:not([data-theme="dark"]) :is(.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens,.seg-bub){
+  --drop-sh:0 5px 14px -5px rgba(16,24,40,.18),0 1px 2px rgba(16,24,40,.06),0 0 0 .6px rgba(16,24,40,.16),
+    inset 0 1px .6px -.2px rgba(255,255,255,.7),inset 0 -1px 1px -.4px rgba(255,255,255,.35),inset 0 0 7px -2px rgba(16,24,40,.06);
+  --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.26) 0%,rgba(255,255,255,0) 20%,rgba(16,24,40,.08) 50%,rgba(255,255,255,0) 80%,rgba(255,255,255,.14) 100%)}
+:root:not([data-theme="dark"])[data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{
+  box-shadow:0 9px 22px rgba(16,24,40,.18),0 2px 5px rgba(16,24,40,.09),0 0 0 .7px rgba(16,24,40,.22),inset 0 .8px .5px rgba(255,255,255,.4),inset 0 -2px 3px rgba(16,24,40,.05)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{
+  box-shadow:0 9px 22px rgba(0,0,0,.45),0 2px 5px rgba(0,0,0,.25),inset 0 0 0 .7px rgba(255,255,255,.22),inset 0 1px .6px rgba(255,255,255,.3),inset 0 -2px 3px rgba(0,0,0,.2)}
 </style>
 
 <div id="boot" aria-hidden="true"><img class="bt-ico" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23111418'/%3E%3Ctext x='256' y='350' font-size='300' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E"><i class="bt-bar"></i><div class="bt-name">XAUCORE — Simulator cTrade</div></div>
@@ -2758,6 +2864,51 @@ const I18N = {
 "аккаунт":["account","акаунт","compte","hesap"],
 "Не выполнен вход":["Not signed in","Вхід не виконано","Non connecté","Giriş yapılmadı"],
 "Ещё":["More","Ще","Plus","Diğer"],
+"Мой cTrader":["My cTrader", "Мій cTrader", "Mon cTrader", "cTrader'ım"],
+"История":["History", "Історія", "Historique", "Geçmiş"],
+"Прибыль":["Profit", "Прибуток", "Profit", "Kâr"],
+"Закрыть позиции":["Close positions", "Закрити позиції", "Clôturer les positions", "Pozisyonları kapat"],
+"Сортировка":["Sort", "Сортування", "Trier", "Sırala"],
+"Фильтр":["Filter", "Фільтр", "Filtrer", "Filtre"],
+"По времени открытия":["By open time", "За часом відкриття", "Par heure d'ouverture", "Açılış zamanına göre"],
+"По инструменту":["By symbol", "За інструментом", "Par symbole", "Sembole göre"],
+"По прибыли":["By profit", "За прибутком", "Par profit", "Kâra göre"],
+"Все инструменты":["All symbols", "Усі інструменти", "Tous les symboles", "Tüm semboller"],
+"Закрыть позицию #":["Close position #", "Закрити позицію #", "Clôturer la position #", "Pozisyonu kapat #"],
+"Пипы":["Pips", "Піпси", "Pips", "Pip"],
+"Продолжительность":["Duration", "Тривалість", "Durée", "Süre"],
+"Комиссии":["Commissions", "Комісії", "Commissions", "Komisyonlar"],
+"Количество":["Quantity", "Кількість", "Quantité", "Miktar"],
+"Описание инструмента":["Symbol description", "Опис інструмента", "Description du symbole", "Sembol açıklaması"],
+"Открывающее направление":["Opening direction", "Напрямок відкриття", "Sens d'ouverture", "Açılış yönü"],
+"Закрывающее направление":["Closing direction", "Напрямок закриття", "Sens de clôture", "Kapanış yönü"],
+"Объем":["Volume", "Обсяг", "Volume", "Hacim"],
+"Исполненное кол-во":["Filled quantity", "Виконана кількість", "Quantité exécutée", "Gerçekleşen miktar"],
+"Закрываемый объем (USD)":["Closed volume (USD)", "Обсяг закриття (USD)", "Volume clôturé (USD)", "Kapanan hacim (USD)"],
+"Куплено":["Bought", "Куплено", "Acheté", "Alınan"],
+"Продано":["Sold", "Продано", "Vendu", "Satılan"],
+"Цена закрытия":["Closing price", "Ціна закриття", "Prix de clôture", "Kapanış fiyatı"],
+"Продажа":["Sell", "Продаж", "Vente", "Satış"],
+"Покупка":["Buy", "Купівля", "Achat", "Alış"],
+"Информация":["Information", "Інформація", "Informations", "Bilgi"],
+"ID сделки":["Deal ID", "ID угоди", "ID de la transaction", "İşlem ID"],
+"Закрывает сделки":["Closes deals", "Закриває угоди", "Clôture les transactions", "Kapattığı işlemler"],
+"Ордер сделки":["Deal order", "Ордер угоди", "Ordre de la transaction", "İşlem emri"],
+"Связанная позиция":["Related position", "Пов'язана позиція", "Position liée", "İlgili pozisyon"],
+"Канал":["Channel", "Канал", "Canal", "Kanal"],
+"Комментарий":["Comment", "Коментар", "Commentaire", "Yorum"],
+"Время":["Time", "Час", "Heure", "Zaman"],
+"Время закрытия":["Close time", "Час закриття", "Heure de clôture", "Kapanış zamanı"],
+"Реализ. прибыль и комиссии":["Realized P&L and commissions", "Реаліз. прибуток і комісії", "P&L réalisé et commissions", "Gerçekleşen K/Z ve komisyonlar"],
+"Свопы":["Swaps", "Свопи", "Swaps", "Swaplar"],
+"Комиссия брокера":["Broker commission", "Комісія брокера", "Commission du courtier", "Aracı kurum komisyonu"],
+"Поделиться":["Share", "Поділитися", "Partager", "Paylaş"],
+"Скопировано":["Copied", "Скопійовано", "Copié", "Kopyalandı"],
+"Сделка":["Deal", "Угода", "Transaction", "İşlem"],
+"Сделка не найдена":["Deal not found", "Угоду не знайдено", "Transaction introuvable", "İşlem bulunamadı"],
+"График формируется на основе изменений цены продажи. Изменения цены покупки не отображаются.":["The chart is built from changes in the sell price. Changes in the buy price are not shown.", "Графік будується на основі змін ціни продажу. Зміни ціни купівлі не відображаються.", "Le graphique est construit à partir des variations du prix de vente. Les variations du prix d'achat ne sont pas affichées.", "Grafik satış fiyatındaki değişimlere göre oluşturulur. Alış fiyatındaki değişimler gösterilmez."],
+"📊 Статистика торговли":["📊 Trading statistics", "📊 Статистика торгівлі", "📊 Statistiques de trading", "📊 İşlem istatistikleri"],
+"Статистика торговли":["Trading statistics", "Статистика торгівлі", "Statistiques de trading", "İşlem istatistikleri"],
 "Аккаунт":["Account","Акаунт","Compte","Hesap"],
 "Синхронизация":["Sync","Синхронізація","Synchronisation","Senkronizasyon"],
 "Синхронизировать сейчас":["Sync now","Синхронізувати зараз","Synchroniser","Şimdi senkronize et"],
@@ -6230,7 +6381,7 @@ const app = () => document.getElementById("app");
    листаю, а нужно, когда заходить прям буду»), so — like Android — the ripple waits: it lights up
    after a 110 ms hold on the spot, or on the tap itself (click) for a quicker touch; a finger that
    moves 8 px, or a pointercancel (the page took the gesture to scroll), puts it out / never starts it. */
-const RIPPLE_WAVE = ".wl-row, .lrow[data-posdetail], .otbl-row[data-modord], .menu-item, .tfsheet button";   // the rows that press like cTrader's
+const RIPPLE_WAVE = ".wl-row, .lrow[data-posdetail], .ptbl-row[data-posdetail], .ptbl-row[data-deal], .ptbl-row[data-modord], .otbl-row[data-modord], .menu-item, .tfsheet button";   // the rows that press like cTrader's
 const RIPPLE_SEL = RIPPLE_WAVE + ", .ne-card > summary";   // + the tab bar and subtabs with liquid glass off (on, their drops are the feedback)
 const RIPPLE_SEL_FLAT = RIPPLE_SEL + ", .bottomnav button, .subtabs button";
 let _rip = null;                                                 // the press being watched
@@ -7143,7 +7294,7 @@ document.addEventListener("pointerdown", e => {
 /* A SCREEN ARRIVES FROM SOMEWHERE. Tapping a tab to the right brings the next screen in from the right and the
    other way round: the interface has a left and a right, and the move says which way you went. The bar and the
    tab strip hold still, as they do on iOS — only what changed actually travels. */
-const NAV_ORDER = ["markets", "chart", "positions", "orders", "more"];
+const NAV_ORDER = ["markets", "chart", "positions", "more"];
 let _navDir = 0;
 function navEnter(dir){
   const el = app().querySelector(":scope > .wrap, :scope > .chartbox");
@@ -7284,6 +7435,7 @@ function applyTheme(t){
   if(t === "aurora") d.tone = "aurora"; else delete d.tone;
   if(t === "aurora") auroraSky(); else delete d.sky;
   WATER = t === "aurora" ? 1.35 : 1;                                // «Аврора» is water: the drops stretch and wobble more
+  try{ lgGlowSync(); }catch(e){}                                    // the rim's light is the theme's (LG_GLOW_LIGHT)
   _themeColors = null;
   const mc = document.querySelector('meta[name="theme-color"]');
   _themeTC = t === "aurora" ? "#142141" : t === "dark" ? "#000000" : "#eff1f4";
@@ -7781,12 +7933,12 @@ function render(){
   html += topBanner();
   if(t === "markets")   html += S.ui.marketOpen ? screenMarkets() : screenMarketsList();
   else if(t === "chart")     html += screenChart();
-  else if(t === "positions") html += screenPositions();
-  else if(t === "orders")    html += screenOrders();
+  else if(t === "positions" || t === "orders" || t === "history") html += screenTrades(t);
+  else if(t === "deal")      html += screenDeal();
+  else if(t === "stats")     html += screenStats();
   else if(t === "more")      html += screenMore();
   else if(t === "wallet")    html += screenWallet();
   else if(t === "settings")  html += screenSettings();
-  else if(t === "history")   html += screenHistory();
   else if(t === "calendar")  html += screenCalendar();
   else if(t === "dom")       html += screenDOM();
   else if(t === "debug")     html += screenDebug();
@@ -8276,14 +8428,19 @@ function acctFundsModal(kind){
   amt.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("af-go").click(); });
   setTimeout(() => amt.focus(), 60);
 }
-function screenMarketsList(){
-  recalcAccount();
-  const w = watchStats();
+// the watchlist's top bar - the logo, «Поиск», the balance (it opens the account) - and a screen's own tool on its right
+// (cTrader's Android update: ⇅ over the positions, the funnel over the history)
+function wlTopbar(tool){
   return `<div class="wl-topbar">
       <button type="button" class="wl-logo" data-act="appmenu" aria-label="${L("Меню")}">${xcLogoSVG()}</button>
       <button class="wl-search" data-act="search"><svg class="wl-search-ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${L("Поиск")}</button>
-      <span class="ab-bal mono ${abBalCls()}" id="abBal">${money(S._acc ? S._acc.equity : S.account.balance)}</span>
-    </div>
+      <button type="button" class="ab-bal mono ${abBalCls()}" id="abBal" data-act="accinfo">${money(S._acc ? S._acc.equity : S.account.balance)}</button>${tool || ""}
+    </div>`;
+}
+function screenMarketsList(){
+  recalcAccount();
+  const w = watchStats();
+  return wlTopbar() + `
     <div class="wrap">
     <div class="wl-head">
       <span class="wl-name">XAU69</span>
@@ -8640,40 +8797,223 @@ function upcomingEventsMarkup(n){
 }
 
 /* ---------- POSITIONS ---------- */
-function screenPositions(){ return appbar(L("Позиции")) + listPositions(); }
-function listPositions(sym){
+/* ---------- POSITIONS · ORDERS · HISTORY - cTrader's Android update (user 2026-11-17) ----------
+   One tab, «Позиции», with cTrader's three subtabs «Позиции [n] · Ордера [n] · История» (the bar's «Ордеры» tab is gone,
+   the history lives here now). The watchlist's top bar over them, its right-hand tool the screen's own: ⇅ sorts the
+   positions, the funnel filters the history. Then a table edge to edge: the coin and the symbol, the side's arrow,
+   «0.05 Лоты», the money (2.20 / -10.75), ✕. Android's orange «Закрыть позиции» and black «Новый ордер» are our blue
+   (blue glass with liquid glass on). A history row opens the deal (screenDeal). */
+const TRADE_TABS = ["positions", "orders", "history"];
+function subPick(k){                                         // a subtab picked: the instrument's, or one of these three (each its own route)
+  if(TRADE_TABS.includes(S.ui.tab) && TRADE_TABS.includes(k)) S.ui.tab = k;
+  else S.ui.subtab = k;
+  render(); save();
+}
+function plTxt(x){ return (x < 0 ? "-" : "") + fmt(Math.abs(x), 2); }
+function sideArrow(side){                                    // cTrader's arrow of a deal: down in SELL's orange, up in BUY's green
+  const up = side === "buy";
+  return `<svg class="sarr ${up ? "buy" : "sell"}" viewBox="0 0 14 24" width="14" height="24" aria-hidden="true"><path d="${up ? "M7 2.2L13.2 10.6H8.5V21.8H5.5V10.6H.8z" : "M7 21.8L.8 13.4H5.5V2.2H8.5V13.4H13.2z"}"/></svg>`;
+}
+const X_ICON = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>`;
+function tradesTool(t){
+  if(t === "positions") return `<button type="button" class="wl-tool" data-act="possort" aria-label="${L("Сортировка")}"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7.5 9.2L12 4.7l4.5 4.5M7.5 14.8l4.5 4.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+  if(t === "history") return `<button type="button" class="wl-tool${S.ui.histSym ? " on" : ""}" data-act="histfilter" aria-label="${L("Фильтр")}"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3.5 6.5h17M6 12h12M9 17.5h5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="19.2" cy="17.5" r="1.9" fill="currentColor"/></svg></button>`;
+  return "";
+}
+function screenTrades(t){
   recalcAccount();
-  const list = sym ? S.positions.filter(p => symOf(p) === sym) : S.positions;
-  if(!list.length) return `<div class="wrap">
-    <div class="card">
-      <div class="row"><span class="k">${L("Средства")}</span><span class="v mono">${money(S._acc.equity)}</span></div>
-      <div class="row"><span class="k">${L("Свободная маржа")}</span><span class="v mono">${money(S._acc.freeMargin)}</span></div>
-    </div>
-    <div class="muted">${L("Нет открытых позиций")}</div></div>`;
-  return `<div class="wrap">
-    <div class="card">
-      <div class="row"><span class="k">${L("Баланс")}</span><span class="v mono" id="pBal">${money(S._acc.balance)}</span></div>
-      <div class="row"><span class="k">${L("Средства")}</span><span class="v mono" id="pEq">${money(S._acc.equity)}</span></div>
-      <div class="row"><span class="k">${L("Маржа")}</span><span class="v mono" id="pMar">${money(S._acc.margin)}</span></div>
-      <div class="row"><span class="k">${L("Свободная маржа")}</span><span class="v mono" id="pFree">${money(S._acc.freeMargin)}</span></div>
-      <div class="row"><span class="k">${L("Уровень маржи")}</span><span class="v mono" id="pML">${isFinite(S._acc.marginLevel)?fmt(S._acc.marginLevel,1)+"%":"—"}</span></div>
-    </div>
-    ${closeAllBar()}
+  const cnt = (id, n) => ` <span class="cnt" id="${id}"${n ? "" : " hidden"}>${n}</span>`;
+  const tab = (k, label, extra) => `<button data-sub="${k}" class="${t === k ? "on" : ""}">${L(label)}${extra || ""}</button>`;
+  const body = t === "orders" ? listOrders() : t === "history" ? listDeals() : listPositions();
+  return wlTopbar(tradesTool(t)) + `<div class="subtabs trtabs">
+      ${tab("positions", "Позиции", cnt("ptPos", S.positions.length))}${tab("orders", "Ордера", cnt("ptOrd", S.pendings.length))}${tab("history", "История")}
+    </div>` + body + (t === "history" ? "" : fabNewMarkup());
+}
+function screenPositions(){ return screenTrades("positions"); }
+function sortedPositions(){
+  const k = S.ui.posSort || "time", list = S.positions.slice();
+  if(k === "sym") list.sort((a, b) => symOf(a).localeCompare(symOf(b)) || a.openTime - b.openTime);
+  else if(k === "pl") list.sort((a, b) => posMetrics(b).net - posMetrics(a).net);
+  return list;
+}
+function symCell(sym){ return `<span class="ptbl-sym"><span class="ptbl-ic">${symIconSVG(sym)}</span><span class="nm">${sym}</span></span>`; }
+function listPositions(){
+  const list = sortedPositions();
+  if(!list.length) return `<div class="wrap"><div class="muted">${L("Нет открытых позиций")}</div></div>`;
+  return `<div class="ptbl">
+    <div class="ptbl-row ptbl-head"><span>${L("Инструмент")}</span><span>${L("Направление")}</span><span>${L("Размер")}</span><span class="r">${L("Чистая прибыль")}</span><span></span></div>
     ${list.map(posRow).join("")}
+  </div>
+  <div class="wrap"><button type="button" class="closepos" data-act="closeall">${L("Закрыть позиции")}</button></div>`;
+}
+function posRow(p){
+  const m = posMetrics(p), sym = symOf(p);
+  return `<div class="ptbl-row" data-posdetail="${p.id}">
+    ${symCell(sym)}
+    <span class="ptbl-dir">${sideArrow(p.side)}</span>
+    <span class="ptbl-lot">${lotsTxt(p.volume)}</span>
+    <span class="r ${m.net >= 0 ? "pos" : "neg"}" id="pr-${p.id}-net">${plTxt(m.net)}</span>
+    <button type="button" class="x" data-closepos="${p.id}" aria-label="${L("Закрыть позицию #")}${p.id}">${X_ICON}</button>
   </div>`;
 }
-/* cTrader offers a single "close everything" action once more than one position
-   is open; with one there is already an X on the row itself. */
+// the deal key of a history row: its position and the moment it closed (a take profit 1 leaves two rows of one position)
+function dealKey(t){ return t.id + ":" + t.closeTime; }
+function dealOf(k){ const [id, ct] = String(k || "").split(":").map(Number); return S.history.find(t => t.id === id && t.closeTime === ct) || null; }
+function listDeals(){
+  const f = S.ui.histSym || "", h = f ? S.history.filter(t => symOf(t) === f) : S.history;
+  if(!h.length) return `<div class="wrap"><div class="muted">${L("История пуста")}</div></div>`;
+  return `<div class="ptbl hist">
+    <div class="ptbl-row ptbl-head"><span>${L("Инструмент")}</span><span>${L("Направление")}</span><span>${L("Размер")}</span><span class="r">${L("Прибыль")}</span></div>
+    ${h.map(t => `<div class="ptbl-row" data-deal="${dealKey(t)}">
+      ${symCell(symOf(t))}
+      <span class="ptbl-dir">${sideArrow(t.side)}</span>
+      <span class="ptbl-lot">${lotsTxt(t.volume)}</span>
+      <span class="r ${t.net >= 0 ? "pos" : "neg"}">${plTxt(t.net)}</span>
+    </div>`).join("")}
+  </div>`;
+}
+function pickSheet(title, items, cur, onPick){                 // a small list sheet: the current choice ticked
+  openSheet(`<h2>${title}</h2>` + items.map(([k, t]) => `<button type="button" class="menu-item pick${k === cur ? " on" : ""}" data-pick="${k}"><span>${t}</span><span class="ck" aria-hidden="true">${k === cur ? "✓" : ""}</span></button>`).join("")
+    + `<button class="btn ghost" data-close>${L("Назад")}</button>`);
+  modalEl.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { closeModal(); onPick(b.dataset.pick); });
+}
+function openPosSort(){
+  pickSheet(L("Сортировка"), [["time", L("По времени открытия")], ["sym", L("По инструменту")], ["pl", L("По прибыли")]], S.ui.posSort || "time",
+    k => { S.ui.posSort = k; render(); save(); });
+}
+function openHistFilter(){
+  pickSheet(L("Фильтр"), [["", L("Все инструменты")]].concat(SYMS.map(x => [x, x])), S.ui.histSym || "",
+    k => { S.ui.histSym = k; render(); save(); });
+}
+function openAccInfo(){                                      // the balance pill: the account as the old positions card showed it
+  recalcAccount();
+  const A = S._acc;
+  openSheet(`<h2>${L("Счёт")}</h2>
+    <div class="card pl-tbl">
+      <div class="row"><span class="k">${L("Баланс")}</span><span class="v mono" id="pBal">${money(A.balance)}</span></div>
+      <div class="row"><span class="k">${L("Средства")}</span><span class="v mono" id="pEq">${money(A.equity)}</span></div>
+      <div class="row"><span class="k">${L("Маржа")}</span><span class="v mono" id="pMar">${money(A.margin)}</span></div>
+      <div class="row"><span class="k">${L("Свободная маржа")}</span><span class="v mono" id="pFree">${money(A.freeMargin)}</span></div>
+      <div class="row"><span class="k">${L("Уровень маржи")}</span><span class="v mono" id="pML">${isFinite(A.marginLevel) ? fmt(A.marginLevel, 1) + "%" : "—"}</span></div>
+    </div>
+    <button class="btn ghost" data-close>${L("Назад")}</button>`);
+}
+
+/* ---------- THE DEAL (a history row) - cTrader's deal screen: «‹ DID…», a card in the brand's colour (Android's orange
+   is our blue) with the symbol and share, six figures with their icons, the chart of the trade, then the sections
+   Инструмент · Объем · Цена · Информация · Время · Реализ. прибыль и комиссии. */
+function dealIds(t){
+  const nth = S.history.filter(x => x.id === t.id && x.closeTime <= t.closeTime).length;   // a take profit 1, then the rest: 1, 2
+  const n = 45380000 + t.id * 10;
+  return { open: "DID" + n, close: "DID" + (n + nth), pos: "PID" + (156118000 + t.id), ord: "OID" + (49224000 + t.id * 10 + nth) };
+}
+const DL_IC = {
+  money: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 6.5h20M5 9h22" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="11.5" width="26" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.4"/><ellipse cx="16" cy="19" rx="4.2" ry="4.4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 15.5a4 4 0 0 0 4-4M28.5 15.5a4 4 0 0 1-4-4M3.5 22.5a4 4 0 0 1 4 4M28.5 22.5a4 4 0 0 0-4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  pips: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 19.5l7.5-7.5 5 5L28 5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M5.5 26.5h21" stroke="currentColor" stroke-width="2.8" stroke-dasharray="2.6 2.4"/></svg>`,
+  clock: `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M16 8.5V16l5 4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+  pct: `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="6.5 3.3"/><path d="M12 20.5l8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12.6" cy="12.4" r="1.9" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="19.4" cy="19.6" r="1.9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>`,
+  down: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v23M9.5 20.5L16 27l6.5-6.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  up: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 28V5M9.5 11.5L16 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  bag: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 10.5h19v17h-19z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M11.5 13.5V7.5a4.5 4.5 0 0 1 9 0v6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  fx: `<svg viewBox="0 0 32 32" aria-hidden="true"><text x="17" y="13" font-size="12" font-weight="600" fill="currentColor" text-anchor="middle">$</text><text x="7.5" y="26" font-size="11" font-weight="600" fill="currentColor" text-anchor="middle">£</text><text x="24.5" y="26" font-size="11" font-weight="600" fill="currentColor" text-anchor="middle">€</text></svg>`,
+  tag: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4.5 6.5v8.6l12.4 12.4 10.6-10.6L15.1 4.5H6.5a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="10" cy="10" r="1.8" fill="currentColor"/></svg>`,
+  info: `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16 14.5v8" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="10.2" r="1.7" fill="currentColor"/></svg>`,
+  usd: `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M19.6 11.6c-.7-1.2-2-1.9-3.6-1.9-2 0-3.5 1.1-3.5 2.8 0 3.9 7.4 2.3 7.4 6.4 0 1.8-1.6 3-3.8 3-1.8 0-3.2-.8-3.9-2.2M16 7.5v2.2M16 22v2.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  share: `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6" fill="currentColor"/><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="18.5" r="2.6" fill="currentColor"/><path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1" stroke="currentColor" stroke-width="1.9"/></svg>`
+};
+function fmtStamp(t){                                        // 17/11/2026 12:06:55.283 (UTC+2:00)
+  const d = new Date(t), off = -d.getTimezoneOffset(), oh = Math.floor(Math.abs(off) / 60), om = Math.abs(off) % 60;
+  return pad2(d.getDate()) + "/" + pad2(d.getMonth() + 1) + "/" + d.getFullYear() + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds())
+    + "." + String(d.getMilliseconds()).padStart(3, "0") + " (UTC" + (off < 0 ? "-" : "+") + oh + ":" + pad2(om) + ")";
+}
+function pipsOf(t){                                          // the deal's move in pips, as cTrader's card: -56 (gold), -5.6 (EURUSD)
+  const v = (t.exit - t.entry) * (t.side === "sell" ? -1 : 1) / symPip(symOf(t)), r = Math.round(v * 10) / 10;
+  return (r < 0 ? "-" : "") + String(Math.abs(r)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+function screenDeal(){
+  const t = dealOf(S.ui.deal);
+  if(!t) return appbar(L("Сделка"), { back: true }) + `<div class="wrap"><div class="muted">${L("Сделка не найдена")}</div></div>`;
+  const sym = symOf(t), ids = dealIds(t), sp = specOf(sym), sell = t.side === "sell", q = quoteOf(sym);
+  const sideW = sd => L(sd === "sell" ? "Продать" : "Купить"), pxW = (sd, px) => `<span class="dl-sub">${L(sd === "sell" ? "Продажа" : "Покупка")}</span> <b>${pxfmt(px, sym)}</b>`;
+  const closeSide = sell ? "buy" : "sell", base = sym === "BOOM1000" ? "" : sym.slice(0, 3);
+  const units = t.volume * sp.contractSize, usd = units * t.exit;
+  const stat = (ic, v, unit, label, cls) => `<div class="dl-st"><span class="dl-ic">${DL_IC[ic]}</span><span class="dl-v ${cls || ""}">${v}</span>${unit ? `<span class="dl-u">${unit}</span>` : ""}<span class="dl-l">${L(label)}</span></div>`;
+  const sec = (ic, title, rows) => `<div class="card dl-sec"><div class="dl-sh"><span class="dl-ic">${DL_IC[ic]}</span><span>${L(title)}</span></div><div class="dl-rows">${
+    rows.filter(Boolean).map(([k, v, cls]) => `<div class="dl-r"><span class="k">${L(k)}</span><span class="v ${cls || ""}">${v}</span></div>`).join("")}</div></div>`;
+  const reason = t.reason && t.reason !== "manual" ? L(t.reason) : "";
+  return appbar(ids.close, { back: true }) + `<div class="wrap deal">
+    <div class="card dl-card">
+      <div class="dl-hd"><div class="dl-hd-t"><div class="dl-sym">${sym}</div><div class="dl-desc">${symDesc(sym)}</div></div>
+        <button type="button" class="dl-share" data-act="dealshare" aria-label="${L("Поделиться")}">${DL_IC.share}</button></div>
+      <div class="dl-stats">
+        ${stat("money", plTxt(t.net), "USD", "Чистая прибыль", t.net >= 0 ? "pos" : "neg")}
+        ${stat("pips", pipsOf(t), "", "Пипы", pipsOf(t).startsWith("-") ? "neg" : pipsOf(t) === "0" ? "" : "pos")}
+        ${stat("clock", fmtDur(Math.max(0, t.closeTime - t.openTime)), "", "Продолжительность")}
+        ${stat("pct", plTxt(-t.commission), "USD", "Комиссии")}
+        ${stat(sell ? "down" : "up", sideW(t.side), "", "Направление")}
+        ${stat("bag", fmt(t.volume, 2), L("Лоты"), "Количество")}
+      </div>
+      ${dealChart(t)}
+    </div>
+    ${sec("fx", "Инструмент", [["Инструмент", sym], ["Описание инструмента", symDesc(sym)], ["Открывающее направление", sideW(t.side)], ["Закрывающее направление", sideW(closeSide)]])}
+    ${sec("bag", "Объем", [["Исполненное кол-во", lotsTxt(t.volume)], ["Закрываемый объем (USD)", money(usd)],
+        base && ["Куплено", sell ? base + " " + fmt(units, 2) : money(usd)], base && ["Продано", sell ? money(usd) : base + " " + fmt(units, 2)]])}
+    ${sec("tag", "Цена", [["Цена входа", pxW(t.side, t.entry)], ["Цена закрытия", pxW(closeSide, t.exit)],
+        ["Текущая цена", `${pxW(closeSide, closeSide === "buy" ? q.ask : q.bid)}<br><span class="dl-sub">(${L(closeSide === "buy" ? "Продажа" : "Покупка")} ${pxfmt(closeSide === "buy" ? q.bid : q.ask, sym)})</span>`]])}
+    ${sec("info", "Информация", [["ID сделки", ids.close], ["Статус", "Filled", "pos"], ["Закрывает сделки", `<u>${ids.open}</u>`], ["Ордер сделки", ids.ord],
+        ["Связанная позиция", ids.pos], ["Канал", "XAUCORE Web"], ["Комментарий", reason]])}
+    ${sec("clock", "Время", [["Время открытия", fmtStamp(t.openTime)], ["Время закрытия", fmtStamp(t.closeTime)]])}
+    ${sec("usd", "Реализ. прибыль и комиссии", [["Свопы", Math.abs(t.swap) < .005 ? "–" : money(t.swap)], ["Комиссия брокера", money(-t.commission)],
+        ["Валовая прибыль", money(t.gross)], ["Чистая прибыль", money(t.net)]])}
+  </div>`;
+}
+/* the chart of a deal: the bars of the trade with room either side (the timeframe that holds it in ≤ 40 bars), the
+   entry and the exit drawn as cTrader tags them («Продать | 0.07 Лоты | 3858.89»), the times under it */
+function dealChart(t){
+  const sym = symOf(t), t0 = Math.floor(t.openTime / 1000), t1 = Math.floor(t.closeTime / 1000);
+  const tf = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"].find(k => (t1 - t0) / TF[k] <= 30) || "D1", step = TF[tf];
+  const from = Math.floor(t0 / step) * step - 8 * step, to = Math.floor(t1 / step) * step + 3 * step;
+  const bars = candlesOf(sym, tf).filter(b => b.t >= from && b.t <= to);
+  if(bars.length < 3) return "";
+  const W = 360, H = 230, padT = 10, padB = 26, plotR = W - 4;
+  let lo = Math.min(t.entry, t.exit), hi = Math.max(t.entry, t.exit);
+  for(const b of bars){ if(b.l < lo) lo = b.l; if(b.h > hi) hi = b.h; }
+  const span = Math.max(hi - lo, symPip(sym) * 4); lo -= span * .06; hi += span * .06;
+  const y = v => padT + (hi - v) / (hi - lo) * (H - padT - padB), n = to - from, x = tt => 6 + (tt - from + step / 2) / (n + step) * (plotR - 6);
+  const bw = Math.max(2, (plotR - 6) / ((n + step) / step) * .62);
+  let svg = "";
+  for(const b of bars){
+    const up = b.c >= b.o, cx = x(b.t), yo = y(b.o), yc = y(b.c);
+    svg += `<g class="${up ? "buy" : "sell"}"><path d="M${cx.toFixed(1)} ${y(b.h).toFixed(1)}V${y(b.l).toFixed(1)}" stroke="currentColor" stroke-width="1.3"/>`
+      + `<rect x="${(cx - bw / 2).toFixed(1)}" y="${Math.min(yo, yc).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1.2, Math.abs(yc - yo)).toFixed(1)}" fill="currentColor"/></g>`;
+  }
+  const tag = (side, px, off) => {
+    const yy = y(px), lab = `${L(side === "sell" ? "Продать" : "Купить")}`, lot = lotsTxt(t.volume), pv = pxfmt(px, sym);
+    return `<g class="dl-tag ${side}"><path d="M0 ${yy.toFixed(1)}H${W}" stroke="currentColor" stroke-width="1" stroke-dasharray="5 4" opacity=".7"/>`
+      + `<foreignObject x="0" y="${(yy - 12 + off).toFixed(1)}" width="${W}" height="24"><div class="dl-pill"><span>${lab}</span><span>${lot}</span><span>${pv}</span></div></foreignObject></g>`;
+  };
+  const gap = Math.abs(y(t.entry) - y(t.exit)) < 26 ? 13 : 0, eUp = y(t.entry) <= y(t.exit);
+  svg += tag(t.side, t.entry, gap ? (eUp ? -gap : gap) : 0) + tag(t.side === "sell" ? "buy" : "sell", t.exit, gap ? (eUp ? gap : -gap) : 0);
+  let axis = "";
+  const ticks = 4;
+  for(let i = 0; i < ticks; i++){
+    const tt = from + (n * (i + .5) / ticks), d = new Date(tt * 1000);
+    axis += `<text x="${x(tt).toFixed(1)}" y="${H - 6}" text-anchor="middle">${i === 0 ? pad2(d.getDate()) + "." + pad2(d.getMonth() + 1) : fmtHM(tt * 1000)}</text>`;
+  }
+  return `<div class="dl-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="M0 ${H - padB + .5}H${W}" class="dl-axis"/>${svg}<g class="dl-time">${axis}</g></svg></div>
+    <p class="dl-note">${L("График формируется на основе изменений цены продажи. Изменения цены покупки не отображаются.")}</p>`;
+}
+function dealShare(){
+  const t = dealOf(S.ui.deal); if(!t) return;
+  const txt = `${symOf(t)} · ${L(t.side === "sell" ? "Продать" : "Купить")} ${lotsTxt(t.volume)} · ${plTxt(t.net)} USD · XAUCORE`;
+  if(navigator.share) navigator.share({ text: txt }).catch(() => {});
+  else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("g", L("Скопировано"))).catch(() => toast("", txt));
+  else toast("", txt);
+}
 function closeAllNet(){
   let net = 0;
   for(const p of S.positions) net += posMetrics(p).net;
   return net;
-}
-function closeAllLabel(net){ return `${L("Закрыть позиции (")}${S.positions.length}) · ${signMoney(net)}`; }
-function closeAllBar(){
-  if(S.positions.length < 2) return "";
-  const net = closeAllNet();
-  return `<button class="btn ${net>=0?"green":"red"}" data-act="closeall" id="closeAllBtn" style="margin:0 0 12px">${closeAllLabel(net)}</button>`;
 }
 /* Close every open position at market, newest first. */
 function closeAllPositions(){
@@ -8682,27 +9022,8 @@ function closeAllPositions(){
   recalcAccount();
   save(); render();
 }
-function posRow(p){
-  const m = posMetrics(p);
-  const net = m.net;
-  return `<div class="lrow" data-posdetail="${p.id}">
-    <div class="top">
-      <span class="sym">${p.symbol} <span class="tag ${p.side}">${p.side.toUpperCase()} ${fmt(p.volume,2)}</span></span>
-      <span class="pnl mono ${net>=0?"pos":"neg"}" id="pr-${p.id}-net">${signMoney(net)}</span>
-    </div>
-    <div class="mid">
-      <span>${L("Вход~entry")} <span class="mono">${pxfmt(p.entry, p.symbol)}</span> → <span class="mono" id="pr-${p.id}-cur">${pxfmt(closePriceFor(p), p.symbol)}</span></span>
-      <span>SL <span class="mono">${p.sl?pxfmt(p.sl, p.symbol):"—"}</span> · ${p.tp1 ? `TP1 <span class="mono">${pxfmt(p.tp1.price, p.symbol)}</span> · ` : ""}TP <span class="mono">${p.tp?pxfmt(p.tp, p.symbol):"—"}</span></span>
-    </div>
-    <div class="mid">
-      <span>${L("Брутто")} <span class="mono ${m.gross>=0?"pos":"neg"}" id="pr-${p.id}-gross">${signMoney(m.gross)}</span></span>
-      <span>${L("Комис.")} <span class="mono">${money(-m.comm)}</span> · ${L("Своп")} <span class="mono ${m.swap>=0?"pos":"neg"}">${signMoney(m.swap)}</span></span>
-    </div>
-  </div>`;
-}
 
 /* ---------- ORDERS ---------- */
-function screenOrders(){ return appbar(L("Ордера")) + listOrders() + (S.pendings.length ? fabNewMarkup() : ""); }
 /* cTrader's orders table (Markets → XAUUSD → ОРДЕРА and the Ордеры tab): captions
    «Инструмент · Направление · Размер · Расстояние» (cut with … in their narrow columns, as in
    cTrader), then a row per order — ✓, symbol, the order-type glyph in the side's colour,
@@ -8733,15 +9054,14 @@ function listOrders(sym){
   const list = sym ? S.pendings.filter(o => symOf(o) === sym) : S.pendings;
   if(!list.length) return `<div class="wrap"><div class="muted">${L("Нет отложенных ордеров")}<br><br>
     <button class="btn ghost" data-act="newticket" style="max-width:220px;margin:0 auto">${L("Создать ордер")}</button></div></div>`;
-  return `<div class="otbl">
-    <div class="otbl-row otbl-head"><span></span><span>${L("Инструмент")}</span><span>${L("Направление")}</span><span>${L("Размер")}</span><span class="r">${L("Расстояние")}</span><span></span></div>
-    ${list.map(o=>`<div class="otbl-row" data-modord="${o.id}">
-      <span class="ok"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 12.5l5.8 5.8L21 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      <span>${o.symbol}</span>
-      <span title="${ordTypeName(o.type)}">${orderGlyph(o.type)}</span>
-      <span>${lotsTxt(o.volume)}</span>
+  return `<div class="ptbl">
+    <div class="ptbl-row ptbl-head"><span>${L("Инструмент")}</span><span>${L("Направление")}</span><span>${L("Размер")}</span><span class="r">${L("Расстояние")}</span><span></span></div>
+    ${list.map(o=>`<div class="ptbl-row" data-modord="${o.id}">
+      ${symCell(symOf(o))}
+      <span class="ptbl-dir" title="${ordTypeName(o.type)}">${orderGlyph(o.type)}</span>
+      <span class="ptbl-lot">${lotsTxt(o.volume)}</span>
       <span class="r" id="od-${o.id}">${pipsTxt(orderDist(o), symOf(o))}</span>
-      <button type="button" class="x" data-cancelord="${o.id}" aria-label="${L("Отменить ордер #")}${o.id}"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button type="button" class="x" data-cancelord="${o.id}" aria-label="${L("Отменить ордер #")}${o.id}">${X_ICON}</button>
     </div>`).join("")}
   </div>`;
 }
@@ -8749,7 +9069,7 @@ function listOrders(sym){
 /* ---------- MORE ---------- */
 function screenMore(){
   const acct = XC.token ? `<b>${XC.email||L("аккаунт")}</b>` : `${L("Не выполнен вход")}`;
-  return appbar(L("Ещё"), { demo: true }) + `<div class="wrap">
+  return appbar(L("Мой cTrader"), { demo: true }) + `<div class="wrap">
     <div class="card">
       <div class="row"><span class="k">${L("Аккаунт")}</span><span class="v">${acct}</span></div>
       <div class="row"><span class="k">${L("Синхронизация")}</span><span class="v mono" id="xcSync">…</span></div>
@@ -8774,7 +9094,7 @@ function screenMore(){
       ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono wl-shut">${walletFmt(S.wallet.balance)}<svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><rect x="1.5" y="6" width="9" height="7" rx="1.6" fill="currentColor"/><path d="M3.6 6V4.3a2.4 2.4 0 0 1 4.8 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div>`
       : `<div class="menu-item" data-act="gotowallet"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
     <div class="menu-item" data-act="gotosettings"><span>${L("⚙️ Настройки симулятора")}</span><span>›</span></div>
-    <div class="menu-item" data-act="gotohistory"><span>${L("📜 История сделок")}</span><span>›</span></div>
+    <div class="menu-item" data-act="gotostats"><span>${L("📊 Статистика торговли")}</span><span>›</span></div>
     <div class="menu-item" data-act="gotodebug"><span>${L("🐞 Debug-консоль (день / статистика)")}</span><span>›</span></div>
     <div class="menu-item" data-act="mknews"><span>${L("📰 Создать Synthetic News (календарь)")}</span><span>+</span></div>
     <div class="menu-item" data-act="newsresult"><span>${L("📊 Последний News Result")}</span><span>›</span></div>
@@ -9068,10 +9388,9 @@ function walletTransferModal(){
 }
 
 /* ---------- HISTORY ---------- */
-function screenHistory(){
-  const h = S.history;
+function screenStats(){
   const stat = historyStats();
-  return appbar(L("История сделок"),{back:true}) + `<div class="wrap">
+  return appbar(L("Статистика торговли"),{back:true}) + `<div class="wrap">
     <div class="card">
       <h3>${L("Статистика")}</h3>
       <div class="row"><span class="k">${L("Всего сделок")}</span><span class="v mono">${stat.total}</span></div>
@@ -9086,19 +9405,6 @@ function screenHistory(){
       <div class="row"><span class="k">${L("Макс. прибыль / убыток")}</span><span class="v mono">${signMoney(stat.largestWin)} / ${signMoney(stat.largestLoss)}</span></div>
       <div class="row"><span class="k">${L("Средняя сделка")}</span><span class="v mono ${stat.avg>=0?"pos":"neg"}">${signMoney(stat.avg)}</span></div>
     </div>
-    ${h.length? h.map(histRow).join("") : `<div class="muted">${L("История пуста")}</div>`}
-  </div>`;
-}
-function histRow(t){
-  const d = new Date(t.closeTime);
-  const dstr = fmtYMD(t.closeTime)+" "+fmtHM(t.closeTime);
-  return `<div class="lrow">
-    <div class="top">
-      <span class="sym">${t.symbol} <span class="tag ${t.side}">${t.side.toUpperCase()} ${fmt(t.volume,2)}</span></span>
-      <span class="pnl mono ${t.net>=0?"pos":"neg"}">${signMoney(t.net)}</span>
-    </div>
-    <div class="mid"><span>${pxfmt(t.entry, t.symbol)} → ${pxfmt(t.exit, t.symbol)}</span><span>${dstr} · ${fmtDur(t.closeTime-t.openTime)}</span></div>
-    <div class="mid"><span>${L("Брутто")} ${signMoney(t.gross)}</span><span>${L("Комис.")} ${money(-t.commission)} · ${L("Своп")} ${signMoney(t.swap)}${t.reason&&t.reason!=="manual"?" · "+L(t.reason):""}</span></div>
   </div>`;
 }
 function historyStats(){
@@ -9791,18 +10097,20 @@ async function refreshLockCard(){
 
 /* ---------- bottom nav ---------- */
 /* ---- the tab bar's drop (see .bottomnav in the CSS) ---- */
-const NAV_TABS = ["markets", "chart", "positions", "orders", "more"];
+// FOUR TABS (user 2026-11-17, cTrader's Android update): «Ордеры» left the bar - the orders are a tab of «Позиции»
+// now, beside «История» - and «Ещё» is «Мой cTrader». NAV_N is what every slot, spring bound and end below counts in.
+const NAV_TABS = ["markets", "chart", "positions", "more"];
+const NAV_N = NAV_TABS.length;
 /* SOLID icons, the reference's weight: a silhouette in the tab's colour with its detail cut out in the bar's
    (--nav-hole), exactly as its own do — a red square with a white figure in it, a grey block with white lines.
    Only «Рынки» stays linear, because two arrows have no silhouette; it carries the same weight at 2.6 px. */
 const NAV_ICONS = [
   ["markets",   '<g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.2 5.2 5.6 10.8M5.6 10.8V7.3M5.6 10.8h3.5M12.8 18.8l5.6-5.6M18.4 13.2h-3.5M18.4 13.2v3.5"/></g>', "Рынки", ["markets","calendar","dom"]],
   ["chart",     '<path fill="currentColor" d="M6.2 3.4h11.6a2.8 2.8 0 0 1 2.8 2.8v11.6a2.8 2.8 0 0 1-2.8 2.8H6.2a2.8 2.8 0 0 1-2.8-2.8V6.2a2.8 2.8 0 0 1 2.8-2.8z"/><path fill="none" stroke="var(--nav-hole)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" d="m6.9 15.2 3.4-3.7 2.6 2.2 4.2-4.4"/>', "Графики", ["chart"]],
-  ["positions", '<g fill="currentColor"><path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/></g>', "Позиции", ["positions"]],
-  ["orders",    '<path fill="currentColor" d="M9.6 2.2h4.8c.72 0 1.3.58 1.3 1.3v.8h1.8A2.7 2.7 0 0 1 20.2 7v11.8a2.7 2.7 0 0 1-2.7 2.7H6.5a2.7 2.7 0 0 1-2.7-2.7V7a2.7 2.7 0 0 1 2.7-2.7h1.8v-.8c0-.72.58-1.3 1.3-1.3z"/><path fill="none" stroke="var(--nav-hole)" stroke-width="2" stroke-linecap="round" d="M8.4 10.4h7.2M8.4 14h7.2M8.4 17.6h4.2"/>', "Ордеры", ["orders"]],
-  ["more",      '<g fill="currentColor"><circle cx="7.6" cy="7.6" r="3.15"/><circle cx="16.4" cy="7.6" r="3.15"/><circle cx="7.6" cy="16.4" r="3.15"/><circle cx="16.4" cy="16.4" r="3.15"/></g>', "Ещё", ["more","settings","history","debug","wallet"]]
+  ["positions", '<g fill="currentColor"><path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/></g>', "Позиции", ["positions","orders","history","deal"]],
+  ["more",      '<g fill="currentColor"><rect x="3.6" y="3.6" width="7.4" height="7.4" rx="2.4"/><rect x="13" y="3.6" width="7.4" height="7.4" rx="2.4"/><rect x="3.6" y="13" width="7.4" height="7.4" rx="2.4"/><rect x="13" y="13" width="7.4" height="7.4" rx="2.4"/></g>', "Мой cTrader", ["more","settings","stats","debug","wallet"]]
 ];
-function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : t === "positions" ? 2 : t === "orders" ? 3 : 4; }
+function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : ["positions","orders","history","deal"].includes(t) ? 2 : 3; }
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // what makes two renders' bars the same bar: its markup less the live style vars, the drag class and the chosen tab
 function navBarKey(html){
@@ -9861,24 +10169,25 @@ function navLayoutScale(){
   if(style.getPropertyValue("--nav-scale") !== value) style.setProperty("--nav-scale", value);
   return Number(value);
 }
-// Five measured profiles; all rendering and hit testing use these same local coordinates.
+// The measured profiles, one per slot (four since 2026-11-17: the reference's even slots, its end and middle sizes);
+// all rendering and hit testing use these same local coordinates.
 const NAV_DROP = Object.freeze({
-  centres: Object.freeze([55.5, 166.5, 277.5, 388.5, 499.5]),
-  widths: Object.freeze([105, 120, 120, 120, 105]),
+  centres: Object.freeze([69.375, 208.125, 346.875, 485.625]),
+  widths: Object.freeze([105, 120, 120, 105]),
   referenceW: 555, referenceH: 94, height: 80,
-  activeWidths: Object.freeze([139, 125, 125, 125, 114]),
-  activeHeights: Object.freeze([116, 124, 124, 124, 119])
+  activeWidths: Object.freeze([139, 125, 125, 114]),
+  activeHeights: Object.freeze([116, 124, 124, 119])
 });
 function navTrackBuild(width, height, labels){
-  const w = Math.max(1, width), h = Math.max(8, height), tabW = w / 5;
+  const w = Math.max(1, width), h = Math.max(8, height), tabW = w / NAV_N;
   const scale = Math.min(w / NAV_DROP.referenceW, h / NAV_DROP.referenceH);
   const restH = h * NAV_DROP.height / NAV_DROP.referenceH;
-  const centres = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
+  const centres = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * NAV_N);
   const measured = labels || [0, 0, 0, 0, 0];
   let fit = 1;
   for(let i = 0; i < centres.length; i++){
     const x = centres[i] * tabW, before = i ? (centres[i - 1] + centres[i]) * tabW / 2 : 0;
-    const after = i < 4 ? (centres[i] + centres[i + 1]) * tabW / 2 : w;
+    const after = i < NAV_N - 1 ? (centres[i] + centres[i + 1]) * tabW / 2 : w;
     const available = Math.max(1, 2 * Math.min(x - before, after - x) - 6 * scale);
     if(measured[i] > 0) fit = Math.min(fit, available / measured[i]);
   }
@@ -9888,7 +10197,7 @@ function navTrackBuild(width, height, labels){
 }
 function navTrackAt(u){
   const t = NB.track || (NB.track = navTrackBuild(NB.railWidth || 384, 64));
-  const i = clamp(Math.floor(u), 0, 3), k = u - i, blend = clamp(k, 0, 1);
+  const i = clamp(Math.floor(u), 0, NAV_N - 2), k = u - i, blend = clamp(k, 0, 1);
   return { track: t, centre: t.centres[i] + (t.centres[i + 1] - t.centres[i]) * k,
     width: t.widths[i] + (t.widths[i + 1] - t.widths[i]) * blend,
     activeWidth: NAV_DROP.activeWidths[i] + (NAV_DROP.activeWidths[i + 1] - NAV_DROP.activeWidths[i]) * blend,
@@ -9901,13 +10210,14 @@ function navUAt(x, rect){
   const px = (x - rect.left - rect.width / 2) * (t.width / rect.width) / (1 + NB.rail) + t.width / 2;
   const unit = px / t.tabW, c = t.centres;
   let i = 0;
-  while(i < 3 && unit > c[i + 1]) i++;
+  while(i < NAV_N - 2 && unit > c[i + 1]) i++;
   const u = i + (unit - c[i]) / (c[i + 1] - c[i]);
-  return u < 0 ? -.2 * Math.tanh(-u / .5) : u > 4 ? 4 + .2 * Math.tanh((u - 4) / .5) : u;
+  const L = NAV_N - 1;
+  return u < 0 ? -.2 * Math.tanh(-u / .5) : u > L ? L + .2 * Math.tanh((u - L) / .5) : u;
 }
 function navSlotStyle(i){
-  const centres = NB.track ? NB.track.centres : NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * 5);
-  return "--nx:" + (centres[i] / 5).toFixed(7) + ";--nw:.2";
+  const centres = NB.track ? NB.track.centres : NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * NAV_N);
+  return "--nx:" + (centres[i] / NAV_N).toFixed(7) + ";--nw:" + (1 / NAV_N).toFixed(5);
 }
 // Compatibility for callers that need the first profile's size: the ends are capsules too.
 function navEndW(bar){
@@ -9922,11 +10232,11 @@ function navBox(a, b){
   const I = clamp(NB.it || 0, 0, 1), v = (NB.vs || 0) / NAV_MO.vTall, slow = 1 / (1 + v * v * v);
   const scale = t.height / NAV_DROP.referenceH, rest = p.width * t.tabW;
   // A hop's stretch (~0.3 tab) is the measured one; a longer jump's softly gives out past it (4 tabs: ~0.55).
-  let st = clamp(b - a - 1, -.08, 4);
+  let st = clamp(b - a - 1, -.08, NAV_N - 1);
   if(st > NAV_MO.stretchKnee) st = NAV_MO.stretchKnee + (st - NAV_MO.stretchKnee) / (1 + (st - NAV_MO.stretchKnee) / NAV_MO.stretchSoft);
   let width = Math.max(rest * .9, rest + st * t.tabW);
   let height = t.restH * (1 + NAV_MO.tall * I * slow);
-  if(navDarkLens()) height *= 1 + NAV_DARK.lift * clamp(NB.clear || 0, 0, 1);   // the dark video's clear lens stands past the bar
+  if(navDarkLens()){ const c = clamp(NB.clear || 0, 0, 1); height *= 1 + NAV_DARK.lift * c; width *= 1 + NAV_DARK.widen * c; }   // the dark video's clear lens: as tall as the bar, a wide capsule
   const room = t.height - 2 * NAV_MO.endGap * scale;
   // LEAVING AN END TAB (user 2026-11-16: «капля не распухает как в оригинальном видео с котирування»; the reference's
   // Котирування → Чарт, frame by frame): the drop comes off the wall at once and, fast as it is, fills the bar's
@@ -9949,17 +10259,17 @@ function navBox(a, b){
   const overflow = 14 * scale;
   let centre = clamp(p.centre * t.tabW, width / 2 - overflow, t.width - width / 2 + overflow);
   if(end > 0 && I > 0){
-    const wall = u < 2 ? Math.min(centre, width / 2 - NAV_MO.endPush * scale) : Math.max(centre, t.width - width / 2 + NAV_MO.endPush * scale);
+    const wall = u < (NAV_N - 1) / 2 ? Math.min(centre, width / 2 - NAV_MO.endPush * scale) : Math.max(centre, t.width - width / 2 + NAV_MO.endPush * scale);
     // only as it lands - the last third of a tab, slowed down: earlier it pulled the drop ahead of the springs and a
     // hop onto an end tab ran faster than any other (user 2026-11-16)
-    const d = clamp(1 - Math.min(Math.abs(u), Math.abs(4 - u)) / .3, 0, 1), land = d * d * (3 - 2 * d);
+    const d = clamp(1 - Math.min(Math.abs(u), Math.abs(NAV_N - 1 - u)) / .3, 0, 1), land = d * d * (3 - 2 * d);
     centre += (wall - centre) * land * I * slow;
   }
   return { left: (centre - width / 2) / t.tabW, sx: width / t.tabW, sy: height / t.baseH };
 }
 // 1 within 0.4 tab of an end tab (or past it), 0 from the second tab in, smooth between
 function navEndness(u){
-  const e = Math.max(clamp((1 - u) / .6, 0, 1), clamp((u - 3) / .6, 0, 1));
+  const e = Math.max(clamp((1 - u) / .6, 0, 1), clamp((u - (NAV_N - 2)) / .6, 0, 1));
   return e * e * (3 - 2 * e);
 }
 // The end's hold on the drop: its endness, but only while the drop is going to (or sitting on) that end tab -
@@ -9968,12 +10278,12 @@ function navEndHold(u){
   const e = navEndness(u);
   if(!e) return 0;
   const home = NB.drag ? NB.drag.u : NB.target;
-  return (u < 2 ? home <= .5 : home >= 3.5) ? e : 0;
+  return (u < (NAV_N - 1) / 2 ? home <= .5 : home >= NAV_N - 1.5) ? e : 0;
 }
 // a press that sends the drop away from an end tab: the departure swell of navBox (NB.fromEnd = the hop's length)
 function navMarkDeparture(to){
   const from = NB.u == null ? NB.target : NB.u;
-  NB.fromEnd = (from < .3 || from > 3.7) && Math.abs(to - from) > .5 ? Math.abs(to - from) : 0;   // how far it goes
+  NB.fromEnd = (from < .3 || from > NAV_N - 1.3) && Math.abs(to - from) > .5 ? Math.abs(to - from) : 0;   // how far it goes
 }
 // The drop's corner (share of its height): round, a capsule at rest. CLEAR, IT IS AN OVAL (user 2026-11-17: «форма капли
 // не совпадает с видео»; the reference frame by frame at the same bar height): its ends stretch along the bar - the
@@ -9984,13 +10294,17 @@ const NAV_OVAL = .35;
 // the dark theme's lens, as the user's dark iOS 26 video (2026-11-17): the content inside ~1.2× (fitted; the light reference: 1.15),
 // letters curled only in a thin fold at the rim (no blobs further in), no colour fringes at all (none on the video: its only colour is WhatsApp's green
 // badges), and the clear drop ~16 % taller - past the bar's top and foot. Aurora keeps the light reference's.
-const NAV_DARK = Object.freeze({ magnify: .2, reach: .2, reachMotion: 0, lift: .16 });   // fitted on the video's frames (fitdark.py): 1.19-1.21 in the middle; the pull folds only at the very rim (ρ ≈ .96), as its curled letters
+// From the video's held frames, zoomed (2026-11-17, the user: «переломление не 1 в 1 … и обводка»): the middle magnifies
+// ~1.2 (fitted 1.15-1.21), and only a narrow band at the very rim (ρ^12, folding from ρ ≈ .92) bends - the label's own
+// ends curl along the rim there. Nothing from outside is drawn into it: a joint fit read an outward pull (-0.48), but
+// rendered it squeezed the neighbours' names into the rim, which the video never shows.
+const NAV_DARK = Object.freeze({ magnify: .2, reach: .2, reachMotion: 0, gamma: 12, lift: .16, widen: 0 });
 function navDarkLens(){
   const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset;
   return !!d && d.theme === "dark" && d.tone !== "aurora";
 }
 function navCorner(clear){ return .5; }
-function navOval(clear){ return 1 + NAV_OVAL * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)); }
+function navOval(clear){ return navDarkLens() ? 1 : 1 + NAV_OVAL * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)); }   // dark: the video's capsule
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
 // 8.8 % of the curve this replaces. x is solved by halving; y1 = 0, so its y half is 2.76t²(1-t) + t³.
 function navEase(x){
@@ -10044,8 +10358,8 @@ function navBubFrame(now){
       NB.va += (-wa * wa * (NB.a - home) - 2 * za * wa * NB.va) * h;
       NB.vb += (-wb * wb * (NB.b - home - 1) - 2 * zb * wb * NB.vb) * h;
     }
-    NB.a = clamp(NB.a + NB.va * h, -.25, 4.25);
-    NB.b = clamp(NB.b + NB.vb * h, .75, 5.25);
+    NB.a = clamp(NB.a + NB.va * h, -.25, NAV_N - .75);
+    NB.b = clamp(NB.b + NB.vb * h, .75, NAV_N + .25);
   }
   const settled = !d && Math.abs(NB.a - home) < .0005 && Math.abs(NB.b - home - 1) < .0005 && Math.abs(NB.va) + Math.abs(NB.vb) < .01;
   if(settled){ NB.a = home; NB.b = home + 1; NB.va = NB.vb = 0; }
@@ -10219,10 +10533,12 @@ function navFit(bar){
    transform on the source (--nm). The backdrop pass keeps its own field. */
 const NAV_OPTICS = Object.freeze({ background: "data:image/png;base64,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", reach: .18, reachMotion: .05, backBend: 27, backMotion: 4, magnify: .15, magnifyMotion: .02, dispersion: .7, dispRest: .7, dispBlue: 1, padding: 36, clarityRef: 2.155,
   mapW: 288, mapH: 232, mapM: 16, mapN: 3, gamma: 6, gmax: 1.4, fieldX: .95, fieldY: 1.17 });
-let _navLensMap = "";
-function navLensMap(){
-  if(_navLensMap) return _navLensMap;
-  const O = NAV_OPTICS, W = O.mapW, H = O.mapH, n = O.mapN, gam = O.gamma, G = O.gmax;
+const _navLensMaps = {};
+// the field, drawn once per profile: γ 6 (the light reference, fitted) or the dark video's γ (NAV_DARK.gamma)
+function navLensMap(gamma){
+  const gam = gamma || NAV_OPTICS.gamma;
+  if(_navLensMaps[gam]) return _navLensMaps[gam];
+  const O = NAV_OPTICS, W = O.mapW, H = O.mapH, n = O.mapN, G = O.gmax;
   const hw = (W - 2 * O.mapM) / 2, hh = (H - 2 * O.mapM) / 2;
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d"), img = g.createImageData(W, H), px = img.data;
@@ -10236,7 +10552,7 @@ function navLensMap(){
     px[i] = Math.round(128 - 127 * pull * u / G); px[i + 1] = Math.round(128 - 127 * pull * v / G); px[i + 2] = 128; px[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
-  return _navLensMap = c.toDataURL("image/png");
+  return _navLensMaps[gam] = c.toDataURL("image/png");
 }
 let _navMapReady = false, _navMapRequested = false;
 function navSpectrumValues(ink, background){
@@ -10326,7 +10642,7 @@ function navOpticsBind(bar){
     _lgDefs.appendChild(filter);
   }
   const image = filter.querySelector("feImage"), matrices = [...filter.querySelectorAll("feColorMatrix")], result = name => filter.querySelector('[result="' + name + '"]');
-  NB.optical = { bar, source, filter, image, axes: result("normals"), channels: matrices.filter(m => /^channel\d$/.test(m.getAttribute("result"))), delta: result("spectralDelta"), output: result("navigationColour"), spectrum: navSpectrumRead(bar), spectral: null, dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / 5, h: bar.clientHeight, key: "" };
+  NB.optical = { bar, source, filter, image, axes: result("normals"), channels: matrices.filter(m => /^channel\d$/.test(m.getAttribute("result"))), delta: result("spectralDelta"), output: result("navigationColour"), spectrum: navSpectrumRead(bar), spectral: null, dms: [...filter.querySelectorAll("feDisplacementMap")], tabW: bar.clientWidth / NAV_N, h: bar.clientHeight, key: "" };
   const NS = "http://www.w3.org/2000/svg", neutral = bar.querySelector(".nav-neutral"), backdrop = bar.querySelector(".nb-refract");
   if(neutral) NB.optical.neutral=neutral;
   if(backdrop){
@@ -10354,7 +10670,7 @@ function navLens(clear){
   // pulse cannot move this hole away from the independent red optical source.
   if(o.neutral){
     const radius=navCorner(clear),rx=Math.min(w/2,h*radius*navOval(clear)),ry=h*radius,f=v=>v.toFixed(3);
-    const d=`M-64 -64H${f(o.tabW*5+64)}V${f(o.h+64)}H-64Z M${f(x+rx)} ${f(y)}H${f(x+w-rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+w)} ${f(y+ry)}V${f(y+h-ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+w-rx)} ${f(y+h)}H${f(x+rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x)} ${f(y+h-ry)}V${f(y+ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+rx)} ${f(y)}Z`;
+    const d=`M-64 -64H${f(o.tabW*NAV_N+64)}V${f(o.h+64)}H-64Z M${f(x+rx)} ${f(y)}H${f(x+w-rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+w)} ${f(y+ry)}V${f(y+h-ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+w-rx)} ${f(y+h)}H${f(x+rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x)} ${f(y+h-ry)}V${f(y+ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x+rx)} ${f(y)}Z`;
     if(o.holeKey!==d){o.holeKey=d;o.neutral.style.clipPath=`path(evenodd,"${d}")`;}
   }
   const strength = LG_UI.refract * LGQ.r / NAV_OPTICS.clarityRef;
@@ -10362,7 +10678,7 @@ function navLens(clear){
   // displacement scale, the other is scaled down in the field by the matrix.
   // β of the fitted lens (the pull at the field's rim, as a share of the distance from the middle), larger in motion
   const dark = navDarkLens(), OP = dark ? NAV_DARK : NAV_OPTICS;
-  const reach = k * (OP.reach + OP.reachMotion * Math.min(1, energy / .5)) * strength;
+  const reachS = k * (OP.reach + OP.reachMotion * Math.min(1, energy / .5)) * strength, sgn = reachS < 0 ? -1 : 1, reach = Math.abs(reachS);
   const reachX = reach * NAV_OPTICS.gmax * w / 2, reachY = reach * NAV_OPTICS.gmax * h / 2;
   const bend = 2 * Math.max(reachX, reachY);
   const backdropBend = k * (NAV_OPTICS.backBend + NAV_OPTICS.backMotion * energy) * strength * h / 55.8;
@@ -10392,19 +10708,20 @@ function navLens(clear){
     }else if(bg.effect!==""){ bg.effect="";bg.source.style.backdropFilter="";bg.source.style.webkitBackdropFilter=""; }
   }
   if(!k || !strength || !_navMapReady){ o.source.style.filter=""; o.key=""; return; }
+  { const want = dark ? navLensMap(NAV_DARK.gamma) : navLensMap(); if(o.image.getAttribute("href") !== want) o.image.setAttribute("href", want); }
   navSpectrumSync(o,false);
-  const key=[x,y,w,h,bend,split].map(v=>v.toFixed(4)).join(",");
+  const key=[x,y,w,h,sgn*bend,split].map(v=>v.toFixed(4)).join(",");
   if(key!==o.key){
     o.key=key;
     // the fitted lens only ever samples INWARDS (towards the middle), so the filter needs no margin outside the drop
     // beyond a hair for the edge pixels: its region was the drop plus up to 36 px a side, 2-3x the pixels, every frame
-    const padding=2;
+    const padding=sgn<0?Math.ceil(Math.max(reachX,reachY))+4:2;   // sampling outwards: room out there
     const region={x:x-padding,y:y-padding,width:w+padding*2,height:h+padding*2};
     set(o.filter,region);
     const O=NAV_OPTICS,mx=O.mapM/(O.mapW-2*O.mapM),my=O.mapM/(O.mapH-2*O.mapM);
     set(o.image,{x:x-w*mx,y:y-h*my,width:w*(1+2*mx),height:h*(1+2*my)});
     // red bent less, blue more (dispBlue: how much of the split blue takes)
-    o.dms.forEach((dm,i)=>set(dm,{...region,scale:bend*(i===0?1-split:i===2?1+split*NAV_OPTICS.dispBlue:1)}));
+    o.dms.forEach((dm,i)=>set(dm,{...region,scale:sgn*bend*(i===0?1-split:i===2?1+split*NAV_OPTICS.dispBlue:1)}));
     const kx=bend?2*reachX/bend:1,ky=bend?2*reachY/bend:1,f=v=>v.toFixed(4);
     set(o.axes,{values:`${f(kx)} 0 0 0 ${f(.5-kx/2)} 0 ${f(ky)} 0 0 ${f(.5-ky/2)} 0 0 1 0 0 0 0 0 1 0`});
   }
@@ -10432,14 +10749,14 @@ function navBind(bar){
     if(!d || e.pointerId !== d.id) return;
     NB.drag = null;
     const b = document.querySelector(".bottomnav"); if(b) b.classList.remove("dragging");
-    const i = go ? clamp(Math.round(d.u), 0, 4) : navIndexOf(S.ui.tab);
+    const i = go ? clamp(Math.round(d.u), 0, NAV_N - 1) : navIndexOf(S.ui.tab);
     navGo(i, true);
     if(go){ _navByDrop = performance.now(); const tb = NAV_TABS[i]; if(!(tb === S.ui.tab && !(tb === "markets" && S.ui.marketOpen))) navTo(tb); }   // the tab you are on: nothing to rebuild
   };
   bar.onpointerdown = e => {
     if(e.button > 0) return;
     const br = bar.getBoundingClientRect(), pointerU = uAt(e.clientX, br), touch = e.pointerType !== "mouse";
-    const start = touch ? clamp(Math.round(pointerU), 0, 4) : pointerU;
+    const start = touch ? clamp(Math.round(pointerU), 0, NAV_N - 1) : pointerU;
     navMarkDeparture(start);
     NB.drag = { id: e.pointerId, u: start, start, pointerU, moved: !touch, t0: performance.now(), lastX: e.clientX, x0: e.clientX, y0: e.clientY, rect: br, mid: Math.abs(e.clientX - (br.left + br.width / 2)) < br.width * .2 };
     const now = performance.now(); NB.tapAt = now; if(!NB.pulseAt || now - NB.pulseAt >= NAV_MO.pulseMs) NB.pulseAt = now;
@@ -10460,7 +10777,7 @@ function navBind(bar){
     // starts dragging, with that initial offset preserved so the capsule cannot jump sideways.
     if(!d.moved && Math.abs(e.clientX - d.x0) < 6) return;
     d.moved = true;
-    d.u = clamp(uAt(e.clientX) - d.pointerU + d.start, -.2, 4.2); navBubKick();
+    d.u = clamp(uAt(e.clientX) - d.pointerU + d.start, -.2, NAV_N - .8); navBubKick();
   };
   bar.onpointerup = e => end(e, true);
   bar.onpointercancel = e => end(e, false);
@@ -10477,7 +10794,7 @@ function navBind(bar){
 // (bubbling, after the bar's own handler — which opens the tab — has had its turn)
 window.addEventListener("pointerup", e => {
   if(!NB.drag || e.pointerId !== NB.drag.id || (e.target && e.target.closest && e.target.closest(".bottomnav"))) return;
-  const d = NB.drag; NB.drag = null; navGo(clamp(Math.round(d.u), 0, 4), true);
+  const d = NB.drag; NB.drag = null; navGo(clamp(Math.round(d.u), 0, NAV_N - 1), true);
 });
 /* the drop under the current subtab and under each segmented control's choice (liquid glass on). It lives
    on across re-renders (_dropMem), so a tap makes it FLOW to the new choice: its two edges ride their own
@@ -10722,7 +11039,7 @@ function subBind(bar){
     const h = near(e.clientX), on = bar.querySelector(":scope > button.on");
     if(go && h.b && h.b !== on){
       const sp = subSpan(bar, h.b); subGo(sp.tl, sp.tr);
-      S.ui.subtab = h.b.dataset.sub; render(); save();
+      subPick(h.b.dataset.sub);
       return;
     }
     const t = subTarget(bar); if(t){ SB.tl = NaN; subGo(t.tl, t.tr); }
@@ -10767,7 +11084,7 @@ function subDragBind(bar){
       _subByDrag = performance.now();
       _dropMem[st.key] = { l: st.l, r: st.r, lf: st.lf, j: st.j, jv: st.jv, pop: st.pop || 0, pv: st.pv || 0 };
       if(bar._pick){ bar._pick(h.b); return; }                    // a seg of its own (the order types): it moves its drop on
-      S.ui.subtab = h.b.dataset.sub; render(); save();
+      subPick(h.b.dataset.sub);
       return;
     }
     _subByDrag = performance.now();                               // the click that follows is ours already
@@ -11282,7 +11599,7 @@ function bindScreen(){
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
     swAfter(b, () => { const v = b.classList.contains("on"); if(v !== glassOn()) setGlass(v); });
   });
-  root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ if(performance.now() - _subByDrag < 400) return; S.ui.subtab = b.dataset.sub; render(); save(); });
+  root.querySelectorAll("[data-sub]").forEach(b=> b.onclick = ()=>{ if(performance.now() - _subByDrag < 400) return; subPick(b.dataset.sub); });
   root.querySelectorAll("[data-tf]").forEach(b=> b.onclick = ()=> setChartTF(b.dataset.tf));
   root.querySelectorAll("[data-chz]").forEach(b=> b.onclick = ()=>{
     const a = b.dataset.chz;
@@ -11294,7 +11611,8 @@ function bindScreen(){
   act("back", ()=>{
     if(S.ui.tab === "markets"){ S.ui.marketOpen = false; render(); save(); return; }   // XAUUSD ‹ -> "Рынки"
     if(["calendar","dom"].includes(S.ui.tab)){ S.ui.marketOpen = true; nav("markets", "overview"); return; }   // opened only from the overview cards
-    nav(["settings","history","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
+    if(S.ui.tab === "deal"){ nav("history"); return; }                            // a deal -> the history it was opened from
+    nav(["settings","stats","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
   });
   act("gotowallet", ()=> nav("wallet"));
   g3dBind();                                   // the wallet's glass figure follows the pinned wallpaper as it scrolls
@@ -11320,7 +11638,11 @@ function bindScreen(){
   act("appmenu", ()=> openAppMenu());
   act("gotocal", ()=> nav("calendar"));
   act("gotosettings", ()=> nav("settings"));
-  act("gotohistory", ()=> nav("history"));
+  act("gotostats", ()=> nav("stats"));
+  act("possort", openPosSort);
+  act("histfilter", openHistFilter);
+  act("accinfo", openAccInfo);
+  act("dealshare", dealShare);
   act("gotodom", ()=> nav("dom"));
   act("charttf", openChartTFSheet);
   act("chartsym", ()=>{ S.ui.marketOpen = true; nav("markets", "overview"); });
@@ -11464,7 +11786,9 @@ function bindScreen(){
 
   // positions detail
   root.querySelectorAll("[data-posdetail]").forEach(el=> el.onclick = ()=> openPosDetail(+el.dataset.posdetail));
-  root.querySelectorAll("[data-cancelord]").forEach(el=> el.onclick = e=>{ e.stopPropagation(); cancelPending(+el.dataset.cancelord); });   // ✕ sits inside the row that opens Modify
+  root.querySelectorAll("[data-cancelord]").forEach(el=> el.onclick = e=>{ e.stopPropagation(); cancelPending(+el.dataset.cancelord); });
+  root.querySelectorAll("[data-closepos]").forEach(el=> el.onclick = e=>{ e.stopPropagation(); if(guardLock()) return; closePosition(+el.dataset.closepos, "manual"); render(); });
+  root.querySelectorAll("[data-deal]").forEach(el=> el.onclick = ()=>{ S.ui.deal = el.dataset.deal; nav("deal"); });   // ✕ sits inside the row that opens Modify
   root.querySelectorAll("[data-modord]").forEach(el=> el.onclick = ()=> openOrderModify(+el.dataset.modord));
   root.querySelectorAll("[data-firenow]").forEach(el=> el.onclick = ()=>{ const e = S.events.find(x=>x.id===+el.dataset.firenow); if(e){ e.time = S.simClock; releaseEvent(e); render(); }});
 
@@ -12883,23 +13207,13 @@ function updateLive(){
   setTxt("pFree", money(A.freeMargin));
   setTxt("pML", isFinite(A.marginLevel)? fmt(A.marginLevel,1)+"%":"—");
   // per position rows
-  const caBtn = document.getElementById("closeAllBtn");
-  if(caBtn){
-    const caNet = closeAllNet();
-    const caTxt = closeAllLabel(caNet);
-    if(caBtn.textContent !== caTxt) caBtn.textContent = caTxt;
-    const caCls = "btn " + (caNet >= 0 ? "green" : "red");
-    if(caBtn.className !== caCls) caBtn.className = caCls;
-  }
   for(const p of S.positions){
     const m = posMetrics(p);
-    setTxt(`pr-${p.id}-net`, signMoney(m.net), m.net>=0?"pos":"neg");
-    setTxt(`pr-${p.id}-gross`, signMoney(m.gross), m.gross>=0?"pos":"neg");
-    setTxt(`pr-${p.id}-cur`, pxfmt(closePriceFor(p), p.symbol));
+    setTxt(`pr-${p.id}-net`, plTxt(m.net), m.net>=0?"pos":"neg");
   }
   // pending distances
   for(const o of S.pendings) setTxt(`od-${o.id}`, pipsTxt(orderDist(o), symOf(o)));
-  for(const [id, n] of [["stPos", xauOpenCount()], ["stOrd", xauOrderCount()]]){   // the subtab counts (the overview isn't re-rendered when they change)
+  for(const [id, n] of [["stPos", xauOpenCount()], ["stOrd", xauOrderCount()], ["ptPos", S.positions.length], ["ptOrd", S.pendings.length]]){   // the subtab counts (the overview isn't re-rendered when they change)
     const e = document.getElementById(id);
     if(e){ if(e.hidden !== !n) e.hidden = !n; if(n) setTxt(id, String(n)); }
   }
@@ -13176,7 +13490,18 @@ let LGQ = lgq(glassClarity());
    gone a few pixels in. There the bent picture is lifted and saturated a little and laid over itself (lgGlowStage). */
 const lgGlowAt = e => { e = Math.max(0, e); return Math.min(255, Math.round(255 * (.82 * Math.exp(-e / 1.35) + .2 * Math.exp(-e / 4.2)))); };
 const _lgGlowK = new Set();
-const lgGlowA = k => Math.min(1, .5 * (k || 1) * Math.min(1.6, LG_UI.light)).toFixed(3);   // «Блики» turns it up and down
+// THE LIGHT THEME'S RIM IS NOT WHITE (user 2026-11-17, a pressed «Купить» in the ticket: «почему края белые? так не должно
+// быть»): over a light page the lit rim - the bent picture brightened 1.36× - comes out white all round. There it is a
+// trace (LG_GLOW_LIGHT); the edge is the thin grey hairline of the reference instead. The dark themes keep their light.
+const LG_GLOW_LIGHT = .15;
+const lgGlowA = k => Math.min(1, .5 * (k || 1) * Math.min(1.6, LG_UI.light) * (document.documentElement.dataset.theme === "dark" ? 1 : LG_GLOW_LIGHT)).toFixed(3);   // «Блики» turns it up and down
+function lgGlowSync(){
+  for(const k of _lgGlowK){
+    if(!k.isConnected){ _lgGlowK.delete(k); continue; }
+    const gv = "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k._gk) + " 0 0";
+    if(k.getAttribute("values") !== gv) k.setAttribute("values", gv);
+  }
+}
 /* PRESSED, THE GLASS LIGHTS UP (iOS 26: under a finger it «illuminates from within» and flexes with light): the rim of
    a pressed lens gathers about twice the light - its own filter (the press lays a deeper lens anyway, lgGlass on
    pointerdown), so pressing costs no switch it did not already make */
@@ -13806,11 +14131,7 @@ function lgUiApply(hard){
   st.setProperty("--lgdk", LG_UI.dark.toFixed(2));                 // every grey the glass casts into itself
   // Colour belongs to Dispersion, not to crossing an arbitrary refraction-slider threshold.
   LG_UI.chroma = false;
-  for(const k of _lgGlowK){
-    if(!k.isConnected){ _lgGlowK.delete(k); continue; }
-    const gv = "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 " + lgGlowA(k._gk) + " 0 0";
-    if(k.getAttribute("values") !== gv) k.setAttribute("values", gv);
-  }
+  lgGlowSync();
   if(hard) lgScaleAll();                                        // ready maps / filters survive a slider sweep
   if(!LG_UI.light) litHome();
 }
