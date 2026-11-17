@@ -2702,6 +2702,33 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
   box-shadow:0 9px 22px rgba(16,24,40,.18),0 2px 5px rgba(16,24,40,.09),0 0 0 .7px rgba(16,24,40,.22),inset 0 .8px .5px rgba(255,255,255,.4),inset 0 -2px 3px rgba(16,24,40,.05)}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{
   box-shadow:0 9px 22px rgba(0,0,0,.45),0 2px 5px rgba(0,0,0,.25),inset 0 0 0 .7px rgba(255,255,255,.22),inset 0 1px .6px rgba(255,255,255,.3),inset 0 -2px 3px rgba(0,0,0,.2)}
+
+/* the instrument (cTrader's Android update): the star boxed on the right, «Оповещение о цене», a pill «Новый ордер» */
+.ovh-top{align-items:flex-start}
+.ovh-top .ovh-ico.star{order:3;margin-left:6px;width:40px;height:40px;border:1px solid var(--line);border-radius:6px;color:#f5c400;background:var(--card)}
+.ovh-top .ovh-ico.star svg{width:24px;height:24px}
+:root[data-theme="dark"] .ovh-top .ovh-ico.star{color:#f5c400}
+.ovh-name{padding-left:0}
+.ab-share{margin-left:auto}
+.pa-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.pa-hd .ovc-title{margin:0}
+.pa-all{font-size:16px;color:var(--ink);padding:6px 2px;display:flex;align-items:center;gap:6px}
+.pa-n{font-style:normal;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgb(var(--bl));color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.pa-chips{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pa-chip{flex:1 1 0;min-width:0;height:46px;border-radius:23px;font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
+.pa-chip.sell{background:color-mix(in srgb,var(--sell) 13%,transparent);color:var(--sell)}
+.pa-chip.buy{background:color-mix(in srgb,var(--buy) 12%,transparent);color:var(--buy)}
+.pa-bell{flex:none;width:58px;height:58px;border-radius:50%;background:color-mix(in srgb,#e9b800 26%,transparent);color:#c99a00;display:flex;align-items:center;justify-content:center}
+:root[data-theme="dark"] .pa-bell{color:#f2c94c}
+.pa-chip:active,.pa-bell:active{filter:brightness(.92)}
+:root[data-glass="on"] :is(.pa-chip,.pa-bell){box-shadow:inset 0 1px .6px rgba(255,255,255,.55),inset 0 0 0 .6px rgba(16,24,40,.08)}
+:root[data-theme="dark"][data-glass="on"] :is(.pa-chip,.pa-bell){box-shadow:inset 0 1px .6px rgba(255,255,255,.14),inset 0 0 0 .6px rgba(255,255,255,.08)}
+.pa-row{align-items:center}
+.pa-row .v{margin-left:auto;margin-right:10px}
+.pa-del{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--ink2);border-radius:50%}
+.pa-del:active{background:var(--press)}
+.bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{border-radius:32px;padding:20px 17px}
+#app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 92px)}
 </style>
 
 <div id="boot" aria-hidden="true"><img class="bt-ico" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23111418'/%3E%3Ctext x='256' y='350' font-size='300' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E"><i class="bt-bar"></i><div class="bt-name">XAUCORE — Simulator cTrade</div></div>
@@ -2864,6 +2891,19 @@ const I18N = {
 "аккаунт":["account","акаунт","compte","hesap"],
 "Не выполнен вход":["Not signed in","Вхід не виконано","Non connecté","Giriş yapılmadı"],
 "Ещё":["More","Ще","Plus","Diğer"],
+"Оповещение о цене":["Price alert", "Сповіщення про ціну", "Alerte de prix", "Fiyat uyarısı"],
+"Все":["All", "Усі", "Toutes", "Tümü"],
+"Новое оповещение":["New alert", "Нове сповіщення", "Nouvelle alerte", "Yeni uyarı"],
+"Не больше 50 оповещений":["No more than 50 alerts", "Не більше 50 сповіщень", "Pas plus de 50 alertes", "En fazla 50 uyarı"],
+"Оповещение: {0} {1}":["Alert: {0} {1}", "Сповіщення: {0} {1}", "Alerte : {0} {1}", "Uyarı: {0} {1}"],
+"{0} достиг {1}":["{0} reached {1}", "{0} досяг {1}", "{0} a atteint {1}", "{0} {1} seviyesine ulaştı"],
+"Цена продажи достигнет":["When the sell price reaches", "Коли ціна продажу досягне", "Quand le prix de vente atteint", "Satış fiyatı şu seviyeye ulaştığında"],
+"Создать оповещение":["Create alert", "Створити сповіщення", "Créer l'alerte", "Uyarı oluştur"],
+"Неверная цена":["Invalid price", "Невірна ціна", "Prix invalide", "Geçersiz fiyat"],
+"Выше":["Above", "Вище", "Au-dessus", "Üstünde"],
+"Ниже":["Below", "Нижче", "En dessous", "Altında"],
+"Удалить":["Delete", "Видалити", "Supprimer", "Sil"],
+"Оповещений нет":["No alerts", "Сповіщень немає", "Aucune alerte", "Uyarı yok"],
 "Мой cTrader":["My cTrader", "Мій cTrader", "Mon cTrader", "cTrader'ım"],
 "История":["History", "Історія", "Historique", "Geçmiş"],
 "Прибыль":["Profit", "Прибуток", "Profit", "Kâr"],
@@ -7244,13 +7284,13 @@ const SYM_MENU = [["overview", "Обзор"], ["positions", "Позиции"], [
 function openSymMenu(ttl){
   lqMenu("sym", ttl, { sel: '.appbar .ttl[data-act="symmenu"]',
     build: pop => {
-      const n = { positions: xauOpenCount(), orders: xauOrderCount() }, sub = S.ui.subtab;
-      pop.innerHTML = SYM_MENU.map(([k, t]) => `<button type="button" role="menuitemradio" aria-checked="${sub === k}" data-symgo="${k}" class="${sub === k ? "on" : ""}"><span>${L(t)}${n[k] ? `<i class="lq-n">${n[k]}</i>` : ""}</span><b>${sub === k ? "✓" : ""}</b></button>`).join("")
+      const cur = curSym();
+      pop.innerHTML = SYMS.map(k => `<button type="button" role="menuitemradio" aria-checked="${cur === k}" data-symgo="${k}" class="${cur === k ? "on" : ""}"><span>${k}${xauOpenCount(k) ? `<i class="lq-n">${xauOpenCount(k)}</i>` : ""}</span><b>${cur === k ? "✓" : ""}</b></button>`).join("")
         + `<div class="lq-sep" role="separator"></div><button type="button" role="menuitem" data-symgo="new"><span>${L("Новый ордер")}</span><b aria-hidden="true">+</b></button>`;
       pop.querySelectorAll("[data-symgo]").forEach(b => b.onclick = () => {
         const k = b.dataset.symgo;
         if(k === "new"){ lqMenuClose("sym", true); openTicket(); return; }
-        if(k !== S.ui.subtab){ S.ui.subtab = k; render(); save(); }
+        if(k !== curSym()){ setSym(k); render(); save(); }
         lqMenuClose("sym");
       });
     },
@@ -8038,6 +8078,7 @@ function appbar(title, opts){
     ${opts.back?`<button class="iconbtn" data-act="back" aria-label="${L("Назад")}">${BACK_ICON}</button>`:``}
     <div class="ttl"${opts.caret ? ` data-act="symmenu" role="button" tabindex="0" aria-haspopup="menu"` : ``}><span class="ttl-run">${title}${opts.caret?`<span style="color:var(--ink3)">▾</span>`:``}</span></div>
     <div class="sp"></div>
+    ${opts.share ? `<button type="button" class="iconbtn ab-share" data-act="symshare" aria-label="${L("Поделиться")}">${DL_IC.share}</button>` : ``}
     ${opts.demo ? `<span class="badge-demo">DEMO • SYNTHETIC DATA</span>` : ``}
   </div>`;
 }
@@ -8488,21 +8529,76 @@ function setSym(sym){
   S.ui.lot = clamp(roundTo(isFinite(l) && l > 0 ? l : sp.minLot, 2), sp.minLot, sp.maxLot);
 }
 const xcLogoSVG = () => `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#111418"/><circle cx="20" cy="20" r="19.5" fill="none" stroke="#fff" stroke-opacity=".1"/><text x="20" y="27.35" font-size="23.4" text-anchor="middle" fill="#f5820d" font-family="Arial,'Liberation Sans',Arimo,Helvetica,sans-serif" font-weight="bold">X</text></svg>`;
+/* THE INSTRUMENT (cTrader's Android update, user 2026-11-17): the bar of subtabs ОБЗОР · ПОЗИЦИИ · ОРДЕРА · ГРАФИК is gone -
+   the positions and orders live in the «Позиции» tab now. «‹ XAUUSD ▾» and share over the card (the symbol, its day,
+   ПРОДАТЬ / the lots / КУПИТЬ), «Оповещение о цене», the chart, the rest of the overview; «Новый ордер» floats. */
+/* PRICE ALERTS - cTrader's «Оповещение о цене» card: −0.2 % · −0.1 % · 🔔 · +0.1 % · +0.2 % from the price now, «Все» lists
+   them. An alert watches the price of its side going there (ПРОДАТЬ's price, as the chart draws it), rings once (a
+   toast) and is gone. S.alerts: { id, sym, price, up } - up: set above the price it was made at. */
+function alertsOf(sym){ return (S.alerts || []).filter(x => !sym || x.sym === sym); }
+function alertCardMarkup(){
+  const n = alertsOf(curSym()).length;
+  const chip = (p, cls) => `<button type="button" class="pa-chip ${cls}" data-palert="${p}">${p > 0 ? "+" : "-"}${Math.abs(p)}%</button>`;
+  return `<div class="card ovc pa">
+      <div class="pa-hd"><span class="ovc-title">${L("Оповещение о цене")}</span><button type="button" class="pa-all" data-act="alertsall">${L("Все")}${n ? ` <i class="pa-n" id="paN">${n}</i>` : ""}</button></div>
+      <div class="pa-chips">${chip(-.2, "sell")}${chip(-.1, "sell")}
+        <button type="button" class="pa-bell" data-act="alertnew" aria-label="${L("Новое оповещение")}"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M10.2 4.4a6 6 0 0 0-4.2 5.8v3.6L4.4 16.4h11.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.6 16.4h4l-1.6-2.6v-1.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.8 19.2a2.3 2.3 0 0 0 4.4 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M17.5 3v6M14.5 6h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></button>
+        ${chip(.1, "buy")}${chip(.2, "buy")}</div>
+    </div>`;
+}
+function alertAdd(sym, price){
+  const q = quoteOf(sym), sp = specOf(sym), px = roundTo(price, sp.digits);
+  if(!isFinite(px) || px <= 0) return;
+  S.alerts = S.alerts || [];
+  if(S.alerts.length >= 50){ toast("r", L("Не больше 50 оповещений")); return; }
+  S.alerts.push({ id: Date.now() + Math.floor(Math.random() * 1000), sym, price: px, up: px >= q.bid });
+  toast("g", "🔔 " + L("Оповещение: {0} {1}", sym, pxfmt(px, sym)));
+  save(); render();
+}
+function alertsCheck(){
+  if(!S.alerts || !S.alerts.length) return;
+  let hit = false;
+  S.alerts = S.alerts.filter(a => {
+    if(!INS[a.sym] && a.sym !== GOLD) return false;
+    const b = quoteOf(a.sym).bid;
+    if(a.up ? b >= a.price : b <= a.price){ hit = true; toast("o", "🔔 " + L("{0} достиг {1}", a.sym, pxfmt(a.price, a.sym))); return false; }
+    return true;
+  });
+  if(hit){ save(); if(S.ui.tab === "markets" && S.ui.marketOpen) S._needRender = true; }
+}
+function openAlertNew(){
+  const sym = curSym(), q = quoteOf(sym);
+  openSheet(`<h2>${L("Новое оповещение")} · ${sym}</h2>
+    <div class="field"><label>${L("Цена продажи достигнет")}</label><input id="paPx" inputmode="decimal" value="${pxfmt(q.bid, sym).replace(/,/g, "")}"></div>
+    <button class="btn dark" id="paGo">${L("Создать оповещение")}</button>
+    <button class="btn ghost" data-close>${L("Назад")}</button>`);
+  document.getElementById("paGo").onclick = () => {
+    const v = parseFloat((document.getElementById("paPx").value || "").replace(/[\s,]/g, ""));
+    if(!isFinite(v) || v <= 0){ toast("r", L("Неверная цена")); return; }
+    closeModal(); alertAdd(sym, v);
+  };
+}
+function openAlertsAll(){
+  const draw = () => {
+    const list = alertsOf(curSym());
+    openSheet(`<h2>${L("Оповещение о цене")} · ${curSym()}</h2>` + (list.length
+      ? `<div class="card pl-tbl">${list.map(a => `<div class="row pa-row"><span class="k">${L(a.up ? "Выше" : "Ниже")}</span><span class="v mono">${pxfmt(a.price, a.sym)}</span><button type="button" class="pa-del" data-padel="${a.id}" aria-label="${L("Удалить")}">${X_ICON}</button></div>`).join("")}</div>`
+      : `<div class="muted">${L("Оповещений нет")}</div>`)
+      + `<button class="btn ghost" data-close>${L("Назад")}</button>`);
+    modalEl.querySelectorAll("[data-padel]").forEach(b => b.onclick = () => { S.alerts = (S.alerts || []).filter(x => String(x.id) !== b.dataset.padel); save(); draw(); });
+    modalEl._closed = () => render();                         // the card's count follows
+  };
+  draw();
+}
+function symShare(){
+  const sym = curSym(), q = quoteOf(sym);
+  const txt = `${sym} · ${L("Продать")} ${pxfmt(q.bid, sym)} · ${L("Купить")} ${pxfmt(q.ask, sym)} · XAUCORE`;
+  if(navigator.share) navigator.share({ text: txt }).catch(() => {});
+  else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("g", L("Скопировано"))).catch(() => toast("", txt));
+  else toast("", txt);
+}
 function screenMarkets(){
-  const sub = S.ui.subtab;
-  let inner = "";
-  if(sub === "overview")   inner = mktOverview();
-  else if(sub === "positions") inner = listPositions(curSym());      // an instrument's screen: its own positions and orders
-  else if(sub === "orders")    inner = listOrders(curSym());
-  else if(sub === "chart")     inner = `<div class="wrap"><div class="card chartcard" style="padding:0;overflow:hidden">${chartMarkup(260, { sub: true })}</div></div>`;
-  const cnt = (id, n) => ` <span class="cnt" id="${id}"${n ? "" : " hidden"}>${n}</span>`;   // cTrader's boxed count «ОРДЕРА [1]», kept live by updateLive
-  return appbar(curSym(), {back:true, caret:true}) + `
-    <div class="subtabs">
-      <button data-sub="overview" class="${sub==="overview"?"on":""}">${L("ОБЗОР")}</button>
-      <button data-sub="positions" class="${sub==="positions"?"on":""}">${L("ПОЗИЦИИ")}${cnt("stPos", xauOpenCount())}</button>
-      <button data-sub="orders" class="${sub==="orders"?"on":""}">${L("ОРДЕРА")}${cnt("stOrd", xauOrderCount())}</button>
-      <button data-sub="chart" class="${sub==="chart"?"on":""}">${L("ГРАФИК")}</button>
-    </div>` + inner +
+  return appbar(curSym(), { back: true, caret: true, share: true }) + mktOverview() +
     `<button class="bignew" data-act="newticket">${L("Новый ордер")}</button>`;
 }
 
@@ -8583,10 +8679,9 @@ function mktOverview(){
     <div class="card">
       <div class="ovhead">
         <div class="ovh-top">
-          <span class="ovh-ico star" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7z" fill="currentColor"/></svg></span>
-          <span class="ovh-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <div class="ovh-name"><div class="ovh-sym">${VS().name}</div><div class="ovh-desc">${symDesc(curSym())}</div></div>
           <div class="ovh-chg ${h.cls}" id="ovChg"><div class="ovh-pct" id="ovChgPct">${h.pct}</div><div class="ovh-pips" id="ovChgPips">${h.pips}</div></div>
+          <span class="ovh-ico star" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7z" fill="currentColor"/></svg></span>
         </div>
         <div class="ovh-lsh"><span>L: <b id="ovLow">${h.low}</b></span><span>S: <b id="ovSprPts">${h.spr}</b></span><span>H: <b id="ovHigh">${h.high}</b></span></div>
       </div>
@@ -8610,6 +8705,8 @@ function mktOverview(){
         <span class="spreadchip" id="ovSess">${sessL(" · ")}</span>
       </div>
     </div>
+
+    ${alertCardMarkup()}
 
     <div class="card minichart">
       <div class="mini-box">
@@ -11643,6 +11740,10 @@ function bindScreen(){
   act("histfilter", openHistFilter);
   act("accinfo", openAccInfo);
   act("dealshare", dealShare);
+  act("symshare", symShare);
+  act("alertnew", openAlertNew);
+  act("alertsall", openAlertsAll);
+  root.querySelectorAll("[data-palert]").forEach(b => b.onclick = () => { const sym = curSym(); alertAdd(sym, quoteOf(sym).bid * (1 + Number(b.dataset.palert) / 100)); });
   act("gotodom", ()=> nav("dom"));
   act("charttf", openChartTFSheet);
   act("chartsym", ()=>{ S.ui.marketOpen = true; nav("markets", "overview"); });
@@ -13213,6 +13314,7 @@ function updateLive(){
   }
   // pending distances
   for(const o of S.pendings) setTxt(`od-${o.id}`, pipsTxt(orderDist(o), symOf(o)));
+  alertsCheck();
   for(const [id, n] of [["stPos", xauOpenCount()], ["stOrd", xauOrderCount()], ["ptPos", S.positions.length], ["ptOrd", S.pendings.length]]){   // the subtab counts (the overview isn't re-rendered when they change)
     const e = document.getElementById(id);
     if(e){ if(e.hidden !== !n) e.hidden = !n; if(n) setTxt(id, String(n)); }
