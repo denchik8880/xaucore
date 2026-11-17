@@ -57,7 +57,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 38, 17], view
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navCorner,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navCorner,navOval,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -184,7 +184,7 @@ test('leaving an end tab the drop comes off the wall at once and fills the bar i
     // nothing pulls it back to the wall: its centre only ever moves towards the new tab
     const centre = s => s.left + s.w / T.tabW / 2;                    // the box's centre, after the wall's pull
     for (let i = 1; i < samples.length && samples[i].time < 250; i++) assert.ok((centre(samples[i]) - centre(samples[i - 1])) * (to - from) >= -1e-9, `moves on at ${samples[i].time}`);
-    assert.ok(a.navCorner(1) < .45, 'clear and off the wall it is the squircle, not the end capsule');
+    assert.ok(a.navOval(1) > 1.3, 'clear and off the wall it is the oval of the reference, not the end capsule');
   }
 });
 
