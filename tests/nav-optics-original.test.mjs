@@ -25,7 +25,7 @@ function fixture(load=true){
   const box={left:1.2,sx:1.5,sy:1},ctx={
     Math,LG_LENS:true,LG_UI:{refract:1},LGQ:{r:2.155},DISP:{on:true,drops:true,str:50},
     NB:{clear:1,opticalEnergy:0,a:1,b:2,lift:0,optical:null},
-    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),lgDefsReady(){},_lgDefs:defs,
+    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),navDarkLens:()=>false,NAV_DARK:{magnify:.2,reach:.2,reachMotion:0,lift:.16},lgDefsReady(){},_lgDefs:defs,
     Image:class{constructor(){counts.images.push(this);}},
     document:{getElementById:id=>defs.children.find(n=>n.getAttribute('id')===id)||null,
       createElementNS:(_,tag)=>{counts.nodes++;return new Element(tag);},
