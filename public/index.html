@@ -65,7 +65,7 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
   --chart-bg:#ffffff; --chart-grid:#eef0f2; --chart-axis:#2f343b; --chart-btn:#ffffff; --chart-btn-edge:#d3d6db; --ripple:rgba(0,0,0,.08); --ripple-w1:rgba(0,0,0,.07); --ripple-w2:rgba(0,0,0,.03); --ripple-bg:rgba(0,0,0,.05);
   --chart-cross:#9aa1ab; --chart-tag:#111418; --chart-glass:rgba(255,255,255,.92);
   /* liquid glass on the chart's floating buttons (see .chfs … below) */
-  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .04 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-ring:0 0 0 .75px rgba(16,24,40,calc(.17 * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
+  --lg-tint:rgba(255,255,255,calc(.26 * var(--lgk,1))); --lg-line:rgba(16,24,40,calc((.12 + .04 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-ring:-1px 0 0 0 rgba(16,24,40,calc(.3 * var(--lgln,1))),1px 0 0 0 rgba(16,24,40,calc(.3 * var(--lgln,1))),0 0 0 .5px rgba(16,24,40,calc(.07 * var(--lgln,1))),inset 0 1px 0 0 rgba(255,255,255,calc(.85 * var(--lgln,1))),inset 0 -1px 0 0 rgba(255,255,255,calc(.85 * var(--lgln,1))); --lg-shadow:rgba(16,24,40,calc(.14 + .08 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,.95);
   /* the depth tokens exist even with the mode OFF: a few rules that only ever show in glass are not gated by the
      attribute, and an undefined custom property makes the whole box-shadow invalid, not just that one layer */
   --lg-body:inset 0 0 0 0 transparent; --lg-lift1:0 0 0 0 transparent; --lg-lift2:0 0 0 0 transparent; --lg-lift3:0 0 0 0 transparent;
@@ -157,7 +157,7 @@ body.chart-full .bottomnav{display:none}
 .subtabs{display:flex;gap:2px;background:var(--bar);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;position:sticky;top:52px;z-index:30;scrollbar-width:none}
 .subtabs::-webkit-scrollbar{display:none}
 .subtabs button{padding:12px 12px;font-weight:600;color:var(--ink3);font-size:13.5px;white-space:nowrap;border-bottom:2px solid transparent}
-.subtabs button.on{color:var(--blue-ink);border-bottom-color:var(--blue-ink)}
+.subtabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
 .subtabs .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:20px;padding:0 4px;margin-left:6px;border:1.5px solid currentColor;border-radius:4px;font-size:12.5px;font-weight:600;line-height:1;vertical-align:1px;font-variant-numeric:tabular-nums}
 .subtabs .cnt[hidden]{display:none}
 /* cTrader's orders table: a caption row, then order rows edge to edge with dividers (no cards).
@@ -278,20 +278,22 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-theme="dark"] .bignew{background:#efefef;color:#2b2b2b;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .bignew:active{filter:brightness(.9)}
 
-/* bottom nav — liquid glass OFF: cTrader's — outline icons and large grey labels, the current tab in blue, on the
-   page ground with a hairline on top (and the touch ripple) */
+/* bottom nav — liquid glass OFF: cTrader's — outline icons and large grey labels, the current tab in black, on the
+   page ground with a hairline on top (and the touch ripple). Its four tabs share the whole width, as the original's
+   (user 2026-11-18: five columns for four tabs left an empty fifth at the right) */
 .bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
-  display:grid;grid-template-columns:repeat(5,1fr);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));z-index:50;padding-bottom:env(safe-area-inset-bottom)}
 .nav-panel,.nav-neutral{display:contents}
 .nav-surface,.nav-shadow{display:none}
-.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2);font-size:14px;font-weight:400;white-space:nowrap}
+.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--nav-off-flat,var(--ink2));font-size:14px;font-weight:400;white-space:nowrap}
 /* cTRADER'S OWN COLOURS WHERE THE GLASS IS OFF (user 2026-09-28, ours beside the real cTrader: «кнопка продать более
    оранжевая, а у нас тупо красная … в нижней панели красный цвет, а в оригинале синий (там где жидкое стекло, должно
    оставаться красным)»; «это касается и этих кнопок во всех темах (кроме жидкого стекла)»). SELL is cTrader's orange
-   (#f15823, off the user's frame) and the tab in use its blue; with the liquid glass on, both stay as they were. */
-:root{--sell:#f15823;--buy:#009345;--nav-on-flat:#28538c}   /* BUY: cTrader's green, a shade deeper than ours (user: «кнопка купить чуть зеленее») */
-:root[data-theme="dark"]{--nav-on-flat:#4d8ff0}
-:root[data-theme="dark"][data-tone="aurora"]{--nav-on-flat:#409cff}
+   (#f15823, off the user's frame) and the tab in use its blue; with the liquid glass on, both stay as they were.
+   cTrader's Android update (user 2026-11-18, «откуда вы везде взяли синий цвет?»): no blue at all - the tab in use is
+   black (its frames: ink ≈ #141414-#1d1d1d), the others grey #7b7b7b; white / our grey on the dark themes */
+:root{--sell:#f15823;--buy:#009345;--nav-on-flat:var(--ink);--nav-off-flat:#7b7b7b}   /* BUY: cTrader's green, a shade deeper than ours (user: «кнопка купить чуть зеленее») */
+:root[data-theme="dark"]{--nav-on-flat:var(--ink);--nav-off-flat:var(--ink2)}
 /* with the glass on, each SELL keeps its own red: declared on the buttons themselves, so a theme's local --red (Сияние's
    calmer #c8414b on the big pair and the trade bar) is the one it reads, not the page's */
 :root[data-glass="on"] :is(.ctp,.cht,.btn,.ot-go,.ot-side,.og){--sell:var(--red);--buy:var(--green)}
@@ -416,6 +418,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%;
   color:var(--nav-on)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb>.ic{color:inherit}
+/* DARK (the user's iOS 26 dark video): each tab is magnified about ITS OWN middle, not the drop's (2026-11-18, matched glyph
+   by glyph against the video: its magnifier sits within 1-4 px of the label's centre while the drop's centre is a fifth of
+   the drop away). A drop sliding past a tab enlarges the label where it stands instead of dragging it along. The row
+   keeps only the rail's breath; the magnifier moves onto each cell. */
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{
+  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2) * 25% * (var(--nrsx,1) - 1)),var(--nry,0px)) scale(var(--nrsx,1),var(--nrsy,1))}
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{--nm:inherit;transform-origin:50% 50%;transform:scale(var(--nm,1),var(--nmy,1))}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
    band across its top, no lit lip, no edge. Everything I had drawn on it is what made it read as a separate
    object sitting on the bar instead of a shadow under the tab. */
@@ -478,7 +487,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .tfbar{display:flex;gap:4px;padding:8px 8px;overflow-x:auto;background:var(--bar);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tfbar::-webkit-scrollbar{display:none}
 .tfbar button{flex:1 1 auto;min-width:40px;padding:9px 6px;border-radius:9px;font-weight:600;font-size:12.5px;color:var(--ink2);background:var(--line)}
-.tfbar button.on{background:var(--blue);color:#fff}
+.tfbar button.on{background:rgb(var(--bl));color:var(--bl-ink)}
 #chartCanvas,#miniCanvas,#domCanvas{width:100%;display:block;max-width:100%}
 /* The chart owns both axes: a horizontal drag pans time, a vertical one pans
    price (cTrader). touch-action must be none or the browser claims the vertical
@@ -495,7 +504,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 .mini-tools button:active{background:var(--press)}
 .mini-ranges{display:flex;padding:4px 8px 10px}
 .mini-ranges button{flex:1;background:none;border:0;padding:8px 0;font-size:15px;color:var(--ink2);white-space:nowrap}
-.mini-ranges button.on{color:var(--blue-ink);font-weight:600}
+.mini-ranges button.on{color:var(--ink);font-weight:600}
 .chartbox{position:relative;background:var(--chart-bg);max-width:100%;overflow:hidden}
 /* cTrader's on-chart controls (2026-09-15 screenshot): a round ⛶ top-left, «XAUUSD ›» and the
    timeframe pill bottom-left, and our round + / − zoom column above those pills */
@@ -697,7 +706,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
 .tfsheet{display:flex;flex-direction:column}
 .tfsheet button{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:16px;text-align:left}
 .tfsheet button b{font-weight:600;color:var(--ink2)}
-.tfsheet button.on,.tfsheet button.on b{color:var(--blue-ink)}
+.tfsheet button.on,.tfsheet button.on b{color:var(--ink)}
 /* lot picker sheet */
 .lotsheet{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-top:4px}
 .ls-step{height:52px;border-radius:12px;background:var(--line);font-size:22px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center}   /* drawn − / + : a font puts them 3 px low */
@@ -746,7 +755,7 @@ body.route-chart .cht-lot{background:var(--chart-bg)}
    «Настроение рынка», «Глубина рынка», «Экономический календарь» */
 .card.ovc{padding:12px 16px 9px}
 .ovc-title{font-size:20px;line-height:26px;font-weight:700;color:var(--ink)}
-.ovc-more{display:block;margin:4px 0 0 auto;padding:8px 0;border:0;background:none;color:var(--blue-ink);font-size:16.5px;line-height:20px;font-weight:700}
+.ovc-more{display:block;margin:4px 0 0 auto;padding:8px 0;border:0;background:none;color:var(--ink);font-size:16.5px;line-height:20px;font-weight:700}
 .sent-bar{display:flex;gap:2px;height:8px;margin-top:13px}
 .sent-bar span{flex:50 1 0;border-radius:2px;transition:flex-grow var(--mo-large)}
 .sent-bar .s{background:var(--red)}
@@ -921,10 +930,10 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .wl-stats>span:nth-child(2){text-align:center}
 .wl-stats>span:nth-child(3){text-align:right}
 .wl-quote{display:flex;gap:10px}
-/* «+ Добавить инструменты» — cTrader's centred blue button; «Новый ордер» — its floating action button */
-.wl-addbtn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 0;width:64%;min-width:230px;height:36px;border:0;border-radius:4px;background:#1f4e9c;color:#fff;font-size:15px;font-weight:500}
+/* «+ Добавить инструменты» — cTrader's centred button (its old blue is the update's #262626 plate, --bl, since 2026-11-18); «Новый ордер» — its floating action button */
+.wl-addbtn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px auto 0;width:78%;max-width:300px;min-width:230px;height:56px;border:0;border-radius:10px;background:rgba(0,0,0,.035);color:var(--ink);font-size:15px;font-weight:400}   /* the original's (v1 frames, 2026-11-18): a #f6f6f6 plate 283×56 at 360 px, black text - not a dark button */
 .wl-addbtn span{font-size:20px;line-height:1}
-:root[data-theme="dark"] .wl-addbtn{background:#2a6bd0}
+:root[data-theme="dark"] .wl-addbtn{background:rgba(255,255,255,.08)}
 .fabnew{--fab-bg:#d3e3fd;position:fixed;right:max(14px, calc(50% - 246px));bottom:calc(var(--nav-top) + 22px);z-index:35;display:flex;align-items:center;gap:14px;padding:13px 22px 13px 18px;border:0;border-radius:16px;background:var(--fab-bg);color:#0b1d38;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 :root[data-theme="dark"] .fabnew{--fab-bg:#0d47a1;color:#dbe7fb}
 .fabnew:active{filter:brightness(.92)}
@@ -1175,7 +1184,7 @@ html:has(body.route-wallet){background:#0c0a08}
   --seg-track:rgba(120,120,128,.13); --ctl-glass:rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,calc(.42 * var(--lgk,1)));
   --toast-glass:rgba(255,255,255,.74); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:rgba(255,255,255,calc(.45 + .5 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92); --pop-glass:rgba(255,255,255,calc(.12 + .5 * var(--lgs,1)));
+  --cap-glass:rgba(255,255,255,calc(.1 + .35 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92); --pop-glass:rgba(255,255,255,calc(.12 + .5 * var(--lgs,1)));
   /* THE THREE DIALS (Настройки стекла writes them; 1 = as designed). Everything below is expressed through them,
      so one slider changes the whole system and nothing has to be re-authored. */
   --lgd:1; --lgh:1; --lgsh:1;
@@ -1266,10 +1275,14 @@ html:has(body.route-wallet){background:#0c0a08}
      under it, no grey fill and no inner shade. Clearing as it flies (--sdk → 0) it turns into the lens it always was:
      the lips top and bottom and the lit inner rim come in as the plate goes out. */
   background:rgba(255,255,255,calc(.94 * var(--sdk,1)));
-  box-shadow:-.6px 0 0 0 rgba(16,24,40,calc(.12 * var(--sdk,1))),.6px 0 0 0 rgba(16,24,40,calc(.12 * var(--sdk,1))),0 0 0 .5px rgba(16,24,40,calc(.045 * var(--sdk,1))),
+  /* 2026-11-18 (the user's iOS 27 capsule: «по бокам черная обводка, а сверху и снизу беловатая»): the plate's ends dark,
+     its top and foot lit; in flight the lens keeps only a whisper of lip and a soft lit ring - clear glass, not a pill */
+  box-shadow:-1px 0 0 0 rgba(16,24,40,calc(.3 * var(--sdk,1))),1px 0 0 0 rgba(16,24,40,calc(.3 * var(--sdk,1))),0 0 0 .5px rgba(16,24,40,calc(.07 * var(--sdk,1))),
+    inset 0 1px 0 0 rgba(255,255,255,calc(.85 * var(--sdk,1))),inset 0 -1px 0 0 rgba(255,255,255,calc(.85 * var(--sdk,1))),
     0 1px 2px rgba(16,24,40,calc(.05 * var(--sdk,1))),0 6px 14px -6px rgba(16,24,40,calc(.1 * var(--sdk,1))),
-    inset 0 6px 7px -6px rgba(16,24,40,calc(.26 * (1 - var(--sdk,1)))),inset 0 -6px 7px -6px rgba(16,24,40,calc(.26 * (1 - var(--sdk,1)))),
-    inset 0 0 0 1px rgba(255,255,255,calc(.8 * (1 - var(--sdk,1)))),0 0 10px rgba(16,24,40,calc(.03 * (1 - var(--sdk,1))))}
+    -1px 0 0 0 rgba(16,24,40,calc(.22 * (1 - var(--sdk,1)))),1px 0 0 0 rgba(16,24,40,calc(.22 * (1 - var(--sdk,1)))),
+    inset 0 5px 6px -6px rgba(16,24,40,calc(.08 * (1 - var(--sdk,1)))),inset 0 -5px 6px -6px rgba(16,24,40,calc(.08 * (1 - var(--sdk,1)))),
+    inset 0 0 0 1px rgba(255,255,255,calc(.45 * (1 - var(--sdk,1))))}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;opacity:calc(1 - .75 * var(--sdk,1));
   background:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,calc(.9 * (1 + (1 - var(--sdk,1))))) 0%,transparent 26%,rgba(16,24,40,.13) 50%,transparent 74%,rgba(255,255,255,calc(.55 * (1 + (1 - var(--sdk,1))))) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -1284,8 +1297,10 @@ html:has(body.route-wallet){background:#0c0a08}
    only through the drop's own rounded rectangle (its clip is written by subFrame, in pixels - a percentage in a
    clip radius resolves per axis and comes out square). Every real tab is grey; the drop is what is blue. */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-red{display:flex;justify-content:space-between;position:absolute;inset:0;padding:0 4px;z-index:2;pointer-events:none}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-red button{color:var(--blue-ink)!important;pointer-events:none}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button,:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button.near{color:var(--ink3)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-red button{color:var(--ink)!important;pointer-events:none}   /* no blue (user 2026-11-18: «откуда вы везде взяли синий цвет?»): the chosen label is ink like the rest, the white plate under it is the choice - cTrader's update and iOS alike */
+/* every real label is one colour (2026-11-18: the chosen one sat grey while the drop flew off it and snapped to ink as the
+   finger lifted - «переход … не плавный а сразу»); the accent is only the window that travels with the drop */
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button,:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button.on,:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > button.near{color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs > .sub-lens{display:none!important}
 /* and the capsule leans after the finger, as the bottom bar does */
 :root[data-glass="on"]:not([data-lgoff~="headers"]):not([data-lgoff~="drops"]) .subtabs{transform:translateX(var(--sbx,0px))}
@@ -1354,11 +1369,11 @@ html:has(body.route-wallet){background:#0c0a08}
    a vertical one still scrolls the page */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button{padding:12px clamp(5px,1.9vw,9px);font-size:clamp(11.5px,3.6vw,13px);transition:color var(--mo-std)}
 /* the other tabs of the plate in the label colour, black (white on the dark themes) - as the tab bar's, after the
-   reference (user 2026-11-16: «у нас серый текст а нужен черный»); the chosen one keeps its blue */
+   reference (user 2026-11-16: «у нас серый текст а нужен черный»); since 2026-11-18 the chosen one is ink too */
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button:not(.on){color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs .cnt{margin-left:4px}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--blue-ink)}
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink3)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs button.near{color:var(--ink)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .subtabs.dragging button.on:not(.near){color:var(--ink)}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs{justify-content:space-between;touch-action:pan-y;user-select:none;-webkit-user-select:none;top:58px;margin:0 10px;padding:0 4px;border-radius:22px;border-bottom:0;background:transparent;box-shadow:var(--lg-ring),var(--lg-lift1),var(--lg-body)}
 /* the capsule's frost lives on a layer BEHIND its content, not on the capsule itself: a backdrop-filter on the
    element would make it a backdrop root, and the drop inside could then see only the capsule's own thin white -
@@ -1850,7 +1865,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-go span{font-size:13.5px;opacity:.95}
 .ot-go.sell{background-color:var(--sell)}
 .ot-go:disabled{background-color:var(--ot-idle);color:var(--ink3);cursor:default}
-.ot-closed{display:flex;align-items:center;gap:8px;margin:10px 0 2px;color:var(--blue-ink);font-size:13.5px;line-height:1.3}
+.ot-closed{display:flex;align-items:center;gap:8px;margin:10px 0 2px;color:var(--ink2);font-size:13.5px;line-height:1.3}
 .ot-closed svg{flex:none}
 .ot-closed[hidden]{display:none}
 .ot-q,.ot-day{text-align:center;font-size:clamp(11.5px,3.45vw,13.5px);line-height:1.3;color:var(--ink2);font-variant-numeric:tabular-nums}   /* one line at 360 px, like cTrader */
@@ -1861,8 +1876,8 @@ body.amenu-open .wl-logo{opacity:0}
 .otf-l{position:absolute;left:11px;top:-8px;max-width:calc(100% - 24px);padding:0 4px;font-size:12px;line-height:15px;color:var(--ink2);background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .otf-v,.otf-i{flex:1 1 auto;min-width:0;height:48px;padding:0;border:0;border-radius:0;background:none!important;color:var(--ink);font-size:16px;line-height:48px;outline:none;text-align:left}
 .otf-sub .otf-i{color:var(--ink2)}
-.otf:focus-within{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
-.otf:focus-within .otf-l{color:var(--blue-ink)}
+.otf:focus-within{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.otf:focus-within .otf-l{color:var(--ink)}
 .otf.bad,.otf.bad:focus-within{border-color:var(--red-ink);box-shadow:inset 0 0 0 1px var(--red-ink)}
 .otf.bad .otf-l{color:var(--red-ink)}
 .ot-caret{flex:none;width:0;height:0;margin:0 14px 0 10px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--ink2)}
@@ -1889,9 +1904,9 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-opts{margin-top:8px}
 .ot-ck{display:flex;align-items:center;gap:14px;min-height:56px;font-size:16px;color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;-webkit-tap-highlight-color:transparent}
 .ot-box{position:relative;flex:none;width:18px;height:18px;border:2px solid var(--ink2);border-radius:2px;transition:background-color var(--mo-micro),border-color var(--mo-micro)}
-.ot-opt.on>.ot-ck .ot-box{background:var(--blue);border-color:var(--blue)}
-.ot-opt.on>.ot-ck .ot-box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
-.ot-ck:focus-visible .ot-box,.ot-ck:focus-visible .switch{outline:2px solid var(--blue);outline-offset:3px}
+.ot-opt.on>.ot-ck .ot-box{background:rgb(var(--bl));border-color:rgb(var(--bl))}
+.ot-opt.on>.ot-ck .ot-box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid var(--bl-ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ot-ck:focus-visible .ot-box,.ot-ck:focus-visible .switch{outline:2px solid var(--ink);outline-offset:3px}
 .ot-opt.dis>.ot-ck{opacity:.42;cursor:default}
 .ot-more,.ot-coll{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--mo-fluid)}
 .ot-opt.on>.ot-more,.ot-coll.open{grid-template-rows:1fr}
@@ -1906,7 +1921,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-mp{position:fixed;z-index:90;padding:8px 0;border-radius:4px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn var(--mo-t1) var(--mo-e1)}
 @keyframes otMn{from{opacity:0;transform:scaleY(.8)}to{opacity:1;transform:none}}
 .ot-mp button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:0 16px;border:0;background:none;color:var(--ink);font-size:16px;text-align:left}
-.ot-mp button.on{color:var(--blue-ink)}
+.ot-mp button.on{color:var(--ink)}
 .ot-mp button:active{background:var(--press)}
 .ot-menu-foot{margin-top:4px;padding:8px 16px 4px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3)}
 .lg-pop.ot-menu .ot-menu-foot{padding:8px 12px 4px;border-top-color:var(--lg-line)}
@@ -1923,8 +1938,8 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-tabs{position:relative;flex:none;display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
 .ot-tabs::-webkit-scrollbar{display:none}
 .ot-tabs button{flex:none;height:48px;padding:0 16px;border:0;background:none;color:var(--ink2);font-size:14px;font-weight:500;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;transition:color var(--mo-std)}
-.ot-tabs button.on{color:var(--blue-ink)}
-.ot-ul{position:absolute;left:0;bottom:0;width:var(--ulw,0px);height:3px;border-radius:3px 3px 0 0;background:var(--blue);transform:translateX(var(--ulx,0px));transition:transform var(--mo-fluid),width var(--mo-fluid)}
+.ot-tabs button.on{color:var(--ink)}
+.ot-ul{position:absolute;left:0;bottom:0;width:var(--ulw,0px);height:3px;border-radius:3px 3px 0 0;background:rgb(var(--bl));transform:translateX(var(--ulx,0px));transition:transform var(--mo-fluid),width var(--mo-fluid)}
 .ot-p .ot-body{padding:4px 16px 24px}
 .ot-p .ot-foot{padding:0}
 .ot-p .ot-go{border-radius:0;min-height:58px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
@@ -1939,7 +1954,7 @@ body.amenu-open .wl-logo{opacity:0}
 .ot-g .otf{margin-top:10px;min-height:56px;padding:0 6px 0 14px;border:0;border-radius:16px;background:var(--sheet-field,var(--field-bg));box-shadow:var(--lg-ring);transition:box-shadow var(--mo-micro)}
 .ot-g .otf-l{top:8px;left:14px;padding:0;background:none;font-size:11.5px;line-height:14px}
 .ot-g .otf-v,.ot-g .otf-i{height:56px;padding-top:16px;line-height:40px}
-.ot-g .otf:focus-within{border-color:transparent;box-shadow:0 0 0 1.5px var(--blue)}
+.ot-g .otf:focus-within{border-color:transparent;box-shadow:0 0 0 1.5px var(--ink)}
 .ot-g .otf.bad,.ot-g .otf.bad:focus-within{box-shadow:0 0 0 1.5px var(--red-ink)}
 .ot-g .ot-st{width:36px;height:36px;margin-left:6px;background:var(--cap-glass);box-shadow:var(--lg-ring),var(--lg-body);transition:transform var(--mo-micro)}
 .ot-g .ot-st:active{background:var(--cap-glass);transform:scale(.88)}
@@ -2020,7 +2035,7 @@ body.amenu-open .wl-logo{opacity:0}
   box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 0 1px var(--line);transform-origin:50% 0;animation:otMn var(--mo-t1) var(--mo-e1)}
 .ll-in{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
 .ll-in::-webkit-scrollbar{display:none}
-.lot-list .sc-ind{background:var(--blue);width:2.5px}
+.lot-list .sc-ind{background:var(--ink);width:2.5px}
 .lot-list.up{transform-origin:50% 100%}
 .lot-list.out{opacity:0;transition:opacity var(--mo-micro)}
 :root[data-theme="dark"] .lot-list{background:#1f2023;box-shadow:0 8px 24px rgba(0,0,0,.6)}
@@ -2337,7 +2352,7 @@ body.amenu-open .wl-logo{opacity:0}
 /* ── OPTIONAL: accents that are not grey but are cTrader blues, and the owner-only manual-market panel ── */
 /* was L183 / L781: the ★ in the overview header #5b8def, «Добавить инструменты» #2a6bd0 */
 :root[data-theme="dark"][data-tone="aurora"] .ovh-ico.star{color:var(--blue-ink)}
-:root[data-theme="dark"][data-tone="aurora"] .wl-addbtn{background:var(--blue)}
+:root[data-theme="dark"][data-tone="aurora"] .wl-addbtn{background:rgba(255,255,255,.08)}
 /* was L729 / L738-739 / L742 (theme-agnostic, only with S.manual.enabled): slate #1b1f24 / #2b3138 / #12151a.
    Buttons skip .on (L740 orange), which a plain re-statement would out-rank. */
 :root[data-tone="aurora"] .godpanel{background:#1d1f33;box-shadow:0 6px 20px rgba(2,4,30,.45)}
@@ -2422,9 +2437,12 @@ body.amenu-open .wl-logo{opacity:0}
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
-  /* the dark video's clear drop: a thin light outline - lit along its foot and round its ends, faint along its top -
-     no dark bands inside it */
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),inset 0 -1.5px 0 -.25px rgba(255,255,255,.5),inset 1.25px 0 0 -.25px rgba(255,255,255,.3),inset -1.25px 0 0 -.25px rgba(255,255,255,.3),0 6px 14px -6px rgba(0,0,0,.55)}
+  /* the dark video's clear drop: a thin light outline - lit along its foot and round its ends, none along its top -
+     no dark bands inside it. MEASURED on the video's pixels at the same bar height (2026-11-17, f0091 against ours):
+     its foot +55 over the bar's grey (≈ .24 white, ~1 px), a little brighter where the foot turns into the ends,
+     the ends at mid-height only +20 (≈ .09), and no line along the top at all; ours was +130 / +60-90 / +30 - an even
+     white ring the video does not have */
+  box-shadow:inset 0 -1.25px 0 -.25px rgba(255,255,255,.2),inset 1.25px -.5px 0 -.25px rgba(255,255,255,.09),inset -1.25px -.5px 0 -.25px rgba(255,255,255,.09),0 6px 14px -6px rgba(0,0,0,.55)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
   box-shadow:inset 0 0 0 .5px var(--nav-ring),
     inset 0 calc(7px * var(--lgd,1)) calc(9px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-top),inset 0 calc(-5px * var(--lgd,1)) calc(7px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-foot),
@@ -2518,8 +2536,8 @@ body.amenu-open .wl-logo{opacity:0}
 .xdlg h3{margin:0 0 10px;font-size:20px;font-weight:600;line-height:1.25}
 .xdlg p{margin:0 0 20px;font-size:15px;line-height:1.4;color:var(--ink2)}
 .xdlg-b{display:flex;justify-content:flex-end;gap:8px}
-.xdlg-b button{min-width:82px;padding:11px 18px;border:0;border-radius:999px;font-size:15px;font-weight:600;background:none;color:var(--blue-ink)}
-.xdlg-b button[data-x="yes"]{background:var(--blue);color:#fff}
+.xdlg-b button{min-width:82px;padding:11px 18px;border:0;border-radius:999px;font-size:15px;font-weight:600;background:none;color:var(--ink)}
+.xdlg-b button[data-x="yes"]{background:rgb(var(--bl));color:var(--bl-ink)}
 .xdlg-b button:active{transform:scale(.96);transition:transform var(--mo-micro)}
 :root[data-glass="on"] .xdlg-scrim{background:rgba(0,0,0,.3)}
 :root[data-glass="on"] .xdlg{background:var(--sheet-glass);
@@ -2603,44 +2621,53 @@ body.amenu-open .wl-logo{opacity:0}
 
 /* ===== POSITIONS · ORDERS · HISTORY and THE DEAL - cTrader's Android update (user 2026-11-17) =====
    The tables edge to edge (the coin and symbol, the side's arrow, «0.05 Лоты», the money, ✕), the top bar's own tool,
-   Android's orange / black plates in our blue: «Закрыть позиции», «Новый ордер» (the FAB and the symbol's wide button),
-   the deal card's head. With liquid glass on the blue ones are blue GLASS (tint, sheen, lit rim, the lens of lgGlass). */
-:root{--bl:47,123,246}
-:root[data-theme="dark"]{--bl:61,126,245}
-:root[data-tone="aurora"]{--bl:47,120,198}
+   Android's orange / black plates: «Закрыть позиции» orange, «Новый ордер» (the FAB and the symbol's wide button)
+   near-black, the deal card's head in its direction's colour. With liquid glass on they are tinted GLASS (tint, sheen,
+   lit rim, the lens of lgGlass).
+   NO BLUE (user 2026-11-18, «откуда вы везде взяли синий цвет?»): the original's frames have none outside the flags.
+   --bl is the primary plate now - its #262626 (FAB, wide button, the subtab's underline, the tab's badge, measured on
+   the frames), the inverse on the dark themes: a light #efefef plate with that #262626 for its label (--bl-ink). */
+:root{--bl:38,38,38;--bl-ink:#fff}
+:root[data-theme="dark"]{--bl:239,239,239;--bl-ink:#262626}
 .wl-tool{flex:0 0 auto;width:40px;height:40px;margin:0 -4px 0 -2px;display:flex;align-items:center;justify-content:center;color:var(--ink);border-radius:50%}
 .wl-tool:active{background:var(--press)}
-.wl-tool.on{color:rgb(var(--bl))}
+.wl-tool.on{color:var(--ink);background:var(--press)}
 .subtabs.trtabs{top:70px}
 :root:not([data-glass="on"]) .subtabs.trtabs{background:var(--bg);border-bottom:0;gap:8px;padding:2px 12px 0}
-:root:not([data-glass="on"]) .subtabs.trtabs button{font-size:17px;font-weight:500;padding:14px 8px 11px;color:var(--ink3);border-bottom-width:3px}
+:root:not([data-glass="on"]) .subtabs.trtabs button{font-size:17px;font-weight:500;padding:14px 8px 11px;color:var(--nav-off-flat,var(--ink3));border-bottom-width:3px}
 :root:not([data-glass="on"]) .subtabs.trtabs button.on{color:var(--ink);border-bottom-color:rgb(var(--bl))}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs.trtabs{margin-top:2px;margin-bottom:6px}
-.ptbl-row{display:grid;grid-template-columns:minmax(0,34%) 9% minmax(0,1fr) 21% 15%;align-items:center;height:56px;padding-left:12px;border-bottom:1px solid var(--wl-div);font-size:16px;color:var(--ink);cursor:pointer}
-.ptbl.hist .ptbl-row{grid-template-columns:minmax(0,34%) 12% minmax(0,1fr) 24%;padding-right:18px}
+/* the columns as the original's on the user's 360 px phone (its frames: coin 26, «XAUUSD» 17 px, the lots and the
+   money 13-15 px): the symbol takes what is left, so «0.01 Лоты» never loses its word (user 2026-11-18: «0.01 Л...») */
+.ptbl-row{display:grid;grid-template-columns:minmax(0,1fr) 9% minmax(0,24%) minmax(0,20%) 15%;align-items:center;height:56px;padding-left:10px;border-bottom:1px solid var(--wl-div);font-size:16px;color:var(--ink);cursor:pointer}
+.ptbl.hist .ptbl-row{grid-template-columns:minmax(0,1fr) 12% minmax(0,26%) minmax(0,24%);padding-right:14px}
 .ptbl-row>*{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ptbl-row .r{text-align:right;font-size:17px;font-variant-numeric:tabular-nums}
+.ptbl-row .r{text-align:right;font-size:15px;font-variant-numeric:tabular-nums}
 .ptbl-row .pos{color:var(--buy)}
 .ptbl-row .neg{color:var(--sell)}
 .ptbl-row:active{background:var(--press)}
 .ptbl-head{height:62px;font-size:15.5px;color:var(--ink3);cursor:default}
 .ptbl-head:active{background:none}
-.ptbl-head>span:first-child{padding-left:38px}
+.ptbl-head>span:first-child{padding-left:34px}
 .ptbl-sym{display:flex;align-items:center;gap:8px}
-.ptbl-ic{flex:none;width:30px;height:30px}
+.ptbl-ic{flex:none;width:26px;height:26px}
 .ptbl-ic svg{display:block;width:100%;height:100%}
-.ptbl-sym .nm{font-size:19px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ptbl-sym .nm{font-size:17px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .ptbl-dir{display:flex;justify-content:center}
-.ptbl-lot{padding-left:6px}
+.ptbl-lot{padding-left:6px;font-size:14px}
 .ptbl .x{display:flex;align-items:center;justify-content:center;height:100%;padding:0;color:var(--ink2)}
 .ptbl .x:active{background:var(--press)}
 .sarr.sell{fill:var(--sell)}
 .sarr.buy{fill:var(--buy)}
-.closepos{position:relative;display:block;width:100%;margin:18px 0 8px;padding:19px 16px;border-radius:16px;background:rgb(var(--bl));color:#fff;font-size:18px;font-weight:600;text-align:center}
+/* the plates as the original's (measured on the 360 px frames): «Закрыть позиции» 56 tall, corners 12, a 16 px label,
+   cTrader's orange #f05923 in every theme; the FAB 56 × ~160, corners 16, the clipboard then a 15 px medium label, 16
+   from the edge; the symbol's wide one 56 tall, corners 19, a 19 px label */
+.closepos{--bl:240,89,35;--bl-ink:#fff;position:relative;display:block;width:100%;margin:18px 0 8px;padding:17px 16px;border-radius:12px;background:rgb(var(--bl));color:var(--bl-ink);font-size:16px;line-height:21px;font-weight:500;text-align:center}
 .closepos:active{filter:brightness(.92)}
 body.trade-locked .closepos{opacity:.5;pointer-events:none}
-.fabnew,:root[data-theme="dark"] .fabnew{--fab-bg:rgb(var(--bl));color:#fff;padding:17px 26px 17px 22px;gap:16px;font-size:18px;border-radius:18px}
-.bignew,:root[data-theme="dark"] .bignew{background:rgb(var(--bl));color:#fff}
+.fabnew,:root[data-theme="dark"] .fabnew,:root[data-theme="dark"][data-tone="aurora"] .fabnew{--fab-bg:rgb(var(--bl));color:var(--bl-ink);right:max(16px,calc(50% - 244px));padding:15px 21px 15px 15px;gap:12px;font-size:15px;line-height:24px;font-weight:500;border-radius:16px}
+.fabnew svg{flex:none;width:26px;height:26px}
+.bignew,:root[data-theme="dark"] .bignew,:root[data-theme="dark"][data-tone="aurora"] .bignew{background:rgb(var(--bl));color:var(--bl-ink);font-size:19px;line-height:22px;font-weight:400}
 /* blue GLASS (the selectors are doubled to sit over the crystal and the Aurora rules of these buttons) */
 :root:root:root[data-glass="on"]:not([data-lgoff~="newbtn"]) :is(.bignew,.fabnew),:root:root:root[data-glass="on"] .closepos{--fab-bg:rgb(var(--bl));color:#fff;text-shadow:0 1px 2px rgba(0,22,70,.35);
   background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 52%),rgba(var(--bl),.8);
@@ -2650,26 +2677,37 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 :root:root:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew svg{filter:drop-shadow(0 1px 2px rgba(0,22,70,.35))}
 .menu-item.pick{width:100%;text-align:left;font-weight:500}
 .menu-item.pick.on{color:rgb(var(--bl))}
-/* the deal */
+/* a glass plate's label reads its plate's ink: white on the near-black and the orange, #262626 on the dark themes'
+   light «Новый ордер» (the glass rule above wrote white for its old blue) */
+:root:root:root:root[data-glass="on"]:not([data-lgoff~="newbtn"]) :is(.bignew,.fabnew),:root:root:root:root[data-glass="on"] .closepos{color:var(--bl-ink)}
+:root:root:root:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="newbtn"]) :is(.bignew,.fabnew){text-shadow:none}
+:root:root:root:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="newbtn"]) .fabnew svg{filter:none}
+/* the deal: the card in its direction's colour - SELL's orange, BUY's green (the original: an orange head on a sell,
+   a green frame on a buy) */
 .deal{padding-top:6px}
 .card.dl-card,.card.dl-sec{padding:0;overflow:hidden}
-.card.dl-card{border:1.5px solid rgba(var(--bl),.9)}
-.dl-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 10px 12px 18px;background:rgb(var(--bl));color:#fff}
+.card.dl-card{--bl:240,89,35;border:1.5px solid rgba(var(--bl),.9)}
+.card.dl-card.buy{--bl:0,147,69}
+.wrap.deal{padding-left:8px;padding-right:8px}   /* the card 8 px off the edges, as the original's */
+.dl-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 8px 9px 16px;background:rgb(var(--bl));color:#fff}
 :root[data-glass="on"] .dl-hd{background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 60%),rgba(var(--bl),.88);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
 .dl-hd-t{min-width:0}
-.dl-sym{font-size:21px;font-weight:500;line-height:1.2}
-.dl-desc{font-size:15px;opacity:.92}
+.dl-sym{font-size:19px;font-weight:500;line-height:1.2}
+.dl-desc{font-size:13.5px;opacity:.92}
 .dl-share{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fff;border-radius:50%}
 .dl-share:active{background:rgba(255,255,255,.18)}
-.dl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));row-gap:22px;padding:22px 4px 16px}
+/* the six figures at the original's sizes on a 360 px phone (icons 26, values 21, captions 12): «Продолжительность»
+   fits its third whole (user 2026-11-18: «продолжительность не влезает»); a wider font than Roboto shrinks the
+   caption to its column (fitText in render) instead of cutting it */
+.dl-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));row-gap:20px;padding:20px 0 14px}
 .dl-st{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
-.dl-st .dl-ic{width:34px;height:34px;color:var(--ink);margin-bottom:10px}
+.dl-st .dl-ic{width:28px;height:28px;color:var(--ink);margin-bottom:9px}
 .dl-ic svg{display:block;width:100%;height:100%}
-.dl-v{font-size:23px;font-weight:500;line-height:1.15;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-v{font-size:21px;font-weight:500;line-height:1.15;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dl-v.neg{color:var(--sell)}
 .dl-v.pos{color:var(--buy)}
-.dl-u,.dl-l{font-size:14.5px;color:var(--ink3);line-height:1.35}
-.dl-l{white-space:nowrap;font-size:14px;letter-spacing:-.1px}
+.dl-u,.dl-l{font-size:12.5px;color:var(--ink3);line-height:1.35}
+.dl-l{white-space:nowrap;font-size:12px;max-width:calc(100% - 4px);overflow:hidden;text-overflow:ellipsis}
 .dl-chart{padding:4px 8px 0}
 .dl-chart svg{display:block;width:100%;height:auto;overflow:visible}
 .dl-chart .buy,.dl-tag.buy{color:var(--buy)}
@@ -2713,7 +2751,7 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 .pa-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .pa-hd .ovc-title{margin:0}
 .pa-all{font-size:16px;color:var(--ink);padding:6px 2px;display:flex;align-items:center;gap:6px}
-.pa-n{font-style:normal;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgb(var(--bl));color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.pa-n{font-style:normal;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgb(var(--bl));color:var(--bl-ink);font-size:12px;display:inline-flex;align-items:center;justify-content:center}
 .pa-chips{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .pa-chip{flex:1 1 0;min-width:0;height:46px;border-radius:23px;font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
 .pa-chip.sell{background:color-mix(in srgb,var(--sell) 13%,transparent);color:var(--sell)}
@@ -2727,7 +2765,9 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 .pa-row .v{margin-left:auto;margin-right:10px}
 .pa-del{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--ink2);border-radius:50%}
 .pa-del:active{background:var(--press)}
-.bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{border-radius:32px;padding:20px 17px}
+.bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{border-radius:19px;padding:17px}
+/* the flat bar's count on «Позиции»: the original's #262626 badge (the glass bar keeps its own) */
+:root:not([data-glass="on"]) .navpill,:root[data-lgoff~="nav"] .navpill{background:rgb(var(--bl));color:var(--bl-ink)}
 #app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 92px)}
 </style>
 
@@ -8017,6 +8057,7 @@ function render(){
   document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
   bindScreen();
   document.querySelectorAll("#app .btn.fit").forEach(b => fitText(b, 11));   // a long word shrinks to its button instead of spilling
+  document.querySelectorAll("#app .dl-l").forEach(b => fitText(b, 9));       // the deal's captions: «Продолжительность» whole in a wider font
   if(glassOn()){
     glassDrops(app());
     quickLens(app());
@@ -9039,7 +9080,7 @@ function screenDeal(){
     rows.filter(Boolean).map(([k, v, cls]) => `<div class="dl-r"><span class="k">${L(k)}</span><span class="v ${cls || ""}">${v}</span></div>`).join("")}</div></div>`;
   const reason = t.reason && t.reason !== "manual" ? L(t.reason) : "";
   return appbar(ids.close, { back: true }) + `<div class="wrap deal">
-    <div class="card dl-card">
+    <div class="card dl-card ${sell ? "sell" : "buy"}">
       <div class="dl-hd"><div class="dl-hd-t"><div class="dl-sym">${sym}</div><div class="dl-desc">${symDesc(sym)}</div></div>
         <button type="button" class="dl-share" data-act="dealshare" aria-label="${L("Поделиться")}">${DL_IC.share}</button></div>
       <div class="dl-stats">
@@ -9065,7 +9106,10 @@ function screenDeal(){
   </div>`;
 }
 /* the chart of a deal: the bars of the trade with room either side (the timeframe that holds it in ≤ 40 bars), the
-   entry and the exit drawn as cTrader tags them («Продать | 0.07 Лоты | 3858.89»), the times under it */
+   entry and the exit drawn as cTrader tags them («Продать | 0.07 Лоты | 3858.89»), the times under it. On the bars
+   cTrader marks the deal itself (user 2026-11-18, its screenshot): a triangle at the entry bar and one at the exit
+   bar - ▲ where it bought, ▼ where it sold, the tip on the fill's price - joined by a thin line, all in the result's
+   colour (that screenshot: a losing buy, orange marks; the card stays the direction's green). No level lines. */
 function dealChart(t){
   const sym = symOf(t), t0 = Math.floor(t.openTime / 1000), t1 = Math.floor(t.closeTime / 1000);
   const tf = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"].find(k => (t1 - t0) / TF[k] <= 30) || "D1", step = TF[tf];
@@ -9086,9 +9130,17 @@ function dealChart(t){
   }
   const tag = (side, px, off) => {
     const yy = y(px), lab = `${L(side === "sell" ? "Продать" : "Купить")}`, lot = lotsTxt(t.volume), pv = pxfmt(px, sym);
-    return `<g class="dl-tag ${side}"><path d="M0 ${yy.toFixed(1)}H${W}" stroke="currentColor" stroke-width="1" stroke-dasharray="5 4" opacity=".7"/>`
+    return `<g class="dl-tag ${side}">`
       + `<foreignObject x="0" y="${(yy - 12 + off).toFixed(1)}" width="${W}" height="24"><div class="dl-pill"><span>${lab}</span><span>${lot}</span><span>${pv}</span></div></foreignObject></g>`;
   };
+  const closeSide = t.side === "sell" ? "buy" : "sell", barX = tt => x(Math.floor(tt / step) * step);
+  const mark = (side, tt, px) => {                           // ▲ / ▼, its tip on the price; the centre the line meets
+    const cx = barX(tt), cy = y(px), up = side === "buy", s = 6, h = 9, d = up ? h : -h;
+    return { cx, cy: cy + d * 2 / 3, path: `M${(cx - s).toFixed(1)} ${(cy + d).toFixed(1)}L${cx.toFixed(1)} ${cy.toFixed(1)}L${(cx + s).toFixed(1)} ${(cy + d).toFixed(1)}Z` };
+  };
+  const mIn = mark(t.side, t0, t.entry), mOut = mark(closeSide, t1, t.exit);
+  svg += `<g class="dl-mk ${t.net >= 0 ? "buy" : "sell"}"><path d="M${mIn.cx.toFixed(1)} ${mIn.cy.toFixed(1)}L${mOut.cx.toFixed(1)} ${mOut.cy.toFixed(1)}" stroke="currentColor" stroke-width="1.1"/>`
+    + `<path d="${mIn.path}" fill="currentColor"/><path d="${mOut.path}" fill="currentColor"/></g>`;
   const gap = Math.abs(y(t.entry) - y(t.exit)) < 26 ? 13 : 0, eUp = y(t.entry) <= y(t.exit);
   svg += tag(t.side, t.entry, gap ? (eUp ? -gap : gap) : 0) + tag(t.side === "sell" ? "buy" : "sell", t.exit, gap ? (eUp ? gap : -gap) : 0);
   let axis = "";
@@ -10391,11 +10443,13 @@ const NAV_OVAL = .35;
 // the dark theme's lens, as the user's dark iOS 26 video (2026-11-17): the content inside ~1.2× (fitted; the light reference: 1.15),
 // letters curled only in a thin fold at the rim (no blobs further in), no colour fringes at all (none on the video: its only colour is WhatsApp's green
 // badges), and the clear drop ~16 % taller - past the bar's top and foot. Aurora keeps the light reference's.
-// From the video's held frames, zoomed (2026-11-17, the user: «переломление не 1 в 1 … и обводка»): the middle magnifies
-// ~1.2 (fitted 1.15-1.21), and only a narrow band at the very rim (ρ^12, folding from ρ ≈ .92) bends - the label's own
-// ends curl along the rim there. Nothing from outside is drawn into it: a joint fit read an outward pull (-0.48), but
-// rendered it squeezed the neighbours' names into the rim, which the video never shows.
-const NAV_DARK = Object.freeze({ magnify: .2, reach: .2, reachMotion: 0, gamma: 12, lift: .16, widen: 0 });
+// FITTED to the video's held frames (2026-11-18, .devtools/fit131*.py, fitedge.py: the rim pinned where the video shows it,
+// oval end caps, the bar registered first): the middle magnifies 1.17 (1.16 on the Tú frames, 1.17 on Novedades), and the
+// field folds from ρ ≈ .88 (ρ^7, β .31; it was ρ^12 from .92): the label's last letter curls along the rim as the video's
+// «s» does - the rim side's residual halves (176 → 89), the label's own stays (132). Inward only: an outward pull fits worse
+// on every held frame. The clear drop 10 % narrower (the user: «чуть-чуть меньше размер самой плашки»): the label's
+// half-length over the drop's half-width was .53 on Графики, the video's .54 (Novedades) to .63 (Comunidades); now .59.
+const NAV_DARK = Object.freeze({ magnify: .17, reach: .31, reachMotion: 0, gamma: 7, lift: .16, widen: -.1 });
 function navDarkLens(){
   const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset;
   return !!d && d.theme === "dark" && d.tone !== "aurora";
@@ -11092,6 +11146,10 @@ function subGlass(bar){
   // bottom bar does not use, so the two drops can never end up sharing one filter and each other's settings
   // scaled to the drop: this one is 30 px tall against the bottom one's 51, and the same bend pulled its letters
   // about twice as hard. Seven, and a band of eight, is the bottom drop's lens at this size.
+  // CLEAR as it moves (user 2026-11-18, their phone video: «стекло … должно быть более прозрачное»): the generic tail's
+  // brightness(1.03) and saturate(1.35) turned the lens over the near-white capsule into a solid white blob. In light
+  // it bends what is under it and adds nothing; the dark themes keep their tail.
+  bub._lgTail = document.documentElement.dataset.theme === "dark" ? undefined : " blur(0px) saturate(1.1)";
   lgGlass(bub, W0, h, 7, .12, false, true, 0, -8, true);
   const fid = bub._lg && bub._lg.indexOf("#") > 0 ? bub._lg.split("#")[1].split(")")[0].replace(/["']/g, "") : "";
   const flt = fid && document.getElementById(fid);
