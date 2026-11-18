@@ -108,3 +108,20 @@ test('the motion loop reuses one filter and no image, Blob or filter node is cre
   h.navOpticsBind(h.bar);assert.equal(h.counts.nodes,nodes);assert.equal(h.counts.images.length,images);
   h.navLens(0);assert.equal(h.source.style.filter,'');
 });
+
+test('light (the user’s v3 video): no channel is bent apart, the red glyphs grow a pale cyan rim that fades with the glass',()=>{
+  const h=fixture(),byResult=n=>h.filter.querySelector('[result="'+n+'"]'),scales=()=>h.ctx.NB.optical.dms.map(n=>+n.getAttribute('scale'));
+  h.ctx.document.documentElement={dataset:{}};h.navLens(1);
+  assert.equal(new Set(scales()).size,1,'all three wavelengths bent alike: no magenta beside the cyan');
+  const r1=+byResult('sample0x').getAttribute('radius');assert.ok(r1>.3&&r1<1.2,'rim '+r1);
+  assert.equal(+byResult('inkSample0x').getAttribute('radius'),r1,'the coverage keeps the rim');
+  assert.equal(byResult('channel0').getAttribute('in'),'sample0x');assert.equal(byResult('inkCoverage').children[0].getAttribute('in'),'inkSample0x');
+  assert.equal(byResult('inkCoverage').children.length,3);
+  h.navLens(.5);assert.ok(Math.abs(+byResult('sample0x').getAttribute('radius')-r1/2)<1e-3,'fades with the glass');
+  h.ctx.DISP.on=false;h.navLens(1);assert.equal(+byResult('sample0x').getAttribute('radius'),0);h.ctx.DISP.on=true;
+  // Aurora (and dark) keep the split and the plain red sample
+  h.ctx.document.documentElement={dataset:{theme:'dark',tone:'aurora'}};h.navLens(1);
+  assert.ok(scales()[0]<scales()[1]&&scales()[1]<scales()[2]);
+  assert.equal(byResult('channel0').getAttribute('in'),'sample0');assert.equal(byResult('inkCoverage').children[0].getAttribute('in'),'inkSample0');
+  assert.equal(+byResult('sample0x').getAttribute('radius'),0);
+});

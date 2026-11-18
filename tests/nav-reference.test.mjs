@@ -17,7 +17,7 @@ const near = (actual, expected, tolerance = 1e-7) => assert.ok(Math.abs(actual -
 const plain = value => JSON.parse(JSON.stringify(value));
 const PREVIEW_LABELS = [33.8125, 44.875, 45.5625, 58.5];   // Рынки · Графики · Позиции · Мой cTrader (four tabs since 2026-11-17)
 
-function harness({ width = 384, height = 64, labels = [34, 42, 43, 55], viewport = width + 16 } = {}) {
+function harness({ width = 384, height = 64, labels = [34, 42, 43, 55], viewport = width + 16, dataset } = {}) {
   const raf = new Map(), counters = { layout: 0, ranges: 0, cards: 0, nav: [] };
   let now = 100, nextRaf = 0, currentBar;
   function style() {
@@ -43,7 +43,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 55], viewport
     navLens() {}, navOpticsBind() {}, lgGlass() {},
     openNavCard: () => { counters.cards++; },
     document: {
-      documentElement: { style: style(), get clientWidth() { return ctx.window.innerWidth; } },
+      documentElement: { style: style(), dataset, get clientWidth() { return ctx.window.innerWidth; } },
       fonts: { status: 'loaded' },
       querySelector: selector => selector === '.bottomnav' ? currentBar : null,
       createRange() {
@@ -475,4 +475,55 @@ test('a screen rebuilt mid-gesture keeps its pointer and refreshes the cached re
   near(a.NB.drag.rect.width, 384);
   next.onpointerup({ pointerId: 7 });
   assert.equal(a.NB.drag, null);
+});
+
+// ---- THE LIGHT BAR, REFITTED TO THE USER'S v3 VIDEO (2026-11-18). Without a data-theme (above) the harness runs
+// NAV_MO - the dark and Aurora bars' motion, unchanged; a light document (dataset without theme) runs NAV_MO_LIGHT. ----
+const LIGHT = { labels: PREVIEW_LABELS, dataset: {} };
+
+test('light: the edge in front overshoots its mark by ~18 % and comes back, the one behind never passes its own', () => {
+  for (const [from, to] of [[1, 2], [2, 1]]) {
+    const runtime = harness(LIGHT), { samples } = hop(runtime, from, to);
+    const lead = s => to > from ? s.b - (from + 1) : from - s.a, trail = s => to > from ? s.a - from : (from + 1) - s.b;
+    const over = Math.max(...samples.map(lead));
+    assert.ok(over > 1.12 && over < 1.25, `lead ${over}`);
+    const peak = samples.find(s => lead(s) === over);
+    assert.ok(peak.time > 120 && peak.time < 260, `lead peaks at ${peak.time} ms`);
+    assert.ok(Math.max(...samples.map(trail)) <= 1.005, 'the trailing edge lands without passing');
+    near(samples.at(-1).a, to); near(samples.at(-1).b, to + 1);
+  }
+});
+
+test('light: the clear lens is ~7 % taller than its pill in flight as landed, and never reaches the bar’s outline', () => {
+  const runtime = harness(LIGHT), { a } = runtime, t = a.NB.track, { samples, rest } = hop(runtime, 1, 2);
+  const tall = Math.max(...samples.map(s => s.h)) / rest.h;
+  assert.ok(tall > 1.05 && tall < 1.085, `swell ${tall}`);
+  assert.ok(samples.filter(s => s.time > 60 && s.time < 120).every(s => s.h / rest.h > 1.03), 'already taller in flight');
+  assert.ok(Math.max(...samples.map(s => s.h)) < t.height - 4, 'inside the bar');
+  near(samples.at(-1).h, rest.h, 1e-6);
+});
+
+test('light: the clear lens has 1.5x elliptic ends; dark keeps its capsule, Aurora the .35 oval', () => {
+  for (const [dataset, oval] of [[{}, 1.5], [{ theme: 'dark' }, 1], [{ theme: 'dark', tone: 'aurora' }, 1.35]]) {
+    const { a } = harness({ labels: PREVIEW_LABELS, dataset });
+    Object.assign(a.NB, { a: 1, b: 2, u: 1, target: 1 });
+    near(a.navOval(1), oval, 1e-9); near(a.navOval(0), 1, 1e-9);
+  }
+});
+
+test('light: a long caption has a third of the bar to spare each side, an end pill keeps the bar’s gap', () => {
+  const labels = [34, 42, 43, 70], { a } = harness({ labels, dataset: {} }), t = a.NB.track, gap = (t.height - t.restH) / 2;
+  near(t.widths[1] * t.tabW, Math.max(120 * 64 / 94, 42 + .67 * 64));
+  const last = a.navBox(3, 4);
+  assert.ok((last.left + last.sx) * t.tabW <= t.width - gap + 1e-6, 'the end pill stays inside the bar');
+  assert.ok(last.sx * t.tabW >= 105 * 64 / 94 - 1e-6);
+});
+
+test('light: landing on an end tab the lens lies flush with the bar’s end, never out past it', () => {
+  for (const [from, to] of [[1, 0], [2, 3]]) {
+    const runtime = harness(LIGHT), { a } = runtime, t = a.NB.track, scale = t.height / 94, { samples } = hop(runtime, from, to);
+    const out = Math.max(...samples.map(s => to === 0 ? -s.left * t.tabW : (s.left * t.tabW + s.w) - t.width));
+    assert.ok(out <= 2 * scale + 1e-6, `out past the end by ${out}`);
+    assert.ok(out >= -1, 'pressed against it');
+  }
 });
