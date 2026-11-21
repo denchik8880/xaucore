@@ -57,7 +57,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 55, 50], view
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,navCorner,navOval,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,NAV_LIFT,NAV_DARK,navCorner,navOval,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -528,4 +528,34 @@ test('light: landing on an end tab the lens lies flush with the bar’s end, nev
     assert.ok(out <= 2 * scale + 1e-6, `out past the end by ${out}`);
     assert.ok(out >= -1, 'pressed against it');
   }
+});
+
+// ---- 2026-11-21: the drag lift (w1), the dark bar (w3, 13.png) ----
+test('a sliding finger lifts the drop into a capsule as tall as the bar and 1.18 tabs long; let go, it lands as before', () => {
+  const runtime = harness({ labels: PREVIEW_LABELS, dataset: {} }), { a } = runtime, t = a.NB.track, scale = t.height / 94;
+  const room = t.height - 2 * a.NAV_MO.endGap * scale;
+  Object.assign(a.NB, { dl: 1, clear: 1, infl: 1, it: 1, vs: 0, drag: null });
+  const box = a.navBox(1, 2);
+  assert.ok(box.sx >= a.NAV_LIFT.w - 1e-9, `lifted length ${box.sx} tabs`);
+  near(box.sy * t.baseH, room, 1e-6);
+  near(a.navOval(1), 1, 1e-9);                                   // a capsule, not the landing oval
+  Object.assign(a.NB, { dl: 0, clear: 0, infl: 0, it: 0, a: 1, b: 2, u: 1, target: 1 });
+  a.NB.drag = { id: 1, u: 1.5, start: 1, pointerU: 1, moved: true, slid: true, t0: 100, rect: runtime.bar.getBoundingClientRect() };
+  for (let i = 1; i <= 30; i++) runtime.frame(100 + i * 1000 / 120);
+  assert.ok(a.NB.dl > .95, `lifted: ${a.NB.dl}`);
+  a.NB.drag = null;
+  for (let i = 31; i <= 400; i++) runtime.frame(100 + i * 1000 / 120);
+  assert.equal(a.NB.dl, 0);
+});
+
+test('dark: a black pill 0.70 of the bar and 1.45 bar heights long; clear, the lens fills the bar; a 3.5 % breath over 280 ms', () => {
+  const { a } = harness({ labels: [20, 20, 20, 20, 20], dataset: { theme: 'dark' } }), t = a.NB.track, scale = t.height / 94;
+  near(t.restH, a.NAV_DARK.restH * t.height, 1e-9);
+  near(t.widths[2] * t.tabW, a.NAV_DARK.len * t.height, 1e-9);
+  Object.assign(a.NB, { clear: 1, infl: 1, it: 1, vs: 0, dl: 0 });
+  near(a.navBox(2, 3).sy * t.baseH, t.height - 2 * a.NAV_MO.endGap * scale, 1e-6);
+  Object.assign(a.NB, { clear: 0, infl: 0, it: 0 });
+  near(a.navBox(2, 3).sy * t.baseH, t.restH, 1e-9);
+  near(a.navPulse(140), .035, 1e-9);
+  assert.ok(a.navPulse(279) > 0 && a.navPulse(281) <= 0);
 });

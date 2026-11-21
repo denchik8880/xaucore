@@ -11,6 +11,7 @@
 var LG_DEFAULTS=Object.freeze({clarity:85,depth:1,light:1,shadow:1,refract:1,line:1,dark:1,tilt:false});
 function lgNumber(k,v){return typeof v==="number"&&Number.isFinite(v)?Math.min(k==="refract"?1.5:2,Math.max(0,v)):LG_DEFAULTS[k];}
 function lgSavedClarity(th){try{for(var key of ["xc_glass_clear_"+th,"xc_glass_clear"]){var raw=localStorage.getItem(key),v=raw===null||raw.trim()===""?NaN:Number(raw);if(Number.isFinite(v)&&v>=0&&v<=100)return v;}}catch(e){}return LG_DEFAULTS.clarity;}
+function lgSavedTint(th){try{var raw=localStorage.getItem("xc_glass_tint_"+th),v=raw===null||raw.trim()===""?NaN:Number(raw);if(Number.isFinite(v)&&v>=0&&v<=100)return v;}catch(e){}return 0;}
 function lgq(v){var c=(Number.isFinite(v)?Math.min(100,Math.max(0,v)):LG_DEFAULTS.clarity)/100,hi=Math.max(0,c-.5)*2,lo=Math.max(0,.5-c)*2;return{k:Math.max(.15,1+lo*.5-hi*.978),b:1+lo*.4-hi*.985,s:1+lo*.15-hi*.95,sb:1+lo*.2-hi*.93,r:1-lo+hi*1.65,ch:Math.max(0,c-.85)/.15,n:Math.pow(1-c,2)*.75+.008};}
 </script>
 <script>/* Apply the reference glass preset once per browser, before first paint (user 2026-10-25; again 2026-11-15,
@@ -20,7 +21,7 @@ function lgq(v){var c=(Number.isFinite(v)?Math.min(100,Math.max(0,v)):LG_DEFAULT
 var LG_PRESET_VERSION="9-flat-plates-2026-11-16";
 try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_light","xc_glass_clear_dark","xc_glass_clear_aurora","xc_glass_clear","xc_lg_ui","xc_glass_off","xc_disp"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("xc_glass","on");localStorage.setItem("xc_glass_v",LG_PRESET_VERSION);}}catch(e){}
 </script>
-<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{document.documentElement.dataset.glass=localStorage.getItem("xc_glass")==="off"?"off":"on";var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=lgSavedClarity(th);var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return lgNumber("depth",v)};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
+<script>/* apply the saved theme and the liquid-glass mode before first paint — no flash */document.documentElement.dataset.glass="on";try{document.documentElement.dataset.glass=localStorage.getItem("xc_glass")==="off"?"off":"on";var tt=localStorage.getItem("xc_theme");if(tt==="dark"||tt==="aurora")document.documentElement.dataset.theme="dark";if(tt==="aurora")document.documentElement.dataset.tone="aurora";var mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute("content",tt==="aurora"?"#142141":tt==="dark"?"#000000":"#eff1f4");var lo=localStorage.getItem("xc_glass_off");if(lo)document.documentElement.dataset.lgoff=lo;var th=tt==="aurora"?"aurora":document.documentElement.dataset.theme==="dark"?"dark":"light";var gc=lgSavedClarity(th);var q=lgq(gc),st=document.documentElement.style;try{var u=JSON.parse(localStorage.getItem("xc_lg_ui")||"null");if(u){var nm=function(v){return lgNumber("depth",v)};st.setProperty("--lgd",nm(u.d).toFixed(2));st.setProperty("--lgh",nm(u.l).toFixed(2));st.setProperty("--lgsh",nm(u.s).toFixed(2));st.setProperty("--lgln",nm(u.ln).toFixed(2));st.setProperty("--lgdk",nm(u.dk).toFixed(2));}}catch(e){}st.setProperty("--lgk",q.k.toFixed(3));st.setProperty("--lgb",q.b.toFixed(3));st.setProperty("--lgs",q.s.toFixed(3));st.setProperty("--lgsb",q.sb.toFixed(3));st.setProperty("--lgn",q.n.toFixed(3));st.setProperty("--lgt",(lgSavedTint(th)/100).toFixed(3));var l=localStorage.getItem("xc_lang");document.documentElement.lang=/^(ru|uk|fr|tr)$/.test(l||"")?l:"en";}catch(e){document.documentElement.lang="en";}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111418'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.classList.add("booting");(function(){var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content","#0b0d12");})();</script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -73,10 +74,14 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
      attribute, and an undefined custom property makes the whole box-shadow invalid, not just that one layer */
   --lg-body:inset 0 0 0 0 transparent; --lg-lift1:0 0 0 0 transparent; --lg-lift2:0 0 0 0 transparent; --lg-lift3:0 0 0 0 transparent;
   --lg-rimd:transparent; --lg-spot:transparent; --lg-foot:transparent; --lgd:1; --lgh:1; --lgsh:1; --lgln:1; --lgdk:1;
+  /* «Затемнение» (2026-11-21, iOS 27's Liquid Glass from clear to tinted): --lgt 0…1 per theme (applyTint) mixes every glass
+     body token - the bars, capsules, plates, sheets, menus, toasts - towards --lg-tint, up to --lgtm of it; the glass grows
+     darker and less see-through together, as iOS's tinted glass does. 0 is the glass as it was. */
+  --lgt:0; --lgtm:50%; --lg-tint:#000;
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
-  --nav-glass:rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
+  --nav-glass:color-mix(in srgb,rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
@@ -94,7 +99,7 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
-  --nav-glass:rgba(28,28,30,calc(.88 + .1 * var(--lgk,1))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(0,0,0,.3); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
+  --nav-glass:color-mix(in srgb,rgba(34,35,40,calc(.88 + .1 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(0,0,0,.3); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-ring:-.6px 0 0 0 rgba(255,255,255,calc(.16 * var(--lgln,1))),.6px 0 0 0 rgba(255,255,255,calc(.16 * var(--lgln,1))),0 0 0 .5px rgba(255,255,255,calc(.07 * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.36 + .14 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.18 + .12 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -365,9 +370,14 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   clip-path:inset(calc(10px - var(--nrgy,0px) + var(--nry,0px)) calc(10px - var(--nrgx,0px)) calc(10px - var(--nrgy,0px) - var(--nry,0px)) calc(10px - var(--nrgx,0px)) round calc(30px * var(--nrsx,1)) / calc(30px * var(--nrsy,1)));
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#73747a;opacity:var(--nrl,0);pointer-events:none}
-/* THE DARK BAR AS THE USER'S iOS 26 VIDEO (2026-11-17, WhatsApp's dark tab bar: «повторите 1 в 1 … только названия наши, а цвет
-   белый вместо синего»): the tab under the drop is white, the drop a clear lens with a light rim, no colour */
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#fff}
+/* THE DARK BAR AS cTRADER'S OWN (user 2026-11-21, 13.png and the video w3: «черную тему нужно доработать, показал как там
+   должна выглядеть нижняя панель»): the chosen tab is BLUE again - 13.png's icon fill reads #0894fc (the mode of 1604
+   saturated pixels) - on a BLACK resting pill (rgb 8-10 on the bar's 31-32: a .7 black veil). It replaces the white of the
+   WhatsApp video (2026-11-17). */
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#0894fc}
+:root[data-theme="dark"]:not([data-tone="aurora"]) .bottomnav{--nav-rest:rgba(0,0,0,calc(.7 * var(--lgdk,1)))}
+/* …UNDER the blue: a black veil over the accent copy (z 3) dimmed the chosen tab to a third (B-R 73 instead of 244) */
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:2}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#409cff}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* The ordinary row stays neutral outside the lens. The complete optical copy uses the theme's accent;
@@ -421,13 +431,15 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;white-space:nowrap;transform-origin:50% 55%;
   color:var(--nav-on)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb>.ic{color:inherit}
-/* DARK (the user's iOS 26 dark video): each tab is magnified about ITS OWN middle, not the drop's (2026-11-18, matched glyph
+/* EVERY THEME since 2026-11-21 (the light reference v3 agrees: a name half inside a moving lens stays where it stands, within
+   3 px, f46/f162; magnified about the drop's middle, ours were pushed out of a lens parked between two tabs - w1's white oval).
+   DARK (the user's iOS 26 dark video): each tab is magnified about ITS OWN middle, not the drop's (2026-11-18, matched glyph
    by glyph against the video: its magnifier sits within 1-4 px of the label's centre while the drop's centre is a fifth of
    the drop away). A drop sliding past a tab enlarges the label where it stands instead of dragging it along. The row
    keeps only the rail's breath; the magnifier moves onto each cell. */
-:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{
   transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1)),var(--nry,0px)) scale(var(--nrsx,1),var(--nrsy,1))}
-:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{--nm:inherit;transform-origin:50% 50%;transform:scale(var(--nm,1),var(--nmy,1))}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{--nm:inherit;transform-origin:50% 50%;transform:scale(var(--nm,1),var(--nmy,1))}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
    band across its top, no lit lip, no edge. Everything I had drawn on it is what made it read as a separate
    object sitting on the bar instead of a shadow under the tab. */
@@ -480,6 +492,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
   /* frosted at every clarity (user: «стекло при прокрутке … плавнее и лучше … без бликов»): the video's haze of the
      page under the bar is soft - at «Кристалл» ours went down to a 0.2 px blur, every letter sharp through the white */
   -webkit-backdrop-filter:blur(calc(14px * max(var(--lgb,1), .31))) saturate(1.3);backdrop-filter:blur(calc(14px * max(var(--lgb,1), .31))) saturate(1.3)}
+/* the bar's slab, dark (13.png, measured at its 206 px height = 3.2 px a CSS px): a grey of 31,32,37 over black, a hair
+   lighter under its top (37-40 for the first ~6 px); a lit line 1.25 px inside the top (+60 over the grey, ~1 px wide) and
+   one 0.6 px above the foot (+50); none down the round ends at mid-height. Ours was a flat 25 with no line at all. */
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface{
+  background:linear-gradient(180deg,transparent 10.35px,rgba(255,255,255,calc(.28 * var(--lgln,1))) 11.25px,transparent 12.2px),
+    linear-gradient(0deg,transparent 10.1px,rgba(255,255,255,calc(.24 * var(--lgln,1))) 10.6px,transparent 11.7px),
+    linear-gradient(180deg,rgba(255,255,255,.025) 10px,transparent 17px),var(--nav-glass)}
 /* the lens is CLEAR, like the video's (WhatsApp, iOS 26): no tint, no sheen — the rim, a hairline, a soft shadow */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{z-index:4;opacity:var(--lf,0);background:rgba(255,255,255,.025);
   -webkit-backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);backdrop-filter:blur(.5px) saturate(1.5) brightness(1.04);
@@ -1207,13 +1226,14 @@ html:has(body.route-wallet){background:#0c0a08}
 .menu-item,.wl-row{transition:transform var(--mo-std),background-color var(--mo-std)}
 /* ---- LIQUID GLASS everywhere else it fits (user 2026-09-18: «первые 8 пунктов отличны») — all gated on
    html[data-glass=on]; off, every one of these keeps its flat cTrader look ---- */
+:root:not([data-glass="on"]){--lgtm:0%}
 :root[data-glass="on"]{
   --nav-hole:#fff;
-  --bar-glass:rgba(255,255,255,calc(.6 * var(--lgk,1))); --bg-glass:rgba(239,241,244,calc(.6 * var(--lgk,1))); --sheet-glass:rgba(255,255,255,calc(.8 * var(--lgs,1)));
-  --seg-track:rgba(120,120,128,.13); --ctl-glass:rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:rgba(255,255,255,calc(.42 * var(--lgk,1)));
-  --toast-glass:rgba(255,255,255,.74); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
+  --bar-glass:color-mix(in srgb,rgba(255,255,255,calc(.6 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(239,241,244,calc(.6 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(255,255,255,calc(.8 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --seg-track:rgba(120,120,128,.13); --ctl-glass:color-mix(in srgb,rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:color-mix(in srgb,rgba(255,255,255,calc(.42 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --toast-glass:color-mix(in srgb,rgba(255,255,255,.74),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:rgba(255,255,255,calc(.1 + .35 * var(--lgk,1))); --edge-fade:rgba(239,241,244,.92); --pop-glass:rgba(255,255,255,calc(.12 + .5 * var(--lgs,1)));
+  --cap-glass:color-mix(in srgb,rgba(255,255,255,calc(.1 + .35 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(239,241,244,.92); --pop-glass:color-mix(in srgb,rgba(255,255,255,calc(.12 + .5 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   /* THE THREE DIALS (Настройки стекла writes them; 1 = as designed). Everything below is expressed through them,
      so one slider changes the whole system and nothing has to be re-authored. */
   --lgd:1; --lgh:1; --lgsh:1;
@@ -1242,11 +1262,11 @@ html:has(body.route-wallet){background:#0c0a08}
 }
 :root[data-theme="dark"][data-glass="on"]{
   --nav-hole:#1d1d1f;
-  --bar-glass:rgba(12,12,12,calc(.58 * var(--lgk,1))); --bg-glass:rgba(0,0,0,calc(.52 * var(--lgk,1))); --sheet-glass:rgba(26,26,28,calc(.82 * var(--lgs,1)));
-  --seg-track:rgba(255,255,255,.08); --ctl-glass:rgba(24,24,27,calc(.9 + .08 * var(--lgs,1))); --seg-bub:rgba(120,120,128,calc(.2 + .55 * var(--lgs,1))); --sub-bub:rgba(91,147,247,.2); --info-glass:rgba(20,20,22,calc(.4 * var(--lgk,1)));
-  --toast-glass:rgba(44,44,48,.74); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
+  --bar-glass:color-mix(in srgb,rgba(12,12,12,calc(.58 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(0,0,0,calc(.52 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(26,26,28,calc(.82 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --seg-track:rgba(255,255,255,.08); --ctl-glass:color-mix(in srgb,rgba(24,24,27,calc(.9 + .08 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(120,120,128,calc(.2 + .55 * var(--lgs,1))); --sub-bub:rgba(91,147,247,.2); --info-glass:color-mix(in srgb,rgba(20,20,22,calc(.4 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --toast-glass:color-mix(in srgb,rgba(44,44,48,.74),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.16); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:rgba(34,34,38,calc(.45 + .5 * var(--lgk,1))); --edge-fade:rgba(0,0,0,.86); --pop-glass:rgba(30,30,34,calc(.16 + .55 * var(--lgs,1)));
+  --cap-glass:color-mix(in srgb,rgba(34,34,38,calc(.45 + .5 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(0,0,0,.86); --pop-glass:color-mix(in srgb,rgba(30,30,34,calc(.16 + .55 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   --lg-rimd:rgba(0,0,0,calc(.12 * var(--lgdk,1)));
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
     inset 0 0 0 .7px rgba(255,255,255,calc(.10 * var(--lgh,1))),
@@ -1623,8 +1643,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .disp-go{margin-top:8px;padding:9px}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(255,255,255,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:rgba(28,28,31,calc(.6 * var(--lgs,1)));--sheet-card:rgba(255,255,255,calc(.18 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.09 + .12 * var(--lgs,1)))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:color-mix(in srgb,rgba(255,255,255,calc(.6 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:color-mix(in srgb,rgba(28,28,31,calc(.6 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,calc(.18 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.09 + .12 * var(--lgs,1)))}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.1 * var(--lgs,1))),rgba(255,255,255,calc(.062 * var(--lgs,1))) 34%,rgba(255,255,255,calc(.05 * var(--lgs,1))))}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.12 * var(--lgs,1))),rgba(255,255,255,calc(.075 * var(--lgs,1))) 40%,rgba(255,255,255,calc(.06 * var(--lgs,1))))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:transparent}
@@ -1675,8 +1695,8 @@ body.amenu-open .wl-logo{opacity:0}
 .about-sheet h2{margin-bottom:10px}
 /* a long read is not a control panel: this one pane is denser than the rest, or a live chart moves under every
    line of it. It is still glass, you just cannot read the page through it */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:rgba(255,255,255,.86);--sheet-card:rgba(255,255,255,.62)}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:rgba(24,24,27,.9);--sheet-card:rgba(255,255,255,.1)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(255,255,255,.86),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.62)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(24,24,27,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.1)}
 /* ---- the app drawer behind the logo (cTrader's own, one to one) ---- */
 .modal.amodal{align-items:stretch;justify-content:flex-start}
 .amodal .sheet.am-sheet{animation:none!important;width:84%;max-width:348px;height:100%;max-height:none;margin:0;padding:0;border-radius:0;
@@ -1684,7 +1704,7 @@ body.amenu-open .wl-logo{opacity:0}
 .amodal.closing .sheet{transform:translateX(-100%);transition:transform var(--mo-std)}
 .am-sheet>.close{display:none}
 @keyframes amIn{from{transform:translateX(-100%)}to{transform:none}}
-.am-head{display:flex;align-items:center;gap:14px;padding:21px 18px 13px 18px}   /* no mark of its own: the bar's poured out into the panel (user «Когда открылась вкладка, логотипа не должно быть»); the name starts where the rows' icons do */
+.am-head{display:flex;align-items:center;gap:12px;padding:20px 18px 8px 18px}   /* no mark of its own: the bar's poured out into the panel (user «Когда открылась вкладка, логотипа не должно быть»); the name starts where the rows' icons do */
 /* the drawer pouring out of the mark (amLiquid): all its writing comes in last, out of a blur */
 .am-sheet.lqa>*{opacity:var(--amc,1);filter:blur(calc((1 - var(--amc,1)) * 9px))}
 /* its glass while it pours: the mark's own bubble at --amg 0 (its tint, blur 1px, saturate 1.35, brightness 1.03)
@@ -1706,7 +1726,20 @@ body.amenu-open .wl-logo{opacity:0}
    off while it pours (above) and this one is the same pixels, so at rest nothing changes. */
 .lqa-rim{position:fixed;pointer-events:none;z-index:2;opacity:0;box-shadow:inset 0 0 0 1px var(--sheet-rim),var(--lg-body)}
 .am-brand{font-size:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.am-acct{padding:0 18px 16px 18px;line-height:1.35}
+.am-acct{display:flex;align-items:center;gap:10px;padding:0 14px 6px 66px;line-height:1.35}   /* the e-mail and the username under the name, the round button beside them */
+.am-ids{flex:1 1 auto;min-width:0}
+.am-mark{flex:none;width:36px;height:36px}
+.am-mark svg,.am-acl svg{display:block;width:100%;height:100%}
+.am-prof{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;background:#a1a1a6;color:#fff;transition:transform var(--mo-std)}
+.am-prof svg{width:26px;height:26px}
+:root[data-theme="dark"] .am-prof{background:#5a5a60}
+.am-prof:active{transform:scale(.9);transition:transform var(--mo-micro)}
+.am-acrow{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:8px 18px 12px 18px;border:0;background:none;color:var(--ink);text-align:left;transition:background-color var(--mo-std)}
+.am-acrow:active{background:var(--press);transition:background-color 0s}
+.am-acl{flex:none;width:30px;height:30px}
+.am-live{flex:none;padding:0 7px;border:2px solid var(--mcy-live);border-radius:6px;color:var(--mcy-live);font-size:15px;font-weight:700;line-height:21px}
+.am-acn{flex:1 1 auto;min-width:0;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.am-tri{flex:none;color:var(--ink3)}
 .am-acct b{display:block;font-size:14.5px;font-weight:400;color:var(--ink);overflow-wrap:anywhere}
 .am-acct span{display:block;font-size:14.5px;color:var(--ink2)}
 .am-grp{border-top:1px solid var(--line);padding:6px 0}
@@ -1722,8 +1755,9 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.062) 34%,rgba(255,255,255,.05))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-grp{margin:8px;padding:2px 0;border-top:0;border-radius:20px;background:var(--sheet-card);box-shadow:none}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-it{width:calc(100% - 8px);margin:0 4px;border-radius:16px}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-head{padding:9px 18px 13px 30px}
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding:0 14px 10px 30px}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-head{padding:12px 18px 8px 22px}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acct{padding:0 12px 4px 70px}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .amodal .am-acrow{width:calc(100% - 8px);margin:0 4px;padding:8px 14px 10px 18px;border-radius:16px}
 .lg-pop-catch{position:fixed;inset:0;z-index:89;touch-action:none}
 .lg-pop{position:fixed;z-index:90;padding:6px;border-radius:22px;background:var(--pop-glass,var(--sheet-glass,var(--card)));
   -webkit-backdrop-filter:blur(calc((10px + 16px * var(--lgsb,1)) * var(--lgfb,1))) saturate(var(--lgsat,1.4));backdrop-filter:blur(calc((10px + 16px * var(--lgsb,1)) * var(--lgfb,1))) saturate(var(--lgsat,1.4));
@@ -2122,7 +2156,7 @@ body.amenu-open .wl-logo{opacity:0}
   --chart-grid:rgba(235,235,245,.07); --chart-axis:rgba(235,235,245,.86); --chart-btn:rgba(22,27,58,.72); --chart-btn-edge:rgba(168,186,237,.32);
   --chart-cross:#a7b0d2; --chart-tag:#2b3365; --chart-glass:rgba(18,22,48,.86); --exec-bg:rgba(136,147,198,.34);
   --ripple:rgba(195,206,230,.14); --ripple-w1:rgba(195,206,230,.15); --ripple-w2:rgba(195,206,230,.06); --ripple-bg:rgba(195,206,230,.08);
-  --nav-glass:rgba(30,33,53,calc(.86 + .1 * var(--lgk,1))); --nav-shadow:rgba(10,11,20,.6);
+  --nav-glass:color-mix(in srgb,rgba(30,33,53,calc(.86 + .1 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(10,11,20,.6);
   --nav-bub:rgba(195,207,230,calc(.15 * var(--dk,1))); --nav-lip:rgba(12,13,25,calc(.46 * (1 + (1 - var(--dk,1)) * .7)));
   --nav-spec:rgba(189,216,226,calc(.7 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(207,189,226,calc(.42 * (1 + (1 - var(--dk,1)))));
   --nav-specd:rgba(58,50,90,.3); --nav-edge:rgba(199,211,231,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(195,207,230,calc(.05 * var(--lgk,1)));
@@ -2189,12 +2223,12 @@ body.amenu-open .wl-logo{opacity:0}
 /* ---- the glass under «Аврора» ---- */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{
   --nav-hole:#2b3048;
-  --bar-glass:rgba(26,27,45,calc(.5 * var(--lgk,1))); --bg-glass:rgba(20,21,36,calc(.46 * var(--lgk,1))); --sheet-glass:rgba(30,33,53,calc(.8 * var(--lgs,1)));
-  --seg-track:rgba(182,190,223,.1); --ctl-glass:rgba(33,36,56,calc(.9 + .08 * var(--lgs,1))); --seg-bub:rgba(168,175,217,calc(.2 + .5 * var(--lgs,1))); --sub-bub:rgba(161,176,214,.2);
-  --info-glass:rgba(24,27,44,calc(.4 * var(--lgk,1))); --toast-glass:rgba(45,48,73,calc(.6 * max(.75, var(--lgs,1))));
+  --bar-glass:color-mix(in srgb,rgba(26,27,45,calc(.5 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(20,21,36,calc(.46 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(30,33,53,calc(.8 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --seg-track:rgba(182,190,223,.1); --ctl-glass:color-mix(in srgb,rgba(33,36,56,calc(.9 + .08 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(168,175,217,calc(.2 + .5 * var(--lgs,1))); --sub-bub:rgba(161,176,214,.2);
+  --info-glass:color-mix(in srgb,rgba(24,27,44,calc(.4 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --toast-glass:color-mix(in srgb,rgba(45,48,73,calc(.6 * max(.75, var(--lgs,1)))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   --bn-glass:rgba(245,246,250,calc(.66 * var(--lgk,1))); --fab-glass:rgba(110,115,178,calc(.6 * var(--lgk,1)));
   --lw-bar:rgba(195,206,230,.05); --lw-band:rgba(195,206,230,.05); --sheet-rim:rgba(195,210,230,.2);
-  --cap-glass:rgba(45,50,77,calc(.42 + .45 * var(--lgk,1))); --edge-fade:rgba(27,32,51,.8); --pop-glass:rgba(41,44,67,calc(.16 + .55 * var(--lgs,1)));
+  --cap-glass:color-mix(in srgb,rgba(45,50,77,calc(.42 + .45 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(27,32,51,.8); --pop-glass:color-mix(in srgb,rgba(41,44,67,calc(.16 + .55 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   --crys-cap:rgba(54,60,92,calc(.16 * var(--lgk,1))); --crys:69,74,115;
   --lg-rimd:rgba(97,86,145,calc(.1 * var(--lgdk,1)));
   /* the thickness is a shade of the night, not black: black inside a blue pane reads as a stain. Flat like the
@@ -2280,7 +2314,7 @@ body.amenu-open .wl-logo{opacity:0}
    (L1417 is (0,4,0) with :not(sheets); the Aurora glass block's (0,4,0) never re-defines these two) */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-card:rgba(235,235,245,calc(.04 + .1 * var(--lgs,1)));--sheet-field:rgba(118,118,128,calc(.18 + .1 * var(--lgs,1)))}
 /* was L1469: «О приложении» — its own grey glass rgba(24,24,27,.9) on the element, so the root token never reaches it */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:rgba(26,27,44,.9);--sheet-card:rgba(235,235,245,.08)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(26,27,44,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(235,235,245,.08)}
 /* was L1418 / L1512 / L1419 / L1601: the white film over sheets, the app menu and popups → sky-white, lilac at the foot */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{background-image:linear-gradient(180deg,rgba(190,215,255,calc(.1 * var(--lgs,1))),rgba(190,215,255,calc(.062 * var(--lgs,1))) 34%,rgba(170,150,255,calc(.05 * var(--lgs,1))))}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(190,215,255,.1),rgba(190,215,255,.062) 34%,rgba(170,150,255,.05))}
@@ -2402,8 +2436,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"] .fabnew{--fab-bg:#2f78c6;color:#fff}
 /* the plain toast, the menus and the sheets: dense enough that what is behind stays behind (at «Кристалл» the bright
    controls under them bled through as coloured blobs; the plain toast read word for word) */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--toast-glass:rgba(36,38,56,.8);
-  --pop-glass:rgba(36,38,56,calc(.5 + .3 * var(--lgs,1))); --sheet-glass:rgba(30,33,53,calc(.5 + .3 * var(--lgs,1)))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--toast-glass:color-mix(in srgb,rgba(36,38,56,.8),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --pop-glass:color-mix(in srgb,rgba(36,38,56,calc(.5 + .3 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(30,33,53,calc(.5 + .3 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
 /* the lot field: the see-through field of iOS, its caption inside it (a solid caption over the border was a dark notch
    in a clear card) */
 :root[data-tone="aurora"] .ctp-lot{background:var(--field-bg);border-color:var(--edge)}
@@ -2415,7 +2449,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{background:radial-gradient(46% 70% at 50% 50%,rgba(14,16,30,.5),rgba(14,16,30,0) 100%),
   linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 46%),linear-gradient(100deg,rgba(106,128,191,.38) 0%,rgba(133,130,201,.32) 38%,rgba(158,134,203,.34) 66%,rgba(144,166,207,.4) 100%)}
 /* the wallet's sheets keep their own dark: the gold card showed through the clear sheet right under «СУММА» */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.sheet-dark{--sheet-glass:rgba(26,23,19,.9)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.sheet-dark{--sheet-glass:color-mix(in srgb,rgba(26,23,19,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
 /* flat: the bars frost what passes under them instead of ghosting it */
 :root[data-tone="aurora"]:not([data-glass="on"]) :is(.appbar,.subtabs,.wl-topbar,.bottomnav){-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2)}
 :root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .appbar.auth-bar .ttl{background:rgba(118,118,128,.24);-webkit-backdrop-filter:blur(16px) saturate(1.1);backdrop-filter:blur(16px) saturate(1.1);
@@ -2465,8 +2499,9 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),rgba(195,207,230,calc(.12 * var(--sdk,1)));
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
-:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
-  /* the dark video's clear drop: a thin light outline - lit along its foot and round its ends, none along its top -
+:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:rgba(255,255,255,.035);
+  /* (clear, a breath lighter than the bar it sits in: w3 f11-f12, 45 on the bar's 37)
+     the dark video's clear drop: a thin light outline - lit along its foot and round its ends, none along its top -
      no dark bands inside it. MEASURED on the video's pixels at the same bar height (2026-11-17, f0091 against ours):
      its foot +55 over the bar's grey (≈ .24 white, ~1 px), a little brighter where the foot turns into the ends,
      the ends at mid-height only +20 (≈ .09), and no line along the top at all; ours was +130 / +60-90 / +30 - an even
@@ -2798,6 +2833,227 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 /* the flat bar's count on «Позиции»: the original's #262626 badge (the glass bar keeps its own) */
 :root:not([data-glass="on"]) .navpill,:root[data-lgoff~="nav"] .navpill{background:rgb(var(--bl));color:var(--bl-ink)}
 #app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 92px)}
+/* ===================== «МОЙ cTRADER» AND «НАСТРОЙКИ», iOS 26 / 27 (user 2026-11-21) ==============================
+   «на скрине где мой ситрейдер открыт, нужно все панельки по айос дизайн сделать, там они выглядят обычно»: inset
+   panels with 26 px corners (iOS 26's grouped cells), iOS's own fills, separators and secondary labels, rows of 52-54 px.
+   Flat: opaque cells. Glass: the cells translucent with a lit rim, the wash at the top of «Мой cTrader» showing through.
+   No backdrop filter on a card that scrolls: a blur under a moving pane is worked out again every frame of a scroll
+   (user: «все должно работать плавно и в 120 фпс»); over the soft wash a translucent cell looks the same as a blurred
+   one. Only the two small round buttons that float over the page at the top carry a real blur. Presses: background and
+   transform only. Tokens are this block's own (--mcy-*); the app's glass tokens are not touched. */
+:root{--mcy-cell:#fff;--mcy-fill:rgba(118,118,128,.12);--mcy-press:rgba(118,118,128,.2);--mcy-sep:rgba(60,60,67,.16);--mcy-ink2:rgba(60,60,67,.62);--mcy-ink3:rgba(60,60,67,.32);
+  --mcy-dark:#1c1c1e;--mcy-dark-ink:#fff;--mcy-live:#0f9d58;--mcy-r:26px;--mcy-rim:0 0 0 0 transparent;--mcy-btn:rgba(255,255,255,.86);
+  --mcy-hero:radial-gradient(110% 78% at 6% -8%,rgba(236,194,112,.62) 0%,rgba(236,194,112,0) 64%),radial-gradient(90% 70% at 106% 4%,rgba(204,156,76,.44) 0%,rgba(204,156,76,0) 66%),linear-gradient(180deg,#efdfc0 0%,rgba(239,241,244,0) 100%);
+  --mcy-edge:rgba(239,241,244,.94)}
+:root[data-theme="dark"]{--mcy-cell:#1c1c1e;--mcy-fill:rgba(118,118,128,.24);--mcy-press:rgba(118,118,128,.36);--mcy-sep:rgba(84,84,88,.6);--mcy-ink2:rgba(235,235,245,.6);--mcy-ink3:rgba(235,235,245,.3);
+  --mcy-dark:#f2f2f7;--mcy-dark-ink:#000;--mcy-live:#30d158;--mcy-btn:rgba(44,44,46,.92);
+  --mcy-hero:radial-gradient(110% 78% at 6% -8%,rgba(176,126,40,.38) 0%,rgba(176,126,40,0) 64%),radial-gradient(90% 70% at 106% 4%,rgba(120,84,26,.34) 0%,rgba(120,84,26,0) 66%),linear-gradient(180deg,#17110a 0%,rgba(0,0,0,0) 100%);
+  --mcy-edge:rgba(0,0,0,.92)}
+/* «Сияние»: the night is the wash; its cells are the theme's own panes of night with their hairline of light */
+:root[data-theme="dark"][data-tone="aurora"]{--mcy-cell:var(--aur-card);--mcy-fill:rgba(160,170,214,.16);--mcy-press:rgba(160,170,214,.28);--mcy-sep:rgba(235,235,245,.12);--mcy-ink2:rgba(235,235,245,.62);--mcy-ink3:rgba(235,235,245,.36);
+  --mcy-dark:#eef0ff;--mcy-dark-ink:#141a3a;--mcy-btn:rgba(37,41,72,.9);--mcy-rim:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--aur-hi);--mcy-hero:none;--mcy-edge:rgba(15,22,56,.9)}
+:root[data-glass="on"]{--mcy-cell:rgba(255,255,255,.72);--mcy-btn:rgba(255,255,255,.34);
+  --mcy-rim:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 .5px rgba(255,255,255,.7),0 0 0 .5px rgba(16,24,40,.06),0 10px 28px -16px rgba(16,24,40,.24)}
+:root[data-theme="dark"][data-glass="on"]{--mcy-cell:rgba(44,44,48,.6);--mcy-btn:rgba(70,70,76,.34);
+  --mcy-rim:inset 0 1px 0 rgba(255,255,255,.13),inset 0 0 0 .5px rgba(255,255,255,.08),0 12px 30px -16px rgba(0,0,0,.7)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--mcy-cell:rgba(30,34,62,.44);--mcy-btn:rgba(60,66,108,.34);
+  --mcy-rim:inset 0 1px 0 rgba(189,216,226,.17),inset 0 0 0 .5px rgba(199,213,236,.17),0 12px 30px -16px rgba(5,6,18,.6)}
+
+/* ---- «Мой cTrader» ---- */
+.mc-page{position:relative;isolation:isolate;padding:0 8px 6px}
+.mc-hero{position:absolute;left:0;right:0;top:0;height:430px;z-index:-1;pointer-events:none;background:var(--mcy-hero)}
+/* the avatar, the badge and the gear float at the top as iOS 26's bar buttons do; scrolled, the page fades under them */
+.mc-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 6px}
+.mc-top::before{content:"";position:absolute;left:-8px;right:-8px;top:0;bottom:-16px;z-index:-1;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,var(--mcy-edge) 0%,var(--mcy-edge) 52%,transparent 100%)}
+@supports (animation-timeline:scroll()){.mc-top::before{animation:mcEdge linear both;animation-timeline:scroll(root);animation-range:0 64px}}
+@keyframes mcEdge{to{opacity:1}}
+.mc-top .badge-demo{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mc-ava,.mc-gear{flex:none;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
+  background:var(--mcy-btn);color:var(--ink);font-size:15px;font-weight:600;letter-spacing:.02em;box-shadow:0 0 0 .5px rgba(16,24,40,.08),0 2px 8px -4px rgba(16,24,40,.2);
+  transition:transform var(--mo-std)}
+.mc-gear svg{width:24px;height:24px;display:block}
+.mc-ava:active,.mc-gear:active{transform:scale(.9);transition:transform var(--mo-micro)}
+:root[data-glass="on"] .mc-top .mc-ava,:root[data-glass="on"] .mc-top .mc-gear{-webkit-backdrop-filter:blur(12px) saturate(1.7);backdrop-filter:blur(12px) saturate(1.7);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 .5px rgba(255,255,255,.6),0 0 0 .5px rgba(16,24,40,.07),0 4px 14px -6px rgba(16,24,40,.26)}
+:root[data-theme="dark"][data-glass="on"] .mc-top .mc-ava,:root[data-theme="dark"][data-glass="on"] .mc-top .mc-gear{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 .5px rgba(255,255,255,.12),0 4px 14px -6px rgba(0,0,0,.6)}
+.mc-card{position:relative;background:var(--mcy-cell);border-radius:var(--mcy-r);box-shadow:var(--mcy-rim);margin:0 0 10px}
+/* the account */
+.mc-acct{padding:16px 12px 6px;text-align:center}
+.mc-acsel{display:inline-flex;align-items:center;gap:8px;max-width:100%;height:44px;padding:0 12px 0 8px;border-radius:22px;background:var(--mcy-fill);
+  color:var(--ink);font-size:16px;font-weight:500;transition:background-color var(--mo-std),transform var(--mo-std)}
+.mc-acsel:active{background:var(--mcy-press);transform:scale(.98);transition:background-color 0s,transform var(--mo-micro)}
+.mc-logo{flex:none;width:28px;height:28px}
+.mc-logo svg{display:block;width:100%;height:100%}
+.mc-acname{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-live{flex:none;padding:0 7px;border:1.5px solid var(--mcy-live);border-radius:8px;color:var(--mcy-live);font-size:12.5px;font-weight:600;line-height:19px}
+.mc-acdn{flex:none;width:18px;height:18px;color:var(--mcy-ink2)}
+.mc-bal{margin:16px 0 18px;font-size:42px;font-weight:700;line-height:1.05;letter-spacing:-.025em;white-space:nowrap;color:var(--ink)}
+.mc-bal.s1{font-size:36px}.mc-bal.s2{font-size:30px}.mc-bal.s3{font-size:25px}
+.mc-cur{font-size:.6em;font-weight:700;margin-right:1px}
+.mc-acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0 0 14px}
+.mc-act{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;padding:0 2px;color:var(--ink);font-size:14px;line-height:1.22;background:none}
+.mc-act-ic{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--mcy-fill);color:var(--ink);
+  transition:transform var(--mo-std),filter var(--mo-std)}
+.mc-act-ic.dark{background:var(--mcy-dark);color:var(--mcy-dark-ink)}
+.mc-act-ic .mc-ic{width:26px;height:26px}
+.mc-act:active .mc-act-ic{transform:scale(.9);filter:brightness(.9);transition:transform var(--mo-micro),filter var(--mo-micro)}
+.mc-act-t{max-width:100%;overflow-wrap:break-word}
+:root[data-glass="on"] .mc-act-ic:not(.dark){background:rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(16,24,40,.08),0 4px 12px -6px rgba(16,24,40,.22)}
+:root[data-theme="dark"][data-glass="on"] .mc-act-ic:not(.dark){background:rgba(120,120,128,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 .5px rgba(255,255,255,.06)}
+:root[data-glass="on"] .mc-act-ic.dark{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 14px -6px rgba(0,0,0,.45)}
+.mc-pill,.mc-link{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:8px 16px;border-radius:26px;color:var(--ink);font-size:16px;line-height:1.25;
+  transition:background-color var(--mo-std),transform var(--mo-std)}
+.mc-pill{background:var(--mcy-fill)}
+.mc-link{margin-top:2px;background:none}
+.mc-pill .mc-ic,.mc-link .mc-ic{flex:none;width:23px;height:23px}
+.mc-pill:active,.mc-link:active{background:var(--mcy-press);transform:scale(.985);transition:background-color 0s,transform var(--mo-micro)}
+:root[data-glass="on"] .mc-pill{background:rgba(255,255,255,.46);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(16,24,40,.07)}
+:root[data-theme="dark"][data-glass="on"] .mc-pill{background:rgba(120,120,128,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+/* «Скоро»: a small capsule of the secondary fill */
+.mc-soon{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;background:var(--mcy-fill);color:var(--mcy-ink2);
+  font-size:12px;font-weight:600;line-height:1;letter-spacing:0;white-space:nowrap}
+/* the three tiles - our own drawings on our own gradients */
+.mc-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:86px 86px;gap:8px;padding:10px}
+.mc-tile{position:relative;overflow:hidden;isolation:isolate;border-radius:19px;padding:12px 14px;text-align:left;align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+  color:#fff;font-size:17px;font-weight:600;line-height:1.2;transition:transform var(--mo-std)}
+.mc-tile.t-copy{grid-row:span 2;background:linear-gradient(155deg,#72e6a2 0%,#25bd6e 52%,#0e8c4d 100%)}
+.mc-tile.t-algo{background:linear-gradient(155deg,#84d9ff 0%,#2ba6e6 55%,#1576c8 100%)}
+.mc-tile.t-plug{background:linear-gradient(155deg,#ffc070 0%,#ff9428 55%,#ef6912 100%)}
+.mc-tile::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 48%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.mc-tile-t{position:relative;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.14)}
+.mc-tile .mc-soon{position:relative;z-index:1;margin-top:6px;height:20px;padding:0 8px;font-size:11px;background:rgba(255,255,255,.28);color:#fff}   /* under the name: a long name and a long «Скоро» (uk «Незабаром») share a small tile */
+.mc-tile-art{position:absolute;z-index:0;pointer-events:none;right:-2px;bottom:-12px;height:80%;width:auto}
+.mc-tile.t-copy .mc-tile-art{right:-14px;bottom:-14px;height:auto;width:96%}
+.mc-tile:active{transform:scale(.97);transition:transform var(--mo-micro)}
+/* the rows - the original's outline glyphs, no separators, the press is iOS's grey */
+.mc-list{padding:6px 0;overflow:hidden}
+.mc-row{display:flex;align-items:center;gap:16px;width:100%;min-height:54px;padding:8px 18px;color:var(--ink);font-size:16px;line-height:1.25;text-align:left;background:none;
+  transition:background-color var(--mo-std)}
+.mc-row .mc-ic{flex:none;width:24px;height:24px}
+.mc-row-t{flex:1 1 auto;min-width:0}
+.mc-row-t small{display:flex;align-items:center;gap:5px;margin-top:2px;font-size:13px;color:var(--mcy-ink2)}
+.mc-row-v{flex:0 1 auto;min-width:0;max-width:56%;display:flex;align-items:center;justify-content:flex-end;gap:6px;color:var(--mcy-ink2);font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-row-n{flex:none;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--mcy-fill);color:var(--mcy-ink2);font-size:12.5px;font-weight:600;line-height:22px;text-align:center}
+.mc-lock{flex:none;width:13px;height:13px}
+.mc-row:active{background:var(--mcy-press);transition:background-color 0s}
+.mc-row.mc-static:active{background:none}
+.mc-red{color:var(--red-ink)}
+/* the sheets poured from the card: the picture, a large title, the text, one big capsule */
+.sheet.mc-sheet{text-align:center}
+/* a read over the colourful card: the pane is denser than the rest (as «О приложении»), still glass */
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(255,255,255,.88),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.62)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(26,26,29,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.1)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(30,34,60,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
+.mc-ill{display:flex;justify-content:center;margin:0 0 4px}
+.mc-ill svg{width:150px;height:auto;display:block}
+.sheet .mc-sh-t{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:2px 0 12px;font-size:24px;font-weight:700;line-height:1.2}
+.mc-sh-p{margin:0 0 8px;font-size:15px;line-height:1.45;color:var(--ink2);text-align:left}
+.mc-sh-link{display:block;margin:0 0 16px;padding:4px 0;color:var(--ink);font-size:15px;text-decoration:underline;text-underline-offset:3px;text-align:left}
+.mc-field{margin:4px 0 14px}
+.mc-field input{width:100%;height:52px;padding:0 16px;border-radius:16px}
+.sheet .btn.mc-sh-go{min-height:54px;border-radius:27px;font-size:17px}
+.mc-nlist{display:flex;flex-direction:column;margin:0 0 12px;border-radius:20px;overflow:hidden;background:var(--sheet-card,var(--mcy-fill))}
+.mc-nrow{display:flex;align-items:center;gap:10px;min-height:56px;padding:9px 14px;color:var(--ink);text-align:left;background:none;transition:background-color var(--mo-std)}
+.mc-nrow+.mc-nrow{box-shadow:inset 0 .5px 0 var(--mcy-sep)}
+.mc-nrow:active{background:var(--mcy-press);transition:background-color 0s}
+.mc-nl{flex:1 1 auto;min-width:0}
+.mc-nl b{display:block;font-weight:600}
+.mc-nl small{color:var(--ink3);font-size:12.5px}
+.mc-chev{flex:none;width:14px;height:14px;color:var(--ink3)}
+
+/* ---- «Настройки» - iOS Settings ---- */
+.pf-page{padding:8px 16px 6px}
+.pf-grp{position:relative;margin:0 0 24px;border-radius:var(--mcy-r);background:var(--mcy-cell);box-shadow:var(--mcy-rim);overflow:hidden}
+.pf-h{margin:0 0 7px;padding:0 18px;font-size:13px;line-height:1.3;color:var(--mcy-ink2);overflow-wrap:anywhere}
+.pf-row{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 14px 8px 14px;color:var(--ink);font-size:16px;line-height:1.25;text-align:left;
+  background:none;transition:background-color var(--mo-std)}
+/* iOS's separator: a hairline from where the text starts to the right edge */
+.pf-grp>*+*::before{content:"";position:absolute;left:56px;right:0;top:0;height:.5px;background:var(--mcy-sep);pointer-events:none}
+.pf-grp>.pf-ctl::before{display:none}
+.pf-row:active{background:var(--mcy-press);transition:background-color 0s}
+.pf-row.pf-static:active{background:none}
+.pf-ic{flex:none;width:30px;height:30px;border-radius:8px;background:var(--pf);color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 .5px 0 rgba(255,255,255,.3)}
+.pf-ic svg{width:19px;height:19px;display:block}
+.pf-t{flex:1 1 auto;min-width:0}
+.pf-t small{display:block;margin-top:1px;font-size:13px;color:var(--mcy-ink2)}
+.pf-t b{display:block;font-size:17px;font-weight:600}
+.pf-v{flex:0 1 auto;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:5px;color:var(--mcy-ink2);font-size:15.5px;white-space:nowrap}
+.pf-chev{flex:none;width:15px;height:15px;color:var(--mcy-ink3)}
+.pf-plus{font-size:22px;font-weight:300;line-height:1;color:var(--mcy-ink3)}
+.pf-me{min-height:76px;gap:14px}
+.pf-me .pf-t small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-ava.pf-ava{width:54px;height:54px;font-size:19px;color:#fff;background:linear-gradient(150deg,#ecc77c 0%,#c08a32 55%,#8f611c 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.pf-ctl{padding:2px 14px 12px}
+.pf-ctl .thsw{margin:0 0 0 42px}
+.pf-ctl .seg{margin:0}
+.pf-pad{padding:2px 12px 4px}
+.pf-pad .news-btns{margin:10px 0 8px}
+.pf-danger{color:var(--red-ink)}
+.pf-row .switch{flex:none}
+.pf-page .creator{margin:2px 0 6px}
+/* ===================== STRIPS OF OPTIONS AS ONE CAPSULE (user 2026-11-21) ========================================
+   «показаны как должны выглядеть у нас панельки (pin, copy, select и так дальше, это у нас на таймфрейме есть и не
+   только, поищите где еще)»: iOS 26's edit menu - Copy | Select | Pin in ONE capsule, hairlines between - is what the
+   chart's «XAUUSD › | м1» pills already are. Every other row of options takes that shape: the lots under the trade
+   panel and in the lot sheet, the amounts in «Пополнить счёт» and the wallet, the mini chart's ranges, the simulator's
+   tick rates and speeds, the owner's lock, the segmented controls (not the ticket's, which is cTrader's own), the
+   alert chips (they only stop breaking at 360), the news buttons. A strip that picks one (ranges, speeds) shows it on a
+   raised thumb, as iOS's segmented control; a strip of actions (lots, amounts) has none. A press: the grey of iOS's
+   own and a small give (transform). Flat: iOS's grey track. Glass: the strips of actions are the chart pills' white
+   capsule with its lit rim and lift, the segmented ones a clear track with a glass thumb - no backdrop filter (they
+   scroll with their cards). The lots keep their lens drop. Tokens: this block's own (--opt-*). */
+:root{--opt-track:rgba(118,118,128,.12);--opt-cap:rgba(118,118,128,.12);--opt-cap-sh:0 0 0 0 transparent;--opt-rim:0 0 0 0 transparent;
+  --opt-thumb:#fff;--opt-thumb-sh:0 1px 3px rgba(16,24,40,.16),0 0 0 .5px rgba(16,24,40,.06);--opt-div:rgba(60,60,67,.22);--opt-press:rgba(118,118,128,.24)}
+:root[data-theme="dark"]{--opt-track:rgba(118,118,128,.24);--opt-cap:rgba(118,118,128,.24);--opt-thumb:#636366;--opt-thumb-sh:0 1px 3px rgba(0,0,0,.45);--opt-div:rgba(235,235,245,.16);--opt-press:rgba(118,118,128,.42)}
+:root[data-theme="dark"][data-tone="aurora"]{--opt-track:rgba(160,170,214,.14);--opt-cap:rgba(160,170,214,.14);--opt-thumb:rgba(200,208,245,.3);--opt-thumb-sh:0 1px 3px rgba(5,6,18,.4);--opt-div:rgba(235,235,245,.14);--opt-press:rgba(160,170,214,.3)}
+:root[data-glass="on"]{--opt-cap:rgba(255,255,255,.72);--opt-cap-sh:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(16,24,40,.08),0 4px 14px -8px rgba(16,24,40,.26);
+  --opt-rim:inset 0 .5px 1.5px rgba(16,24,40,.07);--opt-thumb:rgba(255,255,255,.94);--opt-thumb-sh:inset 0 1px 0 #fff,0 0 0 .5px rgba(16,24,40,.07),0 2px 8px -2px rgba(16,24,40,.22)}
+:root[data-theme="dark"][data-glass="on"]{--opt-cap:rgba(64,64,70,.52);--opt-cap-sh:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 .5px rgba(255,255,255,.07),0 6px 16px -8px rgba(0,0,0,.6);
+  --opt-rim:inset 0 .5px 1.5px rgba(0,0,0,.3);--opt-thumb:rgba(120,120,128,.52);--opt-thumb-sh:inset 0 1px 0 rgba(255,255,255,.16),0 2px 8px -2px rgba(0,0,0,.5)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--opt-cap:rgba(62,68,112,.42);--opt-cap-sh:inset 0 1px 0 rgba(189,216,226,.16),0 0 0 .5px rgba(199,213,236,.14),0 6px 16px -8px rgba(5,6,18,.55);
+  --opt-thumb:rgba(176,186,236,.3);--opt-thumb-sh:inset 0 1px 0 rgba(220,230,255,.2),0 2px 8px -2px rgba(5,6,18,.45)}
+.miniquick,.af-quick,.pill-toggle,.tps-presets,.mini-ranges{display:flex;flex-wrap:nowrap;gap:0;padding:3px;border-radius:999px}
+.miniquick,.af-quick{background:var(--opt-cap);box-shadow:var(--opt-cap-sh)}
+.pill-toggle,.tps-presets,.mini-ranges{background:var(--opt-track);box-shadow:var(--opt-rim)}
+.mini-ranges{margin:2px 10px 12px}
+.tps-presets{margin-top:10px}
+:is(.miniquick,.af-quick,.pill-toggle,.tps-presets,.mini-ranges)>button{position:relative;flex:1 1 0;min-width:0;height:34px;padding:0 4px;border:0;border-radius:999px;
+  background:transparent;color:var(--ink);font-size:13px;font-weight:600;line-height:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;
+  transition:background-color var(--mo-std),transform var(--mo-std)}
+.mini-ranges>button{font-weight:500;font-size:14px;color:var(--ink2)}
+.miniquick>button{padding:0 2px;font-size:12.5px}
+.miniquick>button:last-of-type{flex:0 0 auto;padding:0 9px}                     /* «MAX 30» as wide as it is written */
+/* the hairlines of the edit menu, between two options - never beside the chosen one */
+:is(.miniquick,.af-quick,.pill-toggle,.tps-presets,.mini-ranges)>button+button::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:.5px;
+  background:var(--opt-div);pointer-events:none;transition:opacity var(--mo-std)}
+:is(.pill-toggle,.tps-presets,.mini-ranges)>button.on::before,:is(.pill-toggle,.tps-presets,.mini-ranges)>button.on+button::before{opacity:0}
+:is(.pill-toggle,.tps-presets,.mini-ranges)>button.on{background:var(--opt-thumb);color:var(--ink);box-shadow:var(--opt-thumb-sh);font-weight:600}
+:is(.miniquick,.af-quick,.pill-toggle,.tps-presets,.mini-ranges)>button:active{background:var(--opt-press);transform:scale(.96);transition:background-color 0s,transform var(--mo-micro)}
+:is(.pill-toggle,.tps-presets,.mini-ranges)>button.on:active{background:var(--opt-thumb)}
+/* what they used to be, written over: the aurora's chips, the glass lots' own capsules, the wallet's dark gold */
+:root[data-theme="dark"][data-tone="aurora"] .miniquick>button{background:transparent;box-shadow:none;color:var(--ink)}
+:root[data-theme="dark"][data-tone="aurora"] .miniquick>button:active{background:var(--opt-press)}
+:root[data-glass="on"]:not([data-lgoff~="lots"]) .miniquick>button:active{background:transparent;transform:none}   /* glass: the lens drop is the press */
+.af-quick{margin:-2px 0 12px}
+.af-quick>button{background:transparent;color:var(--ink)}
+.wm-quick{display:flex;flex-wrap:nowrap;gap:0;padding:3px;border-radius:999px;background:rgba(201,191,168,.1);box-shadow:inset 0 0 0 .5px rgba(201,191,168,.16)}
+.wm-quick>button{position:relative;flex:1 1 0;min-width:0;height:34px;padding:0 4px;border-radius:999px;background:transparent;color:#d8cdb4;font-size:12.5px;line-height:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wm-quick>button+button::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:.5px;background:rgba(201,191,168,.24)}
+.wm-quick>button:active{background:rgba(201,191,168,.16);filter:none;transform:scale(.96);transition:transform var(--mo-micro)}
+/* the segmented controls (the flat theme picker, the sign-in): capsules - the ticket's own stay cTrader's */
+.seg:not(.seg-drag){border-radius:999px;padding:3px}
+.seg:not(.seg-drag)>button{border-radius:999px}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg:not(.seg-drag)>.seg-bub,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg:not(.seg-drag)>.seg-lens{border-radius:999px}
+/* the alert chips broke «-0.2 %» over two lines at 360 */
+.pa-chip{padding:0;white-space:nowrap;font-size:15px}
+/* the news engine's buttons: capsules */
+.news-btns button{border-radius:999px;padding:11px 4px}
+/* the menus that pour out of a button: iOS's 44 px rows */
+.lg-pop button{min-height:44px;padding:10px 14px;border-radius:16px;font-size:16px}
 </style>
 
 <div id="boot" aria-hidden="true"><img class="bt-ico" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23111418'/%3E%3Ctext x='256' y='350' font-size='300' text-anchor='middle' fill='%23f5820d' font-family='Arial' font-weight='bold'%3EX%3C/text%3E%3C/svg%3E"><i class="bt-bar"></i><div class="bt-name">XAUCORE — Simulator cTrade</div></div>
@@ -2974,6 +3230,38 @@ const I18N = {
 "Удалить":["Delete", "Видалити", "Supprimer", "Sil"],
 "Оповещений нет":["No alerts", "Сповіщень немає", "Aucune alerte", "Uyarı yok"],
 "Мой cTrader":["My cTrader", "Мій cTrader", "Mon cTrader", "cTrader'ım"],
+/* «Мой cTrader» and «Настройки» as the original (2026-11-21) */
+"Пополнение счёта":["Deposit", "Поповнення рахунку", "Dépôt", "Para yatırma"],
+"Снятие средств":["Withdrawal", "Зняття коштів", "Retrait", "Para çekme"],
+"Поделиться статистикой":["Share statistics", "Поділитися статистикою", "Partager les statistiques", "İstatistikleri paylaş"],
+"Управлять доступом к счёту":["Manage account access", "Керувати доступом до рахунку", "Gérer l'accès au compte", "Hesap erişimini yönet"],
+"Копи":["Copy", "Копі", "Copy", "Copy"],
+"Алго":["Algo", "Алго", "Algo", "Algo"],
+"Плагины":["Plugins", "Плагіни", "Plugins", "Eklentiler"],
+"Оповещения о цене":["Price alerts", "Сповіщення про ціну", "Alertes de prix", "Fiyat uyarıları"],
+"Финансовые новости":["Financial news", "Фінансові новини", "Actualités financières", "Finans haberleri"],
+"Криптовалютные новости":["Crypto news", "Криптовалютні новини", "Actualités crypto", "Kripto haberleri"],
+"Справочный центр":["Help centre", "Довідковий центр", "Centre d'aide", "Yardım merkezi"],
+"Брокерский кошелёк":["Broker wallet", "Брокерський гаманець", "Portefeuille du courtier", "Aracı kurum cüzdanı"],
+"Сведения о счёте":["Account details", "Відомості про рахунок", "Détails du compte", "Hesap ayrıntıları"],
+"Добавить счёт":["Add an account", "Додати рахунок", "Ajouter un compte", "Hesap ekle"],
+"Скоро будет доступно":["Coming soon", "Незабаром буде доступно", "Bientôt disponible", "Yakında kullanılabilir"],
+"Статистика XAUCORE (демо): сделок {0}, прибыльных {1}%, чистая прибыль {2}":["XAUCORE statistics (demo): {0} trades, {1}% winners, net profit {2}", "Статистика XAUCORE (демо): угод {0}, прибуткових {1}%, чистий прибуток {2}", "Statistiques XAUCORE (démo) : {0} transactions, {1} % gagnantes, bénéfice net {2}", "XAUCORE istatistikleri (demo): {0} işlem, %{1} kârlı, net kâr {2}"],
+"Отправьте статистику своего демо-счёта — сделки, долю прибыльных и чистую прибыль — в любое приложение. Ссылка не создаётся: уходит только текст.":["Send your demo account's statistics — trades, win rate and net profit — to any app. No link is made: only the text goes.", "Надішліть статистику свого демо-рахунку — угоди, частку прибуткових і чистий прибуток — у будь-який застосунок. Посилання не створюється: іде лише текст.", "Envoyez les statistiques de votre compte démo — transactions, taux de réussite et bénéfice net — vers n'importe quelle application. Aucun lien n'est créé : seul le texte part.", "Demo hesabınızın istatistiklerini — işlemler, kazanma oranı ve net kâr — istediğiniz uygulamaya gönderin. Bağlantı oluşturulmaz: yalnızca metin gider."],
+"Открыть статистику":["Open statistics", "Відкрити статистику", "Ouvrir les statistiques", "İstatistikleri aç"],
+"Доступ к счёту":["Account access", "Доступ до рахунку", "Accès au compte", "Hesap erişimi"],
+"Доверьте торговлю на своём счёте другому человеку: он сможет открывать и закрывать сделки, но не пополнять счёт и не выводить средства.":["Let someone you trust trade on your account: they can open and close trades, but cannot deposit or withdraw.", "Довірте торгівлю на своєму рахунку іншій людині: вона зможе відкривати й закривати угоди, але не поповнювати рахунок і не виводити кошти.", "Confiez le trading de votre compte à une personne de confiance : elle pourra ouvrir et clôturer des positions, mais ni déposer ni retirer des fonds.", "Hesabınızda işlem yapmayı güvendiğiniz birine bırakın: işlem açıp kapatabilir, ancak para yatıramaz veya çekemez."],
+"Эл. почта или имя пользователя":["E-mail or username", "Ел. пошта або ім'я користувача", "E-mail ou nom d'utilisateur", "E-posta veya kullanıcı adı"],
+"Предоставить доступ":["Grant access", "Надати доступ", "Accorder l'accès", "Erişim ver"],
+"Вышедших новостей пока нет":["No news has come out yet", "Новин, що вийшли, поки немає", "Aucune annonce publiée pour l'instant", "Henüz yayımlanmış haber yok"],
+"Настройки профиля":["Profile settings", "Налаштування профілю", "Paramètres du profil", "Profil ayarları"],
+"Оформление":["Appearance", "Оформлення", "Apparence", "Görünüm"],
+"Симулятор":["Simulator", "Симулятор", "Simulateur", "Simülatör"],
+"Создать Synthetic News":["Create Synthetic News", "Створити Synthetic News", "Créer une Synthetic News", "Synthetic News oluştur"],
+"Последний News Result":["Last News Result", "Останній News Result", "Dernier News Result", "Son News Result"],
+"Форсировать смену дня / своп":["Force the day rollover / swap", "Примусова зміна дня / своп", "Forcer le changement de jour / swap", "Gün geçişini / swap'ı zorla"],
+"Инструменты разработчика":["Developer tools", "Інструменти розробника", "Outils de développement", "Geliştirici araçları"],
+"день / статистика":["day / statistics", "день / статистика", "jour / statistiques", "gün / istatistik"],
 "Настройки":["Settings","Налаштування","Paramètres","Ayarlar"],
 "История":["History", "Історія", "Historique", "Geçmiş"],
 "Прибыль":["Profit", "Прибуток", "Profit", "Kâr"],
@@ -3488,6 +3776,9 @@ const I18N = {
 "Тень":["Shadow","Тінь","Ombre","Gölge"],
 "Обводка":["Edge","Обведення","Contour","Kenar"],
 "Затемнение":["Darkening","Затемнення","Assombrissement","Koyulaştırma"],
+"Внутренняя тень":["Inner shade","Внутрішня тінь","Ombre intérieure","İç gölge"],
+"Прозрачное":["Clear","Прозоре","Transparent","Şeffaf"],
+"Тонированное":["Tinted","Тоноване","Teinté","Tonlu"],
 "Свет от наклона":["Light follows tilt","Світло за нахилом","La lumière suit l’inclinaison","Işık eğime uysun"],
 "Датчик наклона недоступен":["The tilt sensor is not available","Датчик нахилу недоступний","Le capteur d’inclinaison n’est pas disponible","Eğim sensörü kullanılamıyor"],
 "Прозрачность стекла":["Glass clarity","Прозорість скла","Transparence du verre","Cam şeffaflığı"],
@@ -6793,7 +7084,8 @@ const MO = {
     large: { k: 145, z: .88 }, drag:  { k: 250, z: .8 },
     grab:  { k: 900, z: .9 },                                    // while a finger holds it: stiff, it must not lag
     follow:{ k: 430, z: .62 },                                   // steered by a finger, allowed to lag a step
-    lead:  { k: 540, z: .52 }, trail: { k: 240, z: .55 }         // the two edges of a drop that flows: one leads, one catches up
+    lead:  { k: 540, z: .52 }, trail: { k: 240, z: .55 },        // the two edges of a drop that flows: one leads, one catches up
+    press: { k: 256, z: 1 }                                      // a small round drop swelling under a finger (w4): slow to start
   },
   P: {}, soft: false, errs: 0, lastErr: null
 };
@@ -7465,6 +7757,7 @@ function nav(tab, subtab){
   _navDir = (a >= 0 && b >= 0 && a !== b) ? (b > a ? 1 : -1) : 0;
   S.ui.tab = tab;
   if(subtab) S.ui.subtab = subtab;
+  if(tab === "more") S.ui.moreView = null;                        // «Мой cTrader» opens on its own page, not on what it last opened
   closeModal();
   render();
   save();
@@ -7634,10 +7927,18 @@ function openGlassSheet(){
   };
   // ONLY THE THEME THAT IS ON (user 2026-09-28: «должна показываться и регулироваться только та тема, которая включена,
   // а не 3 сразу»): each theme still keeps its own clarity, and switching themes brings that theme's slider here
+  // «Затемнение» (user 2026-11-21: «что бы была возможность еще в настройках стекла затемнение регулировать», ChatGPT's darker
+  // bar beside Claude's; iOS 27's Liquid Glass from clear to tinted): per theme, like the clarity above it
+  const tintRow = th => {
+    const v = Math.round(glassTint(th));
+    return `<div class="lgc-row"><div class="lgc-t"><span>${L("Затемнение")}</span><output data-lgvalue="tint">${v}%</output></div>` +
+      `<div class="lgs" data-lgtint="${th}" role="slider" tabindex="0" aria-label="${L("Затемнение")}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${(v / 100).toFixed(2)}"><span class="lgs-track"><span class="lgs-fill"></span></span><span class="lgs-knob"></span></div>` +
+      `<div class="lgc-ends"><span>${L("Прозрачное")}</span><span>${L("Тонированное")}</span></div></div>`;
+  };
   openSheet(`<h2>${L("Жидкое стекло")}</h2><div class="lgc"><div class="lgc-k">${L("Прозрачность стекла")}</div>` +
-    row(cur, cur === "light" ? "Светлая тема" : cur === "dark" ? "Тёмная тема" : "Тема «Сияние»") +
+    row(cur, cur === "light" ? "Светлая тема" : cur === "dark" ? "Тёмная тема" : "Тема «Сияние»") + tintRow(cur) +
     `</div><div class="lgc"><div class="lgc-k">${L("Объём и свет")}</div>` +
-    dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Затемнение") + dial("shadow", "Тень") +
+    dial("depth", "Глубина") + dial("refract", "Преломление") + dial("light", "Блик") + dial("line", "Обводка") + dial("dark", "Внутренняя тень") + dial("shadow", "Тень") +
     `<div class="sw-row lgc-tilt"><span class="k">${L("Свет от наклона")}</span><button type="button" class="switch${LG_UI.tilt ? " on" : ""}" data-lgtilt role="switch" aria-checked="${LG_UI.tilt}" aria-label="${L("Свет от наклона")}"><span class="knob"></span></button></div>` +
     `</div><div class="lgf-list">${LG_FEATS.map(([f, t]) => `<div class="sw-row"><span class="k">${L(t)}</span><button type="button" class="switch${glassOn(f) ? " on" : ""}" data-lgf="${f}" role="switch" aria-checked="${glassOn(f)}" aria-label="${L(t)}"><span class="knob"></span></button></div>`).join("")}</div>` +
     `<button type="button" class="btn ghost disp-reset" data-lgreset>${L("Сбросить")}</button>`);
@@ -7654,6 +7955,12 @@ function openGlassSheet(){
     showValue(el, "clarity", glassClarity(th));
     lgsBind(el, Math.round(glassClarity(th)), v => apply(v, false), v => apply(v, true));
   });
+  modalEl.querySelectorAll(".lgs[data-lgtint]").forEach(el => {
+    const th = el.dataset.lgtint, live = th === cur;
+    const apply = (v, save) => { showValue(el, "tint", v); if(live) applyTint(v, save); else if(save) saveTint(th, v); };
+    showValue(el, "tint", glassTint(th));
+    lgsBind(el, Math.round(glassTint(th)), v => apply(v, false), v => apply(v, true));
+  });
   modalEl.querySelectorAll(".lgs[data-lgui]").forEach(el => {
     const k = el.dataset.lgui, hard = k === "refract";
     const apply = (v, save) => { LG_UI[k] = lgDialValue(k, v); showValue(el, k, LG_UI[k] * 100); lgUiApply(hard); if(save) lgUiSave(); };
@@ -7664,7 +7971,7 @@ function openGlassSheet(){
     for(const k of ["depth", "light", "shadow", "refract", "line", "dark", "tilt"]) LG_UI[k] = LG_DEFAULTS[k];
     try{ localStorage.removeItem("xc_glass_off"); }catch(e){}
     delete document.documentElement.dataset.lgoff;
-    litHome(); lgUiSave(); applyClarity(LG_DEFAULTS.clarity, true); lgUiApply(true);
+    litHome(); lgUiSave(); applyClarity(LG_DEFAULTS.clarity, true); applyTint(0, true); lgUiApply(true);
     render(); otReform(); openGlassSheet();
   };
   const tl = modalEl.querySelector("[data-lgtilt]");
@@ -7945,7 +8252,7 @@ function themeSwitchWire(root){
 function setTheme(t){
   if(!S.ui) S.ui = {};
   S.ui.theme = thOk(t);
-  smoothSwap(() => { applyTheme(S.ui.theme); applyClarity(glassClarity()); render(); });   // the theme's own clarity comes with it
+  smoothSwap(() => { applyTheme(S.ui.theme); applyClarity(glassClarity()); applyTint(glassTint()); render(); });   // the theme's own clarity comes with it
   save();
   toast("", S.ui.theme === "aurora" ? L("🌌 Тема «Сияние»") : S.ui.theme === "dark" ? L("🌙 Тёмная тема") : L("☀️ Светлая тема"));
 }
@@ -8069,7 +8376,7 @@ function render(){
   else if(t === "positions" || t === "orders" || t === "history") html += screenTrades(t);
   else if(t === "deal")      html += screenDeal();
   else if(t === "stats")     html += screenStats();
-  else if(t === "more")      html += screenMore();
+  else if(t === "more")      html += S.ui.moreView === "calendar" ? screenCalendar() : screenMore();   // the calendar opened from «Мой cTrader» stays under its tab
   else if(t === "prefs")     html += screenPrefs();
   else if(t === "wallet")    html += screenWallet();
   else if(t === "settings")  html += screenSettings();
@@ -8080,7 +8387,7 @@ function render(){
   // Another screen opens at its top (it used to keep the last screen's scroll offset, landing mid-page).
   // The same screen re-rendered while scrolled is laid out in full (see #app.cv-off in the CSS) until its
   // cards have recorded their real heights — two frames on.
-  const screenKey = t === "markets" ? t + "|" + (S.ui.marketOpen ? S.ui.subtab : "list") : t;
+  const screenKey = t === "markets" ? t + "|" + (S.ui.marketOpen ? S.ui.subtab : "list") : t === "more" ? t + "|" + (S.ui.moreView || "") : t;
   if(screenKey !== _renderKey && window.scrollY) window.scrollTo(0, 0);
   _renderKey = screenKey;
   if(window.scrollY > 0){
@@ -8311,12 +8618,20 @@ const AM_IC = {
 const OWNER_TG = "XAUGOLDOFFICIAL";                                 // the owner's Telegram (user 2026-09-20)
 const AM_EXT = '<svg class="am-ext" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8.4 8.4M18 14.4V20H4V6h5.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const amRow = (act, ic, label, ext) => `<button type="button" class="am-it" data-amenu="${act}"><svg viewBox="0 0 24 24" aria-hidden="true">${AM_IC[ic]}</svg><span>${label}</span>${ext ? AM_EXT : ""}</button>`;
+/* THE ORIGINAL'S HEAD (user 2026-11-21, its drawer beside ours: «где Live написано нужно сделать так же и у нас, только
+   имя Denis Goldman»): the mark and the app's name, the e-mail and the username under the name, the round grey
+   settings-person button (it opens «Настройки»), and the account row - the mark, a green outlined «Live», the
+   account's name and its ▾ (it opens «Мой cTrader»). */
+const AM_PROF = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="14.6" cy="8.4" r="3.4" fill="currentColor"/><path d="M8.6 19.4c.5-3.6 2.9-5.8 6-5.8s5.5 2.2 6 5.8z" fill="currentColor"/><path fill="currentColor" fill-rule="evenodd" d="M5.1 6.6h1.8l.25 1.2c.3.1.55.25.8.45l1.15-.4.9 1.55-.9.8c.05.3.05.6 0 .9l.9.8-.9 1.55-1.15-.4c-.25.2-.5.35-.8.45l-.25 1.2H5.1l-.25-1.2a3 3 0 0 1-.8-.45l-1.15.4L2 11.9l.9-.8a3 3 0 0 1 0-.9l-.9-.8.9-1.55 1.15.4c.25-.2.5-.35.8-.45ZM6 9.6a1.05 1.05 0 1 0 0 2.1 1.05 1.05 0 0 0 0-2.1Z"/></svg>';
 function appMenuMarkup(){
   const mail = XC.email || "", nick = mail ? mail.split("@")[0] : "";
   return `<div class="am-head">
+      <span class="am-mark" aria-hidden="true">${xcLogoSVG()}</span>
       <span class="am-brand">XAUCORE</span>
     </div>
-    <div class="am-acct">${mail ? `<b>${mail}</b><span>${nick}</span>` : `<span>${L("Не выполнен вход")}</span>`}</div>
+    <div class="am-acct"><div class="am-ids">${mail ? `<b>${mail}</b><span>${nick}</span>` : `<span>${L("Не выполнен вход")}</span>`}</div>
+      <button type="button" class="am-prof" data-amenu="prefs" aria-label="${L("Настройки профиля")}">${AM_PROF}</button></div>
+    <button type="button" class="am-acrow" data-amenu="acct"><span class="am-acl" aria-hidden="true">${xcLogoSVG()}</span><span class="am-live">Live</span><span class="am-acn">${MC_NAME}</span><svg class="am-tri" viewBox="0 0 12 8" width="12" height="8" aria-hidden="true"><path d="M1 1.2h10L6 7z" fill="currentColor"/></svg></button>
     <div class="am-grp">
       ${amRow("deposit", "dep", L("Пополнить счёт"), true)}
       ${amRow("withdraw", "wdr", L("Снять средства"), true)}
@@ -8472,6 +8787,8 @@ function openAppMenu(){
   const acts = {
     deposit:  () => funds("deposit"),
     withdraw: () => funds("withdraw"),
+    prefs:    () => { closeModal(true); navTo("prefs"); },
+    acct:     () => { closeModal(true); navTo("more"); },
     neworder: () => { closeModal(true); openTicket(); },
     instr:    () => toast("o", L("Пока доступно XAUUSD")),
     about:    () => { closeModal(true); aboutModal(); },
@@ -9269,51 +9586,289 @@ function listOrders(sym){
   </div>`;
 }
 
-/* ---------- MORE ---------- */
+/* ---------- «МОЙ cTRADER» ----------
+   cTrader's own «Мой cTrader» (the user's recording 2026-11-21, w2: «чтобы так же отображалось, работали только те функции,
+   которые доступны, остальное чтобы скоро писало»): a round initials avatar and a gear over a warm wash at the top, the
+   account card (the mark, the account's name, a green «Live», the balance large, three round buttons, «Поделиться
+   статистикой», «Управлять доступом к счёту»), the three coloured tiles, «Оповещения о цене», the news group, the help
+   group - and, below the original's, the account's own rows (statistics, the wallet, the e-mail, sync, sign-out). Every
+   row runs what the app already has; what it does not have says «Скоро». The tiles and the sheets' pictures are our own
+   drawings (gradients and plain glyphs), the mark is XAUCORE's. Panels: inset, 26 px corners, iOS spacing - opaque
+   cells flat, translucent cells with a lit rim in glass (no backdrop filter on a scrolling card: it would be redrawn
+   every frame of a scroll). */
+const MC_NAME = "Denis Goldman";
+const MC_IC = {
+  plus:  '<path d="M12 5.2v13.6M5.2 12h13.6" stroke-width="2.2"/>',
+  up:    '<path d="M12 18.8V5.6M6.4 11.2L12 5.6l5.6 5.6" stroke-width="2"/>',
+  dots:  '<g fill="currentColor" stroke="none"><circle cx="5.6" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="18.4" cy="12" r="1.75"/></g>',
+  gauge: '<path d="M4.4 17a7.6 7.6 0 1 1 15.2 0"/><path d="M12 17l3.7-4.6"/><circle cx="12" cy="17" r="1.1" fill="currentColor" stroke="none"/>',
+  people:'<circle cx="9.2" cy="8.4" r="3.3"/><path d="M3.4 19.6c.6-3.4 2.9-5.4 5.8-5.4s5.2 2 5.8 5.4"/><path d="M15.4 5.3a3.2 3.2 0 0 1 0 6.2M17.6 14.5c1.7.7 2.8 2.4 3.1 5.1"/>',
+  bell:  '<path d="M10.2 4.4a6 6 0 0 0-4.2 5.8v3.6L4.4 16.4h11.2"/><path d="M15.6 16.4h4l-1.6-2.6v-1.6"/><path d="M9.8 19.2a2.3 2.3 0 0 0 4.4 0"/><path d="M17.5 3v6M14.5 6h6"/>',
+  cal:   '<rect x="3.8" y="5.2" width="16.4" height="15" rx="2.8"/><path d="M3.8 9.8h16.4M8.2 3.2v3.8M15.8 3.2v3.8"/><path d="M7.8 13.4h.01M12 13.4h.01M16.2 13.4h.01M7.8 16.8h.01M12 16.8h.01" stroke-width="2.5"/>',
+  news:  '<path d="M4.8 4.6h11.6v14.8H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M16.4 8.6h2.8v9a1.8 1.8 0 0 1-1.8 1.8"/><path d="M8 8.4h5.2M8 11.8h5.2M8 15.2h3.4"/>',
+  coin:  '<circle cx="12" cy="12" r="8.4"/><path d="M10.2 7.4v9.2M12.8 7.4v1.4M12.8 15.2v1.4M8.8 8.8h4.3a1.9 1.9 0 0 1 0 3.8H8.8M8.8 12.6h4.8a1.9 1.9 0 0 1 0 3.8H8.8"/>',
+  help:  '<circle cx="12" cy="12" r="8.6"/><path d="M9.5 9.6a2.6 2.6 0 1 1 3.7 2.3c-.8.4-1.2.9-1.2 1.8v.3"/><path d="M12 17h.01" stroke-width="2.6"/>',
+  chat:  '<path d="M7.4 6.3A12 12 0 0 1 12 5.4c1.6 0 3.2.3 4.6.9 1.6 2.3 2.5 5 2.5 8.1a10 10 0 0 1-4.5 2.7l-.9-1.6M7.4 6.3C5.8 8.6 4.9 11.3 4.9 14.4a10 10 0 0 0 4.5 2.7l.9-1.6M8.6 15.4c2.3.9 4.5.9 6.8 0"/><circle cx="9.7" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="14.3" cy="12" r="1.25" fill="currentColor" stroke="none"/>',
+  play:  '<rect x="3.2" y="5.8" width="17.6" height="12.4" rx="3.8"/><path d="M10.3 9.3v5.4l4.6-2.7z" fill="currentColor"/>',
+  plane: '<path d="M20.6 4.4L3.4 11.2l5.9 2.2 2.3 6.3 3.2-4 4.4 3.2z"/><path d="M9.3 13.4l7.4-5.6"/>',
+  stats: '<path d="M4.4 19.6h15.2"/><path d="M7 16.2v-4.4M11 16.2V8.4M15 16.2v-6M19 16.2V5.2"/>',
+  wallet:'<rect x="3.4" y="6" width="17.2" height="13" rx="2.8"/><path d="M3.4 9.6h13.4a1 1 0 0 0 1-1V4.8"/><path d="M15.6 14.2h1.8" stroke-width="2.4"/>',
+  mail:  '<rect x="3.4" y="5.6" width="17.2" height="12.8" rx="2.6"/><path d="M4 7l8 6 8-6"/>',
+  sync:  '<path d="M19.4 11.2A7.4 7.4 0 0 0 6.2 7.2L4.6 9"/><path d="M4.6 4.8V9h4.2"/><path d="M4.6 12.8a7.4 7.4 0 0 0 13.2 4l1.6-1.8"/><path d="M19.4 19.2V15h-4.2"/>',
+  out:   '<path d="M14.2 4.6H6.6a1.8 1.8 0 0 0-1.8 1.8v11.2a1.8 1.8 0 0 0 1.8 1.8h7.6"/><path d="M10.4 12h9.4M16.6 8.6L20 12l-3.4 3.4"/>',
+  info:  '<circle cx="12" cy="12" r="8.6"/><path d="M12 10.8v5.6"/><path d="M12 7.7h.01" stroke-width="2.6"/>',
+  down:  '<path d="M6.4 9.6l5.6 5.6 5.6-5.6" stroke-width="2"/>',
+  right: '<path d="M9.2 5.6l6.4 6.4-6.4 6.4" stroke-width="2"/>',
+  lock:  '<rect x="5.6" y="10.6" width="12.8" height="9.4" rx="2.2" fill="currentColor" stroke="none"/><path d="M8.6 10.6V8a3.4 3.4 0 0 1 6.8 0v2.6"/>'
+};
+const mcIc = (k, cls) => `<svg class="${cls || "mc-ic"}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MC_IC[k]}</svg>`;
+const mcSoon = () => `<span class="mc-soon">${L("Скоро")}</span>`;
+const mcInitials = () => MC_NAME.split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase();
+const MC_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.2 2.6h3.6l.5 2.6c.6.2 1.1.5 1.6.9l2.5-.9 1.8 3.1-2 1.7c.1.6.1 1.2 0 1.9l2 1.7-1.8 3.1-2.5-.9c-.5.4-1 .7-1.6.9l-.5 2.6h-3.6l-.5-2.6c-.6-.2-1.1-.5-1.6-.9l-2.5.9-1.8-3.1 2-1.7a6 6 0 0 1 0-1.9l-2-1.7 1.8-3.1 2.5.9c.5-.4 1-.7 1.6-.9ZM12 8.7a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"/></svg>';
+/* the three tiles: our own pictures - a stack of cards (copying a trader), a little robot face (an algorithm), a puzzle
+   piece (a plugin) - in white glass over the tile's own gradient */
+const MC_TILE = {
+  copy: '<svg class="mc-tile-art" viewBox="0 0 120 120" aria-hidden="true"><g fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="2"><rect x="44" y="18" width="62" height="62" rx="16"/><rect x="31" y="31" width="62" height="62" rx="16"/></g><rect x="18" y="44" width="62" height="62" rx="16" fill="rgba(255,255,255,.3)" stroke="rgba(255,255,255,.8)" stroke-width="2"/><path d="M28 56h30" stroke="rgba(255,255,255,.75)" stroke-width="5" stroke-linecap="round"/></svg>',
+  algo: '<svg class="mc-tile-art" viewBox="0 0 100 80" aria-hidden="true"><rect x="16" y="14" width="68" height="52" rx="20" fill="rgba(255,255,255,.24)" stroke="rgba(255,255,255,.8)" stroke-width="2"/><rect x="28" y="30" width="44" height="20" rx="10" fill="rgba(10,40,80,.35)"/><rect x="35" y="36" width="10" height="8" rx="4" fill="#fff"/><rect x="55" y="36" width="10" height="8" rx="4" fill="#fff"/><path d="M50 14V6" stroke="rgba(255,255,255,.8)" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="5" r="3.5" fill="#fff"/></svg>',
+  plug: '<svg class="mc-tile-art" viewBox="0 0 100 80" aria-hidden="true"><path d="M30 22h12a9 9 0 1 1 16 0h12a6 6 0 0 1 6 6v12a9 9 0 1 0 0 16v12a6 6 0 0 1-6 6H30a6 6 0 0 1-6-6V28a6 6 0 0 1 6-6Z" fill="rgba(255,255,255,.26)" stroke="rgba(255,255,255,.82)" stroke-width="2" stroke-linejoin="round"/></svg>'
+};
+// the figure's size by its length, decided in the markup: a fit that measured the text would lay the page out again
+const mcBalCls = s => s.length <= 10 ? "" : s.length <= 13 ? " s1" : s.length <= 16 ? " s2" : " s3";
+function mcWalletRow(){
+  return WALLET_SOON
+    ? `<button type="button" class="mc-row is-soon" data-mcsoon="wallet">${mcIc("wallet")}<span class="mc-row-t">${L("Брокерский кошелёк")}<small class="mono">${walletFmt(S.wallet.balance)}${mcIc("lock", "mc-lock")}</small></span>${mcSoon()}</button>`
+    : `<button type="button" class="mc-row" data-act="gotowallet">${mcIc("wallet")}<span class="mc-row-t">${L("Брокерский кошелёк")}<small class="mono">${walletFmt(S.wallet.balance)}</small></span>${mcIc("right", "mc-chev")}</button>`;
+}
 function screenMore(){
-  const acct = XC.token ? `<b>${XC.email||L("аккаунт")}</b>` : `${L("Не выполнен вход")}`;
-  return appbar(L("Мой cTrader"), { demo: true }) + `<div class="wrap">
-    <div class="card">
-      <div class="row"><span class="k">${L("Аккаунт")}</span><span class="v">${acct}</span></div>
-      <div class="row"><span class="k">${L("Синхронизация")}</span><span class="v mono" id="xcSync">…</span></div>
-      <div class="grid2 grid-sync" style="margin-top:8px">
-        <button class="btn ghost fit" data-act="syncnow">${L("Синхронизировать сейчас")}</button>
-        <button class="btn ghost narrow" data-act="logout">${XC.token?L("Выйти"):L("Войти")}</button>
-      </div>
+  recalcAccount();
+  const bal = S.account.balance, num = fmt(Math.abs(bal), 2);
+  const row = (act, ic, label, extra) => `<button type="button" class="mc-row" data-act="${act}">${mcIc(ic)}<span class="mc-row-t">${label}</span>${extra || ""}</button>`;
+  const soon = (key, ic, label) => `<button type="button" class="mc-row is-soon" data-mcsoon="${key}">${mcIc(ic)}<span class="mc-row-t">${label}</span>${mcSoon()}</button>`;
+  const mail = XC.email || "";
+  return `<div class="mc-page">
+    <div class="mc-hero" aria-hidden="true"></div>
+    <div class="mc-top">
+      <button type="button" class="mc-ava" data-act="appmenu" aria-label="${L("Меню")}">${mcInitials()}</button>
+      <span class="badge-demo">DEMO • SYNTHETIC DATA</span>
+      <button type="button" class="mc-gear" data-act="gotoprefs" aria-label="${L("Настройки")}">${MC_GEAR}</button>
     </div>
-    ${WALLET_SOON
-      ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono wl-shut">${walletFmt(S.wallet.balance)}<svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><rect x="1.5" y="6" width="9" height="7" rx="1.6" fill="currentColor"/><path d="M3.6 6V4.3a2.4 2.4 0 0 1 4.8 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div>`
-      : `<div class="menu-item" data-act="gotowallet"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
-    <div class="menu-item" data-act="gotostats"><span>${L("📊 Статистика торговли")}</span><span>›</span></div>
+    <section class="mc-card mc-acct">
+      <button type="button" class="mc-acsel" data-act="mcacct" aria-haspopup="menu"><span class="mc-logo">${xcLogoSVG()}</span><span class="mc-acname">${MC_NAME}</span><span class="mc-live">Live</span>${mcIc("down", "mc-acdn")}</button>
+      <div class="mc-bal mono${mcBalCls(num)}">${bal < 0 ? "−" : ""}<span class="mc-cur">$</span>${num}</div>
+      <div class="mc-acts">
+        <button type="button" class="mc-act" data-act="mcdeposit"><span class="mc-act-ic dark">${mcIc("plus")}</span><span class="mc-act-t">${L("Пополнение счёта")}</span></button>
+        <button type="button" class="mc-act" data-act="mcwithdraw"><span class="mc-act-ic">${mcIc("up")}</span><span class="mc-act-t">${L("Снятие средств")}</span></button>
+        <button type="button" class="mc-act" data-act="mcmore" aria-haspopup="menu"><span class="mc-act-ic">${mcIc("dots")}</span><span class="mc-act-t">${L("Ещё")}</span></button>
+      </div>
+      <button type="button" class="mc-pill" data-act="mcshare">${mcIc("gauge")}<span>${L("Поделиться статистикой")}</span></button>
+      <button type="button" class="mc-link" data-act="mcaccess">${mcIc("people")}<span>${L("Управлять доступом к счёту")}</span></button>
+    </section>
+    <section class="mc-card mc-tiles">
+      <button type="button" class="mc-tile t-copy" data-mcsoon="copy"><span class="mc-tile-t">${L("Копи")}</span>${mcSoon()}${MC_TILE.copy}</button>
+      <button type="button" class="mc-tile t-algo" data-mcsoon="algo"><span class="mc-tile-t">${L("Алго")}</span>${mcSoon()}${MC_TILE.algo}</button>
+      <button type="button" class="mc-tile t-plug" data-mcsoon="plug"><span class="mc-tile-t">${L("Плагины")}</span>${mcSoon()}${MC_TILE.plug}</button>
+    </section>
+    <section class="mc-card mc-list">${row("mcalerts", "bell", L("Оповещения о цене"), (S.alerts || []).length ? `<span class="mc-row-n">${S.alerts.length}</span>` : "")}</section>
+    <section class="mc-card mc-list">
+      ${row("mccal", "cal", L("Экономический календарь"))}
+      ${row("mcnews", "news", L("Финансовые новости"))}
+      ${soon("crypto", "coin", L("Криптовалютные новости"))}
+    </section>
+    <section class="mc-card mc-list">
+      ${row("mchelp", "help", L("Справочный центр"))}
+      ${row("mctg", "plane", "Telegram")}
+      ${soon("discord", "chat", "Discord")}
+      ${soon("youtube", "play", "YouTube")}
+    </section>
+    <section class="mc-card mc-list">
+      ${row("gotostats", "stats", L("Статистика торговли"))}
+      ${mcWalletRow()}
+    </section>
+    <section class="mc-card mc-list">
+      <div class="mc-row mc-static">${mcIc("mail")}<span class="mc-row-t">${L("Аккаунт")}</span><span class="mc-row-v">${mail || L("Не выполнен вход")}</span></div>
+      <button type="button" class="mc-row" data-act="syncnow">${mcIc("sync")}<span class="mc-row-t">${L("Синхронизация")}</span><span class="mc-row-v mono" id="xcSync">…</span></button>
+      <button type="button" class="mc-row mc-red" data-act="logout">${mcIc("out")}<span class="mc-row-t">${XC.token ? L("Выйти") : L("Войти")}</span></button>
+    </section>
   </div>`;
 }
+// a menu poured out of one of the card's buttons (the account's ▾, «Ещё»): the liquid menus' own machinery
+function mcMenu(key, anchor, items){
+  lqMenu(key, anchor, { sel: `[data-act="${anchor.dataset.act}"]`, cls: "mc-pop",
+    build: pop => {
+      pop.innerHTML = items.map((it, i) => it === "-" ? `<div class="lq-sep" role="separator"></div>`
+        : `<button type="button" role="menuitem" data-mci="${i}"${it.on ? ` class="on"` : ""}><span>${it.t}</span><b>${it.b || ""}</b></button>`).join("");
+      pop.querySelectorAll("[data-mci]").forEach(b => b.onclick = () => { lqMenuClose(key, true); items[+b.dataset.mci].go(); });
+    },
+    place: (pop, a) => {
+      const W = Math.min(248, innerWidth - 16); pop.style.width = W + "px";
+      const H = pop.offsetHeight; let top = a.bottom + 8; if(top + H > innerHeight - 8) top = Math.max(8, a.top - H - 8);
+      pop.style.left = clamp(a.left + a.width / 2 - W / 2, 8, innerWidth - W - 8) + "px"; pop.style.top = top + "px";
+    } });
+}
+function mcSoonToast(){ toast("o", L("Скоро будет доступно")); }
+// «Поделиться статистикой»: the original makes a public link; there is no server page to link to, so the figures go as text
+function mcStatsText(){
+  const s = historyStats();
+  return L("Статистика XAUCORE (демо): сделок {0}, прибыльных {1}%, чистая прибыль {2}", s.total, fmt(s.winRate, 1), signMoney(s.net));
+}
+function mcShareSheet(){
+  openSheet(`<div class="mc-ill" aria-hidden="true">${MC_ILL.pie}</div>
+    <h2 class="mc-sh-t">${L("Поделиться статистикой")}</h2>
+    <p class="mc-sh-p">${L("Отправьте статистику своего демо-счёта — сделки, долю прибыльных и чистую прибыль — в любое приложение. Ссылка не создаётся: уходит только текст.")}</p>
+    <button type="button" class="mc-sh-link" id="mcStatsOpen">${L("Открыть статистику")}</button>
+    <button class="btn dark mc-sh-go" id="mcShareGo">${L("Поделиться")}</button>`, "mc-sheet");
+  document.getElementById("mcStatsOpen").onclick = () => { closeModal(true); nav("stats"); };
+  document.getElementById("mcShareGo").onclick = () => {
+    const txt = mcStatsText();
+    if(navigator.share) navigator.share({ text: txt }).catch(() => {});
+    else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("g", L("Скопировано"))).catch(() => toast("", txt));
+    else toast("", txt);
+  };
+}
+// «Управлять доступом к счёту»: the original's sheet, as it is - there is no second person to give the account to yet
+function mcAccessSheet(){
+  openSheet(`<div class="mc-ill" aria-hidden="true">${MC_ILL.badge}</div>
+    <h2 class="mc-sh-t">${L("Доступ к счёту")} ${mcSoon()}</h2>
+    <p class="mc-sh-p">${L("Доверьте торговлю на своём счёте другому человеку: он сможет открывать и закрывать сделки, но не пополнять счёт и не выводить средства.")}</p>
+    <div class="field mc-field"><input id="mcAccWho" placeholder="${L("Эл. почта или имя пользователя")}" autocomplete="off" aria-label="${L("Эл. почта или имя пользователя")}"></div>
+    <button class="btn dark mc-sh-go" id="mcAccGo">${L("Предоставить доступ")}</button>`, "mc-sheet");
+  document.getElementById("mcAccGo").onclick = mcSoonToast;
+}
+// «Оповещения о цене»: every symbol's alerts in one list (the instrument's card shows only its own), and a new one
+function mcAlertsSheet(){
+  const draw = () => {
+    const list = S.alerts || [];
+    openSheet(`<h2>${L("Оповещения о цене")}</h2>` + (list.length
+      ? `<div class="card pl-tbl">${list.map(a => `<div class="row pa-row"><span class="k">${a.sym} · ${L(a.up ? "Выше" : "Ниже")}</span><span class="v mono">${pxfmt(a.price, a.sym)}</span><button type="button" class="pa-del" data-padel="${a.id}" aria-label="${L("Удалить")}">${X_ICON}</button></div>`).join("")}</div>`
+      : `<div class="muted">${L("Оповещений нет")}</div>`)
+      + `<button class="btn dark" id="mcAlNew">${L("Новое оповещение")} · ${curSym()}</button><button class="btn ghost" data-close>${L("Назад")}</button>`);
+    modalEl.querySelectorAll("[data-padel]").forEach(b => b.onclick = () => { S.alerts = (S.alerts || []).filter(x => String(x.id) !== b.dataset.padel); save(); draw(); });
+    document.getElementById("mcAlNew").onclick = () => { closeModal(true); openAlertNew(); };
+    modalEl._closed = () => render();
+  };
+  draw();
+}
+// «Финансовые новости»: the releases that came out (the news engine's log), each opening its result
+function mcNewsSheet(){
+  const list = (S.newsLog || []).slice(0, 15);
+  openSheet(`<h2>${L("Финансовые новости")}</h2>` + (list.length
+    ? `<div class="mc-nlist">${list.map((r, i) => `<button type="button" class="mc-nrow" data-mcn="${i}"><span class="mc-nl"><b>${r.label}</b><small>${fmtYMD(r.endedAt)} ${fmtHM(r.endedAt)}</small></span><span class="mono ${r.finalMove >= 0 ? "pos" : "neg"}">${signMoney(r.finalMove)}</span>${mcIc("right", "mc-chev")}</button>`).join("")}</div>`
+    : `<div class="muted">${L("Вышедших новостей пока нет")}</div>`)
+    + `<button class="btn ghost" id="mcNewsCal">${L("Экономический календарь")}</button>`);
+  modalEl.querySelectorAll("[data-mcn]").forEach(b => b.onclick = () => { const r = list[+b.dataset.mcn]; closeModal(true); showNewsResult(r); });
+  document.getElementById("mcNewsCal").onclick = () => { closeModal(true); mcOpenCal(); };
+}
+function mcOpenCal(){ S.ui.moreView = "calendar"; if(S.ui.tab !== "more") S.ui.tab = "more"; render(); save(); }
+function mcBind(root, act){
+  act("gotoprefs", () => navTo("prefs"));
+  act("gotomore", () => navTo("more"));
+  act("mcdeposit", () => acctFundsModal("deposit"));
+  act("mcwithdraw", () => acctFundsModal("withdraw"));
+  act("mcshare", mcShareSheet);
+  act("mcaccess", mcAccessSheet);
+  act("mcalerts", mcAlertsSheet);
+  act("mccal", mcOpenCal);
+  act("mcnews", mcNewsSheet);
+  act("mchelp", () => aboutModal());
+  act("mctg", () => { const url = "https://t.me/" + OWNER_TG; const w = window.open(url, "_blank", "noopener"); if(!w) location.href = url; });
+  act("mcacct", e => mcMenu("mcacct", e.currentTarget, [
+    { t: MC_NAME + " · Live", b: money(S.account.balance), on: true, go: () => {} },
+    "-",
+    { t: L("Сведения о счёте"), go: openAccInfo },
+    { t: L("Добавить счёт"), b: L("Скоро"), go: mcSoonToast }
+  ]));
+  act("mcmore", e => mcMenu("mcmore", e.currentTarget, [
+    { t: L("Статистика торговли"), go: () => nav("stats") },
+    { t: L("Сведения о счёте"), go: openAccInfo },
+    { t: L("Брокерский кошелёк"), b: WALLET_SOON ? L("Скоро") : "", go: () => WALLET_SOON ? mcSoonToast() : nav("wallet") }
+  ]));
+  root.querySelectorAll("[data-mcsoon]").forEach(b => b.onclick = mcSoonToast);
+}
+/* the two sheets' pictures, our own: a glass pie of a trading record, an access pass on its strap */
+const MC_ILL = {
+  pie: `<svg viewBox="0 0 160 130" width="160" height="130"><defs>
+      <linearGradient id="mcP1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7ef0a8"/><stop offset="1" stop-color="#14a15a"/></linearGradient>
+      <linearGradient id="mcP2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe6a6"/><stop offset="1" stop-color="#e0a23a"/></linearGradient>
+      <linearGradient id="mcP3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient>
+      <radialGradient id="mcPg" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".45"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="80" cy="70" rx="74" ry="58" fill="url(#mcPg)"/>
+    <ellipse cx="80" cy="96" rx="50" ry="14" fill="#000" opacity=".08"/>
+    <path d="M80 70V22a48 48 0 0 1 45.6 63.2z" fill="url(#mcP1)"/>
+    <path d="M80 70l45.6 15.2A48 48 0 1 1 80 22z" fill="url(#mcP2)"/>
+    <path d="M86 62V14a48 48 0 0 1 45.6 63.2z" fill="url(#mcP1)" opacity=".9"/>
+    <path d="M86 14a48 48 0 0 1 45.6 63.2" fill="none" stroke="url(#mcP3)" stroke-width="2.4"/>
+    <path d="M38 48a48 48 0 0 1 30-24" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/></svg>`,
+  badge: `<svg viewBox="0 0 160 140" width="160" height="140"><defs>
+      <linearGradient id="mcB1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4fbf7"/><stop offset="1" stop-color="#cfe9da"/></linearGradient>
+      <linearGradient id="mcB2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d8f68"/><stop offset="1" stop-color="#1f6a48"/></linearGradient>
+      <radialGradient id="mcBg" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="#7fd9a8" stop-opacity=".35"/><stop offset="1" stop-color="#7fd9a8" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="80" cy="76" rx="72" ry="60" fill="url(#mcBg)"/>
+    <path d="M70 34C66 18 80 8 96 12s24 20 18 34" fill="none" stroke="url(#mcB2)" stroke-width="9" stroke-linecap="round"/>
+    <rect x="63" y="28" width="16" height="12" rx="3" fill="#c9a24a"/>
+    <rect x="44" y="38" width="62" height="88" rx="14" fill="url(#mcB1)" stroke="#fff" stroke-width="2"/>
+    <rect x="52" y="46" width="46" height="72" rx="9" fill="none" stroke="#9ccdb2" stroke-opacity=".7"/>
+    <circle cx="75" cy="72" r="11" fill="#9ccdb2" opacity=".55"/>
+    <rect x="62" y="104" width="26" height="7" rx="3.5" fill="#c9a24a"/></svg>`
+};
 
-// «Настройки», the fifth tab (2026-11-21): everything that sets the app up - language, theme, the glass, the simulator,
-// the test tools - moved here from «Мой cTrader», which keeps the account
+/* «Настройки», the fifth tab (2026-11-21, user: «добавьте в нижнюю панель вкладку настройки, это и будут наши настройки
+   всего»): everything that sets the app up, as iOS's Settings lays it out - inset groups of rows, a small rounded-square
+   icon in a system colour, the value and a chevron on the right, switches in the row. The account at the head opens
+   «Мой cTrader», as iOS's own account row does. */
+const PF_IC = {
+  globe: '<circle cx="12" cy="12" r="8.2"/><path d="M3.8 12h16.4M12 3.8c2.3 2.3 3.5 5 3.5 8.2s-1.2 5.9-3.5 8.2c-2.3-2.3-3.5-5-3.5-8.2S9.7 6.1 12 3.8z"/>',
+  theme: '<circle cx="12" cy="12" r="8"/><path d="M12 4v16a8 8 0 0 0 0-16z" fill="currentColor"/>',
+  drop:  '<path d="M12 3.6c3.4 4.2 6 7.2 6 10.1A6 6 0 0 1 6 13.7c0-2.9 2.6-5.9 6-10.1z" fill="currentColor" stroke="none"/>',
+  sliders:'<path d="M5 7.5h8.2M17.4 7.5H19M5 12h2M11.2 12H19M5 16.5h9.8M19 16.5h0"/><circle cx="15.3" cy="7.5" r="2.1"/><circle cx="9.1" cy="12" r="2.1"/><circle cx="16.9" cy="16.5" r="2.1"/>',
+  prism: '<path d="M12 4.4l7.4 13.4H4.6z"/><path d="M2.6 11.6l6.6 1.6M14.6 12.6l6.8-2.4M14.8 13.8l6.4 1.4" stroke-width="1.5"/>',
+  gear:  '<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M10.2 2.6h3.6l.5 2.6c.6.2 1.1.5 1.6.9l2.5-.9 1.8 3.1-2 1.7c.1.6.1 1.2 0 1.9l2 1.7-1.8 3.1-2.5-.9c-.5.4-1 .7-1.6.9l-.5 2.6h-3.6l-.5-2.6c-.6-.2-1.1-.5-1.6-.9l-2.5.9-1.8-3.1 2-1.7a6 6 0 0 1 0-1.9l-2-1.7 1.8-3.1 2.5.9c.5-.4 1-.7 1.6-.9ZM12 8.9a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Z"/>',
+  news:  MC_IC.news,
+  chart: '<path d="M4.4 19.6h15.2"/><path d="M5.6 15.4l4-4.4 3.2 2.6 5.6-6.4"/>',
+  bolt:  '<path d="M13.2 3L5.6 13.4h5.2L10 21l7.6-10.4h-5.2z" fill="currentColor" stroke="none"/>',
+  term:  '<rect x="3.4" y="5" width="17.2" height="14" rx="2.6"/><path d="M7.4 10l2.8 2.2-2.8 2.2M12.6 15h4"/>',
+  reset: '<path d="M5.2 9.4A7.4 7.4 0 1 1 4.7 14"/><path d="M4.6 4.8v4.8h4.8"/>',
+  radio: '<circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>'
+};
+const pfIc = (k, col) => `<span class="pf-ic" style="--pf:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PF_IC[k]}</svg></span>`;
+const PF_CHEV = '<svg class="pf-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 5.6l6.4 6.4-6.4 6.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function screenPrefs(){
-  return appbar(L("Настройки"), { demo: true }) + `<div class="wrap">
-    <div class="card">
-      <button type="button" class="row lang-row" data-act="langpick"><span class="k">${L("Язык")}</span><span class="v">${langName(LANG)}<span class="chev" aria-hidden="true">›</span></span></button>
-      <div class="row" style="margin-top:10px"><span class="k">${L("Тема оформления")}</span>${glassOn("switches") ? `<span class="v thv">${L(TH_NAME[currentTheme()])}</span>` : ""}</div>
-      ${glassOn("switches") ? themeSwitchMarkup() : `<div class="seg theme" id="themeSeg" style="margin-top:8px">
-        <button data-theme-set="light" class="${currentTheme()==="light"?"on":""}" aria-pressed="${currentTheme()==="light"}"><span>${L("☀️ Светлая")}</span><span class="ck" aria-hidden="true">✓</span></button>
-        <button data-theme-set="dark" class="${currentTheme()==="dark"?"on":""}" aria-pressed="${currentTheme()==="dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
-        <button data-theme-set="aurora" class="${currentTheme()==="aurora"?"on":""}" aria-pressed="${currentTheme()==="aurora"}"><span>${L("🌌 Сияние")}</span><span class="ck" aria-hidden="true">✓</span></button>
-      </div>`}
-      <div class="sw-row"><span class="k">${L("💧 Жидкое стекло")}</span><button type="button" class="switch${glassOn() ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${glassOn()}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
-      ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
-      ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="dispset"><span class="k">${L("Дисперсия")}</span><span class="v"><span class="dv">${L(DISP.on ? "Вкл" : "Выкл")}</span><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
-    </div>
-    <div class="menu-item" data-act="gotosettings"><span>${L("⚙️ Настройки симулятора")}</span><span>›</span></div>
-    <div class="menu-item" data-act="gotodebug"><span>${L("🐞 Debug-консоль (день / статистика)")}</span><span>›</span></div>
-    <div class="menu-item" data-act="mknews"><span>${L("📰 Создать Synthetic News (календарь)")}</span><span>+</span></div>
-    <div class="menu-item" data-act="newsresult"><span>${L("📊 Последний News Result")}</span><span>›</span></div>
-    <hr class="d">
-    <div class="hint" style="margin:4px 2px 8px;font-weight:600;color:var(--ink2)">${L("MACRO NEWS ENGINE — запустить сейчас")}</div>
-    ${newsButtonsMarkup()}
-    <div class="menu-item" data-act="triggerroll"><span>${L("▶️ Форсировать смену дня / своп (тест)")}</span><span>⚡</span></div>
-    <hr class="d">
-    <div class="menu-item" data-act="reset" style="color:var(--red-ink)"><span>${L("♻️ Сбросить симулятор")}</span><span>›</span></div>
+  const g = glassOn(), t = currentTheme(), mail = XC.email || "";
+  const row = (act, ic, label, val, tail) => `<button type="button" class="pf-row" data-act="${act}">${ic}<span class="pf-t">${label}</span><span class="v pf-v">${val || ""}${tail == null ? PF_CHEV : tail}</span></button>`;
+  const themeCtl = glassOn("switches") ? themeSwitchMarkup() : `<div class="seg theme" id="themeSeg">
+        <button data-theme-set="light" class="${t === "light" ? "on" : ""}" aria-pressed="${t === "light"}"><span>${L("☀️ Светлая")}</span><span class="ck" aria-hidden="true">✓</span></button>
+        <button data-theme-set="dark" class="${t === "dark" ? "on" : ""}" aria-pressed="${t === "dark"}"><span>${L("🌙 Тёмная")}</span><span class="ck" aria-hidden="true">✓</span></button>
+        <button data-theme-set="aurora" class="${t === "aurora" ? "on" : ""}" aria-pressed="${t === "aurora"}"><span>${L("🌌 Сияние")}</span><span class="ck" aria-hidden="true">✓</span></button>
+      </div>`;
+  return appbar(L("Настройки"), { demo: true }) + `<div class="pf-page">
+    <section class="pf-grp"><button type="button" class="pf-row pf-me" data-act="gotomore"><span class="mc-ava pf-ava" aria-hidden="true">${mcInitials()}</span><span class="pf-t"><b>${MC_NAME}</b><small>${mail || L("Не выполнен вход")}</small></span><span class="v pf-v">${PF_CHEV}</span></button></section>
+    <div class="pf-h">${L("Оформление")}</div>
+    <section class="pf-grp">
+      ${row("langpick", pfIc("globe", "#0a84ff"), L("Язык"), langName(LANG))}
+      <div class="pf-row pf-static">${pfIc("theme", "#5e5ce6")}<span class="pf-t">${L("Тема оформления")}</span><span class="v pf-v thv">${L(TH_NAME[t])}</span></div>
+      <div class="pf-ctl">${themeCtl}</div>
+    </section>
+    <div class="pf-h">${L("Жидкое стекло")}</div>
+    <section class="pf-grp">
+      <div class="pf-row pf-static">${pfIc("drop", "#32ade6")}<span class="pf-t">${L("Жидкое стекло")}</span><button type="button" class="switch${g ? " on" : ""}" data-glass-toggle role="switch" aria-checked="${g}" aria-label="${L("Жидкое стекло")}"><span class="knob"></span></button></div>
+      ${g ? row("glassfeats", pfIc("sliders", "#8e8e93"), L("Настройки стекла")) : ""}
+      ${g ? row("dispset", pfIc("prism", "#af52de"), L("Дисперсия"), `<span class="dv">${L(DISP.on ? "Вкл" : "Выкл")}</span>`) : ""}
+    </section>
+    <div class="pf-h">${L("Симулятор")}</div>
+    <section class="pf-grp">
+      ${row("gotosettings", pfIc("gear", "#8e8e93"), L("Настройки симулятора"))}
+      ${row("mknews", pfIc("news", "#ff9500"), L("Создать Synthetic News"), "", `<span class="pf-plus" aria-hidden="true">+</span>`)}
+      ${row("newsresult", pfIc("chart", "#34c759"), L("Последний News Result"))}
+      ${row("triggerroll", pfIc("bolt", "#ffb800"), L("Форсировать смену дня / своп"), "", "")}
+    </section>
+    <div class="pf-h">${L("MACRO NEWS ENGINE — запустить сейчас")}</div>
+    <section class="pf-grp pf-pad">${newsButtonsMarkup()}</section>
+    <div class="pf-h">${L("Инструменты разработчика")}</div>
+    <section class="pf-grp">
+      <button type="button" class="pf-row" data-act="gotodebug">${pfIc("term", "#30b0c7")}<span class="pf-t">${L("Debug-консоль")}<small>${L("день / статистика")}</small></span><span class="v pf-v">${PF_CHEV}</span></button>
+    </section>
+    <section class="pf-grp">
+      <button type="button" class="pf-row pf-danger" data-act="reset">${pfIc("reset", "#ff3b30")}<span class="pf-t">${L("Сбросить симулятор")}</span></button>
+    </section>
     <div class="creator">${L("Создатель —")} <b>Denis Goldman</b></div>
   </div>`;
 }
@@ -10334,7 +10889,7 @@ function navBarKey(html){
 // a, b: the drop's left and right edges in tabs (at rest on tab i they are i and i+1); u is the tab they
 // straddle, kept because the drag reads it. infl 0…1: how far the drop is blown up (pressed or travelling);
 // clear 0…1: its glass (refraction, lit skin); cs 0…1: the same glass with the slower grey return (the matte pill)
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, track: null, pulseAt: 0, tapAt: 0, homeAt: 0, clear: 0, cs: 0, infl: 0, it: 0, vs: 0, optical: null, opticalEnergy: 0, rail: 0, railLight: 0, fromEnd: 0 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, track: null, pulseAt: 0, tapAt: 0, homeAt: 0, clear: 0, cs: 0, infl: 0, it: 0, vs: 0, optical: null, opticalEnergy: 0, rail: 0, railLight: 0, fromEnd: 0, dl: 0 };
 let _navByDrop = 0;
 /* THE MOTION, MEASURED (2026-11-15). The user's two recordings of cTrader on iOS 26 (880×272 at 60 fps and
    576×160 at 30 fps), read frame by frame — the bar's ends, the drop's edges, its paint along a clean row:
@@ -10363,11 +10918,16 @@ const NAV_MO = Object.freeze({ pressDelay: 25, lead: 24, trail: 14, trailZ: .8, 
    Dark and Aurora keep NAV_MO. */
 const NAV_MO_LIGHT = Object.freeze({ ...NAV_MO, lead: 15.9, leadZ: .48, trail: 14.4, trailZ: 1.09, tall: .07, oval: .5 });
 function navLightBar(){ const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset; return !!d && d.theme !== "dark"; }
-function navMo(){ return navLightBar() ? NAV_MO_LIGHT : NAV_MO; }
+/* THE DARK BAR, AS THE USER'S iOS VIDEO w3 (2026-11-21, cTrader dark, Торговля → История at 14 fps): the bar's breath is
+   bigger and longer than the light one's - its length +1.5 / +3.4 / +3.0 / +0.75 % on the four frames of the press, a
+   half sine of 3.5 % over 280 ms within half a percent - and the whole bar LIGHTS UP while it is pressed: its grey 30 → 37
+   (+7, ~.094 of a #73747a veil, --nrl, NAV_DARK.press) from the first frame to ~250 ms, back ~70 ms later. */
+const NAV_MO_DARK = Object.freeze({ ...NAV_MO, pulse: .035, pulseMs: 280 });
+function navMo(){ return navLightBar() ? NAV_MO_LIGHT : navDarkLens() ? NAV_MO_DARK : NAV_MO; }
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 function navRailValues(){
   return { "--nrsx": (1 + NB.rail).toFixed(5), "--nrsy": (1 + NB.rail).toFixed(5),
-    "--nry": "0px", "--nrl": "0",
+    "--nry": "0px", "--nrl": navDarkLens() ? (NAV_DARK.press * (NB.railLight || 0)).toFixed(4) : "0",
     "--nrgx": (NB.rail * (NB.railWidth || 0) / 2).toFixed(3) + "px", "--nrgy": (NB.rail * 32).toFixed(3) + "px" };
 }
 function navRailStyle(){ return Object.entries(navRailValues()).map(([k,v]) => k + ":" + v).join(";"); }
@@ -10377,15 +10937,16 @@ function navRailWrite(bar){
 // The bar's one breath per press, as a curve of the press's age (ms): a half sine up and back, a shallow dip.
 function navPulse(age){
   if(!(age >= 0)) return 0;
-  if(age < NAV_MO.pulseMs) return NAV_MO.pulse * Math.sin(Math.PI * age / NAV_MO.pulseMs);
-  age -= NAV_MO.pulseMs;
+  const M = navMo();
+  if(age < M.pulseMs) return M.pulse * Math.sin(Math.PI * age / M.pulseMs);
+  age -= M.pulseMs;
   return age < NAV_MO.dipMs ? -NAV_MO.dip * Math.sin(Math.PI * age / NAV_MO.dipMs) : 0;
 }
 function navRailFrame(now){
   if(!NB.pulseAt){ NB.rail = 0; return; }
   const age = now - NB.pulseAt;
   NB.rail = navPulse(age);
-  if(age >= NAV_MO.pulseMs + NAV_MO.dipMs){ NB.rail = 0; NB.pulseAt = 0; }
+  if(age >= navMo().pulseMs + NAV_MO.dipMs){ NB.rail = 0; NB.pulseAt = 0; }
 }
 // Preserve the complete 384 x 64 composition, including its raised circular lens.
 // Scale the rail, type, skin and optics together: fitting only the drop made phone silhouettes differ.
@@ -10407,7 +10968,7 @@ const NAV_DROP = Object.freeze({
 function navTrackBuild(width, height, labels){
   const w = Math.max(1, width), h = Math.max(8, height), tabW = w / NAV_N;
   const scale = Math.min(w / NAV_DROP.referenceW, h / NAV_DROP.referenceH);
-  const restH = h * NAV_DROP.height / NAV_DROP.referenceH;
+  const restH = h * (navDarkLens() ? NAV_DARK.restH : NAV_DROP.height / NAV_DROP.referenceH);
   const centres = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * NAV_N);
   const measured = labels || [0, 0, 0, 0, 0];
   let fit = 1;
@@ -10421,10 +10982,10 @@ function navTrackBuild(width, height, labels){
   // light (the user's v3 video): a long label sits in its pill with a third of the bar's height to spare each side
   // (Котирування: 94 px of label in a 155 px pill on a 91 px bar), and an end tab's pill keeps the bar's own gap
   // (4.5 px here, as at its top) from the bar's end - it never runs out past it
-  const light = navLightBar(), pad = light ? .67 : .35, gap = (h - restH) / 2;
+  const light = navLightBar(), dark = navDarkLens(), pad = light ? .67 : .35, gap = (h - restH) / 2;
   const widths = NAV_DROP.widths.map((v, i) => {
-    let px = Math.max(v * scale, 1.05 * restH, (measured[i] || 0) * fontSize / 10.5 + pad * h);
-    if(light && (i === 0 || i === NAV_N - 1)){ const c = centres[i] * tabW, room = 2 * Math.min(c - gap, w - c - gap); px = Math.max(Math.min(px, room), Math.min(v * scale, room)); }
+    let px = Math.max(dark ? NAV_DARK.len * h : v * scale, 1.05 * restH, (measured[i] || 0) * fontSize / 10.5 + pad * h);
+    if((light || dark) && (i === 0 || i === NAV_N - 1)){ const c = centres[i] * tabW, room = 2 * Math.min(c - gap, w - c - gap); px = Math.max(Math.min(px, room), Math.min(v * scale, room)); }
     return px / tabW;
   });
   return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres, widths, fontSize };
@@ -10471,8 +11032,16 @@ function navBox(a, b){
   let width = Math.max(rest * .9, rest + st * t.tabW);
   const light = navLightBar();
   let height = t.restH * (1 + (light ? NAV_MO_LIGHT.tall * I : NAV_MO.tall * I * slow));   // light: as tall in flight as landed
-  if(navDarkLens()){ const c = clamp(NB.clear || 0, 0, 1); height *= 1 + NAV_DARK.lift * c; width *= 1 + NAV_DARK.widen * c; }   // the dark video's clear lens: as tall as the bar, a wide capsule
   const room = t.height - 2 * NAV_MO.endGap * scale;
+  // dark (w3): the black pill is 0.70 of the bar; clear, the lens is the bar's whole height (no edge of its own shows
+  // above or below the bar's: f11, f12) - it swells into the bar, never past it
+  if(navDarkLens()){ const c = clamp(Math.max(NB.clear || 0, I), 0, 1); height = t.restH + (Math.max(room, t.restH) - t.restH) * c; width *= 1 + NAV_DARK.widen * clamp(NB.clear || 0, 0, 1); }
+  // LIFTED UNDER A DRAGGING FINGER (NAV_LIFT): as long as 1.18 tabs and as tall as the bar, whatever the tab's own pill
+  const lift = clamp(NB.dl || 0, 0, 1);
+  if(lift > 0){
+    width = Math.max(width, rest + (Math.max(rest, NAV_LIFT.w * t.tabW) - rest) * lift);
+    height += (Math.max(height, room * NAV_LIFT.h) - height) * lift;
+  }
   // LEAVING AN END TAB (user 2026-11-16: «капля не распухает как в оригинальном видео с котирування»; the reference's
   // Котирування → Чарт, frame by frame): the drop comes off the wall at once and, fast as it is, fills the bar's
   // height in flight - 0.88 → 0.93 → 0.96 → 0.98 of it by 200 ms, ~0.92 as it lands - and no more. Before, the end's
@@ -10535,13 +11104,24 @@ const NAV_OVAL = .35;
 // «s» does - the rim side's residual halves (176 → 89), the label's own stays (132). Inward only: an outward pull fits worse
 // on every held frame. The clear drop 10 % narrower (the user: «чуть-чуть меньше размер самой плашки»): the label's
 // half-length over the drop's half-width was .53 on Графики, the video's .54 (Novedades) to .63 (Comunidades); now .59.
-const NAV_DARK = Object.freeze({ magnify: .17, reach: .31, reachMotion: 0, gamma: 7, lift: .16, widen: -.1 });
+// w3 (2026-11-21, the cTrader dark bar itself): the resting pill is BLACK, 0.70 of the bar's height (half-maximum, 59 of 83 px;
+// 13.png 0.62) and 1.45 bar heights long (117 of 83 px; 13.png 1.5) whatever its label - restH, len; the lens fills the bar.
+const NAV_DARK = Object.freeze({ magnify: .17, reach: .31, reachMotion: 0, gamma: 7, lift: .16, widen: -.1, restH: .7, len: 1.45, press: .094 });
+/* THE LENS A DRAGGING FINGER HOLDS (user 2026-11-21, w1: «снова не правильно движется капля, ну не такая форма была в
+   оригинале»). Dragged, ours stayed the tab's own pill - one tab long, its ends ellipses half again as long as high, so a
+   plain OVAL - and parked over the gap between two tabs it showed nothing: the magnifier about its middle and the rim's
+   inward pull put only the middle 0.66 of it on screen, i.e. the empty gap, and the row under it is cut away - the opaque
+   white oval of the video. The iOS 26 drags of the dark reference (WhatsApp, frames 140-290) hold a CAPSULE as tall as
+   the bar (its top on the bar's top, its foot on the bar's foot) and 1.18 tabs long (260 px on a 220 px tab, f185), the
+   names on both sides of it magnified where they stand. It lifts as the finger starts to slide (τ 50 ms) and lets the air
+   out as it is let go (τ 80 ms), so a landing after a drag is the measured landing again. */
+const NAV_LIFT = Object.freeze({ w: 1.18, h: 1, in: .05, out: .08 });
 function navDarkLens(){
   const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset;
   return !!d && d.theme === "dark" && d.tone !== "aurora";
 }
 function navCorner(clear){ return .5; }
-function navOval(clear){ return navDarkLens() ? 1 : 1 + (navLightBar() ? NAV_MO_LIGHT.oval : NAV_OVAL) * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)); }   // dark: the video's capsule
+function navOval(clear){ return navDarkLens() ? 1 : 1 + (navLightBar() ? NAV_MO_LIGHT.oval : NAV_OVAL) * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)) * (1 - clamp(NB.dl || 0, 0, 1)); }   // dark: the video's capsule
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
 // 8.8 % of the curve this replaces. x is solved by halving; y1 = 0, so its y half is 2.76t²(1-t) + t³.
 function navEase(x){
@@ -10572,7 +11152,7 @@ function navBubFrame(now){
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
   if(!lens || !glassOn("nav")){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0;
-    NB.lift = NB.clear = NB.cs = NB.infl = NB.it = NB.vs = NB.opticalEnergy = NB.rail = NB.railLight = 0;
+    NB.lift = NB.clear = NB.cs = NB.infl = NB.it = NB.vs = NB.opticalEnergy = NB.rail = NB.railLight = NB.dl = 0;
     NB.tw = null; NB.pulseAt = NB.tapAt = 0; NB._pm = null; return;
   }
   if(NB.a == null){ NB.a = NB.target; NB.b = NB.target + 1; }
@@ -10614,6 +11194,11 @@ function navBubFrame(now){
   NB.it = Math.min(NB.infl, navEaseTo(NB.it || 0, NB.infl, NAV_MO.tallLag, dt));   // lags on the way up only
   NB.clear = navEaseTo(NB.clear, glass ? 1 : 0, glass ? NAV_MO.clearIn : NAV_MO.clearOut, dt);
   NB.cs = navEaseTo(NB.cs, glass ? 1 : 0, glass ? NAV_MO.greyIn : NAV_MO.greyOut, dt);
+  NB.railLight = navEaseTo(NB.railLight || 0, active ? 1 : 0, active ? .02 : .06, dt);
+  if(!active && NB.railLight < .003) NB.railLight = 0;
+  const lifted = !!(d && d.slid);
+  NB.dl = navEaseTo(NB.dl || 0, lifted ? 1 : 0, lifted ? NAV_LIFT.in : NAV_LIFT.out, dt);
+  if(!lifted && NB.dl < .002) NB.dl = 0;
   if(!active && NB.infl < .001 && NB.it < .001) NB.infl = NB.it = 0;
   if(!glass){ if(NB.clear < .003) NB.clear = 0; if(NB.cs < .01) NB.cs = 0; }   // the last 1 % of a grey is not seen
   if(settled && NB.vs < .001) NB.vs = 0;
@@ -10639,7 +11224,7 @@ function navBubFrame(now){
   if(!lens._idle){ lens._idle = true; lens.classList.add("idle"); }
   navLens(NB.clear);                           // the bend rides the same number as the glass - no swap, no lag
   // Home, flat and grey, the breath over: one last exact write and the frames stop.
-  if(settled && !active && !NB.infl && !NB.it && !NB.clear && !NB.cs && !NB.pulseAt){
+  if(settled && !active && !NB.infl && !NB.it && !NB.clear && !NB.cs && !NB.pulseAt && !NB.dl && !NB.railLight){
     NB.u = NB.target; NB.t = 0; NB._pm = null; NB.opticalEnergy = NB.vs = 0; NB.fromEnd = 0;
     bar.style.setProperty("--ng", "0"); bar.style.setProperty("--ngs", "0");
     navLens(0);
@@ -10742,7 +11327,7 @@ function closeNavCard(outside){
 function navFit(bar){
   const globalScale = navLayoutScale();
   if(!glassOn("nav")){ NB.track = null; bar.style.removeProperty("--nav-fs"); return; }
-  const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight + ":" + (document.fonts ? document.fonts.status : "") + ":" + navLightBar();
+  const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight + ":" + (document.fonts ? document.fonts.status : "") + ":" + navLightBar() + navDarkLens();
   let track = NB.track;
   if(!track || track.key !== key){
     bar.style.setProperty("--nav-fs", "10.5px");
@@ -11028,6 +11613,7 @@ function navBind(bar){
     // starts dragging, with that initial offset preserved so the capsule cannot jump sideways.
     if(!d.moved && Math.abs(e.clientX - d.x0) < 6) return;
     d.moved = true;
+    if(!d.slid && Math.abs(e.clientX - d.x0) >= 6) d.slid = true;
     d.u = clamp(uAt(e.clientX) - d.pointerU + d.start, -.2, NAV_N - .8); navBubKick();
   };
   bar.onpointerup = e => end(e, true);
@@ -11039,7 +11625,7 @@ function navBind(bar){
     d.pointerU = uAt(d.lastX == null ? d.x0 : d.lastX, d.rect) - d.u + d.start;
     try{ bar.setPointerCapture(d.id); }catch(_){}
   }
-  if(NB.drag || NB.clear > 0 || NB.cs > 0 || NB.infl > 0 || NB.it > 0 || NB.pulseAt || NB.va || NB.vb || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
+  if(NB.drag || NB.clear > 0 || NB.cs > 0 || NB.infl > 0 || NB.it > 0 || NB.dl > 0 || NB.pulseAt || NB.va || NB.vb || Math.abs((NB.a == null ? NB.target : NB.a) - NB.target) > .001) navBubKick();
 }
 // a finger lifted outside everything still ends the drag
 // (bubbling, after the bar's own handler — which opens the tab — has had its turn)
@@ -11864,12 +12450,14 @@ function bindScreen(){
   const act = (name, fn) => root.querySelectorAll(`[data-act="${name}"]`).forEach(el=> el.onclick = fn);
 
   act("back", ()=>{
+    if(S.ui.tab === "more" && S.ui.moreView){ S.ui.moreView = null; render(); save(); return; }   // the calendar opened from «Мой cTrader»
     if(S.ui.tab === "markets"){ S.ui.marketOpen = false; render(); save(); return; }   // XAUUSD ‹ -> "Рынки"
     if(["calendar","dom"].includes(S.ui.tab)){ S.ui.marketOpen = true; nav("markets", "overview"); return; }   // opened only from the overview cards
     if(S.ui.tab === "deal"){ nav("history"); return; }                            // a deal -> the history it was opened from
     nav(["settings","debug"].includes(S.ui.tab) ? "prefs" : ["stats","wallet"].includes(S.ui.tab) ? "more" : "markets");
   });
   act("gotowallet", ()=> nav("wallet"));
+  mcBind(root, act);                           // «Мой cTrader» and «Настройки»
   g3dBind();                                   // the wallet's glass figure follows the pinned wallpaper as it scrolls
   act("wdeposit", ()=> walletAmountModal("deposit"));
   act("wwithdraw", ()=> walletAmountModal("withdraw"));
@@ -13746,6 +14334,15 @@ function glassClarity(th){
 }
 function saveClarity(th, v){ try{ localStorage.setItem(clarityKey(th), String(Math.round(Number.isFinite(v) ? clamp(v, 0, 100) : LG_DEFAULTS.clarity))); }catch(e){} }
 let LGQ = lgq(glassClarity());
+// «Затемнение» (2026-11-21): each theme keeps its own tint too, 0 (the glass as it was) … 100 (tinted); --lgt on <html>,
+// written only when it changes (a slider frame, a theme switch) - every glass body token reads it (see --lgtm)
+function glassTint(th){ return lgSavedTint(th || currentTheme()); }
+function saveTint(th, v){ try{ localStorage.setItem("xc_glass_tint_" + (th || currentTheme()), String(Math.round(Number.isFinite(v) ? clamp(v, 0, 100) : 0))); }catch(e){} }
+function applyTint(v, keep){
+  const t = (Number.isFinite(v) ? clamp(v, 0, 100) : 0) / 100, st = document.documentElement.style, s = t.toFixed(3);
+  if(st.getPropertyValue("--lgt") !== s) st.setProperty("--lgt", s);
+  if(keep) saveTint(null, v);
+}
 /* THE RIM CATCHES THE LIGHT (user 2026-09-27: «дорогой стиль жидкого стекла с переломами как в айос»). At its edge
    real glass gathers the light of what is behind it into a thin bright line - in the colour of what it bends, never
    a painted white: over the night almost nothing, over a price or a green button a line of that colour. The maps
@@ -14615,7 +15212,7 @@ function glassFrame(now){
     const dt = g.t ? Math.min(Math.max((now - g.t) / 1000, 0), 1 / 30) : MO.dt0;
     g.t = now;
     const dn = g.down;
-    const Pp = dn ? MO.P.micro : MO.P.pop, Pb = dn ? MO.P.grab : MO.P.drag;
+    const Pp = g.round ? (dn ? MO.P.press : MO.P.micro) : dn ? MO.P.micro : MO.P.pop, Pb = dn ? MO.P.grab : MO.P.drag;
     g.pv = MO.sp(g.pv, g.p, dn ? 1 : 0, Pp, dt); g.p += g.pv * dt;                              // swell: quick in, a wobble out
     g.vx = MO.sp(g.vx, g.ox, dn ? g.tx : 0, Pb, dt); g.ox += g.vx * dt;                         // the rubber band, home with a wobble
     g.vy = MO.sp(g.vy, g.oy, dn ? g.ty : 0, Pb, dt); g.oy += g.vy * dt;
@@ -14628,12 +15225,13 @@ function glassFrame(now){
     }
     b.style.setProperty("--lx", g.fx.toFixed(1) + "px");                                   // the glass lifts exactly where it is touched
     b.style.setProperty("--ly", g.fy.toFixed(1) + "px");
-    b.style.setProperty("--la", (g.m * .3).toFixed(3));
+    b.style.setProperty("--la", (g.round ? 0 : g.m * .3).toFixed(3));                   // (a round drop lights up evenly: its milk)
     b.style.setProperty("--pk", g.p.toFixed(3));                                           // the core shadow deepens under the finger
     b.style.setProperty("--pcx", (g.ox * -.22).toFixed(2) + "px");                         // and the label lags the shell, as through a moving pane
     b.style.setProperty("--pcy", (g.oy * -.22).toFixed(2) + "px");
     const m = glassMilk(b, g.m > .005);
     if(m){
+      if(m._mc !== g.mc){ m._mc = g.mc; if(g.mc) m.style.setProperty("--mc", "calc(" + g.mc + " * var(--lgh,1))"); else m.style.removeProperty("--mc"); }
       m.style.setProperty("--mk", g.m.toFixed(3));
       m.style.setProperty("--mx", g.fx.toFixed(1) + "px"); m.style.setProperty("--my", g.fy.toFixed(1) + "px");
       m.style.setProperty("--mr", g.R + "px"); m.style.setProperty("--mb", g.mb + "px");
@@ -14654,7 +15252,7 @@ function glassFrame(now){
 function glassKind(b, g){
   const w = g.w, h = g.h;
   // St: how much a full pull stretches it (a round button ~14 %, a bar only a few %, as in the video)
-  g.rs = 0; g.blur = 1; g.mb = 1.6; g.R = Math.round(Math.max(w, h) * 1.25); g.St = .1; g.calm = false;
+  g.rs = 0; g.blur = 1; g.mb = 1.6; g.R = Math.round(Math.max(w, h) * 1.25); g.St = .1; g.calm = false; g.round = false; g.mc = 0;
   if(b.matches(LG_CALM)){                                          // part of a bar, a row or a track: light only
     g.calm = true; g.S = 0; g.St = 0; g.Lx = g.Ly = 1; g.mb = .8;
     g.R = Math.round(clamp(Math.min(w, h) * 2.2, 40, 150));
@@ -14666,7 +15264,14 @@ function glassKind(b, g){
   }
   if(b.matches(".bignew, .fabnew")){ g.rs = 26; g.blur = .6; g.St = w > 200 ? .04 : .08; }
   if(b.matches(".sheet .close")) g.blur = 16;
-  if(Math.abs(w - h) < 4){ g.S = .17; g.Lx = g.Ly = w * .45; g.St = .14; return; }       // a round button: swells the most
+  /* A SMALL ROUND DROP, as the user's w4 (2026-11-21, a clock button over the dark chart, 13.7 fps, three presses): the whole
+     button lights up EVENLY - its grey 34 → 55 → 89 on the first two frames (+55, a quarter of the way to white, the same
+     at its middle and its rim within 10 %) - while it hardly swells yet: none by ~110 ms on two presses, +8-11 % by ~150 ms
+     on the third. Ours lit a spot under the finger (+99 in the middle, +40 at the rim) and was at +11 % by 50 ms, +17 % by
+     120 ms, and let go it sank 7 % under its size and wobbled; coming back the video's overshoots ~2 %. So: light even
+     (a flat milk, R four sizes), .26 white; the swell +12 % on a critically damped ω 16 (6 % at 110 ms, 8 % at 146, 10 %
+     at 220); released on the damped micro spring (ζ .62: ~1 % over). */
+  if(Math.abs(w - h) < 4){ g.S = .12; g.Lx = g.Ly = w * .45; g.St = .14; g.round = true; g.R = Math.round(Math.max(w, h) * 4); g.mc = .26; return; }
   g.S = clamp(3.4 / h, .04, .11); g.Lx = clamp(h * .45, 6, 18); g.Ly = clamp(h * .2, 3, 8);
 }
 function glassRelease(g){ clearTimeout(g.hold); g.down = false; g.up = false; glassKick(); }   // the state, not the element: render() may have handed it on
