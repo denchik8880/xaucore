@@ -8,9 +8,9 @@ const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), '
 test('«Затемнение»: every glass body token is mixed towards the tint, and none with the glass off', () => {
   const defs = [...html.matchAll(/--(nav|sheet|pop|cap|ctl|bar|bg|toast|info)-glass:([^;}\n]*)/g)];
   assert.ok(defs.length >= 36, `${defs.length} definitions`);
-  for (const [whole, , value] of defs) assert.match(value, /^color-mix\(in srgb,.*var\(--lg-tint,#000\) calc\(var\(--lgt,0\) \* var\(--lgtm,50%\)\)\)/, whole.slice(0, 80));
+  for (const [whole, , value] of defs) assert.match(value, /^color-mix\(in srgb,.*var\(--lg-dim,#000\) calc\(var\(--lgt,0\) \* var\(--lgtm,50%\)\)\)/, whole.slice(0, 80));
   assert.match(html, /:root:not\(\[data-glass="on"\]\)\{--lgtm:0%\}/);
-  assert.match(html, /--lgt:0; --lgtm:50%; --lg-tint:#000;/);
+  assert.match(html, /--lgt:0; --lgtm:50%; --lg-dim:#000;/);
 });
 
 test('«Затемнение»: kept per theme, read before first paint, 0 when unset or out of range', () => {

@@ -75,13 +75,13 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
   --lg-body:inset 0 0 0 0 transparent; --lg-lift1:0 0 0 0 transparent; --lg-lift2:0 0 0 0 transparent; --lg-lift3:0 0 0 0 transparent;
   --lg-rimd:transparent; --lg-spot:transparent; --lg-foot:transparent; --lgd:1; --lgh:1; --lgsh:1; --lgln:1; --lgdk:1;
   /* «Затемнение» (2026-11-21, iOS 27's Liquid Glass from clear to tinted): --lgt 0…1 per theme (applyTint) mixes every glass
-     body token - the bars, capsules, plates, sheets, menus, toasts - towards --lg-tint, up to --lgtm of it; the glass grows
+     body token - the bars, capsules, plates, sheets, menus, toasts - towards --lg-dim, up to --lgtm of it; the glass grows
      darker and less see-through together, as iOS's tinted glass does. 0 is the glass as it was. */
-  --lgt:0; --lgtm:50%; --lg-tint:#000;
+  --lgt:0; --lgtm:50%; --lg-dim:#000;
   --lg-sheen:rgba(255,255,255,.65); --lg-rim:rgba(255,255,255,var(--lgln,1)); --lg-rim2:rgba(255,255,255,calc(.78 * var(--lgln,1))); --lg-glow:rgba(255,255,255,.6); --nb-sheen:rgba(255,255,255,.42); --lg-text-shadow:0 0 8px rgba(255,255,255,.9);
   /* the floating tab bar: glass, the drop that marks the tab, the lens it turns into under the finger */
   --nav-top:calc(66px + env(safe-area-inset-bottom));   /* screen bottom → the tab bar's top edge (70 px with liquid glass) */
-  --nav-glass:color-mix(in srgb,rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
+  --nav-glass:color-mix(in srgb,rgba(255,255,255,calc(.86 + .12 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(16,24,40,.16); --nav-bub:rgba(16,24,40,calc(.09 * var(--dk,1))); --nav-lip:rgba(16,24,40,calc(.17 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.9 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.55 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(16,24,40,.13); --nav-edge:rgba(255,255,255,calc(.4 * (1 + (1 - var(--dk,1))))); --nav-lens:rgba(255,255,255,calc(.16 * var(--lgk,1)));
   --exec-bg:#b8bcc3; --bar:var(--card); --wl-div:#c5c8cd; --nav-on:#ef1f24; --nav-ic:#a2a8b2; --nav-hole:#eff1f4; --lw-bg:#fff; --lw-bar:#f7f7f7; --lw-band:#f1f1f3; --lw-edge:#e3e3e3;         /* a SELL/BUY block while its order is executing */
 }
 /* Dark = cTrader's dark theme: true black, neutral (not blue-tinted) greys, white
@@ -99,7 +99,7 @@ try{if(localStorage.getItem("xc_glass_v")!==LG_PRESET_VERSION){["xc_glass_clear_
   --chart-bg:#000000; --chart-grid:#1c1c1c; --chart-axis:#ffffff; --chart-btn:#141416; --chart-btn-edge:#45474c; --ripple:rgba(255,255,255,.12); --ripple-w1:rgba(255,255,255,.13); --ripple-w2:rgba(255,255,255,.05); --ripple-bg:rgba(255,255,255,.07);
   --chart-cross:#8c8c8c; --chart-tag:#262626; --chart-glass:rgba(0,0,0,.85);
   --exec-bg:#3a3a3d;
-  --nav-glass:color-mix(in srgb,rgba(34,35,40,calc(.88 + .1 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(0,0,0,.3); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
+  --nav-glass:color-mix(in srgb,rgba(34,35,40,calc(.88 + .1 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(0,0,0,.6); --nav-bub:rgba(255,255,255,calc(.14 * var(--dk,1))); --nav-lip:rgba(0,0,0,calc(.5 * (1 + (1 - var(--dk,1)) * .7))); --nav-spec:rgba(255,255,255,calc(.62 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(255,255,255,calc(.3 * (1 + (1 - var(--dk,1))))); --nav-specd:rgba(0,0,0,.3); --nav-edge:rgba(255,255,255,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(255,255,255,calc(.05 * var(--lgk,1)));
   --lg-tint:rgba(30,30,34,calc(.28 * var(--lgk,1))); --lg-line:rgba(255,255,255,calc((.1 + .2 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-ring:-.6px 0 0 0 rgba(255,255,255,calc(.16 * var(--lgln,1))),.6px 0 0 0 rgba(255,255,255,calc(.16 * var(--lgln,1))),0 0 0 .5px rgba(255,255,255,calc(.07 * var(--lgln,1))); --lg-shadow:rgba(0,0,0,calc(.55 + .2 * (1 - var(--lgk,1)))); --lg-spec:rgba(255,255,255,calc(.3 + .34 * (1 - var(--lgk,1))));
   --lg-sheen:rgba(255,255,255,.14); --lg-rim:rgba(255,255,255,calc((.36 + .14 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-rim2:rgba(255,255,255,calc((.18 + .12 * (1 - var(--lgk,1))) * var(--lgln,1))); --lg-glow:rgba(255,255,255,calc(.14 + .2 * (1 - var(--lgk,1)))); --nb-sheen:rgba(255,255,255,.07); --lg-text-shadow:0 1px 6px rgba(0,0,0,.7);
 }
@@ -323,15 +323,13 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 @property --nry{syntax:"<length>";inherits:false;initial-value:0px}
 @property --nrgx{syntax:"<length>";inherits:false;initial-value:0px}
 @property --nrgy{syntax:"<length>";inherits:false;initial-value:0px}
-@property --nrl{syntax:"<number>";inherits:false;initial-value:0}
 @property --ncr{syntax:"<number>";inherits:false;initial-value:.5}
 @property --nov{syntax:"<number>";inherits:false;initial-value:1}
 .bottomnav :is(.nav-rest,.nav-bub,.nav-lens,.nav-red,.nr-optics,.nr-in){--u:inherit;--sx:inherit;--sy:inherit;--ncr:inherit;--nov:inherit}
 .bottomnav :is(.nb-skin,.nb-refract){--sx:inherit;--sy:inherit;--ng:inherit;--ncr:inherit;--nov:inherit}
 .bottomnav :is(.nav-red,.nr-optics,.nr-in){--nm:inherit}
 .bottomnav :is(.nav-rest,.nav-bub,.nav-backdrop){--ng:inherit;--ngs:inherit}
-.bottomnav :is(.nav-panel,.nav-shadow,.nav-surface,.nav-red,.nr-optics,.nr-in){--nrsx:inherit;--nrsy:inherit;--nry:inherit;--nrgx:inherit;--nrgy:inherit;--nrl:inherit}
-.bottomnav .nav-surface::after{--nrl:inherit}
+.bottomnav :is(.nav-panel,.nav-shadow,.nav-surface,.nav-red,.nr-optics,.nr-in){--nrsx:inherit;--nrsy:inherit;--nry:inherit;--nrgx:inherit;--nrgy:inherit}
 /* the drop's own tokens, declared again ON THE BAR: they carry var(--dk), which is substituted where a token is
    declared, so declared here they read the bar's --dk - and the drop's clearing no longer writes <html> (every
    write there restyled the whole document, thirty frames of it per tab change) */
@@ -369,7 +367,6 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface{display:block;position:absolute;inset:-10px;z-index:0;pointer-events:none;will-change:clip-path;
   clip-path:inset(calc(10px - var(--nrgy,0px) + var(--nry,0px)) calc(10px - var(--nrgx,0px)) calc(10px - var(--nrgy,0px) - var(--nry,0px)) calc(10px - var(--nrgx,0px)) round calc(30px * var(--nrsx,1)) / calc(30px * var(--nrsy,1)));
   background:var(--nav-glass);-webkit-backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3);backdrop-filter:blur(calc(14px * var(--lgb,1))) saturate(1.3)}
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-surface::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#73747a;opacity:var(--nrl,0);pointer-events:none}
 /* THE DARK BAR AS cTRADER'S OWN (user 2026-11-21, 13.png and the video w3: «черную тему нужно доработать, показал как там
    должна выглядеть нижняя панель»): the chosen tab is BLUE again - 13.png's icon fill reads #0894fc (the mode of 1604
    saturated pixels) - on a BLACK resting pill (rgb 8-10 on the bar's 31-32: a .7 black veil). It replaces the white of the
@@ -591,6 +588,22 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chpill::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chpill::after{display:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chartbox:not(.sub) .chpill{touch-action:none}
 .chpill svg{display:block}
+/* THE LIQUID NECK (user 2026-11-21: «вы взаимодействие не сделали … как соединяться они либо переливаться должны, возьмите с
+   нашего чата, где вы пытались повторить liquid glass из видео»): two small glass buttons side by side flow into one shape
+   when a press swells one of them or a finger pulls it toward the other, and part again with a neck that thins and snaps.
+   The earlier reconstruction of that video joined its shapes with a quadratic smooth-min of their distance fields (k about a
+   third of the bar's height); here the same union is drawn as the neck between the two (lqgNeck): it leaves each round
+   end where the smooth union does, waists in the middle as they part, and its own edges run along the buttons' outlines
+   a hair inside them, so the glass reads as one piece and no rim shows across the join. Same body and frost as theirs. */
+.lq-neck{display:none}
+:root[data-glass="on"] .lq-neck{display:block;position:absolute;left:-16px;top:-16px;width:calc(100% + 32px);height:calc(100% + 32px);pointer-events:none;z-index:6;
+  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),var(--cap-glass);clip-path:var(--np,inset(50%));
+  -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03)}
+:root[data-theme="dark"][data-glass="on"] .lq-neck{background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 55%),var(--cap-glass)}
+/* its two free edges: the glass's own hairline (a clip-path takes a shadow and a border with it, so they are drawn) */
+.lq-edge{display:none}
+:root[data-glass="on"] .lq-edge{display:block;position:absolute;left:-16px;top:-16px;width:calc(100% + 32px);height:calc(100% + 32px);overflow:visible;pointer-events:none;z-index:7}
+.lq-edge path{fill:none;stroke:var(--lg-line);stroke-width:1;stroke-linecap:round}
 .chartinfo{position:absolute;left:16px;top:62px;max-width:calc(100% - 90px);z-index:4;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartinfo[hidden]{display:none}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
@@ -1229,11 +1242,11 @@ html:has(body.route-wallet){background:#0c0a08}
 :root:not([data-glass="on"]){--lgtm:0%}
 :root[data-glass="on"]{
   --nav-hole:#fff;
-  --bar-glass:color-mix(in srgb,rgba(255,255,255,calc(.6 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(239,241,244,calc(.6 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(255,255,255,calc(.8 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
-  --seg-track:rgba(120,120,128,.13); --ctl-glass:color-mix(in srgb,rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:color-mix(in srgb,rgba(255,255,255,calc(.42 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
-  --toast-glass:color-mix(in srgb,rgba(255,255,255,.74),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
+  --bar-glass:color-mix(in srgb,rgba(255,255,255,calc(.6 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(239,241,244,calc(.6 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(255,255,255,calc(.8 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --seg-track:rgba(120,120,128,.13); --ctl-glass:color-mix(in srgb,rgba(250,251,252,calc(.88 + .1 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(255,255,255,calc(.42 + .5 * var(--lgs,1))); --sub-bub:rgba(47,123,246,.12); --info-glass:color-mix(in srgb,rgba(255,255,255,calc(.42 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --toast-glass:color-mix(in srgb,rgba(255,255,255,.74),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bn-glass:rgba(17,20,24,calc(.58 * var(--lgk,1))); --fab-glass:rgba(211,227,253,calc(.62 * var(--lgk,1))); --bn-text-shadow:0 1px 3px rgba(0,0,0,.4);
   --lw-bar:rgba(255,255,255,.3); --lw-band:rgba(120,120,128,.06); --sheet-rim:rgba(255,255,255,.55); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:color-mix(in srgb,rgba(255,255,255,calc(.1 + .35 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(239,241,244,.92); --pop-glass:color-mix(in srgb,rgba(255,255,255,calc(.12 + .5 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --cap-glass:color-mix(in srgb,rgba(255,255,255,calc(.1 + .35 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(239,241,244,.92); --pop-glass:color-mix(in srgb,rgba(255,255,255,calc(.12 + .5 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   /* THE THREE DIALS (Настройки стекла writes them; 1 = as designed). Everything below is expressed through them,
      so one slider changes the whole system and nothing has to be re-authored. */
   --lgd:1; --lgh:1; --lgsh:1;
@@ -1262,11 +1275,11 @@ html:has(body.route-wallet){background:#0c0a08}
 }
 :root[data-theme="dark"][data-glass="on"]{
   --nav-hole:#1d1d1f;
-  --bar-glass:color-mix(in srgb,rgba(12,12,12,calc(.58 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(0,0,0,calc(.52 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(26,26,28,calc(.82 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
-  --seg-track:rgba(255,255,255,.08); --ctl-glass:color-mix(in srgb,rgba(24,24,27,calc(.9 + .08 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(120,120,128,calc(.2 + .55 * var(--lgs,1))); --sub-bub:rgba(91,147,247,.2); --info-glass:color-mix(in srgb,rgba(20,20,22,calc(.4 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
-  --toast-glass:color-mix(in srgb,rgba(44,44,48,.74),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
+  --bar-glass:color-mix(in srgb,rgba(12,12,12,calc(.58 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(0,0,0,calc(.52 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(26,26,28,calc(.82 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --seg-track:rgba(255,255,255,.08); --ctl-glass:color-mix(in srgb,rgba(24,24,27,calc(.9 + .08 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(120,120,128,calc(.2 + .55 * var(--lgs,1))); --sub-bub:rgba(91,147,247,.2); --info-glass:color-mix(in srgb,rgba(20,20,22,calc(.4 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --toast-glass:color-mix(in srgb,rgba(44,44,48,.74),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bn-glass:rgba(245,245,245,calc(.66 * var(--lgk,1))); --fab-glass:rgba(13,71,161,calc(.6 * var(--lgk,1))); --bn-text-shadow:0 0 6px rgba(255,255,255,.7);
   --lw-bar:rgba(255,255,255,.04); --lw-band:rgba(255,255,255,.04); --sheet-rim:rgba(255,255,255,.16); --lgsat:calc(1 + .42 * var(--lgs,1));
-  --cap-glass:color-mix(in srgb,rgba(34,34,38,calc(.45 + .5 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(0,0,0,.86); --pop-glass:color-mix(in srgb,rgba(30,30,34,calc(.16 + .55 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --cap-glass:color-mix(in srgb,rgba(34,34,38,calc(.45 + .5 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(0,0,0,.86); --pop-glass:color-mix(in srgb,rgba(30,30,34,calc(.16 + .55 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   --lg-rimd:rgba(0,0,0,calc(.12 * var(--lgdk,1)));
   --lg-body:inset 0 1.3px .8px -.5px var(--lg-spec),inset 0 -1.6px 1.4px -.9px var(--lg-glow),
     inset 0 0 0 .7px rgba(255,255,255,calc(.10 * var(--lgh,1))),
@@ -1643,8 +1656,8 @@ body.navcard-open .bottomnav{opacity:0;pointer-events:none}            /* while 
 .disp-go{margin-top:8px;padding:9px}
 /* 1. sheets you can see the screen through (user: «Окна снизу … сквозь которую виден экран»): a lighter scrim,
    a clearer pane, the cards and fields in it translucent too */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:color-mix(in srgb,rgba(255,255,255,calc(.6 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:color-mix(in srgb,rgba(28,28,31,calc(.6 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,calc(.18 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.09 + .12 * var(--lgs,1)))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:color-mix(in srgb,rgba(255,255,255,calc(.6 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,calc(.52 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.2 + .46 * var(--lgs,1)))}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-glass:color-mix(in srgb,rgba(28,28,31,calc(.6 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,calc(.18 * var(--lgs,1)));--sheet-field:rgba(255,255,255,calc(.09 + .12 * var(--lgs,1)))}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.1 * var(--lgs,1))),rgba(255,255,255,calc(.062 * var(--lgs,1))) 34%,rgba(255,255,255,calc(.05 * var(--lgs,1))))}
 :root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="morph"]) .lg-pop{background-image:linear-gradient(180deg,rgba(255,255,255,calc(.12 * var(--lgs,1))),rgba(255,255,255,calc(.075 * var(--lgs,1))) 40%,rgba(255,255,255,calc(.06 * var(--lgs,1))))}
 :root[data-glass="on"]:not([data-lgoff~="sheets"]) .modal,:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal{background:transparent}
@@ -1695,8 +1708,8 @@ body.amenu-open .wl-logo{opacity:0}
 .about-sheet h2{margin-bottom:10px}
 /* a long read is not a control panel: this one pane is denser than the rest, or a live chart moves under every
    line of it. It is still glass, you just cannot read the page through it */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(255,255,255,.86),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.62)}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(24,24,27,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.1)}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(255,255,255,.86),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.62)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(24,24,27,.9),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.1)}
 /* ---- the app drawer behind the logo (cTrader's own, one to one) ---- */
 .modal.amodal{align-items:stretch;justify-content:flex-start}
 .amodal .sheet.am-sheet{animation:none!important;width:84%;max-width:348px;height:100%;max-height:none;margin:0;padding:0;border-radius:0;
@@ -1780,18 +1793,16 @@ body.amenu-open .wl-logo{opacity:0}
 /* (on the page, over its menu - pkLens: inside the menu's glass its lens saw only that glass's see-through paint, and the
    bent writing lay over the straight writing still showing through it: every letter twice) */
 :root[data-glass="on"] .pk-drop{display:block;position:fixed;left:0;top:0;z-index:1500;pointer-events:none;transform-origin:0 0;opacity:0;will-change:transform,opacity;
-  background:linear-gradient(180deg,var(--drop-sheen,rgba(255,255,255,.3)) 0%,rgba(255,255,255,0) 40%),
-    radial-gradient(58% 40% at 50% 100%,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.03)}   /* clear across the writing's band; its edge: --drop-sh */
-/* its rim, lit from the one light the whole app is lit from (the brightest at the top left and the bottom right) */
-:root[data-glass="on"] .pk-drop::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* and the glint on its crown */
-:root[data-glass="on"] .pk-drop::before{content:"";position:absolute;left:6%;top:9%;width:24%;height:26%;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,255,255,0))}
-:root[data-theme="dark"][data-glass="on"] .pk-drop{
-  background:linear-gradient(180deg,var(--drop-sheen,rgba(255,255,255,.1)) 0%,rgba(255,255,255,0) 40%),
-    radial-gradient(58% 46% at 50% 100%,rgba(255,255,255,.1) 0%,rgba(255,255,255,0) 100%),rgba(255,255,255,.04)}
-:root[data-theme="dark"][data-glass="on"] .pk-drop::before{background:radial-gradient(closest-side,rgba(255,255,255,.7),rgba(255,255,255,0))}
+  background:var(--pk-hl)}
+/* THE ROW UNDER THE FINGER IS LIT AS iOS LIGHTS IT (user 2026-11-21, 18.png: «на таймфреймах и не только поставьте как-то
+   по-другому, удалите черный блик, посмотрите как в оригинальном айос такое работает»). In an iOS 26/27 menu the row under
+   the finger is a flat, quiet platter - the label colour at a few per cent, a capsule inside the menu's corners - that goes
+   from row to row as the finger crosses them, sliding over on a short spring; the menu around it is the glass, not the
+   highlight. Ours was a drop of glass of its own: a glint at its crown (the white «blik»), a rim, a shadow and a water lens
+   that sampled the dark page through the menu (the black body). All gone, in every theme; the row is not magnified. */
+:root{--pk-hl:rgba(16,24,40,.085)}
+:root[data-theme="dark"]{--pk-hl:rgba(255,255,255,.13)}
+:root[data-theme="dark"][data-tone="aurora"]{--pk-hl:rgba(199,213,236,.15)}
 /* EVERY DROP, ONE CLEAN EDGE (user 2026-09-26, the lot lens over «MAX 30»: «Очень много лишней серой обводки, это не
    дает эффект капли, это касается всего, где есть такая капля»). The drops wore the glass PANELS' edge: a grey
    hairline outside, grey bands inside top and bottom (--lg-body) and a rim whose middle is grey (--lg-rimd) -
@@ -1817,17 +1828,10 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .miniquick > button{border-radius:999px}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
-:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
-:root[data-glass="on"] .pk-drop{box-shadow:var(--drop-sh)}
+:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{box-shadow:var(--drop-sh)}
 :root[data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens::after,:root[data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens::after,
 :root[data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens::after,:root[data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens::after,
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after,:root[data-glass="on"] .pk-drop::after{background:var(--drop-rim)}
-/* what is under the drop is magnified by it, as under a real one (and under the bar's) - sharp, not bent */
-:root[data-glass="on"] .pk .am-it>*,:root[data-glass="on"] .pk button>*{transition:transform .14s cubic-bezier(.2,.8,.3,1)}
-:root[data-glass="on"] .pk .pk-on>*:not(.lg-milk){transform:scale(1.08)}
-:root[data-glass="on"] .pk.pk-lens .pk-on>*:not(.lg-milk){transform:none}   /* the water drop magnifies it itself (pkPut) */
-:root[data-glass="on"] .pk .am-it>span,:root[data-glass="on"] .pk button>span{transform-origin:0 50%}   /* a word grows from where it starts, not sliding left */
-:root[data-glass="on"] .pk button>b{transform-origin:100% 50%}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens::after{background:var(--drop-rim)}
 .pk-drop.idle{visibility:hidden}
 :root[data-glass="on"] .pk .am-it:active,:root[data-glass="on"] .pk button:active{background:none}   /* the drop is the press */
 :root[data-glass="on"] .am-sheet.pk:not(.pk-scroll) .am-grp{touch-action:none}                     /* a slide along the rows is the drop's, not a pan */
@@ -2156,7 +2160,7 @@ body.amenu-open .wl-logo{opacity:0}
   --chart-grid:rgba(235,235,245,.07); --chart-axis:rgba(235,235,245,.86); --chart-btn:rgba(22,27,58,.72); --chart-btn-edge:rgba(168,186,237,.32);
   --chart-cross:#a7b0d2; --chart-tag:#2b3365; --chart-glass:rgba(18,22,48,.86); --exec-bg:rgba(136,147,198,.34);
   --ripple:rgba(195,206,230,.14); --ripple-w1:rgba(195,206,230,.15); --ripple-w2:rgba(195,206,230,.06); --ripple-bg:rgba(195,206,230,.08);
-  --nav-glass:color-mix(in srgb,rgba(30,33,53,calc(.86 + .1 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(10,11,20,.6);
+  --nav-glass:color-mix(in srgb,rgba(30,33,53,calc(.86 + .1 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --nav-shadow:rgba(10,11,20,.6);
   --nav-bub:rgba(195,207,230,calc(.15 * var(--dk,1))); --nav-lip:rgba(12,13,25,calc(.46 * (1 + (1 - var(--dk,1)) * .7)));
   --nav-spec:rgba(189,216,226,calc(.7 * (1 + (1 - var(--dk,1))))); --nav-spec2:rgba(207,189,226,calc(.42 * (1 + (1 - var(--dk,1)))));
   --nav-specd:rgba(58,50,90,.3); --nav-edge:rgba(199,211,231,calc(.14 * (1 + (1 - var(--dk,1)) * 3))); --nav-lens:rgba(195,207,230,calc(.05 * var(--lgk,1)));
@@ -2223,12 +2227,12 @@ body.amenu-open .wl-logo{opacity:0}
 /* ---- the glass under «Аврора» ---- */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{
   --nav-hole:#2b3048;
-  --bar-glass:color-mix(in srgb,rgba(26,27,45,calc(.5 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(20,21,36,calc(.46 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(30,33,53,calc(.8 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
-  --seg-track:rgba(182,190,223,.1); --ctl-glass:color-mix(in srgb,rgba(33,36,56,calc(.9 + .08 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(168,175,217,calc(.2 + .5 * var(--lgs,1))); --sub-bub:rgba(161,176,214,.2);
-  --info-glass:color-mix(in srgb,rgba(24,27,44,calc(.4 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --toast-glass:color-mix(in srgb,rgba(45,48,73,calc(.6 * max(.75, var(--lgs,1)))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --bar-glass:color-mix(in srgb,rgba(26,27,45,calc(.5 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --bg-glass:color-mix(in srgb,rgba(20,21,36,calc(.46 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(30,33,53,calc(.8 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --seg-track:rgba(182,190,223,.1); --ctl-glass:color-mix(in srgb,rgba(33,36,56,calc(.9 + .08 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --seg-bub:rgba(168,175,217,calc(.2 + .5 * var(--lgs,1))); --sub-bub:rgba(161,176,214,.2);
+  --info-glass:color-mix(in srgb,rgba(24,27,44,calc(.4 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --toast-glass:color-mix(in srgb,rgba(45,48,73,calc(.6 * max(.75, var(--lgs,1)))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   --bn-glass:rgba(245,246,250,calc(.66 * var(--lgk,1))); --fab-glass:rgba(110,115,178,calc(.6 * var(--lgk,1)));
   --lw-bar:rgba(195,206,230,.05); --lw-band:rgba(195,206,230,.05); --sheet-rim:rgba(195,210,230,.2);
-  --cap-glass:color-mix(in srgb,rgba(45,50,77,calc(.42 + .45 * var(--lgk,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(27,32,51,.8); --pop-glass:color-mix(in srgb,rgba(41,44,67,calc(.16 + .55 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --cap-glass:color-mix(in srgb,rgba(45,50,77,calc(.42 + .45 * var(--lgk,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --edge-fade:rgba(27,32,51,.8); --pop-glass:color-mix(in srgb,rgba(41,44,67,calc(.16 + .55 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
   --crys-cap:rgba(54,60,92,calc(.16 * var(--lgk,1))); --crys:69,74,115;
   --lg-rimd:rgba(97,86,145,calc(.1 * var(--lgdk,1)));
   /* the thickness is a shade of the night, not black: black inside a blue pane reads as a stain. Flat like the
@@ -2259,10 +2263,6 @@ body.amenu-open .wl-logo{opacity:0}
     inset 1.2px 1.6px 1.2px -.8px rgba(194,221,229,.72),inset -1.2px -1.6px 1.4px -.8px rgba(212,193,228,.48),inset 0 0 8px -2px rgba(15,15,29,.3);
   --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,.85) 0%,rgba(189,217,226,0) 24%,rgba(97,86,145,.2) 50%,rgba(210,189,226,0) 76%,rgba(210,189,226,.62) 100%);
   --drop-sheen:rgba(210,222,235,.12)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop{
-  background:linear-gradient(180deg,var(--drop-sheen) 0%,rgba(210,222,235,0) 40%),
-    radial-gradient(58% 46% at 50% 100%,rgba(183,175,220,.16) 0%,rgba(183,175,220,0) 100%),rgba(195,207,230,.05)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop::before{background:radial-gradient(closest-side,rgba(221,234,240,.75),rgba(221,234,240,0))}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:rgba(189,202,226,calc(.14 * var(--sdk,1)));
   box-shadow:inset 0 6px 7px -6px rgba(15,15,29,calc(.45 * (1 + (1 - var(--sdk,1)) * .7))),inset 0 -6px 7px -6px rgba(64,56,104,calc(.4 * (1 + (1 - var(--sdk,1)) * .7))),
     inset 0 0 0 1px rgba(203,215,232,calc(.14 * (1 + (1 - var(--sdk,1)) * 3))),0 0 12px rgba(154,170,211,.18)}
@@ -2314,7 +2314,7 @@ body.amenu-open .wl-logo{opacity:0}
    (L1417 is (0,4,0) with :not(sheets); the Aurora glass block's (0,4,0) never re-defines these two) */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]){--sheet-card:rgba(235,235,245,calc(.04 + .1 * var(--lgs,1)));--sheet-field:rgba(118,118,128,calc(.18 + .1 * var(--lgs,1)))}
 /* was L1469: «О приложении» — its own grey glass rgba(24,24,27,.9) on the element, so the root token never reaches it */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(26,27,44,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(235,235,245,.08)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.about-sheet{--sheet-glass:color-mix(in srgb,rgba(26,27,44,.9),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(235,235,245,.08)}
 /* was L1418 / L1512 / L1419 / L1601: the white film over sheets, the app menu and popups → sky-white, lilac at the foot */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet{background-image:linear-gradient(180deg,rgba(190,215,255,calc(.1 * var(--lgs,1))),rgba(190,215,255,calc(.062 * var(--lgs,1))) 34%,rgba(170,150,255,calc(.05 * var(--lgs,1))))}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .modal.amodal .sheet.am-sheet{background-image:linear-gradient(180deg,rgba(190,215,255,.1),rgba(190,215,255,.062) 34%,rgba(170,150,255,.05))}
@@ -2436,8 +2436,8 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"] .fabnew{--fab-bg:#2f78c6;color:#fff}
 /* the plain toast, the menus and the sheets: dense enough that what is behind stays behind (at «Кристалл» the bright
    controls under them bled through as coloured blobs; the plain toast read word for word) */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--toast-glass:color-mix(in srgb,rgba(36,38,56,.8),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
-  --pop-glass:color-mix(in srgb,rgba(36,38,56,calc(.5 + .3 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(30,33,53,calc(.5 + .3 * var(--lgs,1))),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]{--toast-glass:color-mix(in srgb,rgba(36,38,56,.8),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));
+  --pop-glass:color-mix(in srgb,rgba(36,38,56,calc(.5 + .3 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%))); --sheet-glass:color-mix(in srgb,rgba(30,33,53,calc(.5 + .3 * var(--lgs,1))),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
 /* the lot field: the see-through field of iOS, its caption inside it (a solid caption over the border was a dark notch
    in a clear card) */
 :root[data-tone="aurora"] .ctp-lot{background:var(--field-bg);border-color:var(--edge)}
@@ -2449,7 +2449,7 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-tone="aurora"][data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{background:radial-gradient(46% 70% at 50% 50%,rgba(14,16,30,.5),rgba(14,16,30,0) 100%),
   linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 46%),linear-gradient(100deg,rgba(106,128,191,.38) 0%,rgba(133,130,201,.32) 38%,rgba(158,134,203,.34) 66%,rgba(144,166,207,.4) 100%)}
 /* the wallet's sheets keep their own dark: the gold card showed through the clear sheet right under «СУММА» */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.sheet-dark{--sheet-glass:color-mix(in srgb,rgba(26,23,19,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.sheet-dark{--sheet-glass:color-mix(in srgb,rgba(26,23,19,.9),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
 /* flat: the bars frost what passes under them instead of ghosting it */
 :root[data-tone="aurora"]:not([data-glass="on"]) :is(.appbar,.subtabs,.wl-topbar,.bottomnav){-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2)}
 :root[data-theme="dark"][data-tone="aurora"]:not([data-glass="on"]) .appbar.auth-bar .ttl{background:rgba(118,118,128,.24);-webkit-backdrop-filter:blur(16px) saturate(1.1);backdrop-filter:blur(16px) saturate(1.1);
@@ -2499,28 +2499,24 @@ body.amenu-open .wl-logo{opacity:0}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-bub{background:var(--wd-glint),rgba(195,207,230,calc(.12 * var(--sdk,1)));
   box-shadow:0 5px 12px -5px rgba(0,0,0,.45),inset 0 0 0 .6px rgba(255,255,255,calc(.26 * (1 + (1 - var(--sdk,1))))),inset 0 1.5px 1.5px -.5px rgba(255,255,255,.6),
     inset 0 -2.5px 4px -1.5px rgba(185,220,255,.42),inset 0 0 9px -2px rgba(4,6,20,calc(.4 * var(--sdk,1)))}
-:root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:rgba(255,255,255,.035);
-  /* (clear, a breath lighter than the bar it sits in: w3 f11-f12, 45 on the bar's 37)
-     the dark video's clear drop: a thin light outline - lit along its foot and round its ends, none along its top -
-     no dark bands inside it. MEASURED on the video's pixels at the same bar height (2026-11-17, f0091 against ours):
-     its foot +55 over the bar's grey (≈ .24 white, ~1 px), a little brighter where the foot turns into the ends,
-     the ends at mid-height only +20 (≈ .09), and no line along the top at all; ours was +130 / +60-90 / +30 - an even
-     white ring the video does not have */
-  box-shadow:inset 0 -1.25px 0 -.25px rgba(255,255,255,.2),inset 1.25px -.5px 0 -.25px rgba(255,255,255,.09),inset -1.25px -.5px 0 -.25px rgba(255,255,255,.09),0 6px 14px -6px rgba(0,0,0,.55)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:transparent;
-  box-shadow:inset 0 0 0 .5px var(--nav-ring),
-    inset 0 calc(7px * var(--lgd,1)) calc(9px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-top),inset 0 calc(-5px * var(--lgd,1)) calc(7px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-foot),
-    inset calc(4px * var(--lgd,1)) 0 calc(7px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-side),inset calc(-4px * var(--lgd,1)) 0 calc(7px * var(--lgd,1)) calc(-3px * var(--lgd,1)) var(--nav-soft-side),
-    0 5px 12px -5px var(--nav-cast)}
+/* THE CLEAR LENS, DARK AND AURORA = THE LIGHT ONE'S (2026-11-21, «нужно все сделать как на белой, в точности 1 в 1»): the same
+   layers as the light rule (the v3 video's) - a lit line right under its top, a soft band inside its top and each end,
+   a crisp outline darkest at the round ends, a short cast - in the dark themes' own colours: the outline and the line
+   light, the bands dark. (Dark had the WhatsApp video's thin lit foot, Aurora the old soft ring.) */
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:rgba(255,255,255,.035);
+  box-shadow:inset 0 5px 5px -2px rgba(255,255,255,calc(.2 * var(--lgh,1))),
+    inset 0 calc(15px * var(--lgd,1)) calc(9px * var(--lgd,1)) calc(-4px * var(--lgd,1)) rgba(0,0,0,calc(.2 * var(--lgdk,1))),
+    inset calc(8px * var(--lgd,1)) 0 calc(8px * var(--lgd,1)) calc(-3px * var(--lgd,1)) rgba(0,0,0,calc(.2 * var(--lgdk,1))),inset calc(-8px * var(--lgd,1)) 0 calc(8px * var(--lgd,1)) calc(-3px * var(--lgd,1)) rgba(0,0,0,calc(.2 * var(--lgdk,1))),
+    0 0 0 .5px rgba(255,255,255,calc(.1 * var(--lgln,1))),-1.25px 0 0 0 rgba(255,255,255,calc(.16 * var(--lgln,1))),1.25px 0 0 0 rgba(255,255,255,calc(.16 * var(--lgln,1))),
+    0 4px 10px -5px var(--nav-cast)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub>.nb-skin{background:rgba(199,213,236,.03)}
 /* 2. THE LENSES THAT FOLLOW A FINGER - over their bend, the same glint and gathered light */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .seg-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .sub-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens,
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .mq-lens,
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens,
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop{background:var(--wd-glint),rgba(255,255,255,.02)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="lots"]) .lw-lens{background:var(--wd-glint),rgba(255,255,255,.02)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="drops"]) .ot-g .seg.seg-drag>.seg-lens{background:var(--wd-glint),rgba(255,255,255,.03);box-shadow:var(--drop-sh)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop::before{display:none}   /* its glint is the layer above now */
 /* 3. THE KNOBS - a bead of water on the track: what is under it shows through, lit and bent at its edge */
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
 :root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle]:not(.press) .knob{
@@ -2545,11 +2541,6 @@ body.amenu-open .wl-logo{opacity:0}
    shadow it throws. And NOTHING BENT (2026-09-28: «искажаются буквы … это касается всего, где можно выбирать по
    пунктам»): the drop goes with the finger, so its rim is always crossing a line of writing, and a bend there broke
    the letters. The writing under it is magnified whole instead (.pk-on). The same for the switches' knobs. */
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop{background:var(--wd-glint),rgba(255,255,255,.01);
-  box-shadow:0 9px 20px -9px rgba(3,5,18,.6),0 2px 5px -2px rgba(3,5,18,.3),
-    inset 0 0 0 .6px rgba(228,238,255,.3),inset 1px 1.3px 1px -.6px rgba(240,247,255,.78),inset -1px -1.3px 1.1px -.6px rgba(205,218,255,.34)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"] .pk-drop::after{padding:1px;
-  background:linear-gradient(var(--lit-a,151deg),rgba(232,244,255,.7) 0%,rgba(232,244,255,0) 20%,rgba(232,244,255,0) 80%,rgba(214,204,255,.42) 100%)}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="switches"]) .switch:not(.press) .knob,
 :root[data-theme="dark"][data-tone="aurora"]:not([data-lgoff~="switches"]) .switch[data-glass-toggle]:not(.press) .knob{
   background:var(--wd-glint),rgba(255,255,255,.035);
@@ -2659,9 +2650,9 @@ body.amenu-open .wl-logo{opacity:0}
 
 /* the drops' rim reads the light on the drop itself (litWrite writes it there): a token declared only on :root was worked
    out there, with the page's light, whatever the drop's own was */
-:is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 24%,rgba(16,24,40,.07) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.7) 100%)}
-:root[data-theme="dark"] :is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 24%,rgba(0,0,0,.2) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.45) 100%)}
-:root[data-theme="dark"][data-tone="aurora"] :is(.nav-lens,.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,.85) 0%,rgba(189,217,226,0) 24%,rgba(97,86,145,.2) 50%,rgba(210,189,226,0) 76%,rgba(210,189,226,.62) 100%)}
+:is(.nav-lens,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 24%,rgba(16,24,40,.07) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.7) 100%)}
+:root[data-theme="dark"] :is(.nav-lens,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 24%,rgba(0,0,0,.2) 50%,rgba(255,255,255,0) 76%,rgba(255,255,255,.45) 100%)}
+:root[data-theme="dark"][data-tone="aurora"] :is(.nav-lens,.mq-lens,.lw-lens,.sub-lens,.seg-lens){--drop-rim:linear-gradient(var(--lit-a,151deg),rgba(189,217,226,.85) 0%,rgba(189,217,226,0) 24%,rgba(97,86,145,.2) 50%,rgba(210,189,226,0) 76%,rgba(210,189,226,.62) 100%)}
 
 /* the ticket's segmented drops: the writing lit through the drop (segLit) */
 .seg-lit{display:none}
@@ -2796,7 +2787,7 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 /* THE RIM AS THE REFERENCE (user 2026-11-17: the iOS «‹» and profile capsule, then the ticket's lens - «почему края
    белые? так не должно быть»): a light glass edge is a thin grey hairline with a breath of light inside it, not a
    white ring. The light theme's drops and lenses; the tab bar's drop (measured on the video) keeps its own. */
-:root:not([data-theme="dark"]) :is(.pk-drop,.mq-lens,.lw-lens,.sub-lens,.seg-lens,.seg-bub){
+:root:not([data-theme="dark"]) :is(.mq-lens,.lw-lens,.sub-lens,.seg-lens,.seg-bub){
   --drop-sh:0 5px 14px -5px rgba(16,24,40,.18),0 1px 2px rgba(16,24,40,.06),0 0 0 .6px rgba(16,24,40,.16),
     inset 0 1px .6px -.2px rgba(255,255,255,.7),inset 0 -1px 1px -.4px rgba(255,255,255,.35),inset 0 0 7px -2px rgba(16,24,40,.06);
   --drop-rim:linear-gradient(var(--lit-a,151deg),rgba(255,255,255,.26) 0%,rgba(255,255,255,0) 20%,rgba(16,24,40,.08) 50%,rgba(255,255,255,0) 80%,rgba(255,255,255,.14) 100%)}
@@ -2944,9 +2935,9 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 /* the sheets poured from the card: the picture, a large title, the text, one big capsule */
 .sheet.mc-sheet{text-align:center}
 /* a read over the colourful card: the pane is denser than the rest (as «О приложении»), still glass */
-:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(255,255,255,.88),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.62)}
-:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(26,26,29,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.1)}
-:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(30,34,60,.9),var(--lg-tint,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
+:root[data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(255,255,255,.88),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.62)}
+:root[data-theme="dark"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(26,26,29,.9),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)));--sheet-card:rgba(255,255,255,.1)}
+:root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="sheets"]) .sheet.mc-sheet{--sheet-glass:color-mix(in srgb,rgba(30,34,60,.9),var(--lg-dim,#000) calc(var(--lgt,0) * var(--lgtm,50%)))}
 .mc-ill{display:flex;justify-content:center;margin:0 0 4px}
 .mc-ill svg{width:150px;height:auto;display:block}
 .sheet .mc-sh-t{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:2px 0 12px;font-size:24px;font-weight:700;line-height:1.2}
@@ -7446,7 +7437,7 @@ function lqAnchor(pop, anchor){
 function lqRun(pop, open, done){
   const Q = pop._lq; if(!Q) return;
   const gen = ++Q.gen, P = open ? LQ_OPEN : LQ_CLOSE, to = open ? 1 : 0;
-  Q.soon = false;
+  Q.soon = false; Q.closing = !open;
   let t0 = 0;
   const step = now => {
     if(Q.gen !== gen || !pop.isConnected) return;
@@ -7532,7 +7523,11 @@ function lqAnc(Q, el){
 }
 function lqAncPut(Q){
   const el = Q.anc; if(!el) return;
-  const o = 1 - lqS(0, .28, Q.p);                                 // over a good part of the way: a fade, not a switch
+  // going out, over a good part of the way: a fade, not a switch. COMING BACK, only in the drop's last frames, as its
+  // body (lqPut: p < .08) fades into it - the drop is then within a few pixels of the button's own shape (user
+  // 2026-11-21, «Ещё»: «кнопка раньше появляется чем кончилась анимация»: from p .28 the button was whole again
+  // ~140 ms before the drop had drained into it)
+  const o = 1 - (Q.closing ? lqS(0, .07, Q.p) : lqS(0, .28, Q.p));
   if(o < .002){ el.classList.add("lg-hid"); el.style.removeProperty("opacity"); }
   else { el.classList.remove("lg-hid"); if(o > .998) el.style.removeProperty("opacity"); else el.style.opacity = o.toFixed(3); }
 }
@@ -9693,7 +9688,11 @@ function screenMore(){
 }
 // a menu poured out of one of the card's buttons (the account's ▾, «Ещё»): the liquid menus' own machinery
 function mcMenu(key, anchor, items){
-  lqMenu(key, anchor, { sel: `[data-act="${anchor.dataset.act}"]`, cls: "mc-pop",
+  // the drop is the round glass button itself (user 2026-11-21: «кнопка раньше появляется чем кончилась анимация»): poured
+  // out of the whole column - circle and caption - it drained back into a box the circle sat in, and the circle was
+  // already whole while the drop was still shrinking round it. The caption stays where it is, as on iOS.
+  const act = anchor.dataset.act, ic = anchor.querySelector(".mc-act-ic") || anchor;
+  lqMenu(key, ic, { sel: `[data-act="${act}"]` + (ic === anchor ? "" : " .mc-act-ic"), cls: "mc-pop",
     build: pop => {
       pop.innerHTML = items.map((it, i) => it === "-" ? `<div class="lq-sep" role="separator"></div>`
         : `<button type="button" role="menuitem" data-mci="${i}"${it.on ? ` class="on"` : ""}><span>${it.t}</span><b>${it.b || ""}</b></button>`).join("");
@@ -10889,7 +10888,7 @@ function navBarKey(html){
 // a, b: the drop's left and right edges in tabs (at rest on tab i they are i and i+1); u is the tab they
 // straddle, kept because the drag reads it. infl 0…1: how far the drop is blown up (pressed or travelling);
 // clear 0…1: its glass (refraction, lit skin); cs 0…1: the same glass with the slower grey return (the matte pill)
-const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, track: null, pulseAt: 0, tapAt: 0, homeAt: 0, clear: 0, cs: 0, infl: 0, it: 0, vs: 0, optical: null, opticalEnergy: 0, rail: 0, railLight: 0, fromEnd: 0, dl: 0 };
+const NB = { a: null, b: null, va: 0, vb: 0, u: null, target: 0, tw: null, lift: 0, t: 0, raf: 0, drag: null, track: null, pulseAt: 0, tapAt: 0, homeAt: 0, clear: 0, cs: 0, infl: 0, it: 0, vs: 0, optical: null, opticalEnergy: 0, rail: 0, fromEnd: 0, dl: 0 };
 let _navByDrop = 0;
 /* THE MOTION, MEASURED (2026-11-15). The user's two recordings of cTrader on iOS 26 (880×272 at 60 fps and
    576×160 at 30 fps), read frame by frame — the bar's ends, the drop's edges, its paint along a clean row:
@@ -10915,19 +10914,17 @@ const NAV_MO = Object.freeze({ pressDelay: 25, lead: 24, trail: 14, trailZ: .8, 
      the bar), in flight as on landing; ours blew up 28 % on landing, past the bar's top and foot;
    - its ends are ellipses 1.5 times as long as they are high: the outline's inset from the lens's end 1, 4 and 7 px under
      its top is 42 / 30 / 23 px on the video (bar 91 px), ours now 42 / 31 / 24 (with ends 1.25 long: 35 / 26 / 20).
-   Dark and Aurora keep NAV_MO. */
+   EVERY THEME since 2026-11-21 (user: «форма черная на панеле не соответствует тому, как на белой, нужно все сделать как на
+   белой, в точности 1 в 1, так же и на сиянии, с тем же переломлением и движением»): dark and Aurora run this very profile -
+   the same pill, lens, springs, stretch, lift and optics - and only their colours are their own. (NAV_MO stays the base it
+   is built on; a document without a dataset - the tests' bare harness - still runs it.) */
 const NAV_MO_LIGHT = Object.freeze({ ...NAV_MO, lead: 15.9, leadZ: .48, trail: 14.4, trailZ: 1.09, tall: .07, oval: .5 });
-function navLightBar(){ const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset; return !!d && d.theme !== "dark"; }
-/* THE DARK BAR, AS THE USER'S iOS VIDEO w3 (2026-11-21, cTrader dark, Торговля → История at 14 fps): the bar's breath is
-   bigger and longer than the light one's - its length +1.5 / +3.4 / +3.0 / +0.75 % on the four frames of the press, a
-   half sine of 3.5 % over 280 ms within half a percent - and the whole bar LIGHTS UP while it is pressed: its grey 30 → 37
-   (+7, ~.094 of a #73747a veil, --nrl, NAV_DARK.press) from the first frame to ~250 ms, back ~70 ms later. */
-const NAV_MO_DARK = Object.freeze({ ...NAV_MO, pulse: .035, pulseMs: 280 });
-function navMo(){ return navLightBar() ? NAV_MO_LIGHT : navDarkLens() ? NAV_MO_DARK : NAV_MO; }
+function navLightBar(){ const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset; return !!d; }   // every theme (above)
+function navMo(){ return navLightBar() ? NAV_MO_LIGHT : NAV_MO; }
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
 function navRailValues(){
   return { "--nrsx": (1 + NB.rail).toFixed(5), "--nrsy": (1 + NB.rail).toFixed(5),
-    "--nry": "0px", "--nrl": navDarkLens() ? (NAV_DARK.press * (NB.railLight || 0)).toFixed(4) : "0",
+    "--nry": "0px",
     "--nrgx": (NB.rail * (NB.railWidth || 0) / 2).toFixed(3) + "px", "--nrgy": (NB.rail * 32).toFixed(3) + "px" };
 }
 function navRailStyle(){ return Object.entries(navRailValues()).map(([k,v]) => k + ":" + v).join(";"); }
@@ -10968,7 +10965,7 @@ const NAV_DROP = Object.freeze({
 function navTrackBuild(width, height, labels){
   const w = Math.max(1, width), h = Math.max(8, height), tabW = w / NAV_N;
   const scale = Math.min(w / NAV_DROP.referenceW, h / NAV_DROP.referenceH);
-  const restH = h * (navDarkLens() ? NAV_DARK.restH : NAV_DROP.height / NAV_DROP.referenceH);
+  const restH = h * NAV_DROP.height / NAV_DROP.referenceH;
   const centres = NAV_DROP.centres.map(x => x / NAV_DROP.referenceW * NAV_N);
   const measured = labels || [0, 0, 0, 0, 0];
   let fit = 1;
@@ -10982,10 +10979,10 @@ function navTrackBuild(width, height, labels){
   // light (the user's v3 video): a long label sits in its pill with a third of the bar's height to spare each side
   // (Котирування: 94 px of label in a 155 px pill on a 91 px bar), and an end tab's pill keeps the bar's own gap
   // (4.5 px here, as at its top) from the bar's end - it never runs out past it
-  const light = navLightBar(), dark = navDarkLens(), pad = light ? .67 : .35, gap = (h - restH) / 2;
+  const light = navLightBar(), pad = light ? .67 : .35, gap = (h - restH) / 2;
   const widths = NAV_DROP.widths.map((v, i) => {
-    let px = Math.max(dark ? NAV_DARK.len * h : v * scale, 1.05 * restH, (measured[i] || 0) * fontSize / 10.5 + pad * h);
-    if((light || dark) && (i === 0 || i === NAV_N - 1)){ const c = centres[i] * tabW, room = 2 * Math.min(c - gap, w - c - gap); px = Math.max(Math.min(px, room), Math.min(v * scale, room)); }
+    let px = Math.max(v * scale, 1.05 * restH, (measured[i] || 0) * fontSize / 10.5 + pad * h);
+    if(light && (i === 0 || i === NAV_N - 1)){ const c = centres[i] * tabW, room = 2 * Math.min(c - gap, w - c - gap); px = Math.max(Math.min(px, room), Math.min(v * scale, room)); }
     return px / tabW;
   });
   return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres, widths, fontSize };
@@ -11033,9 +11030,6 @@ function navBox(a, b){
   const light = navLightBar();
   let height = t.restH * (1 + (light ? NAV_MO_LIGHT.tall * I : NAV_MO.tall * I * slow));   // light: as tall in flight as landed
   const room = t.height - 2 * NAV_MO.endGap * scale;
-  // dark (w3): the black pill is 0.70 of the bar; clear, the lens is the bar's whole height (no edge of its own shows
-  // above or below the bar's: f11, f12) - it swells into the bar, never past it
-  if(navDarkLens()){ const c = clamp(Math.max(NB.clear || 0, I), 0, 1); height = t.restH + (Math.max(room, t.restH) - t.restH) * c; width *= 1 + NAV_DARK.widen * clamp(NB.clear || 0, 0, 1); }
   // LIFTED UNDER A DRAGGING FINGER (NAV_LIFT): as long as 1.18 tabs and as tall as the bar, whatever the tab's own pill
   const lift = clamp(NB.dl || 0, 0, 1);
   if(lift > 0){
@@ -11095,18 +11089,9 @@ function navMarkDeparture(to){
 // not a capsule with a long flat top; a squarer squircle (corner .4) I had drawn for it went the other way. Pressed into
 // an end of the bar the outer end follows the bar's own round end, so there it stays round.
 const NAV_OVAL = .35;
-// the dark theme's lens, as the user's dark iOS 26 video (2026-11-17): the content inside ~1.2× (fitted; the light reference: 1.15),
-// letters curled only in a thin fold at the rim (no blobs further in), no colour fringes at all (none on the video: its only colour is WhatsApp's green
-// badges), and the clear drop ~16 % taller - past the bar's top and foot. Aurora keeps the light reference's.
-// FITTED to the video's held frames (2026-11-18, .devtools/fit131*.py, fitedge.py: the rim pinned where the video shows it,
-// oval end caps, the bar registered first): the middle magnifies 1.17 (1.16 on the Tú frames, 1.17 on Novedades), and the
-// field folds from ρ ≈ .88 (ρ^7, β .31; it was ρ^12 from .92): the label's last letter curls along the rim as the video's
-// «s» does - the rim side's residual halves (176 → 89), the label's own stays (132). Inward only: an outward pull fits worse
-// on every held frame. The clear drop 10 % narrower (the user: «чуть-чуть меньше размер самой плашки»): the label's
-// half-length over the drop's half-width was .53 on Графики, the video's .54 (Novedades) to .63 (Comunidades); now .59.
-// w3 (2026-11-21, the cTrader dark bar itself): the resting pill is BLACK, 0.70 of the bar's height (half-maximum, 59 of 83 px;
-// 13.png 0.62) and 1.45 bar heights long (117 of 83 px; 13.png 1.5) whatever its label - restH, len; the lens fills the bar.
-const NAV_DARK = Object.freeze({ magnify: .17, reach: .31, reachMotion: 0, gamma: 7, lift: .16, widen: -.1, restH: .7, len: 1.45, press: .094 });
+// (the dark theme had a lens and a pill of its own - NAV_DARK, fitted to a WhatsApp video 2026-11-17/18 and to cTrader's
+// dark bar w3 2026-11-21: a black pill .70 of the bar and 1.45 bar heights long, a ρ^7 fold, no colour. Since 2026-11-21
+// every theme is the light reference's, colours aside: see NAV_MO_LIGHT.)
 /* THE LENS A DRAGGING FINGER HOLDS (user 2026-11-21, w1: «снова не правильно движется капля, ну не такая форма была в
    оригинале»). Dragged, ours stayed the tab's own pill - one tab long, its ends ellipses half again as long as high, so a
    plain OVAL - and parked over the gap between two tabs it showed nothing: the magnifier about its middle and the rim's
@@ -11116,12 +11101,8 @@ const NAV_DARK = Object.freeze({ magnify: .17, reach: .31, reachMotion: 0, gamma
    names on both sides of it magnified where they stand. It lifts as the finger starts to slide (τ 50 ms) and lets the air
    out as it is let go (τ 80 ms), so a landing after a drag is the measured landing again. */
 const NAV_LIFT = Object.freeze({ w: 1.18, h: 1, in: .05, out: .08 });
-function navDarkLens(){
-  const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset;
-  return !!d && d.theme === "dark" && d.tone !== "aurora";
-}
 function navCorner(clear){ return .5; }
-function navOval(clear){ return navDarkLens() ? 1 : 1 + (navLightBar() ? NAV_MO_LIGHT.oval : NAV_OVAL) * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)) * (1 - clamp(NB.dl || 0, 0, 1)); }   // dark: the video's capsule
+function navOval(clear){ return 1 + (navLightBar() ? NAV_MO_LIGHT.oval : NAV_OVAL) * clamp(clear, 0, 1) * (1 - navEndHold(NB.u == null ? NB.target : NB.u)) * (1 - clamp(NB.dl || 0, 0, 1)); }
 // cubic-bezier(.18,0,.54,.92) — fitted frame by frame to the reference's travel, 1 % mean error against the
 // 8.8 % of the curve this replaces. x is solved by halving; y1 = 0, so its y half is 2.76t²(1-t) + t³.
 function navEase(x){
@@ -11152,7 +11133,7 @@ function navBubFrame(now){
   const bar = document.querySelector(".bottomnav"), lens = bar && bar.querySelector(".nav-lens");
   if(!lens || !glassOn("nav")){
     NB.a = NB.target; NB.b = NB.target + 1; NB.u = NB.target; NB.va = NB.vb = 0;
-    NB.lift = NB.clear = NB.cs = NB.infl = NB.it = NB.vs = NB.opticalEnergy = NB.rail = NB.railLight = NB.dl = 0;
+    NB.lift = NB.clear = NB.cs = NB.infl = NB.it = NB.vs = NB.opticalEnergy = NB.rail = NB.dl = 0;
     NB.tw = null; NB.pulseAt = NB.tapAt = 0; NB._pm = null; return;
   }
   if(NB.a == null){ NB.a = NB.target; NB.b = NB.target + 1; }
@@ -11194,8 +11175,6 @@ function navBubFrame(now){
   NB.it = Math.min(NB.infl, navEaseTo(NB.it || 0, NB.infl, NAV_MO.tallLag, dt));   // lags on the way up only
   NB.clear = navEaseTo(NB.clear, glass ? 1 : 0, glass ? NAV_MO.clearIn : NAV_MO.clearOut, dt);
   NB.cs = navEaseTo(NB.cs, glass ? 1 : 0, glass ? NAV_MO.greyIn : NAV_MO.greyOut, dt);
-  NB.railLight = navEaseTo(NB.railLight || 0, active ? 1 : 0, active ? .02 : .06, dt);
-  if(!active && NB.railLight < .003) NB.railLight = 0;
   const lifted = !!(d && d.slid);
   NB.dl = navEaseTo(NB.dl || 0, lifted ? 1 : 0, lifted ? NAV_LIFT.in : NAV_LIFT.out, dt);
   if(!lifted && NB.dl < .002) NB.dl = 0;
@@ -11224,7 +11203,7 @@ function navBubFrame(now){
   if(!lens._idle){ lens._idle = true; lens.classList.add("idle"); }
   navLens(NB.clear);                           // the bend rides the same number as the glass - no swap, no lag
   // Home, flat and grey, the breath over: one last exact write and the frames stop.
-  if(settled && !active && !NB.infl && !NB.it && !NB.clear && !NB.cs && !NB.pulseAt && !NB.dl && !NB.railLight){
+  if(settled && !active && !NB.infl && !NB.it && !NB.clear && !NB.cs && !NB.pulseAt && !NB.dl){
     NB.u = NB.target; NB.t = 0; NB._pm = null; NB.opticalEnergy = NB.vs = 0; NB.fromEnd = 0;
     bar.style.setProperty("--ng", "0"); bar.style.setProperty("--ngs", "0");
     navLens(0);
@@ -11327,7 +11306,7 @@ function closeNavCard(outside){
 function navFit(bar){
   const globalScale = navLayoutScale();
   if(!glassOn("nav")){ NB.track = null; bar.style.removeProperty("--nav-fs"); return; }
-  const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight + ":" + (document.fonts ? document.fonts.status : "") + ":" + navLightBar() + navDarkLens();
+  const key = LANG + ":" + bar.clientWidth + ":" + bar.clientHeight + ":" + (document.fonts ? document.fonts.status : "") + ":" + navLightBar();
   let track = NB.track;
   if(!track || track.key !== key){
     bar.style.setProperty("--nav-fs", "10.5px");
@@ -11357,7 +11336,7 @@ function navFit(bar){
 const NAV_OPTICS = Object.freeze({ background: "data:image/png;base64,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", reach: .18, reachMotion: .05, backBend: 27, backMotion: 4, magnify: .15, magnifyMotion: .02, dispersion: .7, dispRest: .7, dispBlue: 1, lightRim: 1, padding: 36, clarityRef: 2.155,
   mapW: 288, mapH: 232, mapM: 16, mapN: 3, gamma: 6, gmax: 1.4, fieldX: .95, fieldY: 1.17 });
 const _navLensMaps = {};
-// the field, drawn once per profile: γ 6 (the light reference, fitted) or the dark video's γ (NAV_DARK.gamma)
+// the field, drawn once per γ: 6, the light reference's, fitted - every theme's since 2026-11-21
 function navLensMap(gamma){
   const gam = gamma || NAV_OPTICS.gamma;
   if(_navLensMaps[gam]) return _navLensMaps[gam];
@@ -11504,14 +11483,17 @@ function navLens(clear){
   // The rim's reach in px along each axis: a share of that axis's band (see NAV_OPTICS); the larger one is the
   // displacement scale, the other is scaled down in the field by the matrix.
   // β of the fitted lens (the pull at the field's rim, as a share of the distance from the middle), larger in motion
-  const dark = navDarkLens(), OP = dark ? NAV_DARK : NAV_OPTICS, ds = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset, light = !!ds && ds.theme !== "dark";
+  // every theme bends, magnifies and splits as the light reference does (2026-11-21: «так же нету переломления на стекле»):
+  // the dark lens (NAV_DARK, fitted to a WhatsApp video) had only curled the letters in a thin fold at its rim, with no
+  // colour, and read on the phone as no glass at all; Aurora split its channels instead of the light rim
+  const OP = NAV_OPTICS, light = true;
   const reachS = k * (OP.reach + OP.reachMotion * Math.min(1, energy / .5)) * strength, sgn = reachS < 0 ? -1 : 1, reach = Math.abs(reachS);
   const reachX = reach * NAV_OPTICS.gmax * w / 2, reachY = reach * NAV_OPTICS.gmax * h / 2;
   const bend = 2 * Math.max(reachX, reachY);
   const backdropBend = k * (NAV_OPTICS.backBend + NAV_OPTICS.backMotion * energy) * strength * h / 55.8;
   // colour comes apart while it moves and closes up as it lands (the reference: wide fringes in flight, faint ones
   // on the settled drop)
-  const split = !dark && DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 * (NAV_OPTICS.dispRest + (1 - NAV_OPTICS.dispRest) * Math.min(1, energy / .5)) : 0;
+  const split = DISP.on && DISP.drops ? NAV_OPTICS.dispersion * DISP.str / 50 * (NAV_OPTICS.dispRest + (1 - NAV_OPTICS.dispRest) * Math.min(1, energy / .5)) : 0;
   const magnify = 1 + k * (OP.magnify + NAV_OPTICS.magnifyMotion * energy) * strength;
   o.bar.style.setProperty("--nm", magnify.toFixed(4));
   o.bar.style.setProperty("--ncr",navCorner(clear).toFixed(4));
@@ -11535,7 +11517,7 @@ function navLens(clear){
     }else if(bg.effect!==""){ bg.effect="";bg.source.style.backdropFilter="";bg.source.style.webkitBackdropFilter=""; }
   }
   if(!k || !strength || !_navMapReady){ o.source.style.filter=""; o.key=""; return; }
-  { const want = dark ? navLensMap(NAV_DARK.gamma) : navLensMap(); if(o.image.getAttribute("href") !== want) o.image.setAttribute("href", want); }
+  { const want = navLensMap(); if(o.image.getAttribute("href") !== want) o.image.setAttribute("href", want); }
   navSpectrumSync(o,false);
   const key=[x,y,w,h,sgn*bend,split].map(v=>v.toFixed(4)).join(",")+(light?"L":"");
   if(key!==o.key){
@@ -12184,8 +12166,8 @@ function pkAim(s, row, fy){
     c = fy < lo ? lo - rb(lo - fy) : fy > hi ? hi + rb(fy - hi) : fy;
   }
   s.tx = x; s.tw = r.width; s.tt = c - r.height / 2; s.tb = c + r.height / 2; s.th = r.height;
-  if(s.f < .05){                                                   // from nothing: it comes up out of the row, a hair smaller
-    s.top = s.tt + 3; s.bot = s.tb - 3; s.x = x + 5; s.w = r.width - 10; s.vt = s.vb = s.vx = s.vw = 0;   // where it is aimed (under the finger)
+  if(s.f < .05){                                                   // from nothing: it lights up on the row itself
+    s.top = s.tt; s.bot = s.tb; s.x = x; s.w = r.width; s.vt = s.vb = s.vx = s.vw = 0;
   }
   pkOn(s, row); s.tf = 1; s.hold = false;
 }
@@ -12203,7 +12185,7 @@ function pkDown(s, e){
   pkLens(s);
   pkGeo(s, true);                                                 // measured once, on the touch
   s.drag = { id: e.pointerId };
-  pkAim(s, row, pkFy(s, e));
+  pkAim(s, row);
   try{ s.host.setPointerCapture(e.pointerId); }catch(_){}         // it follows the finger past the row it was pressed on
   _pk.add(s); pkKick();
 }
@@ -12212,9 +12194,8 @@ function pkMove(s, e){
   if(SHD.drag && SHD.drag.on && SHD.sh === s.host){ s.drag = null; s.tf = 0; pkOn(s, null); pkKick(); return; }   // the panel is being swiped away
   const row = pkRow(s, e.clientX, e.clientY);
   if(!row){ if(s.tf){ s.tf = 0; pkOn(s, null); pkKick(); } return; }
-  pkAim(s, row, pkFy(s, e)); pkKick();                             // every move: it goes with the finger, not row by row
+  pkAim(s, row); pkKick();                                         // iOS: the row under the finger, the platter slides over to it
 }
-const pkFy = (s, e) => e.clientY - pkGeo(s).oy;
 function pkUp(s, e, go){
   const d = s.drag; if(!d || e.pointerId !== d.id) return;
   s.drag = null;
@@ -12233,17 +12214,11 @@ function pkPut(s){
   const bw = Math.max(8, Math.round(s.tw / 2) * 2), bh = Math.max(8, Math.round(s.th / 2) * 2);
   if(bw !== s.bw || bh !== s.bh){
     s.bw = bw; s.bh = bh; l.width = bw + "px"; l.height = bh + "px";
-    // water under it (Chromium): the row's writing is magnified by the drop itself, not by growing the row
-    const wl = LG_LENS && glassOn("refract");
-    l.backdropFilter = wl ? "url(#" + lgWaterFilter(bw, bh) + ") saturate(1.06)" : "";
-    s.host.classList.toggle("pk-lens", wl);
   }
-  // a capsule, as the bar's drop is; drawn out on its way it is a drop, not a stretched box: narrower as it lengthens
-  const st = Math.max(0, h - s.th), nw = Math.min(10, st * .14);
-  // lifted it stands a little past its row - taller more than wider, a drop not a plate; sinking it squashes
-  const j = (s.j || 0) * WATER;                                  // the slosh: taller and narrower, then the other way
-  const p = s.pop || 0, ph = h * ((p >= 0 ? .13 * p : .09 * p) + j), pw = s.w * ((p >= 0 ? .025 * p : -.035 * p) - .3 * j);
-  const w = Math.max(1, s.w - nw + pw), hh = Math.max(1, h + ph);
+  // iOS's row highlight (2026-11-21): a flat platter the row's own size - no water lens under it, no lift, no slosh; on its
+  // way to the next row its two edges are springs (pkFrame), so it draws out a little and gathers itself as it lands
+  const nw = 0, pw = 0, ph = 0;
+  const w = Math.max(1, s.w), hh = Math.max(1, h);
   const rad = Math.min(w, hh) / 2, sx = w / bw, sy = hh / bh;
   const o = pkOrigin(s);
   l.transform = "translate(" + (o.x + s.x + (nw - pw) / 2).toFixed(2) + "px," + (o.y + s.top - ph / 2).toFixed(2) + "px) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
@@ -12274,9 +12249,6 @@ function pkFrame(now){
       if(nb - nt < mh){ const c = (nt + nb) / 2, v = (s.vt + s.vb) / 2; nt = c - mh / 2; nb = c + mh / 2; s.vt = s.vb = v; }
     }
     s.top = nt; s.bot = nb;
-    for(let n = MO.steps(dt), h = dt / n; n > 0; n--){ s.pv = MO.sp(s.pv || 0, s.pop || 0, s.drag ? 1 : 0, SEG_LIFT, h); s.pop = (s.pop || 0) + s.pv * h; }
-    const vc = ((s.vt || 0) + (s.vb || 0)) / 2, jt = Math.min(Math.abs(vc) * .0004, .14);
-    s.jv = MO.sp(s.jv || 0, s.j || 0, jt, MO.P.jelly, dt); s.j = (s.j || 0) + s.jv * dt;
     s.vx = MO.sp(s.vx, s.x, s.tx, MO.P.fluid, dt); s.x += s.vx * dt;
     s.vw = MO.sp(s.vw, s.w, s.tw, MO.P.fluid, dt); s.w += s.vw * dt;
     const home = Math.abs(s.top - s.tt) < .25 && Math.abs(s.bot - s.tb) < .25 && Math.abs(s.x - s.tx) < .25 && Math.abs(s.w - s.tw) < .25
@@ -12286,9 +12258,8 @@ function pkFrame(now){
     s.f += (s.tf - s.f) * (1 - Math.exp(-dt / (s.tf > s.f ? .045 : gone ? .035 : .11)));
     if(!s.tf && s.f < .005) s.f = 0;
     pkPut(s);
-    const calm = Math.abs(s.pop || 0) < .003 && Math.abs(s.pv || 0) < .05 && Math.abs(s.j || 0) < .002 && Math.abs(s.jv || 0) < .02;
-    if(!s.drag && !s.tf && !s.f && home && calm){ s.t = 0; s.pop = s.pv = 0; s.lens.remove(); _pk.delete(s); continue; }
-    if(!home || !calm || Math.abs(s.f - s.tf) > .002) busy = true; else s.t = 0;
+    if(!s.drag && !s.tf && !s.f && home){ s.t = 0; s.lens.remove(); _pk.delete(s); continue; }
+    if(!home || Math.abs(s.f - s.tf) > .002) busy = true; else s.t = 0;
   }
   if(busy){ _pkRaf = 1; moAdd(pkFrame); }
 }
@@ -14867,57 +14838,6 @@ function lgPanelMap(w, h, rad, band, x0, y0, sw, sh){
   _lgMaps.set(key, url);
   return url;
 }
-/* WATER (user 2026-09-28: «самого эффекта стекла опять нету, я же просил сделать анимацию как в воде, что бы был эффект
-   жидкого стекла»). The menu drop is a lens again - but a drop of WATER, not glass with a hard rim: like a bead on a
-   pane it magnifies what is under its middle (a quarter taller, a tenth wider), and draws it in smoothly toward its
-   edge, where it lets go of it at exactly nothing. The rim lens before it broke the letters it crossed («искажаются
-   буквы»): it moved the picture most AT the rim and nothing just past it, so a letter half under the edge was torn in
-   two. Here the move is nought at the rim, all the way round (the local half-height at the round ends too): a letter
-   crossing it is squeezed toward the edge and joins itself outside. Its rim also catches the light (lgGlowStage).
-   Offsets per axis, s = y(1-k) + k·y³/b²: ×1/(1-k) in the middle, ×1/(1+2k) at the edge. */
-function lgWaterMap(w, h){
-  const key = "W" + w + "x" + h;
-  if(_lgMaps.has(key)) return _lgMaps.get(key);
-  const r = h / 2, a = w / 2, KY = .2, KX = .08, n = w * h;
-  const ox = new Float32Array(n), oy = new Float32Array(n), ed = new Float32Array(n);
-  let S = .01;
-  for(let y = 0; y < h; y++){
-    const Y = y + .5 - r, al = a - r + Math.sqrt(Math.max(0, r * r - Y * Y));        // this row's half-length
-    for(let x = 0; x < w; x++){
-      const X = x + .5 - a, i = y * w + x;
-      const ex = Math.max(0, Math.abs(X) - (a - r)), bl = ex > 0 ? Math.sqrt(Math.max(0, r * r - ex * ex)) : r;   // this column's half-height
-      let dx = 0, dy = 0;
-      if(Math.abs(Y) < bl){ const q = Y / bl; dy = -Y * KY * (1 - q * q); }
-      if(Math.abs(X) < al){ const q = X / al; dx = -X * KX * (1 - q * q); }
-      ox[i] = dx; oy[i] = dy; ed[i] = r - Math.hypot(ex, Y);                        // how far in from the rim
-      S = Math.max(S, Math.abs(dx), Math.abs(dy));
-    }
-  }
-  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
-  const g = cv.getContext("2d"), img = g.createImageData(w, h), d = img.data;
-  for(let i = 0; i < n; i++){ const j = i * 4; d[j] = 128 + 127 * ox[i] / S; d[j + 1] = 128 + 127 * oy[i] / S; d[j + 2] = lgGlowAt(ed[i]); d[j + 3] = 255; }
-  g.putImageData(img, 0, 0);
-  const out = { url: cv.toDataURL(), scale: 2 * S };
-  _lgMaps.set(key, out);
-  return out;
-}
-function lgWaterFilter(w, h){
-  w = Math.max(8, Math.round(w)); h = Math.max(8, Math.round(h));
-  const id = "lgW" + w + "x" + h;
-  if(_lgIds.has(id)) return id;
-  lgDefsReady();
-  const m = lgWaterMap(w, h), NS = "http://www.w3.org/2000/svg", fl = document.createElementNS(NS, "filter");
-  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); fl.appendChild(e); return e; };
-  fl.setAttribute("id", id); fl.setAttribute("x", "0"); fl.setAttribute("y", "0"); fl.setAttribute("width", "100%"); fl.setAttribute("height", "100%");
-  fl.setAttribute("color-interpolation-filters", "sRGB");
-  el("feImage", { href: m.url, x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "m" });
-  const d = el("feDisplacementMap", { in: "SourceGraphic", in2: "m", xChannelSelector: "R", yChannelSelector: "G", result: "o" });
-  d._s = m.scale; d._c = 0; d._fixed = true; d._sp = 0; d.setAttribute("scale", lgDmScale(d)); _lgDms.push(d);
-  lgGlowStage(fl, el);
-  _lgDefs.appendChild(fl);
-  _lgIds.add(id);
-  return id;
-}
 function lgPanelFilter(w, h, rad, band, scale){
   const id = "lgP" + w + "x" + h + "r" + rad + "b" + band + "s" + scale;
   if(_lgIds.has(id)) return id;
@@ -15021,7 +14941,7 @@ const LIT = { a: 135, x: 30, y: 14, ta: 135, tx: 30, ty: 14, va: 0, vx: 0, vy: 0
    on them and nowhere else (a write there restyles that piece alone). <html> keeps nothing: at rest (the CSS fallbacks,
    151° from the top left) a piece carries no value of its own. The drops' rim token (--drop-rim) is declared on the drops
    themselves too, so it takes their light and not the page's. */
-const LIT_SEL = ".nav-bub,.nav-lens,.chfs,.chzoom button,.chpill,.chlast,.g3d-side,.g3d-face,.g3d-spec,.appbar .ttl,.bignew,.fabnew,.toast,.chartinfo,.appbar .iconbtn,.wl-logo,.sub-lens,.seg-lens,.lw-lens,.mq-lens,.mini-tools button,.sheet .close,.sub-bub,.nav-card,.pk-drop,.chtrade";
+const LIT_SEL = ".nav-bub,.nav-lens,.chfs,.chzoom button,.chpill,.chlast,.g3d-side,.g3d-face,.g3d-spec,.appbar .ttl,.bignew,.fabnew,.toast,.chartinfo,.appbar .iconbtn,.wl-logo,.sub-lens,.seg-lens,.lw-lens,.mq-lens,.mini-tools button,.sheet .close,.sub-bub,.nav-card,.chtrade";
 let _litEls = null, _litElsT = 0;
 function litTargets(fresh){
   const now = performance.now();
@@ -15236,6 +15156,7 @@ function glassFrame(now){
       m.style.setProperty("--mx", g.fx.toFixed(1) + "px"); m.style.setProperty("--my", g.fy.toFixed(1) + "px");
       m.style.setProperty("--mr", g.R + "px"); m.style.setProperty("--mb", g.mb + "px");
     }
+    if(b._lqg) b._lqg.dirty = true;
     if(!dn && Math.abs(g.p) < .002 && Math.abs(g.pv) < .02 && Math.abs(g.ox) < .05 && Math.abs(g.oy) < .05 && Math.abs(g.vx) < .3 && Math.abs(g.vy) < .3 && g.m < .01){
       for(const p of ["--psx", "--psy", "--pdx", "--pdy", "--pk", "--pcx", "--pcy", "--lx", "--ly", "--la"]) b.style.removeProperty(p);
       glassMilk(b, false);
@@ -15245,6 +15166,7 @@ function glassFrame(now){
       _glass.delete(b);
     }
   }
+  lqgFlush();
   if(_glass.size){ _glassRaf = 1; moAdd(glassFrame); }
 }
 // how each kind of glass takes a press: swell S, rubber band Lx / Ly, the light's reach R and frost mb,
@@ -15289,6 +15211,7 @@ document.addEventListener("pointerdown", e => {
   // press and stood as a pale chip beside the drop (the order ticket's types and side)
   g.nl = g.calm;                                                   // light only: no lens is laid on a piece of a bar
   if(!g.nl) lgGlass(b, g.w, g.h, g.rs ? Math.round(g.rs * 1.35) : 32, g.blur);        // the lens deepens under the finger
+  if(!g.calm) lqgStart(b);                                       // its neighbours: one liquid with it
   _glassBtn = b; _glass.add(b); glassKick();
 }, { capture: true, passive: true });
 // every finger moves / lets go of the glass IT pressed (two fingers on two bars: each keeps its own)
@@ -15307,6 +15230,109 @@ const glassUp = e => {
 };
 document.addEventListener("pointerup", glassUp, { capture: true, passive: true });
 document.addEventListener("pointercancel", glassUp, { capture: true, passive: true });
+/* LIQUID GROUPS (the neck: see .lq-neck). A group is the small round glass buttons and capsules that sit together in one
+   box - the chart's «+ / −», its two pills, the mini chart's tools, an app bar's round buttons. Measured once on the press
+   (no layout in a frame); each frame of the press spring (glassFrame) it reads the buttons' own press values (--psx/--psy
+   swell and stretch, --pdx/--pdy rubber band) and draws, for every pair of neighbours close enough, the neck of their
+   smooth union - joined below .3 of the smaller radius apart (never more than 3/4 of their resting gap), snapped past .6
+   of it (never as far as their resting gap: at rest they are always two). Clip-path only, on a layer of its own. */
+const LQG_BOX = ".chzoom, .chpills, .mini-tools, .appbar";
+const _lqg = new Set();
+function lqgStart(b){
+  const box = b.closest(LQG_BOX);
+  if(!box || box.matches(".chpills.goo") || !glassOn("drops")) return;
+  let G = box._lqg;
+  const members = [...box.querySelectorAll(GLASS_SEL)].filter(e => e.getClientRects().length && !e.matches(LG_CALM) && e.closest(LQG_BOX) === box);
+  if(members.length < 2) return;
+  const br = box.getBoundingClientRect(), ox = br.left + box.clientLeft - 16, oy = br.top + box.clientTop - 16;   // the necks' layer: 16 px out on every side
+  const geo = members.map(e => { const r = lgRestRect(e); return { el: e, cx: r.left + r.width / 2 - ox, cy: r.top + r.height / 2 - oy, w: r.width, h: r.height }; });
+  const pairs = [];
+  for(let i = 0; i < geo.length; i++) for(let j = i + 1; j < geo.length; j++){
+    const A = geo[i], B = geo[j], dx = Math.abs(B.cx - A.cx), dy = Math.abs(B.cy - A.cy);
+    const gx = dx - (A.w + B.w) / 2, gy = dy - (A.h + B.h) / 2;
+    const row = gx >= 0 && gy < 0 && -gy > .5 * Math.min(A.h, B.h), col = gy >= 0 && gx < 0 && -gx > .5 * Math.min(A.w, B.w);
+    const gap = row ? gx : gy;
+    if((row || col) && gap <= 16){
+      const old = G && G.pairs.find(q => q.a.el === A.el && q.b.el === B.el);
+      pairs.push({ a: A, b: B, row, gap: Math.max(1, gap), on: old ? old.on : false, el: old ? old.el : null, ed: old ? old.ed : null });
+    }
+  }
+  if(G) for(const q of G.pairs) if(q.el && !pairs.some(n => n.el === q.el)){ q.el.remove(); q.ed.remove(); }
+  if(!pairs.length){ if(G){ box._lqg = null; _lqg.delete(G); } return; }
+  G = box._lqg = { box, members: geo, pairs, dirty: true };
+  for(const m of geo) m.el._lqg = G;
+  _lqg.add(G);
+}
+// a button's box this frame: its rest box, swollen and pulled by its press
+function lqgBox(m){
+  const st = m.el.style, n = (k, d) => { const v = parseFloat(st.getPropertyValue(k)); return Number.isFinite(v) ? v : d; };
+  const sx = n("--psx", 1) * n("--jsx", 1), sy = n("--psy", 1) * n("--jsy", 1);
+  return { cx: m.cx + n("--pdx", 0), cy: m.cy + n("--pdy", 0), w: m.w * sx, h: m.h * sy };
+}
+// the neck between two round ends: centres ca, cb, radii ra, rb; k 1 touching ... 0 about to snap. The smooth union's
+// outline leaves each end θ from its crown (0 touching - one capsule - to ~66° thin), waists to rm·(1 - .92(1 - k))
+// half-way, and closes along both outlines 2.5 px inside them (no seam, their rims covered across the join).
+function lqgNeck(ca, cb, ra, rb, k){
+  const dx = cb[0] - ca[0], dy = cb[1] - ca[1], D = Math.hypot(dx, dy) || 1, u = [dx / D, dy / D], v = [-u[1], u[0]];
+  const th = Math.max(.08, (1 - k) * 1.15), sn = Math.sin(th), cs = Math.cos(th), rm = Math.min(ra, rb), wm = rm * (1 - .92 * (1 - k));
+  const P = (c, a, b) => [c[0] + a * u[0] + b * v[0], c[1] + a * u[1] + b * v[1]], f = q => q[0].toFixed(2) + " " + q[1].toFixed(2);
+  const mid = [(ca[0] + cb[0]) / 2, (ca[1] + cb[1]) / 2], ia = Math.max(1, ra - 2.5), ib = Math.max(1, rb - 2.5);
+  const side = s => {                                              // s -1: one side of the axis, +1 the other
+    const ta = P(ca, ra * sn, s * ra * cs), tb = P(cb, -rb * sn, s * rb * cs), m = P(mid, 0, s * wm);
+    const run = Math.max(1, D / 2 - ra * sn), h1 = Math.min(run * .55, rm * .7), h2 = run * .35;
+    return { ta, tb, m, c1: P(ta, h1 * cs, -s * h1 * sn), c2: P(m, -h2, 0), c3: P(m, h2, 0), c4: P(tb, -h1 * cs, -s * h1 * sn) };
+  };
+  const T = side(-1), B = side(1);
+  const inA = q => [ca[0] + (q[0] - ca[0]) * ia / ra, ca[1] + (q[1] - ca[1]) * ia / ra], inB = q => [cb[0] + (q[0] - cb[0]) * ib / rb, cb[1] + (q[1] - cb[1]) * ib / rb];
+  // the closing arcs: along each button's own outline, a hair inside, the short way round (through its point nearest the other)
+  const arc = (c, r, from, to) => { const cr = (from[0] - c[0]) * (to[1] - c[1]) - (from[1] - c[1]) * (to[0] - c[0]); return "A" + r.toFixed(2) + " " + r.toFixed(2) + " 0 0 " + (cr > 0 ? 1 : 0) + " " + f(to); };
+  const a0 = inA(T.ta), a1 = inA(B.ta), b0 = inB(T.tb), b1 = inB(B.tb);
+  lqgNeck.edge = "M" + f(T.ta) + "C" + f(T.c1) + " " + f(T.c2) + " " + f(T.m) + "C" + f(T.c3) + " " + f(T.c4) + " " + f(T.tb)
+    + "M" + f(B.tb) + "C" + f(B.c4) + " " + f(B.c3) + " " + f(B.m) + "C" + f(B.c2) + " " + f(B.c1) + " " + f(B.ta);
+  return "M" + f(a0) + "L" + f(T.ta) + "C" + f(T.c1) + " " + f(T.c2) + " " + f(T.m) + "C" + f(T.c3) + " " + f(T.c4) + " " + f(T.tb)
+    + "L" + f(b0) + arc(cb, ib, b0, b1) + "L" + f(B.tb)
+    + "C" + f(B.c4) + " " + f(B.c3) + " " + f(B.m) + "C" + f(B.c2) + " " + f(B.c1) + " " + f(B.ta)
+    + "L" + f(a1) + arc(ca, ia, a1, a0) + "Z";
+}
+function lqgDraw(G){
+  G.dirty = false;
+  let live = false;
+  for(const q of G.pairs){
+    const A = lqgBox(q.a), B = lqgBox(q.b);
+    // the facing round ends: a capsule's end circle, a round button's own
+    const ra = Math.min(A.w, A.h) / 2, rb = Math.min(B.w, B.h) / 2;
+    const sg = q.row ? (Math.sign(B.cx - A.cx) || 1) : (Math.sign(B.cy - A.cy) || 1);
+    const ca = q.row ? [A.cx + sg * (A.w / 2 - ra), A.cy] : [A.cx, A.cy + sg * (A.h / 2 - ra)];
+    const cb = q.row ? [B.cx - sg * (B.w / 2 - rb), B.cy] : [B.cx, B.cy - sg * (B.h / 2 - rb)];
+    const gap = Math.hypot(cb[0] - ca[0], cb[1] - ca[1]) - ra - rb, rm = Math.min(ra, rb);
+    const join = Math.min(.3 * rm, .75 * q.gap), brk = Math.min(.6 * rm, .9 * q.gap);
+    if(!q.on && gap < join) q.on = true; else if(q.on && gap > brk) q.on = false;
+    if(!q.on){ if(q.el && q.el._np){ q.el._np = ""; q.el.style.setProperty("--np", "inset(50%)"); q.ed.firstChild.setAttribute("d", ""); } continue; }
+    live = true;
+    if(!q.el || !q.el.isConnected){
+      q.el = document.createElement("i"); q.el.className = "lq-neck"; q.el.setAttribute("aria-hidden", "true");
+      q.ed = document.createElementNS("http://www.w3.org/2000/svg", "svg"); q.ed.setAttribute("class", "lq-edge"); q.ed.setAttribute("aria-hidden", "true");
+      q.ed.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "path"));
+      G.box.append(q.el, q.ed);
+    }
+    const d = 'path("' + lqgNeck(ca, cb, ra, rb, clamp(1 - gap / brk, 0, 1)) + '")';
+    if(q.el._np !== d){ q.el._np = d; q.el.style.setProperty("--np", d); q.ed.firstChild.setAttribute("d", lqgNeck.edge); }
+  }
+  return live;
+}
+function lqgFlush(){
+  for(const G of _lqg){
+    if(!G.box.isConnected){ _lqg.delete(G); continue; }
+    if(!G.dirty) continue;
+    const pressed = G.members.some(m => _glass.has(m.el));
+    if(!lqgDraw(G) && !pressed){
+      for(const q of G.pairs) if(q.el){ q.el.remove(); q.ed.remove(); q.el = q.ed = null; }
+      _lqg.delete(G); G.box._lqg = null;
+      for(const m of G.members) if(m.el._lqg === G) m.el._lqg = null;
+    }
+  }
+}
+
 function chartZones(c){
   const box = c.getBoundingClientRect(), root = c.parentElement, z = {};
   const at = (sel, fn) => { const e = root.querySelector(sel); if(e) fn(e.getBoundingClientRect()); };

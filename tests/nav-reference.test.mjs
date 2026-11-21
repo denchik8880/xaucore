@@ -57,7 +57,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 55, 50], view
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,NAV_LIFT,NAV_DARK,navCorner,navOval,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
+  vm.runInContext(core + fit + bind + markup + '\nglobalThis.api={NB,NAV_DROP,NAV_MO,NAV_LIFT,navCorner,navOval,navEndness,navTrackBuild,navTrackAt,navUAt,navSlotStyle,navBox,navEndW,navGo,navPulse,navRailFrame,navRailValues,navBubFrame,navBind,navFit,bottomNav};', ctx);
   function makeBar(w = width, h = height) {
     const lens = { style: style(), classList: classes(), _idle: true };
     const bub = { style: style(), classList: classes() };
@@ -232,7 +232,7 @@ test('the bar breathes once per press: +2 % in ~100 ms, back by 200 ms, a shallo
   assert.equal(a.navPulse(390), 0);
   a.NB.pulseAt = 100; setNow(200); a.navRailFrame(200);
   near(+a.navRailValues()['--nrsx'], 1.02, 1e-4); near(+a.navRailValues()['--nrsy'], 1.02, 1e-4);
-  assert.equal(a.navRailValues()['--nrl'], '0', 'Its white never darkens');
+  assert.equal(a.navRailValues()['--nrl'], undefined, 'Its white never darkens: no veil over the bar in any theme');
   a.navRailFrame(100 + 381); assert.equal(a.NB.pulseAt, 0); assert.equal(a.NB.rail, 0);
 });
 
@@ -503,11 +503,11 @@ test('light: the clear lens is ~7 % taller than its pill in flight as landed, an
   near(samples.at(-1).h, rest.h, 1e-6);
 });
 
-test('light: the clear lens has 1.5x elliptic ends; dark keeps its capsule, Aurora the .35 oval', () => {
-  for (const [dataset, oval] of [[{}, 1.5], [{ theme: 'dark' }, 1], [{ theme: 'dark', tone: 'aurora' }, 1.35]]) {
+test('the clear lens has 1.5x elliptic ends in every theme (dark and Aurora are the light bar since 2026-11-21)', () => {
+  for (const dataset of [{}, { theme: 'dark' }, { theme: 'dark', tone: 'aurora' }]) {
     const { a } = harness({ labels: PREVIEW_LABELS, dataset });
     Object.assign(a.NB, { a: 1, b: 2, u: 1, target: 1 });
-    near(a.navOval(1), oval, 1e-9); near(a.navOval(0), 1, 1e-9);
+    near(a.navOval(1), 1.5, 1e-9); near(a.navOval(0), 1, 1e-9);
   }
 });
 
@@ -548,14 +548,12 @@ test('a sliding finger lifts the drop into a capsule as tall as the bar and 1.18
   assert.equal(a.NB.dl, 0);
 });
 
-test('dark: a black pill 0.70 of the bar and 1.45 bar heights long; clear, the lens fills the bar; a 3.5 % breath over 280 ms', () => {
-  const { a } = harness({ labels: [20, 20, 20, 20, 20], dataset: { theme: 'dark' } }), t = a.NB.track, scale = t.height / 94;
-  near(t.restH, a.NAV_DARK.restH * t.height, 1e-9);
-  near(t.widths[2] * t.tabW, a.NAV_DARK.len * t.height, 1e-9);
-  Object.assign(a.NB, { clear: 1, infl: 1, it: 1, vs: 0, dl: 0 });
-  near(a.navBox(2, 3).sy * t.baseH, t.height - 2 * a.NAV_MO.endGap * scale, 1e-6);
-  Object.assign(a.NB, { clear: 0, infl: 0, it: 0 });
-  near(a.navBox(2, 3).sy * t.baseH, t.restH, 1e-9);
-  near(a.navPulse(140), .035, 1e-9);
-  assert.ok(a.navPulse(279) > 0 && a.navPulse(281) <= 0);
+test('dark and Aurora run the light bar 1:1 - its pill, its lens, its hop, its breath (user 2026-11-21: «в точности 1 в 1»)', () => {
+  const runs = [{}, { theme: 'dark' }, { theme: 'dark', tone: 'aurora' }].map(dataset => {
+    const runtime = harness({ labels: PREVIEW_LABELS, dataset }), t = runtime.a.NB.track, { samples, rest } = hop(runtime, 1, 2);
+    Object.assign(runtime.a.NB, { clear: 1, infl: 1, it: 1, vs: 0, dl: 1 });
+    return { restH: t.restH, widths: t.widths, rest, samples: samples.map(s => [s.time, s.a, s.b, s.h]), lifted: plain(runtime.a.navBox(1, 2)), pulse: runtime.a.navPulse(140) };
+  });
+  for (const r of runs.slice(1)) assert.deepEqual(plain(r), plain(runs[0]));
+  near(runs[0].restH, 80 / 94 * 64, 1e-9);
 });

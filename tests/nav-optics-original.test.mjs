@@ -25,7 +25,7 @@ function fixture(load=true){
   const box={left:1.2,sx:1.5,sy:1},ctx={
     Math,LG_LENS:true,LG_UI:{refract:1},LGQ:{r:2.155},DISP:{on:true,drops:true,str:50},
     NB:{clear:1,opticalEnergy:0,a:1,b:2,lift:0,optical:null},
-    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),navDarkLens:()=>false,NAV_DARK:{magnify:.2,reach:.2,reachMotion:0,lift:.16},NAV_N:5,lgDefsReady(){},_lgDefs:defs,
+    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),NAV_N:5,lgDefsReady(){},_lgDefs:defs,
     Image:class{constructor(){counts.images.push(this);}},
     document:{getElementById:id=>defs.children.find(n=>n.getAttribute('id')===id)||null,
       createElementNS:(_,tag)=>{counts.nodes++;return new Element(tag);},
@@ -81,9 +81,10 @@ test('transparent glyph coverage and RGB dispersion remain intact',()=>{
   assert.equal(byResult('inkCoverage').children.length,3);
   assert.equal(byResult('navigationEmpty').getAttribute('in2'),'inkCoverage');
   assert.equal(byResult('navigationRGBA').getAttribute('k3'),'-1');
-  const scales=()=>h.ctx.NB.optical.dms.map(n=>+n.getAttribute('scale'));
-  assert.ok(scales()[0]<scales()[1]&&scales()[1]<scales()[2]);
-  h.ctx.DISP.on=false;h.navLens(1);assert.equal(new Set(scales()).size,1);
+  // the light reference's dispersion in every theme (2026-11-21): the red sample grown into a cyan rim, none with it off
+  const rim=()=>+byResult('sample0x').getAttribute('radius');
+  assert.ok(rim()>.3);
+  h.ctx.DISP.on=false;h.navLens(1);assert.equal(rim(),0);
 });
 
 test('the saved refraction settings control the field without changing drop geometry',()=>{
@@ -119,9 +120,11 @@ test('light (the user’s v3 video): no channel is bent apart, the red glyphs gr
   assert.equal(byResult('inkCoverage').children.length,3);
   h.navLens(.5);assert.ok(Math.abs(+byResult('sample0x').getAttribute('radius')-r1/2)<1e-3,'fades with the glass');
   h.ctx.DISP.on=false;h.navLens(1);assert.equal(+byResult('sample0x').getAttribute('radius'),0);h.ctx.DISP.on=true;
-  // Aurora (and dark) keep the split and the plain red sample
-  h.ctx.document.documentElement={dataset:{theme:'dark',tone:'aurora'}};h.navLens(1);
-  assert.ok(scales()[0]<scales()[1]&&scales()[1]<scales()[2]);
-  assert.equal(byResult('channel0').getAttribute('in'),'sample0');assert.equal(byResult('inkCoverage').children[0].getAttribute('in'),'inkSample0');
-  assert.equal(+byResult('sample0x').getAttribute('radius'),0);
+  // dark and Aurora: the very same lens and rim since 2026-11-21 (user: «с тем же переломлением»)
+  for(const dataset of [{theme:'dark'},{theme:'dark',tone:'aurora'}]){
+    h.ctx.document.documentElement={dataset};h.navLens(1);
+    assert.equal(new Set(scales()).size,1);
+    assert.equal(byResult('channel0').getAttribute('in'),'sample0x');assert.equal(byResult('inkCoverage').children[0].getAttribute('in'),'inkSample0x');
+    assert.equal(+byResult('sample0x').getAttribute('radius'),r1);
+  }
 });
