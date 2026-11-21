@@ -285,10 +285,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    page ground with a hairline on top (and the touch ripple). Its four tabs share the whole width, as the original's
    (user 2026-11-18: five columns for four tabs left an empty fifth at the right) */
 .bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--bg);border-top:1px solid var(--line);
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));z-index:50;padding-bottom:env(safe-area-inset-bottom)}
 .nav-panel,.nav-neutral{display:contents}
 .nav-surface,.nav-shadow{display:none}
-.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--nav-off-flat,var(--ink2));font-size:14px;font-weight:400;white-space:nowrap}
+.bottomnav button{padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--nav-off-flat,var(--ink2));font-size:12px;line-height:1.15;font-weight:400;white-space:normal;text-align:center}   /* five tabs (2026-11-21): the original's 5-tab bar - ~12 px at 360, «Мой cTrader» on two lines */
 /* cTRADER'S OWN COLOURS WHERE THE GLASS IS OFF (user 2026-09-28, ours beside the real cTrader: «кнопка продать более
    оранжевая, а у нас тупо красная … в нижней панели красный цвет, а в оригинале синий (там где жидкое стекло, должно
    оставаться красным)»; «это касается и этих кнопок во всех темах (кроме жидкого стекла)»). SELL is cTrader's orange
@@ -383,7 +383,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav .ic svg{width:var(--nav-is,30px);height:var(--nav-is,30px)}
 /* The matte and optical layers share one measured contour throughout their crossfade.
    --ng is the optical envelope; --u/--sx express the leading edge/width in fifths of the rail. */
-:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:25%;
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-bub,:root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-lens{display:block;position:absolute;top:4.5px;bottom:4.5px;left:0;width:20%;
   /* Resolve the reference corner at the final physical size, then undo the parent scale.
      The raised rounded shape flattens into a capsule continuously with its optical envelope. */
   border-radius:min(calc(100% * var(--ncr,.5)),calc(55px * var(--ncr,.5) * var(--nov,1) * var(--sy,1) / var(--sx,1))) / calc(100% * var(--ncr,.5));pointer-events:none;
@@ -394,8 +394,8 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    bar, so it costs no frame of its own. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red{display:block;position:absolute;inset:0;z-index:3;
   pointer-events:none;color:var(--nav-on);border-radius:inherit;
-  -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 25%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 25%) round min(calc(25% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)));
-  clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 25%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 25%) round min(calc(25% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)))}
+  -webkit-clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round min(calc(20% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)));
+  clip-path:inset(calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(100% - (var(--u,0) + var(--sx,1)) * 20%) calc(4.5px + (1 - var(--sy,1)) * (100% - 9px) / 2) calc(var(--u,0) * 20%) round min(calc(20% * var(--sx,1) * var(--ncr,.5)),calc(55px * var(--sy,1) * var(--ncr,.5) * var(--nov,1))) / calc(55px * var(--sy,1) * var(--ncr,.5)))}
 /* THE DROP IS A MAGNIFIER. The source grows 1.14x (up to 1.165x in motion), about the drop's own
    centre and the bar's mid-line, with no warping at all in the middle — icons and labels are simply bigger and
    further apart in there. The scale cannot go on the clipped layer itself (clip-path is applied before the
@@ -410,10 +410,10 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-backdrop>.nb-refract{position:absolute;opacity:var(--ng,0);background:transparent;pointer-events:none}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-backdrop.material-idle{visibility:hidden}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{position:absolute;inset:0;display:block;--nmy:var(--nm,1);
-  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 25%) 50%;
+  transform-origin:calc((var(--u,0) + var(--sx,1) / 2) * 20%) 50%;
   /* Compose the centred rail scale and lens magnifier in one source transform, avoiding another composited
      surface inside the SVG filter. */
-  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2) * 25% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nmy,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nmy,1) * var(--nrsy,1)));will-change:transform}
+  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1) * var(--nm,1)),calc(var(--nry,0px) * var(--nmy,1))) scale(calc(var(--nm,1) * var(--nrsx,1)),calc(var(--nmy,1) * var(--nrsy,1)));will-change:transform}
 /* Sample the full transparent glyph row before the moving lens clip. An opaque clone here
    would hide the actual background refraction and draw the rail boundary through the glass. */
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-optics{position:absolute;inset:0;background:transparent}
@@ -426,7 +426,7 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    the drop away). A drop sliding past a tab enlarges the label where it stands instead of dragging it along. The row
    keeps only the rail's breath; the magnifier moves onto each cell. */
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nr-in{
-  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2) * 25% * (var(--nrsx,1) - 1)),var(--nry,0px)) scale(var(--nrsx,1),var(--nrsy,1))}
+  transform:translate(calc((var(--u,0) + var(--sx,1) / 2 - 2.5) * 20% * (var(--nrsx,1) - 1)),var(--nry,0px)) scale(var(--nrsx,1),var(--nrsy,1))}
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-red .nb{--nm:inherit;transform-origin:50% 50%;transform:scale(var(--nm,1),var(--nmy,1))}
 /* flat, like the reference's: a grey eight parts in a thousand darker than the bar and nothing else — no sheen
    band across its top, no lit lip, no edge. Everything I had drawn on it is what made it read as a separate
@@ -2974,6 +2974,7 @@ const I18N = {
 "Удалить":["Delete", "Видалити", "Supprimer", "Sil"],
 "Оповещений нет":["No alerts", "Сповіщень немає", "Aucune alerte", "Uyarı yok"],
 "Мой cTrader":["My cTrader", "Мій cTrader", "Mon cTrader", "cTrader'ım"],
+"Настройки":["Settings","Налаштування","Paramètres","Ayarlar"],
 "История":["History", "Історія", "Historique", "Geçmiş"],
 "Прибыль":["Profit", "Прибуток", "Profit", "Kâr"],
 "Закрыть позиции":["Close positions", "Закрити позиції", "Clôturer les positions", "Pozisyonları kapat"],
@@ -4620,7 +4621,10 @@ function finishFrame(nowR, newsOn){
    The day, the candles and the price's path through game time are untouched: only how finely that path is printed.
    (The chart draws at most CHART_LIVE_MS apart, so the cost stays.) An estimate of gold's own σ for this ran about
    twice the realised one and pinned the rate high in every hour: the hour's activity is what a feed's pace follows. */
-const TICK_ACT_REF = 0.7, TICK_RATE_MIN = 1, TICK_RATE_MAX = 6;
+// HALF AS OFTEN (user 2026-11-21: «котировки везде очень быстро идут, нужно уменьшить скорость»): 1-6 quotes a second at the
+// default set rate instead of 2-12 (the other instruments step with gold's ticks, so they slow alike); the price's path
+// through game time is unchanged - each tick simply prints a little more of it
+const TICK_ACT_REF = 0.7, TICK_RATE_MIN = .5, TICK_RATE_MAX = 3;
 // ordinary ticks per real second, the accelerator included: TICK_RATE_MIN-TICK_RATE_MAX times the set rate (TPS)
 function normalTickRate(){
   const set = normalTps() * simSpeed();
@@ -5019,7 +5023,7 @@ function uiKick(){
   _uiReq = performance.now();
   _uiRaf = requestAnimationFrame(uiFrame);
 }
-const QUOTE_FLICKER_HZ = 2.6;                                     // sides differ ~⅕ of the time, like the cTrader video
+const QUOTE_FLICKER_HZ = 1.3;   /* half (2026-11-21, with the tick rate) */                                     // sides differ ~⅕ of the time, like the cTrader video
 function quoteFlicker(){
   const P = S.price, d = S.symbol.digits, s = roundTo(autoSpread(), d);
   if(s === P.spread) return;
@@ -5784,6 +5788,7 @@ const INS_ORDER = ["EURUSD", "BOOM1000"];
 const INS_CAP = Object.freeze({ M1: 400, M5: 300, M15: 200, M30: 200, H1: 200, H4: 150, D1: 120 });
 const INS_NEAR_MIN = 12000;          // history in 1-minute steps this far back (H1's 200 bars), 15-minute steps before
 const INS_REBUILD_S = 3 * 86400;     // a clock jump longer than this rebuilds the history instead of filling it
+const INS_NEWS_BETA = 1.5;         // a USD release moves EURUSD harder than an ordinary hour's correlation (NFP: ~45 pips for $40 of gold)
 const INS_GOLD_DAYVOL = .015;        // gold's daily move before the instrument has measured it (D1 ~$70 at $4 600)
 // FX activity by UTC hour; its mean square is 1, so dayVol stays the daily volatility
 const FX_HOUR = [.55, .5, .5, .55, .6, .65, .75, 1.15, 1.35, 1.3, 1.2, 1.15, 1.3, 1.55, 1.6, 1.5, 1.35, 1.0, .85, .75, .7, .55, .45, .5];
@@ -5857,7 +5862,10 @@ function insSpikeMove(st, spec, m){
 function insFxMove(st, spec, x, dtS, hr, goldRel, news){
   const se = spec.dayVol * FX_HOUR[hr] * Math.sqrt(dtS / 86400);
   const rho = news ? spec.rhoNews : spec.rho;
-  const beta = clamp(rho * spec.dayVol * FX_HOUR[hr] / Math.sqrt(Math.max(st.gv, 1e-14) * 86400), 0, .8);
+  // in a release the dollar leads both: the same news beta as a release that holds the clock (insStepTo), not the quiet
+  // hour's measured correlation (FOMC runs in game time and its own noise drowned gold's move)
+  const beta = news ? clamp(spec.rhoNews * spec.dayVol / INS_GOLD_DAYVOL * INS_NEWS_BETA, 0, .8)
+                    : clamp(rho * spec.dayVol * FX_HOUR[hr] / Math.sqrt(Math.max(st.gv, 1e-14) * 86400), 0, .8);
   const rel = beta * goldRel + se * Math.sqrt(1 - rho * rho) * (news ? spec.newsNoise : 1) * insGauss(st);
   return x * (1 + clamp(rel, -.05, .05));
 }
@@ -5930,6 +5938,22 @@ function insCandle(st, tSec, hi, lo, c, v){
 function insStepTo(st, nowMs, gold){
   const spec = INS[st.sym], fx = spec.kind === "fx";
   const dt = (nowMs - st.t) / 1000;
+  // A RELEASE THAT HOLDS THE CLOCK (NFP's one candle, user 2026-11-21: «NFP работать должно и на EURUSD, оно идет в ту
+  // сторону куда и золото, касается CPI, PPI, FOMC, индексов не касается»): gold moved $42 in an NFP and EURUSD not a
+  // pip - it only stepped when game time did, and took the whole jump at once after the release. The dollar moves both
+  // at the same instant now, the same way as gold, by its news beta, with a little noise of its own. Boom never.
+  if(fx && gold.news && !gold.closed && !(dt > .5)){
+    const rel0 = st.gold > 0 && gold.mid > 0 ? (gold.mid - st.gold) / st.gold : 0;
+    st.gold = gold.mid;
+    if(!rel0 || !st.price) return false;
+    const beta = clamp(spec.rhoNews * spec.dayVol / INS_GOLD_DAYVOL * INS_NEWS_BETA, 0, .8);
+    const prev = st.price.mid, x = prev * (1 + clamp(beta * rel0 * (1 + .25 * insGauss(st)), -.05, .05));
+    insCandle(st, Math.floor(Math.max(nowMs, st.t) / 1000), Math.max(prev, x), Math.min(prev, x), x, 3);
+    const q = insQuote(spec, x, insFxSpread(st, spec, insHour(Math.max(nowMs, st.t) / 1000), true));
+    q.prevMid = prev; q.lastVol = 3;
+    st.price = q;
+    return true;
+  }
   if(!(dt > 0)){ if(dt < 0) st.t = nowMs; return false; }            // the clock went back: just follow it
   let goldRel = 0;
   if(fx){
@@ -7403,7 +7427,7 @@ document.addEventListener("pointerdown", e => {
 /* A SCREEN ARRIVES FROM SOMEWHERE. Tapping a tab to the right brings the next screen in from the right and the
    other way round: the interface has a left and a right, and the move says which way you went. The bar and the
    tab strip hold still, as they do on iOS — only what changed actually travels. */
-const NAV_ORDER = ["markets", "chart", "positions", "more"];
+const NAV_ORDER = ["markets", "chart", "positions", "more", "prefs"];
 let _navDir = 0;
 function navEnter(dir){
   const el = app().querySelector(":scope > .wrap, :scope > .chartbox");
@@ -8046,6 +8070,7 @@ function render(){
   else if(t === "deal")      html += screenDeal();
   else if(t === "stats")     html += screenStats();
   else if(t === "more")      html += screenMore();
+  else if(t === "prefs")     html += screenPrefs();
   else if(t === "wallet")    html += screenWallet();
   else if(t === "settings")  html += screenSettings();
   else if(t === "calendar")  html += screenCalendar();
@@ -9256,6 +9281,17 @@ function screenMore(){
         <button class="btn ghost narrow" data-act="logout">${XC.token?L("Выйти"):L("Войти")}</button>
       </div>
     </div>
+    ${WALLET_SOON
+      ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono wl-shut">${walletFmt(S.wallet.balance)}<svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><rect x="1.5" y="6" width="9" height="7" rx="1.6" fill="currentColor"/><path d="M3.6 6V4.3a2.4 2.4 0 0 1 4.8 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div>`
+      : `<div class="menu-item" data-act="gotowallet"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
+    <div class="menu-item" data-act="gotostats"><span>${L("📊 Статистика торговли")}</span><span>›</span></div>
+  </div>`;
+}
+
+// «Настройки», the fifth tab (2026-11-21): everything that sets the app up - language, theme, the glass, the simulator,
+// the test tools - moved here from «Мой cTrader», which keeps the account
+function screenPrefs(){
+  return appbar(L("Настройки"), { demo: true }) + `<div class="wrap">
     <div class="card">
       <button type="button" class="row lang-row" data-act="langpick"><span class="k">${L("Язык")}</span><span class="v">${langName(LANG)}<span class="chev" aria-hidden="true">›</span></span></button>
       <div class="row" style="margin-top:10px"><span class="k">${L("Тема оформления")}</span>${glassOn("switches") ? `<span class="v thv">${L(TH_NAME[currentTheme()])}</span>` : ""}</div>
@@ -9268,11 +9304,7 @@ function screenMore(){
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="glassfeats"><span class="k">${L("Настройки стекла")}</span><span class="v"><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
       ${glassOn() ? `<button type="button" class="row lang-row lg-set" data-act="dispset"><span class="k">${L("Дисперсия")}</span><span class="v"><span class="dv">${L(DISP.on ? "Вкл" : "Выкл")}</span><span class="chev" aria-hidden="true">›</span></span></button>` : ""}
     </div>
-    ${WALLET_SOON
-      ? `<div class="menu-item soon" aria-disabled="true"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono wl-shut">${walletFmt(S.wallet.balance)}<svg viewBox="0 0 12 14" width="11" height="13" aria-hidden="true"><rect x="1.5" y="6" width="9" height="7" rx="1.6" fill="currentColor"/><path d="M3.6 6V4.3a2.4 2.4 0 0 1 4.8 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div>`
-      : `<div class="menu-item" data-act="gotowallet"><span>${L("💳 Брокерский кошелёк")}</span><span class="v mono" style="color:var(--ink2)">${walletFmt(S.wallet.balance)} ›</span></div>`}
     <div class="menu-item" data-act="gotosettings"><span>${L("⚙️ Настройки симулятора")}</span><span>›</span></div>
-    <div class="menu-item" data-act="gotostats"><span>${L("📊 Статистика торговли")}</span><span>›</span></div>
     <div class="menu-item" data-act="gotodebug"><span>${L("🐞 Debug-консоль (день / статистика)")}</span><span>›</span></div>
     <div class="menu-item" data-act="mknews"><span>${L("📰 Создать Synthetic News (календарь)")}</span><span>+</span></div>
     <div class="menu-item" data-act="newsresult"><span>${L("📊 Последний News Result")}</span><span>›</span></div>
@@ -10277,7 +10309,9 @@ async function refreshLockCard(){
 /* ---- the tab bar's drop (see .bottomnav in the CSS) ---- */
 // FOUR TABS (user 2026-11-17, cTrader's Android update): «Ордеры» left the bar - the orders are a tab of «Позиции»
 // now, beside «История» - and «Ещё» is «Мой cTrader». NAV_N is what every slot, spring bound and end below counts in.
-const NAV_TABS = ["markets", "chart", "positions", "more"];
+// FIVE AGAIN (user 2026-11-21: «добавьте в нижнюю панель вкладку настройки, это и будут наши настройки всего»): «Настройки»
+// last, as the reference's iOS bar (Котировки / Чарт / Торговля / История / Настройки); «Мой cTrader» keeps the account.
+const NAV_TABS = ["markets", "chart", "positions", "more", "prefs"];
 const NAV_N = NAV_TABS.length;
 /* SOLID icons, the reference's weight: a silhouette in the tab's colour with its detail cut out in the bar's
    (--nav-hole), exactly as its own do — a red square with a white figure in it, a grey block with white lines.
@@ -10286,9 +10320,10 @@ const NAV_ICONS = [
   ["markets",   '<g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.2 5.2 5.6 10.8M5.6 10.8V7.3M5.6 10.8h3.5M12.8 18.8l5.6-5.6M18.4 13.2h-3.5M18.4 13.2v3.5"/></g>', "Рынки", ["markets","calendar","dom"]],
   ["chart",     '<path fill="currentColor" d="M6.2 3.4h11.6a2.8 2.8 0 0 1 2.8 2.8v11.6a2.8 2.8 0 0 1-2.8 2.8H6.2a2.8 2.8 0 0 1-2.8-2.8V6.2a2.8 2.8 0 0 1 2.8-2.8z"/><path fill="none" stroke="var(--nav-hole)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" d="m6.9 15.2 3.4-3.7 2.6 2.2 4.2-4.4"/>', "Графики", ["chart"]],
   ["positions", '<g fill="currentColor"><path d="M11 4.1A8 8 0 1 0 19.9 13H11z"/><path d="M14 2.6v7.4h7.4A7.9 7.9 0 0 0 14 2.6z"/></g>', "Позиции", ["positions","orders","history","deal"]],
-  ["more",      '<g fill="currentColor"><rect x="3.6" y="3.6" width="7.4" height="7.4" rx="2.4"/><rect x="13" y="3.6" width="7.4" height="7.4" rx="2.4"/><rect x="3.6" y="13" width="7.4" height="7.4" rx="2.4"/><rect x="13" y="13" width="7.4" height="7.4" rx="2.4"/></g>', "Мой cTrader", ["more","settings","stats","debug","wallet"]]
+  ["more",      '<g fill="currentColor"><rect x="3.6" y="3.6" width="7.4" height="7.4" rx="2.4"/><rect x="13" y="3.6" width="7.4" height="7.4" rx="2.4"/><rect x="3.6" y="13" width="7.4" height="7.4" rx="2.4"/><rect x="13" y="13" width="7.4" height="7.4" rx="2.4"/></g>', "Мой cTrader", ["more","stats","wallet"]],
+  ["prefs",     '<path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/><circle cx="12" cy="12" r="3.3" fill="var(--nav-hole)"/>', "Настройки", ["prefs","settings","debug"]]
 ];
-function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : ["positions","orders","history","deal"].includes(t) ? 2 : 3; }
+function navIndexOf(t){ return ["markets","calendar","dom"].includes(t) ? 0 : t === "chart" ? 1 : ["positions","orders","history","deal"].includes(t) ? 2 : ["prefs","settings","debug"].includes(t) ? 4 : 3; }
 function navTo(tab){ if(tab === "markets") S.ui.marketOpen = false; nav(tab); }   // «Рынки» → the watchlist
 // what makes two renders' bars the same bar: its markup less the live style vars, the drag class and the chosen tab
 function navBarKey(html){
@@ -10363,11 +10398,11 @@ function navLayoutScale(){
 // The measured profiles, one per slot (four since 2026-11-17: the reference's even slots, its end and middle sizes);
 // all rendering and hit testing use these same local coordinates.
 const NAV_DROP = Object.freeze({
-  centres: Object.freeze([69.375, 208.125, 346.875, 485.625]),
-  widths: Object.freeze([105, 120, 120, 105]),
+  centres: Object.freeze([55.5, 166.5, 277.5, 388.5, 499.5]),
+  widths: Object.freeze([105, 120, 120, 120, 105]),
   referenceW: 555, referenceH: 94, height: 80,
-  activeWidths: Object.freeze([139, 125, 125, 114]),
-  activeHeights: Object.freeze([116, 124, 124, 119])
+  activeWidths: Object.freeze([139, 125, 125, 125, 114]),
+  activeHeights: Object.freeze([116, 124, 124, 124, 119])
 });
 function navTrackBuild(width, height, labels){
   const w = Math.max(1, width), h = Math.max(8, height), tabW = w / NAV_N;
@@ -11832,7 +11867,7 @@ function bindScreen(){
     if(S.ui.tab === "markets"){ S.ui.marketOpen = false; render(); save(); return; }   // XAUUSD ‹ -> "Рынки"
     if(["calendar","dom"].includes(S.ui.tab)){ S.ui.marketOpen = true; nav("markets", "overview"); return; }   // opened only from the overview cards
     if(S.ui.tab === "deal"){ nav("history"); return; }                            // a deal -> the history it was opened from
-    nav(["settings","stats","debug","wallet"].includes(S.ui.tab) ? "more" : "markets");
+    nav(["settings","debug"].includes(S.ui.tab) ? "prefs" : ["stats","wallet"].includes(S.ui.tab) ? "more" : "markets");
   });
   act("gotowallet", ()=> nav("wallet"));
   g3dBind();                                   // the wallet's glass figure follows the pinned wallpaper as it scrolls

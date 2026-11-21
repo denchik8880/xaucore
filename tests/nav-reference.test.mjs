@@ -15,9 +15,9 @@ const bind = section('function navBind(bar){', '// a finger lifted outside every
 const markup = section('function bottomNav(){', '/* =========================================================================\n   Event binding');
 const near = (actual, expected, tolerance = 1e-7) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} ≈ ${expected}`);
 const plain = value => JSON.parse(JSON.stringify(value));
-const PREVIEW_LABELS = [33.8125, 44.875, 45.5625, 58.5];   // Рынки · Графики · Позиции · Мой cTrader (four tabs since 2026-11-17)
+const PREVIEW_LABELS = [33.8125, 44.875, 45.5625, 42.203125, 21.53125];
 
-function harness({ width = 384, height = 64, labels = [34, 42, 43, 55], viewport = width + 16, dataset } = {}) {
+function harness({ width = 384, height = 64, labels = [34, 42, 43, 55, 50], viewport = width + 16, dataset } = {}) {
   const raf = new Map(), counters = { layout: 0, ranges: 0, cards: 0, nav: [] };
   let now = 100, nextRaf = 0, currentBar;
   function style() {
@@ -113,13 +113,13 @@ function hop(runtime, from, to, ms = 1300, options = {}) {
   return { samples, rest: { w: rest.sx * t.tabW, h: rest.sy * t.baseH }, at: ms => samples.reduce((best, s) => Math.abs(s.time - ms) < Math.abs(best.time - ms) ? s : best) };
 }
 
-test('resting profiles use the uniform four-slot rail and fitted matte capsules', () => {
-  const { a } = harness({ width: 555, height: 94, labels: [0, 0, 0, 0] });
-  const centres = [69.375, 208.125, 346.875, 485.625], widths = [105, 120, 120, 105];
-  for (let i = 0; i < 4; i++) {
+test('resting profiles use the uniform five-slot rail and fitted matte capsules', () => {
+  const { a } = harness({ width: 555, height: 94, labels: [0, 0, 0, 0, 0] });
+  const centres = [55.5, 166.5, 277.5, 388.5, 499.5], widths = [105, 120, 120, 120, 105];
+  for (let i = 0; i < 5; i++) {
     const box = a.navBox(i, i + 1);
-    near((box.left + box.sx / 2) * 138.75, centres[i]);
-    near(box.sx * 138.75, widths[i]); near(box.sy * 85, 80);
+    near((box.left + box.sx / 2) * 111, centres[i]);
+    near(box.sx * 111, widths[i]); near(box.sy * 85, 80);
   }
 });
 
@@ -154,11 +154,11 @@ test('the drop swells taller on landing, not in flight, and settles back to its 
 });
 
 test('on an end tab the landing drop is pressed into the bar end as a long capsule, not a ball', () => {
-  for (const [from, to] of [[1, 0], [2, 3]]) {
+  for (const [from, to] of [[1, 0], [3, 4]]) {
     const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, t = a.NB.track, scale = t.height / 94;
     const { samples, rest } = hop(runtime, from, to);
     const room = t.height - 2 * a.NAV_MO.endGap * scale;
-    const near_end = samples.filter(s => to === 0 ? s.u <= .25 : s.u >= 2.75);
+    const near_end = samples.filter(s => to === 0 ? s.u <= .25 : s.u >= 3.75);
     assert.ok(near_end.length && near_end.every(s => s.h <= room + 1e-6), 'At the end it never rises past the bar');
     const landing = samples.filter(s => s.time > 120 && s.time < 320);
     const tallest = landing.reduce((best, s) => s.h > best.h ? s : best);
@@ -172,7 +172,7 @@ test('on an end tab the landing drop is pressed into the bar end as a long capsu
 });
 
 test('leaving an end tab the drop comes off the wall at once and fills the bar in flight, as the reference (Котирування → Чарт)', () => {
-  for (const [from, to] of [[0, 1], [3, 2]]) {
+  for (const [from, to] of [[0, 1], [4, 3]]) {
     const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, T = a.NB.track;
     const { samples, at } = hop(runtime, from, to);
     const ratio = ms => at(ms).h / T.height;
@@ -190,7 +190,7 @@ test('leaving an end tab the drop comes off the wall at once and fills the bar i
 
 test('a long jump lands blown up too, and its stretch gives out softly', () => {
   const runtime = harness({ labels: PREVIEW_LABELS }), { a } = runtime, t = a.NB.track;
-  const { samples, rest } = hop(runtime, 0, 2);
+  const { samples, rest } = hop(runtime, 0, 3);
   const stretch = Math.max(...samples.map(s => s.w - rest.w)) / t.tabW;
   assert.ok(stretch > .35 && stretch < .7, `stretch ${stretch} tabs`);
   const peak = Math.max(...samples.map(s => s.h)) / rest.h;
@@ -273,8 +273,8 @@ test('a held lens is tall when the finger is slow and long and low when it is fa
 
 test('phone sizes, overdrag and every inflation keep a finite round contour within the bounded shoulder overflow', () => {
   for (const width of [280, 320, 360, 385, 430, 500]) {
-    const { a } = harness({ width, labels: [0, 0, 0, 0] }), t = a.NB.track, overflow = 14 / 94 * t.height;
-    for (const it of [0, .5, 1]) for (const vs of [0, 2, 8]) for (const u of [-.2, 0, .4, 1.5, 2, 2.6, 3, 3.2]) for (const span of [.4, 1, 1.25, 2, 8]) {
+    const { a } = harness({ width, labels: [0, 0, 0, 0, 0] }), t = a.NB.track, overflow = 14 / 94 * t.height;
+    for (const it of [0, .5, 1]) for (const vs of [0, 2, 8]) for (const u of [-.2, 0, .4, 1.5, 2, 3.6, 4, 4.2]) for (const span of [.4, 1, 1.25, 2, 8]) {
       Object.assign(a.NB, { it, vs });
       const box = a.navBox(u + .5 - span / 2, u + .5 + span / 2), w = box.sx * t.tabW, h = box.sy * t.baseH;
       assert.ok(Object.values(box).every(Number.isFinite)); assert.ok(h > 0 && w / h > .7);
@@ -287,15 +287,15 @@ test('phone sizes, overdrag and every inflation keep a finite round contour with
 
 test('long localizations retain the font floor and the uniform anchors', () => {
   const { a } = harness(); near(a.NB.track.fontSize, 10.5);
-  const normal = a.navTrackBuild(384, 64, PREVIEW_LABELS), long = a.navTrackBuild(384, 64, [100, 75, 75, 110]);
+  const normal = a.navTrackBuild(384, 64, PREVIEW_LABELS), long = a.navTrackBuild(384, 64, [100, 75, 75, 75, 80]);
   assert.ok(long.fontSize >= 9 && long.fontSize < 10.5); assert.deepEqual(plain(long.centres), plain(normal.centres));
-  for (let i = 0; i < 4; i++) assert.ok(Number.isFinite(long.widths[i]) && long.widths[i] >= normal.widths[i]);
+  for (let i = 0; i < 5; i++) assert.ok(Number.isFinite(long.widths[i]) && long.widths[i] >= normal.widths[i]);
 });
 
 test('responsive screens uniformly scale the complete 384 by 64 composition', () => {
   const runtime = harness({ labels: PREVIEW_LABELS }), { a, ctx, counters, bar } = runtime, track = a.NB.track;
   const baseline = [];
-  for (const it of [0, 1]) for (let selected = 0; selected < 4; selected++) {
+  for (const it of [0, 1]) for (let selected = 0; selected < 5; selected++) {
     Object.assign(a.NB, { it, vs: 0 }); baseline.push({ it, selected, box: plain(a.navBox(selected, selected + 1)) });
   }
   const ranges = counters.ranges;
@@ -330,7 +330,7 @@ test('holding, travelling and fading need no per-tab colour writes or colour han
 test('gesture frames reuse the frozen track and do not read layout or label ranges', () => {
   const runtime = harness(), { a, counters } = runtime;
   const track = a.NB.track;
-  a.navGo(3);
+  a.navGo(4);
   const reads = { layout: counters.layout, ranges: counters.ranges };
   for (let i = 0; i <= 180; i++) runtime.frame(100 + i * (1000 / 120));
   assert.equal(a.NB.track, track);
@@ -351,9 +351,9 @@ test('light, dark and Aurora use the same trajectory geometry', () => {
 test('the authoritative phone composition has evenly spaced tabs and the new matte height', () => {
   const {a,bar}=harness({labels:PREVIEW_LABELS}),t=a.NB.track;
   near(bar.getBoundingClientRect().width,384);
-  for(let i=0;i<4;i++){
-    const box=a.navBox(i,i+1,0);near((box.left+box.sx/2)*t.tabW,48+i*96);
-    near(box.sx*t.tabW,Math.max((i===0||i===3?105:120)*64/94,PREVIEW_LABELS[i]+.35*64));near(box.sy*t.baseH,80*64/94);   // a long caption («Мой cTrader») widens its drop to cover it
+  for(let i=0;i<5;i++){
+    const box=a.navBox(i,i+1,0);near((box.left+box.sx/2)*t.tabW,38.4+i*76.8);
+    near(box.sx*t.tabW,(i===0||i===4?105:120)*64/94);near(box.sy*t.baseH,80*64/94);
   }
 });
 
@@ -408,10 +408,10 @@ test('piecewise pointer inverse cancels both whole-bar scale and the independent
   for(const viewport of [308, 360, 412, 528, 960]) for (const rail of [0, 0.012, 0.026]) {
     runtime.setViewport(viewport); a.navFit(runtime.bar); a.NB.rail = rail;
     const rect = runtime.bar.getBoundingClientRect();
-    for (let i = 0; i < 4; i++) near(a.navUAt(runtime.point(i), rect), i);
-    for (let i = 0; i < 3; i++) near(a.navUAt(runtime.point(i + .5), rect), i + 0.5);
+    for (let i = 0; i < 5; i++) near(a.navUAt(runtime.point(i), rect), i);
+    for (let i = 0; i < 4; i++) near(a.navUAt(runtime.point(i + .5), rect), i + 0.5);
     assert.ok(a.navUAt(-1000, rect) >= -0.2);
-    assert.ok(a.navUAt(2000, rect) <= 3.2);
+    assert.ok(a.navUAt(2000, rect) <= 4.2);
   }
 });
 
@@ -424,17 +424,17 @@ test('caption measurement removes whole-bar scale and an existing rail pulse bef
     const track = plain(a.NB.track);
     delete track.key; const expected = { ...baseline }; delete expected.key;
     for(const key of ['width', 'height', 'tabW', 'baseH', 'restH', 'fontSize']) near(track[key], expected[key]);
-    for(let i = 0; i < 4; i++) { near(track.centres[i], expected.centres[i]); near(track.widths[i], expected.widths[i]); }
+    for(let i = 0; i < 5; i++) { near(track.centres[i], expected.centres[i]); near(track.widths[i], expected.widths[i]); }
     assert.ok(+ctx.document.documentElement.style.getPropertyValue('--nav-scale') > 0);
   }
 });
 
-test('ordinary and accent rows receive exactly the same four centre styles', () => {
+test('ordinary and accent rows receive exactly the same five centre styles', () => {
   const { a } = harness();
   const markup = a.bottomNav();
   const plainStyles = [...markup.matchAll(/<button data-nav="[^"]+" class="[^"]*" style="([^"]+)"/g)].map(match => match[1]);
   const accentStyles = [...markup.matchAll(/<span class="nb" style="([^"]+)"/g)].map(match => match[1]);
-  assert.equal(plainStyles.length, 4); assert.equal(accentStyles.length, 4);
+  assert.equal(plainStyles.length, 5); assert.equal(accentStyles.length, 5);
   assert.deepEqual(plainStyles, accentStyles);
 });
 
@@ -447,10 +447,10 @@ test('every optical letter and icon has the theme accent, with colour restricted
   assert.match(css, /\.bottomnav button>\.ic\{color:var\(--nav-item\)\}/);
   assert.match(css, /\.bottomnav\{--nav-item:#000\}/, 'The other tabs are black, as on the reference');
   assert.match(css, /\.nav-red\{[^}]*clip-path:[^}]*var\(--u,0\)[^}]*var\(--sx,1\)/);
-  for(let selected = 0; selected < 4; selected++) {
+  for(let selected = 0; selected < 5; selected++) {
     Object.assign(a.NB, { u: selected, target: selected, a: selected, b: selected + 1 });
     const opticalItems = [...a.bottomNav().matchAll(/<span class="nb" style="([^"]*)"/g)];
-    assert.equal(opticalItems.length, 4);
+    assert.equal(opticalItems.length, 5);
     for(const [, style] of opticalItems) assert.doesNotMatch(style, /--na:|\bcolor:|opacity:/, 'The outer capsule clips the full accent copy, including neighbouring letters');
   }
 });
@@ -512,15 +512,17 @@ test('light: the clear lens has 1.5x elliptic ends; dark keeps its capsule, Auro
 });
 
 test('light: a long caption has a third of the bar to spare each side, an end pill keeps the bar’s gap', () => {
-  const labels = [34, 42, 43, 70], { a } = harness({ labels, dataset: {} }), t = a.NB.track, gap = (t.height - t.restH) / 2;
+  const labels = [34, 42, 43, 55, 70], { a } = harness({ labels, dataset: {} }), t = a.NB.track, gap = (t.height - t.restH) / 2;
   near(t.widths[1] * t.tabW, Math.max(120 * 64 / 94, 42 + .67 * 64));
-  const last = a.navBox(3, 4);
+  const last = a.navBox(4, 5);
   assert.ok((last.left + last.sx) * t.tabW <= t.width - gap + 1e-6, 'the end pill stays inside the bar');
-  assert.ok(last.sx * t.tabW >= 105 * 64 / 94 - 1e-6);
+  // five tabs (2026-11-21): the end slot is narrower than the resting pill's minimum, so the bar's end caps it
+  const room = 2 * (t.width - t.centres[4] * t.tabW - gap);
+  assert.ok(last.sx * t.tabW >= Math.min(105 * 64 / 94, room) - 1e-6);
 });
 
 test('light: landing on an end tab the lens lies flush with the bar’s end, never out past it', () => {
-  for (const [from, to] of [[1, 0], [2, 3]]) {
+  for (const [from, to] of [[1, 0], [3, 4]]) {
     const runtime = harness(LIGHT), { a } = runtime, t = a.NB.track, scale = t.height / 94, { samples } = hop(runtime, from, to);
     const out = Math.max(...samples.map(s => to === 0 ? -s.left * t.tabW : (s.left * t.tabW + s.w) - t.width));
     assert.ok(out <= 2 * scale + 1e-6, `out past the end by ${out}`);

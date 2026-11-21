@@ -25,7 +25,7 @@ function fixture(load=true){
   const box={left:1.2,sx:1.5,sy:1},ctx={
     Math,LG_LENS:true,LG_UI:{refract:1},LGQ:{r:2.155},DISP:{on:true,drops:true,str:50},
     NB:{clear:1,opticalEnergy:0,a:1,b:2,lift:0,optical:null},
-    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),navDarkLens:()=>false,NAV_DARK:{magnify:.2,reach:.2,reachMotion:0,lift:.16},NAV_N:4,lgDefsReady(){},_lgDefs:defs,
+    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),glassOn:()=>true,navBox:()=>box,navCorner:()=>.5,navOval:c=>1+.35*Math.max(0,Math.min(1,c)),navDarkLens:()=>false,NAV_DARK:{magnify:.2,reach:.2,reachMotion:0,lift:.16},NAV_N:5,lgDefsReady(){},_lgDefs:defs,
     Image:class{constructor(){counts.images.push(this);}},
     document:{getElementById:id=>defs.children.find(n=>n.getAttribute('id')===id)||null,
       createElementNS:(_,tag)=>{counts.nodes++;return new Element(tag);},
@@ -88,7 +88,7 @@ test('transparent glyph coverage and RGB dispersion remain intact',()=>{
 
 test('the saved refraction settings control the field without changing drop geometry',()=>{
   const h=fixture(),shape={...h.box},scale=()=>+h.ctx.NB.optical.dms[1].getAttribute('scale');
-  const O=h.NAV_OPTICS,w=384/4*h.box.sx,hh=55*h.box.sy,half=Math.max(w,hh)/2,base=2*O.reach*O.gmax*half;
+  const O=h.NAV_OPTICS,w=384/5*h.box.sx,hh=55*h.box.sy,half=Math.max(w,hh)/2,base=2*O.reach*O.gmax*half;
   assert.ok(Math.abs(scale()-base)<.001,'scale '+scale()+' vs '+base);
   h.ctx.LG_UI.refract=.74;h.navLens(1);assert.ok(Math.abs(scale()-base*.74)<.001);
   h.ctx.LGQ.r=2.65;h.navLens(1);assert.ok(Math.abs(scale()-base*.74*2.65/2.155)<.001);

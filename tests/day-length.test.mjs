@@ -48,13 +48,13 @@ test('an account on the old 45-minute day moves to 240 once, its running day and
   assert.equal(T.market.dayDurationMin, 120);
 });
 
-test('ticks come as often as the hour is busy: the set rate in a quiet hour, up to 6× at the US open', () => {
+test('ticks come as often as the hour is busy: half the set rate in a quiet hour, up to 3× it at the US open (halved 2026-11-21)', () => {
   const E = engine(), S = E.fresh();
   const at = h => { S.simClock = Date.UTC(2026, 10, 17, h, 30); return E.normalTickRate(); };
   const quiet = at(3), europe = at(9), ny = at(14);
-  assert.ok(quiet >= 2 && quiet < 3.5, `quiet ${quiet}`);
+  assert.ok(quiet >= 1 && quiet < 1.75, `quiet ${quiet}`);
   assert.ok(europe > quiet && europe < ny, `europe ${europe}`);
-  assert.ok(ny > 9 && ny <= 12, `new york ${ny}`);
+  assert.ok(ny > 4.5 && ny <= 6, `new york ${ny}`);
   S.manual.enabled = true;
   assert.equal(at(14), 2, 'manual control keeps exactly the set rate');
 });
