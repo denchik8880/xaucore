@@ -13716,13 +13716,16 @@ function chartTabHeight(c){
   // the glass trade bar floats over the chart (its own layer): the canvas runs on under it; the on-chart buttons
   // rise over it (--under) and drawChart keeps the auto range clear of it (chart._underBar)
   const floatBar = !!bar && getComputedStyle(bar).position === "fixed";
-  chart._underBar = floatBar ? bar.offsetHeight + 12 : 0;
-  if(c.parentElement) c.parentElement.style.setProperty("--under", floatBar ? (bar.offsetHeight + 6) + "px" : "0px");
   const navH = _chartFull || !nav ? 0 : Math.max(0, (window.innerHeight || 640) - nav.getBoundingClientRect().top), barH = bar && !floatBar ? bar.offsetHeight : 0;   // the bar floats: its top edge, gap included
   let top = 0;                                                    // offsetTop, not the rect: a screen sliding in is transformed
   for(let el = c.parentElement; el; el = el.offsetParent) top += el.offsetTop;
   const h = Math.max(220, Math.round((window.innerHeight || 640) - top - navH - barH));
   if(String(h) !== c.dataset.h) c.dataset.h = h;
+  // how much of the canvas the floating bar covers: from its real top edge (it stands clear of the tab bar by a gap), not
+  // its height - the time axis (drawChart's padB) and the on-chart buttons (--under) sit right above it
+  const under = floatBar ? Math.max(0, Math.round(top - (window.scrollY || 0) + h - bar.getBoundingClientRect().top + 6)) : 0;
+  chart._underBar = under;
+  if(c.parentElement) c.parentElement.style.setProperty("--under", under + "px");
 }
 /* where the on-chart buttons sit, in canvas px — drawChart moves the position / order pills out of
    their way (measured on setup and resize, never per frame) */
@@ -15061,8 +15064,13 @@ function drawChart(){
   // right-aligned 12 px from the edge, the plot running up to the top (the OHLC readout shows only
   // with the crosshair), a 21 px date / time axis at the foot, gridlines every ~33 px
   // the price column as wide as the instrument's price needs (Boom's 14900.0000 is three characters longer than gold's)
-  const padR = Math.max(W < 420 ? 58 : 66, vcx(VQ().ask).length * 7 + 12), padB = 21, padT = 8, GRID_PX = 33;
-  const RB = S.ui.tab === "chart" && !_chartFull ? (chart._underBar || 0) : 0;   // px of the plot under the floating glass trade bar
+  const padR = Math.max(W < 420 ? 58 : 66, vcx(VQ().ask).length * 7 + 12), AXIS_B = 21, padT = 8, GRID_PX = 33;
+  const RB = S.ui.tab === "chart" && !_chartFull ? (chart._underBar || 0) : 0;   // px of the canvas under the floating glass trade bar
+  // THE TIME AXIS SITS ON THE TRADE BAR, as cTrader's (user 2026-11-21, its video beside ours: «у нас же время непонятно
+  // где, не показывается, его свечи вообще перекрывают»): the canvas runs on under the floating glass bar, and the axis was
+  // drawn at its very foot - under the bar - with the candles going on down behind it. The plot now ends above the axis
+  // and the axis right above the bar; under the bar there is only the chart's own ground.
+  const padB = AXIS_B + RB;
   const infoEl = document.getElementById("chartInfo");
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = TC.bg; ctx.fillRect(0,0,W,H);
@@ -15120,7 +15128,7 @@ function drawChart(){
     const mLo = chart.vCenter - half, mHi = chart.vCenter + half;
     sc = { lo: mLo, hi: mHi, step: niceStep(mHi - mLo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24)) };
   }else{
-    sc = autoScale(dHi, dLo, H - padT - padB - RB, GRID_PX);
+    sc = autoScale(dHi, dLo, H - padT - padB, GRID_PX);
     // Ease the auto range toward its target over a few frames (τ ≈ 70 ms): a tall bar sliding
     // in, or a tick stretching the live one, then moves the candles and every position line in
     // a short glide instead of a one-frame jump. First draw, a timeframe switch or a long idle
@@ -15136,10 +15144,6 @@ function drawChart(){
       if(Math.max(Math.abs(tHi - sc.hi), Math.abs(tLo - sc.lo)) * pxPer > 0.5) chartDraw();   // keep gliding until settled
     }
     chart._easeRange = { hi: sc.hi, lo: sc.lo, t: now, key };
-    if(RB){                                                          // the band under the floating bar shows the prices below
-      sc.lo -= (sc.hi - sc.lo) * RB / Math.max(40, H - padT - padB - RB);
-      sc.step = niceStep(sc.hi - sc.lo, clamp(Math.round((H - padT - padB)/GRID_PX), 3, 24));
-    }
   }
   chart._lastRange = { hi: sc.hi, lo: sc.lo };   // anchor for the next manual zoom
   chart._plotH = H - padT - padB;                // px the price range maps onto
@@ -15173,7 +15177,7 @@ function drawChart(){
   // labels in the ink colour right-aligned 12 px from the edge. The horizontal lines and the time
   // axis' vertical ones go out as a single stroke.
   const AXF = "13px -apple-system,'SF Pro Text',Inter,system-ui,sans-serif";
-  const yCount = H - padB - 7.5 - RB;                                  // the bar countdown, at the foot of the scale
+  const yCount = H - padB - 7.5;                                       // the bar countdown, at the foot of the scale
   ctx.fillStyle = TC.axis; ctx.font = AXF; ctx.textAlign = "right"; ctx.textBaseline = "middle";
   const gridFrom = Math.ceil(lo / sc.step) * sc.step;
   ctx.beginPath();
@@ -15196,7 +15200,7 @@ function drawChart(){
   const every = Math.max(1, Math.round(stepSec / tfSec));
   const d0 = new Date(vis[clamp(Math.ceil(vis.length - offF - barsW / unit), 0, vis.length - 1)].t * 1000);   // the leftmost bar on screen
   const dateLbl = daily ? `${MON[d0.getUTCMonth()]} ${d0.getUTCFullYear()}` : `${DAYS[d0.getDay()]} ${d0.getDate()} ${MON[d0.getMonth()]}`;
-  const yTime = H - padB / 2;
+  const yTime = H - RB - AXIS_B / 2;
   ctx.font = "600 " + AXF; ctx.textAlign = "left";
   ctx.fillText(dateLbl, 2, yTime);
   const dateEnd = 2 + ctx.measureText(dateLbl).width + 24;
@@ -15241,7 +15245,7 @@ function drawChart(){
   const bodyW = Math.max(px1, snapPx(bw));
   const wickOff = snapPx((bodyW - hairX) / 2);
   ctx.save();
-  ctx.beginPath(); ctx.rect(0, 0, barsW, H); ctx.clip();
+  ctx.beginPath(); ctx.rect(0, 0, barsW, H - padB); ctx.clip();   // nor past the time axis
   for(const upPass of [true, false]){
     ctx.beginPath();
     for(let i=0;i<vis.length;i++){
@@ -16015,7 +16019,7 @@ async function xcTakeOver(force){
     if(!xcSessionCurrent(session)) return;
     const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
     if(!xcSessionCurrent(session)) return;
-    if(r && r.state){ S = r.state; migrateState(); XC.rev = r.rev || 0; XC.remoteAt = r.updatedAt; saveNow(); }
+    if(r && r.state){ const ui = S && S.ui; S = r.state; migrateState(); if(ui) S.ui = ui; normalizeState(); XC.rev = r.rev || 0; XC.remoteAt = r.updatedAt; saveNow(); }   // this device keeps its own screen (see xcAdopt)
     else if(!S) load(true);              // nothing on the server yet -> local cache / fresh
     XC.follower = false;
     if(XC._pollT){ clearInterval(XC._pollT); XC._pollT = null; }
@@ -16356,7 +16360,7 @@ async function bootAfterAuth(){
       try{
         const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
         if(!xcSessionCurrent(session)) return;
-        if(r && r.state){ S = r.state; migrateState(); XC.rev = r.rev || 0; }
+        if(r && r.state){ const ui = S && S.ui; S = r.state; migrateState(); if(ui) S.ui = ui; normalizeState(); XC.rev = r.rev || 0; }
       }catch(e2){ if(!xcSessionCurrent(session)) return; }
       if(!S) load(true);
       normalizeState();
@@ -16411,7 +16415,11 @@ async function xcResync(){
     if((m.rev || 0) > XC.rev){          // someone else advanced it -> adopt their state
       const r = await xcApi("GET", "/api/state?sid=" + encodeURIComponent(XC.sid));
       if(!xcSessionCurrent(session)) return;
-      if(r && r.state){ S = r.state; migrateState(); normalizeState(); XC.rev = r.rev || 0; saveNow(); render(); }
+      // ADOPTING ANOTHER DEVICE'S STATE KEEPS THIS ONE'S SCREEN (user 2026-11-21, phone video: on «Графики», dragging the gold
+      // chart, it «само переключается на EURUSD»): the whole state used to be taken over, S.ui included - the other device's
+      // instrument, tab and timeframe - so the phone jumped to what the computer had open. The market is shared; what this
+      // device shows is its own (the follower's resync has always kept it).
+      if(r && r.state){ const ui = S && S.ui; S = r.state; migrateState(); if(ui) S.ui = ui; normalizeState(); XC.rev = r.rev || 0; saveNow(); render(); }
     }
     await xcClaimLease(false).catch(()=>{});
   }catch(e){ if(xcSessionCurrent(session)) XC.online = false; }
