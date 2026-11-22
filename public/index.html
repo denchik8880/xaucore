@@ -588,22 +588,28 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chpill::before,:root[data-glass="on"]:not([data-lgoff~="chart"]) .chpills.goo .chpill::after{display:none}
 :root[data-glass="on"]:not([data-lgoff~="chart"]) .chartbox:not(.sub) .chpill{touch-action:none}
 .chpill svg{display:block}
-/* THE LIQUID NECK (user 2026-11-21: «вы взаимодействие не сделали … как соединяться они либо переливаться должны, возьмите с
-   нашего чата, где вы пытались повторить liquid glass из видео»): two small glass buttons side by side flow into one shape
-   when a press swells one of them or a finger pulls it toward the other, and part again with a neck that thins and snaps.
-   The earlier reconstruction of that video joined its shapes with a quadratic smooth-min of their distance fields (k about a
-   third of the bar's height); here the same union is drawn as the neck between the two (lqgNeck): it leaves each round
-   end where the smooth union does, waists in the middle as they part, and its own edges run along the buttons' outlines
-   a hair inside them, so the glass reads as one piece and no rim shows across the join. Same body and frost as theirs. */
-.lq-neck{display:none}
-:root[data-glass="on"] .lq-neck{display:block;position:absolute;left:-16px;top:-16px;width:calc(100% + 32px);height:calc(100% + 32px);pointer-events:none;z-index:6;
-  background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),var(--cap-glass);clip-path:var(--np,inset(50%));
+/* THE LIQUID UNION (user 2026-11-21: «вы взаимодействие не сделали … как соединяться они либо переливаться должны, возьмите с
+   нашего чата, где вы пытались повторить liquid glass из видео»; then «свет … перетекать», «обводка на стыке»): small glass
+   buttons side by side flow into one drop when a press swells one or a finger pulls it toward another, and part again as
+   the neck thins and snaps - the smooth-min union of the earlier reconstruction (lqgDraw). While joined it is one drop:
+   its glass fills the union round them (.lq-neck: the union minus the buttons, 2.5 px into them, so nothing is doubled),
+   one rim runs round the whole outline (.lq-edge: the hairline outside, the lit ring inside) with the buttons' own rims
+   and inner bands off (.lq-m), and the press's light spreads across the neck (--nk) into the neighbour (its milk). */
+.lq-neck,.lq-edge{display:none}
+:root[data-glass="on"] .lq-neck{display:block;position:absolute;pointer-events:none;z-index:6;clip-path:var(--np,inset(50%));
+  background:radial-gradient(var(--nr,80px) circle at var(--nx,50%) var(--ny,50%),rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0))) 0%,rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0) * .6)) 45%,rgba(255,255,255,0) 100%),
+    linear-gradient(180deg,var(--lg-sheen) 0%,transparent 55%),var(--cap-glass);
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03)}
-:root[data-theme="dark"][data-glass="on"] .lq-neck{background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 55%),var(--cap-glass)}
-/* its two free edges: the glass's own hairline (a clip-path takes a shadow and a border with it, so they are drawn) */
-.lq-edge{display:none}
-:root[data-glass="on"] .lq-edge{display:block;position:absolute;left:-16px;top:-16px;width:calc(100% + 32px);height:calc(100% + 32px);overflow:visible;pointer-events:none;z-index:7}
-.lq-edge path{fill:none;stroke:var(--lg-line);stroke-width:1;stroke-linecap:round}
+:root[data-theme="dark"][data-glass="on"] .lq-neck{background:radial-gradient(var(--nr,80px) circle at var(--nx,50%) var(--ny,50%),rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0))) 0%,rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0) * .6)) 45%,rgba(255,255,255,0) 100%),
+    linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 55%),var(--cap-glass)}
+:root[data-glass="on"] .lq-edge{display:block;position:absolute;overflow:visible;pointer-events:none;z-index:7}
+.lq-edge path{fill:none}
+.lq-edge .h{stroke:var(--lg-line);stroke-width:1}
+.lq-edge .r{stroke-width:3}
+.lq-edge .s1{stop-color:var(--lg-rim)}.lq-edge .s0{stop-color:var(--lg-rim);stop-opacity:0}.lq-edge .sd{stop-color:var(--lg-rimd)}.lq-edge .s2{stop-color:var(--lg-rim2)}
+/* a button inside the union: no rim and no inner band of its own (the union's rim is its rim), its lift kept */
+:root[data-glass="on"] .lq-m{box-shadow:var(--lg-lift1)!important}
+:root[data-glass="on"] .lq-m::after{opacity:0!important}
 .chartinfo{position:absolute;left:16px;top:62px;max-width:calc(100% - 90px);z-index:4;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartinfo[hidden]{display:none}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
@@ -10975,17 +10981,44 @@ function navTrackBuild(width, height, labels){
     const available = Math.max(1, 2 * Math.min(x - before, after - x) - 6 * scale);
     if(measured[i] > 0) fit = Math.min(fit, available / measured[i]);
   }
-  const fontSize = Math.max(9, 10.5 * Math.min(1, fit));
   // light (the user's v3 video): a long label sits in its pill with a third of the bar's height to spare each side
   // (Котирування: 94 px of label in a 155 px pill on a 91 px bar), and an end tab's pill keeps the bar's own gap
   // (4.5 px here, as at its top) from the bar's end - it never runs out past it
   const light = navLightBar(), pad = light ? .67 : .35, gap = (h - restH) / 2;
+  /* THE CHOSEN CAPTION IS WHOLLY IN ITS PILL (user 2026-11-22, 20.png: «кнопка настройки не заполняет полностью, белый текст
+     нельзя что бы видно было»). The caption sits low in the pill, where its round ends curve in: at the foot of the
+     letters (the icon 30 + 3 + the line, centred) a capsule .85 of the bar high is ~9 px narrower each side than at its
+     middle. An end tab's pill could not grow past the bar's end, so «Настройки» (ru), «Налаштування» (uk), «Paramètres»
+     (fr) ran 3-10 px out of it and their first and last letters showed in the plain colour, white on the dark bar. Now an
+     end pill is as long as its caption at that foot (navCapReach) and, longer than its slot allows, keeps the bar's gap at
+     the end and grows inward, the tab (icon and caption) with it to the pill's middle; the type shrinks only as far as it
+     must to keep 8 px from the next caption. */
+  const reach = navCapReach(restH, scale), end = i => light && (i === 0 || i === NAV_N - 1);
+  for(const i of [0, NAV_N - 1]){
+    if(!end(i) || !(measured[i] > 0)) continue;
+    const j = i ? i - 1 : 1, c = centres[i] * tabW, cj = centres[j] * tabW, mj = measured[j] || 0;
+    const room = 2 * Math.min(c - gap, w - c - gap), f = Math.min(1, fit), need = measured[i] * f + 2 * reach(10.5 * f);
+    // grown inward: its caption's near edge at the bar's end less the gap, the pill's round end and the caption itself
+    if(need > room) fit = Math.min(fit, ((i ? w - cj : cj) - gap - reach(10.5 * f) - 8 * scale) / (measured[i] + mj / 2));
+  }
+  const fontSize = Math.max(9, 10.5 * Math.min(1, fit));
+  const at = centres.slice();
   const widths = NAV_DROP.widths.map((v, i) => {
     let px = Math.max(v * scale, 1.05 * restH, (measured[i] || 0) * fontSize / 10.5 + pad * h);
-    if(light && (i === 0 || i === NAV_N - 1)){ const c = centres[i] * tabW, room = 2 * Math.min(c - gap, w - c - gap); px = Math.max(Math.min(px, room), Math.min(v * scale, room)); }
+    if(end(i)){
+      const c = centres[i] * tabW, room = 2 * Math.min(c - gap, w - c - gap), need = (measured[i] || 0) * fontSize / 10.5 + 2 * reach(fontSize);
+      px = Math.max(Math.min(px, room), Math.min(v * scale, room), need);
+      if(px > room) at[i] = (i ? w - gap - px / 2 : gap + px / 2) / tabW;   // grown inward from the bar's end, the tab with it
+    }
     return px / tabW;
   });
-  return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres, widths, fontSize };
+  return { width: w, height: h, tabW, baseH: Math.max(8, h - 9), restH, centres: at, widths, fontSize };
+}
+// how far in from each end of a resting pill (restH high) a caption must stay so that its foot - the bottom of its letters,
+// the icon (30) and the gap (3) above it, centred in the bar - is inside the pill's round ends, and a hair (1.5 px)
+function navCapReach(restH, scale){
+  const R = restH / 2;
+  return fs => { const dy = Math.min(R - .25, (33 + fs) / 2 - .12 * fs); return R - Math.sqrt(R * R - dy * dy) + 1.5 * scale; };
 }
 function navTrackAt(u){
   const t = NB.track || (NB.track = navTrackBuild(NB.railWidth || 384, 64));
@@ -11318,6 +11351,9 @@ function navFit(bar){
       return range.getBoundingClientRect().width / scale;
     });
     track = NB.track = navTrackBuild(bar.clientWidth, bar.clientHeight, labels); track.key = key;
+    // the slots as this track has them (an end tab moves in when its caption needs it): the row was written with the last one
+    const slots = [bar.querySelectorAll("button[data-nav]"), bar.querySelectorAll(".nav-red .nb")];
+    for(const list of slots) list.forEach((e, i) => { const nx = (track.centres[i] / NAV_N).toFixed(7); if(e.style.getPropertyValue("--nx") !== nx) e.style.setProperty("--nx", nx); });
   }
   bar.style.setProperty("--nav-fs", track.fontSize.toFixed(2) + "px");
   bar.style.setProperty("--nav-is", "30px");
@@ -15230,36 +15266,62 @@ const glassUp = e => {
 };
 document.addEventListener("pointerup", glassUp, { capture: true, passive: true });
 document.addEventListener("pointercancel", glassUp, { capture: true, passive: true });
-/* LIQUID GROUPS (the neck: see .lq-neck). A group is the small round glass buttons and capsules that sit together in one
-   box - the chart's «+ / −», its two pills, the mini chart's tools, an app bar's round buttons. Measured once on the press
-   (no layout in a frame); each frame of the press spring (glassFrame) it reads the buttons' own press values (--psx/--psy
-   swell and stretch, --pdx/--pdy rubber band) and draws, for every pair of neighbours close enough, the neck of their
-   smooth union - joined below .3 of the smaller radius apart (never more than 3/4 of their resting gap), snapped past .6
-   of it (never as far as their resting gap: at rest they are always two). Clip-path only, on a layer of its own. */
-const LQG_BOX = ".chzoom, .chpills, .mini-tools, .appbar";
+/* LIQUID GROUPS (the union: see .lq-neck). A group is the small round glass buttons and capsules that sit together in one
+   box - the chart's «+ / −», the gear beside «−», its two pills, the mini chart's tools, an app bar's round buttons.
+   Measured once on the press (one layout); each frame of the press spring (glassFrame) it reads the buttons' own press
+   values (--psx/--psy swell and stretch, --pdx/--pdy rubber band) and, for every set of neighbours that has flowed
+   together, draws their union as the earlier reconstruction did: the quadratic smooth-min of their distance fields
+   (k: 1.2 of the smaller radius, never more than 1.5 resting gaps - at rest they are always two, ≥ 1 px apart), its
+   outline traced on a 1.5 px grid (marching squares). The union is ONE drop while they are joined:
+   - one rim: the buttons' own rims and inner bands are off (.lq-m) and the rim - the glass's hairline outside, its lit
+     ring inside, lit from the app's one light - runs once round the whole outline (.lq-edge);
+   - one light (2026-11-21, «свет должен перетекать»): the press's milk spreads over the neck and into the neighbour, as
+     it spreads over a single button - by how thick the neck is, gone the frame it snaps.
+   The neck's glass fills the union outside the buttons (and 2.5 px into them): their own lens, bend and colour stay.
+   Clip-path, a few attributes and opacity per frame; no layout. */
+const LQG_BOX = ".chartbox, .mini-tools, .appbar";
 const _lqg = new Set();
+let _lqgN = 0;
 function lqgStart(b){
   const box = b.closest(LQG_BOX);
-  if(!box || box.matches(".chpills.goo") || !glassOn("drops")) return;
-  let G = box._lqg;
-  const members = [...box.querySelectorAll(GLASS_SEL)].filter(e => e.getClientRects().length && !e.matches(LG_CALM) && e.closest(LQG_BOX) === box);
+  if(!box || !glassOn("drops")) return;
+  const members = [...box.querySelectorAll(GLASS_SEL)].filter(e => e.getClientRects().length && !e.matches(LG_CALM) && !e.matches(".chlast:not(.on)")
+    && !e.closest(".chpills.goo") && e.closest(LQG_BOX) === box);
   if(members.length < 2) return;
-  const br = box.getBoundingClientRect(), ox = br.left + box.clientLeft - 16, oy = br.top + box.clientTop - 16;   // the necks' layer: 16 px out on every side
-  const geo = members.map(e => { const r = lgRestRect(e); return { el: e, cx: r.left + r.width / 2 - ox, cy: r.top + r.height / 2 - oy, w: r.width, h: r.height }; });
+  const rest = members.map(e => ({ el: e, r: lgRestRect(e) }));
+  const near = (A, B) => {
+    const gx = Math.max(A.r.left, B.r.left) - Math.min(A.r.right, B.r.right), gy = Math.max(A.r.top, B.r.top) - Math.min(A.r.bottom, B.r.bottom);
+    const ov = (gx < 0 && -gx > .5 * Math.min(A.r.width, B.r.width)) || (gy < 0 && -gy > .5 * Math.min(A.r.height, B.r.height));
+    const gap = Math.max(gx, gy);
+    return ov && gap >= 0 && gap <= 16 ? gap : -1;
+  };
   const pairs = [];
-  for(let i = 0; i < geo.length; i++) for(let j = i + 1; j < geo.length; j++){
-    const A = geo[i], B = geo[j], dx = Math.abs(B.cx - A.cx), dy = Math.abs(B.cy - A.cy);
-    const gx = dx - (A.w + B.w) / 2, gy = dy - (A.h + B.h) / 2;
-    const row = gx >= 0 && gy < 0 && -gy > .5 * Math.min(A.h, B.h), col = gy >= 0 && gx < 0 && -gx > .5 * Math.min(A.w, B.w);
-    const gap = row ? gx : gy;
-    if((row || col) && gap <= 16){
-      const old = G && G.pairs.find(q => q.a.el === A.el && q.b.el === B.el);
-      pairs.push({ a: A, b: B, row, gap: Math.max(1, gap), on: old ? old.on : false, el: old ? old.el : null, ed: old ? old.ed : null });
-    }
-  }
-  if(G) for(const q of G.pairs) if(q.el && !pairs.some(n => n.el === q.el)){ q.el.remove(); q.ed.remove(); }
-  if(!pairs.length){ if(G){ box._lqg = null; _lqg.delete(G); } return; }
-  G = box._lqg = { box, members: geo, pairs, dirty: true };
+  for(let i = 0; i < rest.length; i++) for(let j = i + 1; j < rest.length; j++){ const g = near(rest[i], rest[j]); if(g >= 0) pairs.push({ i, j, gap: Math.max(1, g) }); }
+  const used = new Set(pairs.flatMap(p => [p.i, p.j]));
+  if(!used.size) return;
+  let G = box._lqg;
+  if(G){ lqgClear(G); _lqg.delete(G); }
+  // the layer: the involved buttons' box and room for their swell and pull (set once, here)
+  const inv = [...used].map(i => rest[i].r), pad = 28, br = box.getBoundingClientRect();
+  const L = Math.min(...inv.map(r => r.left)) - pad, T = Math.min(...inv.map(r => r.top)) - pad;
+  const W = Math.max(...inv.map(r => r.right)) + pad - L, H = Math.max(...inv.map(r => r.bottom)) + pad - T;
+  const idx = [...used].sort((a, b) => a - b), map = new Map(idx.map((i, n) => [i, n]));   // document order = the order they are painted in
+  const geo = idx.map(i => { const r = rest[i].r, cs = getComputedStyle(rest[i].el), rad = parseFloat(cs.borderTopLeftRadius) || 0;
+    return { el: rest[i].el, cx: r.left + r.width / 2 - L, cy: r.top + r.height / 2 - T, w: r.width, h: r.height, rad: Math.min(rad, Math.min(r.width, r.height) / 2), pm: !!rest[i].el.closest(".chpills") }; });
+  const NS = "http://www.w3.org/2000/svg", n = ++_lqgN;
+  const layer = document.createElement("i"); layer.className = "lq-neck"; layer.setAttribute("aria-hidden", "true");
+  const edge = document.createElementNS(NS, "svg"); edge.setAttribute("class", "lq-edge"); edge.setAttribute("aria-hidden", "true");
+  edge.innerHTML = `<defs><clipPath id="lqC${n}"><path/></clipPath><linearGradient id="lqR${n}" gradientUnits="userSpaceOnUse"><stop offset="0" class="s1"/><stop offset=".28" class="s0"/><stop offset=".5" class="sd"/><stop offset=".72" class="s0"/><stop offset="1" class="s2"/></linearGradient></defs><path class="h"/><path class="r" stroke="url(#lqR${n})" clip-path="url(#lqC${n})"/>`;
+  const ox = br.left + box.clientLeft, oy = br.top + box.clientTop;
+  for(const e of [layer, edge]){ const st = e.style; st.left = (L - ox).toFixed(2) + "px"; st.top = (T - oy).toFixed(2) + "px"; st.width = W.toFixed(2) + "px"; st.height = H.toFixed(2) + "px"; }
+  edge.setAttribute("viewBox", "0 0 " + W.toFixed(2) + " " + H.toFixed(2));
+  // the light angle of the app (--lit-a, 151° by default) across the layer, as the buttons' own rim gradient lies
+  const la = (parseFloat(getComputedStyle(b).getPropertyValue("--lit-a")) || 151) * Math.PI / 180, gx = Math.sin(la) * W / 2, gy = -Math.cos(la) * H / 2;
+  const gr = edge.querySelector("linearGradient");
+  for(const [k, v] of Object.entries({ x1: W / 2 - gx, y1: H / 2 - gy, x2: W / 2 + gx, y2: H / 2 + gy })) gr.setAttribute(k, v.toFixed(2));
+  box.append(layer, edge);
+  G = box._lqg = { box, members: geo, pairs: pairs.map(p => ({ a: map.get(p.i), b: map.get(p.j), gap: p.gap })), layer, edge, W, H,
+    clip: edge.querySelector("clipPath path"), hair: edge.querySelector("path.h"), ring: edge.querySelector("path.r"), lit: new Set(), dirty: true };
   for(const m of geo) m.el._lqg = G;
   _lqg.add(G);
 }
@@ -15267,69 +15329,155 @@ function lqgStart(b){
 function lqgBox(m){
   const st = m.el.style, n = (k, d) => { const v = parseFloat(st.getPropertyValue(k)); return Number.isFinite(v) ? v : d; };
   const sx = n("--psx", 1) * n("--jsx", 1), sy = n("--psy", 1) * n("--jsy", 1);
-  return { cx: m.cx + n("--pdx", 0), cy: m.cy + n("--pdy", 0), w: m.w * sx, h: m.h * sy };
+  return { cx: m.cx + n("--pdx", 0), cy: m.cy + n("--pdy", 0), hw: m.w / 2, hh: m.h / 2, r: m.rad, sx, sy };
 }
-// the neck between two round ends: centres ca, cb, radii ra, rb; k 1 touching ... 0 about to snap. The smooth union's
-// outline leaves each end θ from its crown (0 touching - one capsule - to ~66° thin), waists to rm·(1 - .92(1 - k))
-// half-way, and closes along both outlines 2.5 px inside them (no seam, their rims covered across the join).
-function lqgNeck(ca, cb, ra, rb, k){
-  const dx = cb[0] - ca[0], dy = cb[1] - ca[1], D = Math.hypot(dx, dy) || 1, u = [dx / D, dy / D], v = [-u[1], u[0]];
-  const th = Math.max(.08, (1 - k) * 1.15), sn = Math.sin(th), cs = Math.cos(th), rm = Math.min(ra, rb), wm = rm * (1 - .92 * (1 - k));
-  const P = (c, a, b) => [c[0] + a * u[0] + b * v[0], c[1] + a * u[1] + b * v[1]], f = q => q[0].toFixed(2) + " " + q[1].toFixed(2);
-  const mid = [(ca[0] + cb[0]) / 2, (ca[1] + cb[1]) / 2], ia = Math.max(1, ra - 2.5), ib = Math.max(1, rb - 2.5);
-  const side = s => {                                              // s -1: one side of the axis, +1 the other
-    const ta = P(ca, ra * sn, s * ra * cs), tb = P(cb, -rb * sn, s * rb * cs), m = P(mid, 0, s * wm);
-    const run = Math.max(1, D / 2 - ra * sn), h1 = Math.min(run * .55, rm * .7), h2 = run * .35;
-    return { ta, tb, m, c1: P(ta, h1 * cs, -s * h1 * sn), c2: P(m, -h2, 0), c3: P(m, h2, 0), c4: P(tb, -h1 * cs, -s * h1 * sn) };
-  };
-  const T = side(-1), B = side(1);
-  const inA = q => [ca[0] + (q[0] - ca[0]) * ia / ra, ca[1] + (q[1] - ca[1]) * ia / ra], inB = q => [cb[0] + (q[0] - cb[0]) * ib / rb, cb[1] + (q[1] - cb[1]) * ib / rb];
-  // the closing arcs: along each button's own outline, a hair inside, the short way round (through its point nearest the other)
-  const arc = (c, r, from, to) => { const cr = (from[0] - c[0]) * (to[1] - c[1]) - (from[1] - c[1]) * (to[0] - c[0]); return "A" + r.toFixed(2) + " " + r.toFixed(2) + " 0 0 " + (cr > 0 ? 1 : 0) + " " + f(to); };
-  const a0 = inA(T.ta), a1 = inA(B.ta), b0 = inB(T.tb), b1 = inB(B.tb);
-  lqgNeck.edge = "M" + f(T.ta) + "C" + f(T.c1) + " " + f(T.c2) + " " + f(T.m) + "C" + f(T.c3) + " " + f(T.c4) + " " + f(T.tb)
-    + "M" + f(B.tb) + "C" + f(B.c4) + " " + f(B.c3) + " " + f(B.m) + "C" + f(B.c2) + " " + f(B.c1) + " " + f(B.ta);
-  return "M" + f(a0) + "L" + f(T.ta) + "C" + f(T.c1) + " " + f(T.c2) + " " + f(T.m) + "C" + f(T.c3) + " " + f(T.c4) + " " + f(T.tb)
-    + "L" + f(b0) + arc(cb, ib, b0, b1) + "L" + f(B.tb)
-    + "C" + f(B.c4) + " " + f(B.c3) + " " + f(B.m) + "C" + f(B.c2) + " " + f(B.c1) + " " + f(B.ta)
-    + "L" + f(a1) + arc(ca, ia, a1, a0) + "Z";
+// the signed distance to a button as it is drawn: its rounded box, scaled about its middle
+function lqgSd(B, x, y){
+  const px = Math.abs((x - B.cx) / B.sx) - B.hw + B.r, py = Math.abs((y - B.cy) / B.sy) - B.hh + B.r;
+  const out = Math.hypot(Math.max(px, 0), Math.max(py, 0)) + Math.min(Math.max(px, py), 0) - B.r;
+  return out * Math.min(B.sx, B.sy);
+}
+// the quadratic smooth-min (the reconstruction's, MEASUREMENTS.md: «quadratic smooth-min with k = 40 px»)
+function lqgSmin(a, b, k){ const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k / 4; }
+// the union's outline: marching squares on the field over one box, loops of points
+// two fields on one grid: the union (its outline is the rim) and the union outside the buttons, 2.5 px into them (the
+// neck's glass: their own glass is never doubled, also where two of them overlap)
+function lqgFields(boxes, k, x0, y0, x1, y1, s){
+  const nx = Math.ceil((x1 - x0) / s) + 1, ny = Math.ceil((y1 - y0) / s) + 1, u = new Float32Array(nx * ny), n = new Float32Array(nx * ny);
+  for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
+    const x = x0 + i * s, y = y0 + j * s, edge = i === 0 || j === 0 || i === nx - 1 || j === ny - 1;
+    let d = lqgSd(boxes[0], x, y), m = d;
+    for(let q = 1; q < boxes.length; q++){ const e = lqgSd(boxes[q], x, y); d = lqgSmin(d, e, k); if(e < m) m = e; }
+    u[j * nx + i] = edge ? Math.max(d, .01) : d;                   // closed inside the box
+    n[j * nx + i] = edge ? Math.max(d, .01) : Math.max(d, -2.5 - m);
+  }
+  return { u, n, nx, ny };
+}
+function lqgTrace(v, nx, ny, x0, y0, s){
+  const pt = new Map(), adj = new Map();
+  const at = (key, ax, ay, bx, by, va, vb) => { if(!pt.has(key)){ const t = va / (va - vb); pt.set(key, [ax + (bx - ax) * t, ay + (by - ay) * t]); } return key; };
+  const link = (p, q) => { (adj.get(p) || adj.set(p, []).get(p)).push(q); (adj.get(q) || adj.set(q, []).get(q)).push(p); };
+  for(let j = 0; j < ny - 1; j++) for(let i = 0; i < nx - 1; i++){
+    const a = v[j * nx + i], b = v[j * nx + i + 1], c = v[(j + 1) * nx + i + 1], d = v[(j + 1) * nx + i];
+    const c4 = (a < 0 ? 1 : 0) | (b < 0 ? 2 : 0) | (c < 0 ? 4 : 0) | (d < 0 ? 8 : 0);
+    if(c4 === 0 || c4 === 15) continue;
+    const X = x0 + i * s, Y = y0 + j * s;
+    const top = () => at("h" + i + "," + j, X, Y, X + s, Y, a, b), bot = () => at("h" + i + "," + (j + 1), X, Y + s, X + s, Y + s, d, c);
+    const lef = () => at("v" + i + "," + j, X, Y, X, Y + s, a, d), rig = () => at("v" + (i + 1) + "," + j, X + s, Y, X + s, Y + s, b, c);
+    switch(c4){
+      case 1: case 14: link(lef(), top()); break;
+      case 2: case 13: link(top(), rig()); break;
+      case 3: case 12: link(lef(), rig()); break;
+      case 4: case 11: link(rig(), bot()); break;
+      case 6: case 9: link(top(), bot()); break;
+      case 7: case 8: link(lef(), bot()); break;
+      case 5: case 10: { const m = (a + b + c + d) / 4 < 0; if((c4 === 5) === m){ link(lef(), bot()); link(top(), rig()); } else { link(lef(), top()); link(rig(), bot()); } break; }
+    }
+  }
+  const loops = [], seen = new Set();
+  for(const start of adj.keys()){
+    if(seen.has(start)) continue;
+    const loop = []; let prev = null, cur = start;
+    while(cur != null && !seen.has(cur)){ seen.add(cur); loop.push(pt.get(cur)); const nb = adj.get(cur); const nxt = nb[0] !== prev ? nb[0] : nb[1]; prev = cur; cur = nxt; }
+    if(loop.length > 3) loops.push(loop);
+  }
+  return loops;
+}
+const lqgPath = loops => loops.map(l => "M" + l.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z").join("");
+// a rounded box as a path: middle (cx, cy), half sizes, corner radii
+function lqgRect(cx, cy, w, h, rx, ry){
+  const f = q => q.toFixed(2), l = cx - w, t = cy - h, r = cx + w, b = cy + h;
+  rx = Math.max(0, Math.min(rx, w)); ry = Math.max(0, Math.min(ry, h));
+  return "M" + f(l + rx) + " " + f(t) + "H" + f(r - rx) + "A" + f(rx) + " " + f(ry) + " 0 0 1 " + f(r) + " " + f(t + ry) + "V" + f(b - ry) + "A" + f(rx) + " " + f(ry) + " 0 0 1 " + f(r - rx) + " " + f(b)
+    + "H" + f(l + rx) + "A" + f(rx) + " " + f(ry) + " 0 0 1 " + f(l) + " " + f(b - ry) + "V" + f(t + ry) + "A" + f(rx) + " " + f(ry) + " 0 0 1 " + f(l + rx) + " " + f(t) + "Z";
+}
+function lqgMilk(el, on, v){
+  if(_glass.has(el)) return;                                       // pressed itself: its own light
+  const m = glassMilk(el, on);
+  if(!m) return;
+  for(const [k, x] of Object.entries(v)){ if(x == null) m.style.removeProperty(k); else if(m.style.getPropertyValue(k) !== x) m.style.setProperty(k, x); }
 }
 function lqgDraw(G){
   G.dirty = false;
-  let live = false;
-  for(const q of G.pairs){
-    const A = lqgBox(q.a), B = lqgBox(q.b);
-    // the facing round ends: a capsule's end circle, a round button's own
-    const ra = Math.min(A.w, A.h) / 2, rb = Math.min(B.w, B.h) / 2;
-    const sg = q.row ? (Math.sign(B.cx - A.cx) || 1) : (Math.sign(B.cy - A.cy) || 1);
-    const ca = q.row ? [A.cx + sg * (A.w / 2 - ra), A.cy] : [A.cx, A.cy + sg * (A.h / 2 - ra)];
-    const cb = q.row ? [B.cx - sg * (B.w / 2 - rb), B.cy] : [B.cx, B.cy - sg * (B.h / 2 - rb)];
-    const gap = Math.hypot(cb[0] - ca[0], cb[1] - ca[1]) - ra - rb, rm = Math.min(ra, rb);
-    const join = Math.min(.3 * rm, .75 * q.gap), brk = Math.min(.6 * rm, .9 * q.gap);
-    if(!q.on && gap < join) q.on = true; else if(q.on && gap > brk) q.on = false;
-    if(!q.on){ if(q.el && q.el._np){ q.el._np = ""; q.el.style.setProperty("--np", "inset(50%)"); q.ed.firstChild.setAttribute("d", ""); } continue; }
-    live = true;
-    if(!q.el || !q.el.isConnected){
-      q.el = document.createElement("i"); q.el.className = "lq-neck"; q.el.setAttribute("aria-hidden", "true");
-      q.ed = document.createElementNS("http://www.w3.org/2000/svg", "svg"); q.ed.setAttribute("class", "lq-edge"); q.ed.setAttribute("aria-hidden", "true");
-      q.ed.appendChild(document.createElementNS("http://www.w3.org/2000/svg", "path"));
-      G.box.append(q.el, q.ed);
-    }
-    const d = 'path("' + lqgNeck(ca, cb, ra, rb, clamp(1 - gap / brk, 0, 1)) + '")';
-    if(q.el._np !== d){ q.el._np = d; q.el.style.setProperty("--np", d); q.ed.firstChild.setAttribute("d", lqgNeck.edge); }
+  const B = G.members.map(lqgBox);
+  // which neighbours have flowed together: the smooth union's neck exists below k/2 apart (gap of the facing ends)
+  const par = B.map((_, i) => i), find = i => par[i] === i ? i : (par[i] = find(par[i]));
+  const link = [];
+  for(const p of G.pairs){
+    if(G.members[p.a].pm && G.members[p.a].el.closest(".chpills.goo") || G.members[p.b].pm && G.members[p.b].el.closest(".chpills.goo")) continue;
+    const A = B[p.a], C = B[p.b], rm = Math.min(A.r * Math.min(A.sx, A.sy), C.r * Math.min(C.sx, C.sy)) || 1;
+    const k = Math.min(1.2 * rm, 1.5 * p.gap);
+    // the gap between the two drawn shapes, along the line of their middles (both distances at their nearest points)
+    const mx = (A.cx + C.cx) / 2, my = (A.cy + C.cy) / 2, gap = lqgSd(A, mx, my) + lqgSd(C, mx, my);
+    const f = clamp(1 - gap / (k / 2), 0, 1);                       // the neck: 0 as it snaps, 1 touching
+    if(f > 0){ par[find(p.a)] = find(p.b); link.push({ a: p.a, b: p.b, f, k }); }
   }
-  return live;
+  const comps = new Map();
+  for(const l of link){ const r = find(l.a); if(!comps.has(r)) comps.set(r, { idx: new Set(), k: Infinity, links: [] }); const c = comps.get(r); c.idx.add(l.a); c.idx.add(l.b); c.k = Math.min(c.k, l.k); c.links.push(l); }
+  let d = "", holes = "", lightOn = false;
+  const merged = new Set(), lit = new Map(), cut = new Map();
+  for(const c of comps.values()){
+    const bs = [...c.idx].map(i => B[i]);
+    const x0 = Math.max(0, Math.min(...bs.map(q => q.cx - q.hw * q.sx)) - c.k), x1 = Math.min(G.W, Math.max(...bs.map(q => q.cx + q.hw * q.sx)) + c.k);
+    const y0 = Math.max(0, Math.min(...bs.map(q => q.cy - q.hh * q.sy)) - c.k), y1 = Math.min(G.H, Math.max(...bs.map(q => q.cy + q.hh * q.sy)) + c.k);
+    const F = lqgFields(bs, c.k, x0, y0, x1, y1, 1.5);
+    d += lqgPath(lqgTrace(F.u, F.nx, F.ny, x0, y0, 1.5));
+    holes += lqgPath(lqgTrace(F.n, F.nx, F.ny, x0, y0, 1.5));
+    for(const i of c.idx) merged.add(i);
+    // OVERLAPPING (a finger pulls one onto the other): one body - the one painted later stops 1 px inside the other's
+    // outline, so the overlap is that one glass alone (with its own lens), never two panes on top of each other
+    for(const l of c.links){
+      const lo = Math.min(l.a, l.b), hi = Math.max(l.a, l.b), A = B[lo], C = B[hi], M = G.members[hi];
+      const mx = (A.cx + C.cx) / 2, my = (A.cy + C.cy) / 2;
+      if(lqgSd(A, mx, my) + lqgSd(C, mx, my) >= 0) continue;
+      const k2 = 1 / C.sx, k3 = 1 / C.sy;
+      cut.set(hi, (cut.get(hi) || "") + lqgRect((A.cx - C.cx) * k2 + M.w / 2, (A.cy - C.cy) * k3 + M.h / 2, (A.hw * A.sx - 1) * k2, (A.hh * A.sy - 1) * k3, (A.r * A.sx - 1) * k2, (A.r * A.sy - 1) * k3));
+    }
+    // the light: from every pressed button of the set across each joined neck, as thick as the neck is
+    const src = [...c.idx].filter(i => _glass.has(G.members[i].el) && G.members[i].el._gs && G.members[i].el._gs.m > .005);
+    for(const s of src){
+      const g = G.members[s].el._gs, amt = new Map([[s, 1]]), queue = [s];
+      while(queue.length){ const i = queue.shift(); for(const l of c.links){ const o = l.a === i ? l.b : l.b === i ? l.a : -1; if(o < 0) continue; const a = amt.get(i) * l.f; if(a > (amt.get(o) || 0)){ amt.set(o, a); queue.push(o); } } }
+      const fx = G.members[s].cx - G.members[s].w / 2 + g.fx, fy = G.members[s].cy - G.members[s].h / 2 + g.fy;   // the finger, in the layer
+      const mc = g.mc ? "calc(" + g.mc + " * var(--lgh,1))" : "";
+      for(const [i, a] of amt){
+        if(i === s) continue;
+        const k = g.m * a; if(!(k > (lit.get(i) ? lit.get(i).k : 0))) continue;
+        const M = G.members[i];
+        lit.set(i, { k, v: { "--mk": k.toFixed(3), "--mx": (fx - (M.cx - M.w / 2)).toFixed(1) + "px", "--my": (fy - (M.cy - M.h / 2)).toFixed(1) + "px", "--mr": g.R + "px", "--mb": g.mb + "px", "--mc": mc || null } });
+      }
+      // over the neck: the light as it spreads, faded by the thinnest neck it crosses
+      const nk = g.m * Math.max(...c.links.map(l => l.f));
+      if(nk > .005){ lightOn = true; const ls = G.layer.style, v = { "--nk": nk.toFixed(3), "--nx": fx.toFixed(1) + "px", "--ny": fy.toFixed(1) + "px", "--nr": g.R + "px", "--nmc": mc || "var(--mc)" };
+        for(const [k2, x] of Object.entries(v)) if(ls.getPropertyValue(k2) !== x) ls.setProperty(k2, x); }
+    }
+  }
+  if(!lightOn && G.layer.style.getPropertyValue("--nk") !== "0") G.layer.style.setProperty("--nk", "0");
+  G.members.forEach((M, i) => {
+    const on = merged.has(i);
+    if(M.el.classList.contains("lq-m") !== on) M.el.classList.toggle("lq-m", on);
+    const L = lit.get(i);
+    if(L) lqgMilk(M.el, true, L.v); else if(G.lit.has(i)) lqgMilk(M.el, false, {});
+    const ct = cut.get(i), cp = ct ? 'path(evenodd,"M-60 -60H' + (M.w + 60) + "V" + (M.h + 60) + 'H-60Z' + ct + '")' : "";
+    if((M.el._lqc || "") !== cp){ M.el._lqc = cp; M.el.style.clipPath = cp; }
+  });
+  G.lit = new Set(lit.keys());
+  const clip = holes ? 'path(evenodd,"' + holes + '")' : "inset(50%)";
+  if(G.layer._np !== clip){ G.layer._np = clip; G.layer.style.setProperty("--np", clip); }
+  if(G.hair._d !== d){ G.hair._d = d; G.hair.setAttribute("d", d); G.ring.setAttribute("d", d); G.clip.setAttribute("d", d); }
+  return !!d;
+}
+function lqgClear(G){
+  G.layer.remove(); G.edge.remove();
+  G.members.forEach((M, i) => { M.el.classList.remove("lq-m"); if(G.lit.has(i)) lqgMilk(M.el, false, {}); if(M.el._lqc){ M.el._lqc = ""; M.el.style.clipPath = ""; } if(M.el._lqg === G) M.el._lqg = null; });
+  if(G.box._lqg === G) G.box._lqg = null;
 }
 function lqgFlush(){
   for(const G of _lqg){
     if(!G.box.isConnected){ _lqg.delete(G); continue; }
     if(!G.dirty) continue;
     const pressed = G.members.some(m => _glass.has(m.el));
-    if(!lqgDraw(G) && !pressed){
-      for(const q of G.pairs) if(q.el){ q.el.remove(); q.ed.remove(); q.el = q.ed = null; }
-      _lqg.delete(G); G.box._lqg = null;
-      for(const m of G.members) if(m.el._lqg === G) m.el._lqg = null;
-    }
+    if(!lqgDraw(G) && !pressed){ lqgClear(G); _lqg.delete(G); }
   }
 }
 

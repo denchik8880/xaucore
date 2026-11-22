@@ -513,7 +513,15 @@ test('the clear lens has 1.5x elliptic ends in every theme (dark and Aurora are 
 
 test('light: a long caption has a third of the bar to spare each side, an end pill keeps the bar’s gap', () => {
   const labels = [34, 42, 43, 55, 70], { a } = harness({ labels, dataset: {} }), t = a.NB.track, gap = (t.height - t.restH) / 2;
-  near(t.widths[1] * t.tabW, Math.max(120 * 64 / 94, 42 + .67 * 64));
+  near(t.widths[1] * t.tabW, Math.max(120 * 64 / 94, 42 * t.fontSize / 10.5 + .67 * 64));
+  // 2026-11-22 (20.png): the chosen end tab's caption is wholly in its pill, also at its foot where the round end curves in;
+  // too long for its slot, the pill keeps the bar's gap and grows inward, the tab with it, 8 px clear of the next caption
+  const R = t.restH / 2, fs = t.fontSize, dy = (33 + fs) / 2 - .12 * fs, inset = R - Math.sqrt(R * R - dy * dy);
+  const c4 = t.centres[4] * t.tabW, half = 70 * fs / 10.5 / 2;
+  assert.ok(t.widths[4] * t.tabW / 2 - half >= inset + 1.5 * Math.min(384 / 555, 64 / 94) - 1e-6, 'the caption inside the round end');
+  near(c4 + t.widths[4] * t.tabW / 2, t.width - gap, 1e-6);
+  assert.ok(c4 - half - (t.centres[3] * t.tabW + 55 * fs / 10.5 / 2) >= 8 * Math.min(384 / 555, 64 / 94) - 1e-6, 'clear of the next caption');
+  assert.ok(fs >= 9);
   const last = a.navBox(4, 5);
   assert.ok((last.left + last.sx) * t.tabW <= t.width - gap + 1e-6, 'the end pill stays inside the bar');
   // five tabs (2026-11-21): the end slot is narrower than the resting pill's minimum, so the bar's end caps it
