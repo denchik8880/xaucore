@@ -515,18 +515,35 @@ test('light: a long caption has a third of the bar to spare each side, an end pi
   const labels = [34, 42, 43, 55, 70], { a } = harness({ labels, dataset: {} }), t = a.NB.track, gap = (t.height - t.restH) / 2;
   near(t.widths[1] * t.tabW, Math.max(120 * 64 / 94, 42 * t.fontSize / 10.5 + .67 * 64));
   // 2026-11-22 (20.png): the chosen end tab's caption is wholly in its pill, also at its foot where the round end curves in;
-  // too long for its slot, the pill keeps the bar's gap and grows inward, the tab with it, 8 px clear of the next caption
+  // too long for its slot, the pill keeps the bar's gap and grows inward, the tab with it, 3 px clear of the next caption
   const R = t.restH / 2, fs = t.fontSize, dy = (33 + fs) / 2 - .12 * fs, inset = R - Math.sqrt(R * R - dy * dy);
   const c4 = t.centres[4] * t.tabW, half = 70 * fs / 10.5 / 2;
   assert.ok(t.widths[4] * t.tabW / 2 - half >= inset + 1.5 * Math.min(384 / 555, 64 / 94) - 1e-6, 'the caption inside the round end');
   near(c4 + t.widths[4] * t.tabW / 2, t.width - gap, 1e-6);
-  assert.ok(c4 - half - (t.centres[3] * t.tabW + 55 * fs / 10.5 / 2) >= 8 * Math.min(384 / 555, 64 / 94) - 1e-6, 'clear of the next caption');
-  assert.ok(fs >= 9);
+  assert.ok(c4 - half - (t.centres[3] * t.tabW + 55 * fs / 10.5 / 2) >= 3 - 1e-6, 'clear of the next caption');
+  assert.ok(fs >= 8.5);
   const last = a.navBox(4, 5);
   assert.ok((last.left + last.sx) * t.tabW <= t.width - gap + 1e-6, 'the end pill stays inside the bar');
   // five tabs (2026-11-21): the end slot is narrower than the resting pill's minimum, so the bar's end caps it
   const room = 2 * (t.width - t.centres[4] * t.tabW - gap);
   assert.ok(last.sx * t.tabW >= Math.min(105 * 64 / 94, room) - 1e-6);
+});
+
+test('no resting pill reaches a neighbour, and each holds its whole caption (22.png; the five languages as measured)', () => {
+  const LANGS = { ru: [33.8, 44.9, 45.6, 63.8, 57.1], en: [41.4, 34, 46.7, 57.3, 41.9], uk: [32, 41.2, 38.8, 60.2, 77.4], fr: [44.2, 58.7, 46.7, 63.8, 58.1], tr: [46.4, 44, 59.1, 54.3, 36.3] };
+  for (const [lang, labels] of Object.entries(LANGS)) for (const [w, h] of [[384, 64]]) {
+    const { a } = harness({ labels, dataset: {} }), t = a.navTrackBuild(w, h, labels), fs = t.fontSize, f = fs / 10.5;
+    const R = t.restH / 2, dy = (33 + fs) / 2 - .12 * fs, inset = R - Math.sqrt(R * R - dy * dy);
+    assert.ok(fs >= 8.5, lang + ' type ' + fs);
+    for (let i = 0; i < 5; i++) {
+      const c = t.centres[i] * t.tabW, half = t.widths[i] * t.tabW / 2;
+      assert.ok(half - labels[i] * f / 2 >= inset - 1e-6, `${lang} ${w}: tab ${i}'s caption inside its pill`);
+      for (const j of [i - 1, i + 1]) if (j >= 0 && j < 5) {
+        const cj = t.centres[j] * t.tabW, reachJ = Math.max(labels[j] * f / 2, 15);
+        assert.ok(Math.abs(cj - c) - half - reachJ >= 3 - 1e-6, `${lang} ${w}: tab ${i}'s pill clear of tab ${j}`);
+      }
+    }
+  }
 });
 
 test('light: landing on an end tab the lens lies flush with the bar’s end, never out past it', () => {
