@@ -10945,7 +10945,7 @@ const NAV_MO = Object.freeze({ pressDelay: 25, lead: 24, trail: 14, trailZ: .8, 
    белой, в точности 1 в 1, так же и на сиянии, с тем же переломлением и движением»): dark and Aurora run this very profile -
    the same pill, lens, springs, stretch, lift and optics - and only their colours are their own. (NAV_MO stays the base it
    is built on; a document without a dataset - the tests' bare harness - still runs it.) */
-const NAV_MO_LIGHT = Object.freeze({ ...NAV_MO, lead: 15.9, leadZ: .48, trail: 14.4, trailZ: 1.09, tall: .07, oval: .5 });
+const NAV_MO_LIGHT = Object.freeze({ ...NAV_MO, lead: 15.9, leadZ: .48, trail: 14.4, trailZ: 1.09, tall: .07, oval: 0 });   // oval 0: a tap draws the same capsule as a drag (user 2026-11-22)
 function navLightBar(){ const d = typeof document !== "undefined" && document.documentElement && document.documentElement.dataset; return !!d; }   // every theme (above)
 function navMo(){ return navLightBar() ? NAV_MO_LIGHT : NAV_MO; }
 function navBubKick(){ if(!NB.raf){ NB.t = 0; NB.raf = requestAnimationFrame(navBubFrame); } }
@@ -11167,7 +11167,7 @@ function navMarkDeparture(to){
 // horizontal radius NAV_OVAL times the vertical one (navOval) - the lens in flight and landing reads as a flattened ellipse,
 // not a capsule with a long flat top; a squarer squircle (corner .4) I had drawn for it went the other way. Pressed into
 // an end of the bar the outer end follows the bar's own round end, so there it stays round.
-const NAV_OVAL = .35;
+const NAV_OVAL = 0;   // 2026-11-22 (user: «когда просто на нее нажать, то она такой формы … а когда перетягиваем, то уже нормальной»): a tap is the drag's capsule, no oval
 // (the dark theme had a lens and a pill of its own - NAV_DARK, fitted to a WhatsApp video 2026-11-17/18 and to cTrader's
 // dark bar w3 2026-11-21: a black pill .70 of the bar and 1.45 bar heights long, a ρ^7 fold, no colour. Since 2026-11-21
 // every theme is the light reference's, colours aside: see NAV_MO_LIGHT.)
@@ -11473,11 +11473,10 @@ function navSpectrumSync(o, active){
     const plain = Array(20).fill(0); plain[i*6] = plain[18] = 1;
     set(node, "values", (active ? o.spectrum.channels[i] : plain).join(" "));
   });
-  if(active) set(o.delta, "values", o.spectrum.delta.join(" "));
+  if(active && o.delta) set(o.delta, "values", o.spectrum.delta.join(" "));
   // Keep the original full-colour middle sample. Add only wavelength differences, so blue count
   // badges, their white digits, and the pulsing background retain their colours inside the lens.
-  set(o.output, "in", active ? "sample1" : "spectrum");
-  set(o.output, "k3", active ? 2 : 0); set(o.output, "k4", active ? -256/255 : 0);
+  if(o.output){ set(o.output, "in", active ? "sample1" : "spectrum"); set(o.output, "k3", active ? 2 : 0); set(o.output, "k4", active ? -256/255 : 0); }
 }
 function navOpticsBind(bar){
   const source = bar.querySelector(".nr-optics");
@@ -11508,25 +11507,29 @@ function navOpticsBind(bar){
     // three wavelengths, each bent by its own amount, each its own colour channel: hard, saturated bands where they
     // part, as on the reference (2026-11-16: a blurred "soft" fringe was tried and wiped the colour out - the user:
     // «Вы убрали дисперсию, так нельзя»)
+    // ONE BEND FOR THE THREE CHANNELS (2026-11-22, measured on the user's OnePlus 9R: this filter alone held a finger drag on
+    // the bar at ~37 fps - without it 68). Every profile now bends the three wavelengths by the same amount (the fringe is
+    // the red sample's eroded rim, below), so the three displacements, their three backings and the always-zero spectral
+    // delta were exact copies and a pass-through: the same pixels from 15 primitives instead of 21. Each primitive is a
+    // render-target switch on a phone's tiled GPU - the count is what costs. The coverage still merges the sample three
+    // times over (as before), so its alpha is unchanged to the bit.
+    add("feDisplacementMap", { in: "SourceGraphic", in2: "normals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "inkSample0" });
+    const sample = add("feMerge", { result: "sample0" });
+    for(const input of ["navigationBacking", "inkSample0"]){ const node = document.createElementNS(NS, "feMergeNode"); node.setAttribute("in", input); sample.appendChild(node); }
+    // light: the red sample's letters a little bolder (navLens sets the radius) - a pale cyan rim round each glyph
+    add("feMorphology", { in: "sample0", operator: "erode", radius: 0, result: "sample0x" });
     for(let i = 0; i < 3; i++){
-      add("feDisplacementMap", { in: "SourceGraphic", in2: "normals", xChannelSelector: "R", yChannelSelector: "G", scale: 0, result: "inkSample" + i });
-      const sample = add("feMerge", { result: "sample" + i });
-      for(const input of ["navigationBacking", "inkSample" + i]){ const node = document.createElementNS(NS, "feMergeNode"); node.setAttribute("in", input); sample.appendChild(node); }
-      // light: the red sample's letters a little bolder (navLens sets the radius) - a pale cyan rim round each glyph
-      if(!i) add("feMorphology", { in: "sample0", operator: "erode", radius: 0, result: "sample0x" });
       const matrix = Array(20).fill(0); matrix[i * 6] = 1; matrix[18] = 1;
-      add("feColorMatrix", { in: "sample" + i, type: "matrix", values: matrix.join(" "), result: "channel" + i });
+      add("feColorMatrix", { in: "sample0", type: "matrix", values: matrix.join(" "), result: "channel" + i });
     }
     add("feBlend", { in: "channel0", in2: "channel1", mode: "screen", result: "rg" });
     add("feBlend", { in: "rg", in2: "channel2", mode: "screen", result: "spectrum" });
-    add("feColorMatrix", { in: "spectrum", type: "matrix", values: Array(20).fill(0).join(" "), result: "spectralDelta" });
-    add("feComposite", { in: "spectrum", in2: "spectralDelta", operator: "arithmetic", k2: 1, k3: 0, k4: 0, result: "navigationColour" });
     // …and the rim kept: light, the coverage takes the red sample grown by the same radius (navLens switches its input)
     add("feMorphology", { in: "inkSample0", operator: "dilate", radius: 0, result: "inkSample0x" });
     const coverage = add("feMerge", { result: "inkCoverage" });
-    for(let i = 0; i < 3; i++){ const node = document.createElementNS(NS, "feMergeNode"); node.setAttribute("in", "inkSample" + i); coverage.appendChild(node); }
+    for(let i = 0; i < 3; i++){ const node = document.createElementNS(NS, "feMergeNode"); node.setAttribute("in", "inkSample0"); coverage.appendChild(node); }
     add("feComposite", { in: "navigationBacking", in2: "inkCoverage", operator: "out", result: "navigationEmpty" });
-    add("feComposite", { in: "navigationColour", in2: "navigationEmpty", operator: "arithmetic", k2: 1, k3: -1, result: "navigationRGBA" });
+    add("feComposite", { in: "spectrum", in2: "navigationEmpty", operator: "arithmetic", k2: 1, k3: -1, result: "navigationRGBA" });
     _lgDefs.appendChild(filter);
   }
   const image = filter.querySelector("feImage"), matrices = [...filter.querySelectorAll("feColorMatrix")], result = name => filter.querySelector('[result="' + name + '"]');

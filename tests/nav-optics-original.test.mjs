@@ -48,7 +48,7 @@ test('one generated rim field, drawn once, is the only foreground refraction fie
   h.navOpticsBind(h.bar);h.navLens(.5);assert.equal(h.counts.canvases.length,1);
   assert.equal(h.filter.querySelectorAll('feImage').length,1);
   assert.equal(h.filter.querySelector('feImage').getAttribute('href'),'data:image/png;base64,GENERATED');
-  assert.equal(h.ctx.NB.optical.dms.length,3);
+  assert.equal(h.ctx.NB.optical.dms.length,1,'one bend serves the three channels (2026-11-22: they were always bent alike)');
   for(const dm of h.ctx.NB.optical.dms)assert.equal(dm.getAttribute('in2'),'normals');
   assert.ok(!html.includes('navFieldsPrepare')&&!html.includes('navFieldAt')&&!html.includes('nav-optics-fields-v9.bin'));
   assert.equal(h.NAV_OPTICS.reach,.18);assert.equal(h.NAV_OPTICS.reachMotion,.05,'in flight the reference bends about as softly as at rest (2026-11-17)');assert.equal(h.NAV_OPTICS.gamma,6);
@@ -88,7 +88,7 @@ test('transparent glyph coverage and RGB dispersion remain intact',()=>{
 });
 
 test('the saved refraction settings control the field without changing drop geometry',()=>{
-  const h=fixture(),shape={...h.box},scale=()=>+h.ctx.NB.optical.dms[1].getAttribute('scale');
+  const h=fixture(),shape={...h.box},scale=()=>+h.ctx.NB.optical.dms[0].getAttribute('scale');
   const O=h.NAV_OPTICS,w=384/5*h.box.sx,hh=55*h.box.sy,half=Math.max(w,hh)/2,base=2*O.reach*O.gmax*half;
   assert.ok(Math.abs(scale()-base)<.001,'scale '+scale()+' vs '+base);
   h.ctx.LG_UI.refract=.74;h.navLens(1);assert.ok(Math.abs(scale()-base*.74)<.001);

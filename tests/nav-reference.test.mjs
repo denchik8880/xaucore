@@ -184,7 +184,7 @@ test('leaving an end tab the drop comes off the wall at once and fills the bar i
     // nothing pulls it back to the wall: its centre only ever moves towards the new tab
     const centre = s => s.left + s.w / T.tabW / 2;                    // the box's centre, after the wall's pull
     for (let i = 1; i < samples.length && samples[i].time < 250; i++) assert.ok((centre(samples[i]) - centre(samples[i - 1])) * (to - from) >= -1e-9, `moves on at ${samples[i].time}`);
-    assert.ok(a.navOval(1) > 1.3, 'clear and off the wall it is the oval of the reference, not the end capsule');
+    near(a.navOval(1), 1, 1e-9);   // a capsule clear or not since 2026-11-22 (a tap draws the drag's shape)
   }
 });
 
@@ -503,11 +503,11 @@ test('light: the clear lens is ~7 % taller than its pill in flight as landed, an
   near(samples.at(-1).h, rest.h, 1e-6);
 });
 
-test('the clear lens has 1.5x elliptic ends in every theme (dark and Aurora are the light bar since 2026-11-21)', () => {
+test('the clear lens is a capsule in every theme, tapped as dragged (user 2026-11-22: a tap drew a pointed oval)', () => {
   for (const dataset of [{}, { theme: 'dark' }, { theme: 'dark', tone: 'aurora' }]) {
     const { a } = harness({ labels: PREVIEW_LABELS, dataset });
     Object.assign(a.NB, { a: 1, b: 2, u: 1, target: 1 });
-    near(a.navOval(1), 1.5, 1e-9); near(a.navOval(0), 1, 1e-9);
+    near(a.navOval(1), 1, 1e-9); near(a.navOval(0), 1, 1e-9);
   }
 });
 
