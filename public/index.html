@@ -594,21 +594,32 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
    the neck thins and snaps - the smooth-min union of the earlier reconstruction and of the user's reference merge_ref.mp4
    (lqgDraw). While joined it is ONE drop (2026-11-22, 21.png: «м1» half under «BOOM1000», its label cut, a darker pane
    inside): one body - the drop's glass under the buttons (.lq-neck, first in their box), their own bodies, sheen, rims,
-   shadows and lenses off (.lq-m), so their labels and icons always stand whole on it; one rim round the
+   shadows and lenses off (.lq-on), so their labels and icons always stand whole on it; one rim round the
    whole outline (.lq-edge: the hairline outside, the lit ring inside); one light (--nk) from the finger over all of it. */
 .lq-neck,.lq-edge{display:none}
+.lq-neck::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--lg-sheen) 0%,transparent 48%,var(--lg-foot) 100%);opacity:var(--lqw,0)}
 :root[data-glass="on"] .lq-neck{display:block;position:absolute;pointer-events:none;clip-path:var(--np,inset(50%));
-  background:radial-gradient(var(--nr,80px) circle at var(--nx,50%) var(--ny,50%),rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0))) 0%,rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0) * .6)) 45%,rgba(255,255,255,0) 100%),
-    linear-gradient(180deg,var(--lg-sheen) 0%,transparent 48%,var(--lg-foot) 100%),var(--cap-glass);
+  background:radial-gradient(var(--nr,80px) circle at var(--nx,50%) var(--ny,50%),rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0))) 0%,rgba(255,255,255,calc(var(--nmc,.3) * var(--nk,0) * .6)) 45%,rgba(255,255,255,0) 100%),var(--cap-glass);
   -webkit-backdrop-filter:blur(1px) saturate(1.35) brightness(1.03);backdrop-filter:blur(1px) saturate(1.35) brightness(1.03)}
-:root[data-glass="on"] .lq-edge{display:block;position:absolute;overflow:visible;pointer-events:none;z-index:7}
+:root[data-glass="on"] .lq-edge{display:block;position:absolute;overflow:visible;pointer-events:none;z-index:7;max-width:none;max-height:none}   /* (every svg is max-width:100% - of the 40 px zoom column here: the outline was drawn squeezed) */
 .lq-edge path{fill:none}
 .lq-edge .h{stroke:var(--lg-line);stroke-width:1}
+/* the buttons' depth, round the whole drop: their lift outside it (--lg-lift1, as soft strokes outside the outline) and
+   their inner shade inside it (--lg-body's soft bands) - without them a light drop on a light chart has no edge at all */
+.lq-edge .sh{transform:translateY(2px)}
+/* (five thin steps each, so they read as one soft gradient, not rings) */
+.lq-edge .sh path{stroke:rgba(16,24,40,.016)}.lq-edge .o1{stroke-width:3}.lq-edge .o2{stroke-width:7}.lq-edge .o3{stroke-width:13}
+.lq-edge .in path{stroke:rgba(16,24,40,.008)}.lq-edge .i1{stroke-width:3}.lq-edge .i2{stroke-width:6}.lq-edge .i3{stroke-width:10}.lq-edge .i4{stroke-width:15}.lq-edge .i5{stroke-width:21}
+:root[data-theme="dark"] .lq-edge .sh path{stroke:rgba(0,0,0,.14)}
+:root[data-theme="dark"] .lq-edge .in path{stroke:rgba(0,0,0,.035)}
 .lq-edge .r{stroke-width:3}
 .lq-edge .s1{stop-color:var(--lg-rim)}.lq-edge .s0{stop-color:var(--lg-rim);stop-opacity:0}.lq-edge .sd{stop-color:var(--lg-rimd)}.lq-edge .s2{stop-color:var(--lg-rim2)}
-/* a button inside the union: its label and icon on the drop's body, nothing of its own glass but its lens */
-:root[data-glass="on"] .lq-m{background:transparent!important;box-shadow:none!important}
-:root[data-glass="on"] .lq-m::before,:root[data-glass="on"] .lq-m::after{opacity:0!important}
+/* a button of a pair being pressed: its label and icon on the drop's body; its rim is the drop's; its lens (a child) and
+   its sheen fade as the neck thickens (--lqw), the drop's sheen comes in */
+:root[data-glass="on"] .lq-on{background:transparent!important;box-shadow:none!important}
+:root[data-glass="on"] .lq-on::after{opacity:0!important}
+:root[data-glass="on"] .lq-on::before{opacity:calc(1 - var(--lqw,0))!important}
+.lq-lens{position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none}
 .chartinfo{position:absolute;left:16px;top:62px;max-width:calc(100% - 90px);z-index:4;font-size:10px;font-weight:600;color:var(--ink2);background:var(--chart-glass);border-radius:8px;padding:4px 7px;pointer-events:none;line-height:1.35;white-space:normal}
 .chartinfo[hidden]{display:none}
 /* «›|» back to the newest bar: bottom-right of the plot, beside the price axis (right is set in drawChart).
@@ -15291,19 +15302,25 @@ const glassUp = e => {
 document.addEventListener("pointerup", glassUp, { capture: true, passive: true });
 document.addEventListener("pointercancel", glassUp, { capture: true, passive: true });
 /* LIQUID GROUPS (the union: see .lq-neck). A group is the small round glass buttons and capsules that sit together in one
-   box - the chart's «+ / −», the gear beside «−», its two pills, the mini chart's tools, an app bar's round buttons.
+   box that belong together - the chart's «+ / −» and its two pills (LQG_PAIR).
    Measured once on the press (one layout); each frame of the press spring (glassFrame) it reads the buttons' own press
    values (--psx/--psy swell and stretch, --pdx/--pdy rubber band) and, for every set of neighbours that has flowed
    together, draws their union as the earlier reconstruction did: the quadratic smooth-min of their distance fields
    (k: 1.2 of the smaller radius, never more than 1.5 resting gaps - at rest they are always two, ≥ 1 px apart), its
    outline traced on a 1.5 px grid (marching squares). The union is ONE drop while they are joined:
-   - one rim: the buttons' own rims and inner bands are off (.lq-m) and the rim - the glass's hairline outside, its lit
+   - one rim: the buttons' own rims and inner bands are off (.lq-on) and the rim - the glass's hairline outside, its lit
      ring inside, lit from the app's one light - runs once round the whole outline (.lq-edge);
    - one light (2026-11-21, «свет должен перетекать»): the press's milk spreads over the neck and into the neighbour, as
      it spreads over a single button - by how thick the neck is, gone the frame it snaps.
    The neck's glass fills the union outside the buttons (and 2.5 px into them): their own lens, bend and colour stay.
    Clip-path, a few attributes and opacity per frame; no layout. */
-const LQG_BOX = ".chartbox, .mini-tools, .appbar";
+/* ONLY BUTTONS THAT BELONG TOGETHER (user 2026-11-22, ours_merge.mp4: «минус и настройки вообще оно же не должно что бы
+   соединяться»; the instrument pill pulled up also swallowed «−» and the gear): «+» with «−» (one control, the zoom), the
+   instrument's pill with the timeframe's (one row). Nothing else on screen merges: the gear, «⛶», «›|», the mini chart's
+   «⛶» and timeframe, the app bar's round buttons each stay their own drop. */
+const LQG_BOX = ".chzoom, .chpills";
+const LQG_PAIR = (a, b) => (a.matches(".chzoom button") && b.matches(".chzoom button"))
+  || (a.matches(".chpill.sym") && b.matches('.chpill[data-act="charttf"]')) || (b.matches(".chpill.sym") && a.matches('.chpill[data-act="charttf"]'));
 const _lqg = new Set();
 let _lqgN = 0;
 function lqgStart(b){
@@ -15320,7 +15337,7 @@ function lqgStart(b){
     return ov && gap >= 0 && gap <= 16 ? gap : -1;
   };
   const pairs = [];
-  for(let i = 0; i < rest.length; i++) for(let j = i + 1; j < rest.length; j++){ const g = near(rest[i], rest[j]); if(g >= 0) pairs.push({ i, j, gap: Math.max(1, g) }); }
+  for(let i = 0; i < rest.length; i++) for(let j = i + 1; j < rest.length; j++){ if(!LQG_PAIR(rest[i].el, rest[j].el)) continue; const g = near(rest[i], rest[j]); if(g >= 0) pairs.push({ i, j, gap: Math.max(1, g) }); }
   const used = new Set(pairs.flatMap(p => [p.i, p.j]));
   if(!used.size) return;
   let G = box._lqg;
@@ -15335,9 +15352,9 @@ function lqgStart(b){
   const NS = "http://www.w3.org/2000/svg", n = ++_lqgN;
   const layer = document.createElement("i"); layer.className = "lq-neck"; layer.setAttribute("aria-hidden", "true");
   const edge = document.createElementNS(NS, "svg"); edge.setAttribute("class", "lq-edge"); edge.setAttribute("aria-hidden", "true");
-  edge.innerHTML = `<defs><clipPath id="lqC${n}"><path/></clipPath><linearGradient id="lqR${n}" gradientUnits="userSpaceOnUse"><stop offset="0" class="s1"/><stop offset=".28" class="s0"/><stop offset=".5" class="sd"/><stop offset=".72" class="s0"/><stop offset="1" class="s2"/></linearGradient></defs><path class="h"/><path class="r" stroke="url(#lqR${n})" clip-path="url(#lqC${n})"/>`;
+  edge.innerHTML = `<defs><clipPath id="lqC${n}"><path/></clipPath><clipPath id="lqO${n}"><path clip-rule="evenodd"/></clipPath><linearGradient id="lqR${n}" gradientUnits="userSpaceOnUse"><stop offset="0" class="s1"/><stop offset=".28" class="s0"/><stop offset=".5" class="sd"/><stop offset=".72" class="s0"/><stop offset="1" class="s2"/></linearGradient></defs><g class="sh" clip-path="url(#lqO${n})"><path class="o1"/><path class="o2"/><path class="o3"/></g><g class="in" clip-path="url(#lqC${n})"><path class="i1"/><path class="i2"/><path class="i3"/><path class="i4"/><path class="i5"/></g><path class="h"/><path class="r" stroke="url(#lqR${n})" clip-path="url(#lqC${n})"/>`;
   const ox = br.left + box.clientLeft, oy = br.top + box.clientTop;
-  for(const e of [layer, edge]){ const st = e.style; st.left = (L - ox).toFixed(2) + "px"; st.top = (T - oy).toFixed(2) + "px"; st.width = W.toFixed(2) + "px"; st.height = H.toFixed(2) + "px"; }
+  for(const e of [layer, edge]){ const st = e.style; for(const [k, v] of [["left", L - ox], ["top", T - oy], ["width", W], ["height", H]]) st.setProperty(k, v.toFixed(2) + "px", "important"); }
   edge.setAttribute("viewBox", "0 0 " + W.toFixed(2) + " " + H.toFixed(2));
   // the light angle of the app (--lit-a, 151° by default) across the layer, as the buttons' own rim gradient lies
   const la = (parseFloat(getComputedStyle(b).getPropertyValue("--lit-a")) || 151) * Math.PI / 180, gx = Math.sin(la) * W / 2, gy = -Math.cos(la) * H / 2;
@@ -15345,9 +15362,33 @@ function lqgStart(b){
   for(const [k, v] of Object.entries({ x1: W / 2 - gx, y1: H / 2 - gy, x2: W / 2 + gx, y2: H / 2 + gy })) gr.setAttribute(k, v.toFixed(2));
   box.prepend(layer); box.append(edge);                            // the drop's body under the buttons, its rim over them
   G = box._lqg = { box, members: geo, pairs: pairs.map(p => ({ a: map.get(p.i), b: map.get(p.j), gap: p.gap })), layer, edge, W, H,
-    clip: edge.querySelector("clipPath path"), hair: edge.querySelector("path.h"), ring: edge.querySelector("path.r"), dirty: true };
-  for(const m of geo) m.el._lqg = G;
+    clip: edge.querySelector("clipPath path"), out: edge.querySelectorAll("clipPath path")[1], hair: edge.querySelector("path.h"), ring: edge.querySelector("path.r"),
+    bands: [...edge.querySelectorAll(".sh path, .in path")], dirty: true };
+  for(const m of geo){ m.el._lqg = G; lqgTake(m.el); }
   _lqg.add(G);
+}
+/* ONE RENDERING FROM THE PRESS TO THE REST (user 2026-11-22, ours_merge.mp4: «появляется какая-то обводка, не плавно
+   соединяется»). The pair used to switch at the first frame of a neck from two buttons (their own body, rim and lens) to
+   the union (its body, its rim, no lens): an outline appeared in one frame and the glass changed under it. Now, from the
+   press on, both are drawn through the union - their body is the drop's (.lq-neck), their rim the drop's (.lq-edge), its
+   outline their own while they are apart - and nothing switches as they join: the outline flows, the buttons' lens (now a
+   child, .lq-lens) and their sheen fade out as the neck thickens (--lqw) and the drop's sheen in. */
+function lqgTake(el){
+  if(el._lqLens) return;
+  el.classList.add("lq-on");
+  const l = el._lqLens = document.createElement("i"); l.className = "lq-lens"; l.setAttribute("aria-hidden", "true");
+  el.prepend(l);
+  lqgLens(el);
+}
+function lqgLens(el){                                              // the button's lens, on its child: only the bend
+  const f = ((el._lg || "").match(/url\([^)]*\)/) || ["none"])[0];
+  if(el._lqLens._f !== f){ el._lqLens._f = f; el._lqLens.style.backdropFilter = f; el._lqLens.style.webkitBackdropFilter = f; }
+  if(el.style.backdropFilter !== "none"){ el.style.backdropFilter = "none"; el.style.webkitBackdropFilter = "none"; }
+}
+function lqgGive(el){
+  el.classList.remove("lq-on"); el.style.removeProperty("--lqw");
+  if(el._lqLens){ el._lqLens.remove(); el._lqLens = null; }
+  if(el._lg){ el.style.backdropFilter = el._lg; el.style.webkitBackdropFilter = el._lg; } else { el.style.removeProperty("backdrop-filter"); el.style.removeProperty("-webkit-backdrop-filter"); }
 }
 // a button's box this frame: its rest box, swollen and pulled by its press
 function lqgBox(m){
@@ -15408,65 +15449,55 @@ function lqgTrace(v, nx, ny, x0, y0, s){
 const lqgPath = loops => loops.map(l => "M" + l.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z").join("");
 function lqgDraw(G){
   G.dirty = false;
-  const B = G.members.map(lqgBox);
-  // which neighbours have flowed together: the smooth union's neck exists below k/2 apart (gap of the facing ends)
-  const par = B.map((_, i) => i), find = i => par[i] === i ? i : (par[i] = find(par[i]));
-  const link = [];
+  const B = G.members.map(lqgBox), wOf = G.members.map(() => 0);
+  let k = Infinity, d = "", light = null, joined = false;
   for(const p of G.pairs){
     if(G.members[p.a].pm && G.members[p.a].el.closest(".chpills.goo") || G.members[p.b].pm && G.members[p.b].el.closest(".chpills.goo")) continue;
     const A = B[p.a], C = B[p.b], rm = Math.min(A.r * Math.min(A.sx, A.sy), C.r * Math.min(C.sx, C.sy)) || 1;
-    const k = Math.min(1.2 * rm, 1.5 * p.gap);
-    // the gap between the two drawn shapes, along the line of their middles (both distances at their nearest points)
+    const kp = Math.min(1.2 * rm, 1.5 * p.gap);
+    // the gap between the two drawn shapes, along the line of their middles; the neck's thickness f: 0 apart, 1 touching
     const mx = (A.cx + C.cx) / 2, my = (A.cy + C.cy) / 2, gap = lqgSd(A, mx, my) + lqgSd(C, mx, my);
-    const f = clamp(1 - gap / (k / 2), 0, 1);                       // the neck: 0 as it snaps, 1 touching
-    if(f > 0){ par[find(p.a)] = find(p.b); link.push({ a: p.a, b: p.b, f, k }); }
+    const f = clamp(1 - gap / (kp / 2), 0, 1), w = f * f * (3 - 2 * f);
+    k = Math.min(k, kp); joined = joined || f > 0;
+    wOf[p.a] = Math.max(wOf[p.a], w); wOf[p.b] = Math.max(wOf[p.b], w);
   }
-  const comps = new Map();
-  for(const l of link){ const r = find(l.a); if(!comps.has(r)) comps.set(r, { idx: new Set(), k: Infinity, links: [] }); const c = comps.get(r); c.idx.add(l.a); c.idx.add(l.b); c.k = Math.min(c.k, l.k); c.links.push(l); }
-  let d = "", light = null;
-  const merged = new Set(), dim = new Map();
-  for(const c of comps.values()){
-    const bs = [...c.idx].map(i => B[i]);
-    const x0 = Math.max(0, Math.min(...bs.map(q => q.cx - q.hw * q.sx)) - c.k), x1 = Math.min(G.W, Math.max(...bs.map(q => q.cx + q.hw * q.sx)) + c.k);
-    const y0 = Math.max(0, Math.min(...bs.map(q => q.cy - q.hh * q.sy)) - c.k), y1 = Math.min(G.H, Math.max(...bs.map(q => q.cy + q.hh * q.sy)) + c.k);
-    d += lqgPath(lqgTrace(lqgField(bs, c.k, x0, y0, x1, y1, 1.5), Math.ceil((x1 - x0) / 1.5) + 1, Math.ceil((y1 - y0) / 1.5) + 1, x0, y0, 1.5));
-    for(const i of c.idx) merged.add(i);
-    // ONE LIGHT: the press's milk leaves the pressed button for the whole drop as the neck thickens (the union's own
-    // light, --nk, from the finger), so the drop is lit as one and the pressed part is never lit twice
-    const fx = Math.max(...c.links.map(l => l.f));
-    for(const i of c.idx){
-      const g = G.members[i].el._gs;
-      if(!_glass.has(G.members[i].el) || !g || !(g.m > .005)) continue;
-      dim.set(i, g.m * (1 - fx));
-      const nk = g.m * fx;
-      if(!light || nk > light.k) light = { k: nk, x: G.members[i].cx - G.members[i].w / 2 + g.fx, y: G.members[i].cy - G.members[i].h / 2 + g.fy, R: g.R, mc: g.mc ? "calc(" + g.mc + " * var(--lgh,1))" : "var(--mc)" };
-    }
-  }
+  if(!Number.isFinite(k)) k = 8;
+  // the outline: the smooth union of the pair, apart (their own outlines, to a fraction of a pixel) or joined - one field
+  const x0 = Math.max(0, Math.min(...B.map(q => q.cx - q.hw * q.sx)) - k), x1 = Math.min(G.W, Math.max(...B.map(q => q.cx + q.hw * q.sx)) + k);
+  const y0 = Math.max(0, Math.min(...B.map(q => q.cy - q.hh * q.sy)) - k), y1 = Math.min(G.H, Math.max(...B.map(q => q.cy + q.hh * q.sy)) + k);
+  d = lqgPath(lqgTrace(lqgField(B, k, x0, y0, x1, y1, 1.5), Math.ceil((x1 - x0) / 1.5) + 1, Math.ceil((y1 - y0) / 1.5) + 1, x0, y0, 1.5));
+  // ONE LIGHT: the press's milk leaves the pressed button for the whole drop as the neck thickens (the drop's own light,
+  // --nk, from the finger), so the drop is lit as one and the pressed part is never lit twice
+  const wMax = Math.max(...wOf);
+  G.members.forEach((M, i) => {
+    const g = M.el._gs;
+    if(!_glass.has(M.el) || !g || !(g.m > .005)) return;
+    if(M.el._milk) M.el._milk.style.setProperty("--mk", (g.m * (1 - wMax)).toFixed(3));
+    const nk = g.m * wMax;
+    if(!light || nk > light.k) light = { k: nk, x: M.cx - M.w / 2 + g.fx, y: M.cy - M.h / 2 + g.fy, R: g.R, mc: g.mc ? "calc(" + g.mc + " * var(--lgh,1))" : "var(--mc)" };
+  });
   const ls = G.layer.style, lv = light && light.k > .004 ? { "--nk": light.k.toFixed(3), "--nx": light.x.toFixed(1) + "px", "--ny": light.y.toFixed(1) + "px", "--nr": light.R + "px", "--nmc": light.mc } : { "--nk": "0" };
+  lv["--lqw"] = wMax.toFixed(3);
   for(const [k2, x] of Object.entries(lv)) if(ls.getPropertyValue(k2) !== x) ls.setProperty(k2, x);
   G.members.forEach((M, i) => {
-    const on = merged.has(i), el = M.el;
-    if(el.classList.contains("lq-m") !== on) el.classList.toggle("lq-m", on);
-    // ONE BODY: a merged button's own glass is off (.lq-m) and the drop's is under it. Its lens goes too while it is
-    // merged: kept (the first try), its rim's bend and light drew the button's own outline inside the drop - the arc and
-    // the darker pane of 21.png. The drop is frosted as they are; each button has its lens back the frame they part.
-    const want = on ? "none" : null;
-    if(on && el.style.backdropFilter !== want){ el._lqb = true; el.style.backdropFilter = want; el.style.webkitBackdropFilter = want; }
-    else if(!on && el._lqb){ el._lqb = false; if(el._lg){ el.style.backdropFilter = el._lg; el.style.webkitBackdropFilter = el._lg; } else { el.style.removeProperty("backdrop-filter"); el.style.removeProperty("-webkit-backdrop-filter"); } }
-    if(dim.has(i) && el._milk) el._milk.style.setProperty("--mk", dim.get(i).toFixed(3));
+    const el = M.el;
+    if(!el._lqLens || !el._lqLens.isConnected){ el._lqLens = null; lqgTake(el); } else lqgLens(el);
+    const w = wOf[i].toFixed(3);
+    if(el.style.getPropertyValue("--lqw") !== w) el.style.setProperty("--lqw", w);
+    if(el._lqLens.style.opacity !== String(+(1 - wOf[i]).toFixed(3))) el._lqLens.style.opacity = String(+(1 - wOf[i]).toFixed(3));
   });
   const clip = d ? 'path("' + d + '")' : "inset(50%)";
   if(G.layer._np !== clip){ G.layer._np = clip; G.layer.style.setProperty("--np", clip); }
-  if(G.hair._d !== d){ G.hair._d = d; G.hair.setAttribute("d", d); G.ring.setAttribute("d", d); G.clip.setAttribute("d", d); }
-  return !!d;
+  if(G.hair._d !== d){
+    G.hair._d = d;
+    for(const e of [G.hair, G.ring, G.clip, ...G.bands]) e.setAttribute("d", d);
+    G.out.setAttribute("d", "M-40 -40H" + (G.W + 40).toFixed(0) + "V" + (G.H + 40).toFixed(0) + "H-40Z" + d);
+  }
+  return joined;
 }
 function lqgClear(G){
   G.layer.remove(); G.edge.remove();
-  G.members.forEach(M => {
-    const el = M.el; el.classList.remove("lq-m");
-    if(el._lqb){ el._lqb = false; if(el._lg){ el.style.backdropFilter = el._lg; el.style.webkitBackdropFilter = el._lg; } else { el.style.removeProperty("backdrop-filter"); el.style.removeProperty("-webkit-backdrop-filter"); } }
-    if(el._lqg === G) el._lqg = null;
-  });
+  G.members.forEach(M => { lqgGive(M.el); if(M.el._lqg === G) M.el._lqg = null; });
   if(G.box._lqg === G) G.box._lqg = null;
 }
 function lqgFlush(){
