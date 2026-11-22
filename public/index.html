@@ -146,7 +146,7 @@ input,select{font-family:inherit;font-size:inherit;color:inherit;min-width:0}
 img,canvas,svg,video{max-width:100%}
 .mono{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1;letter-spacing:-.012em;font-synthesis-weight:none}
 #app{padding-bottom:calc(var(--nav-top) + 26px);overflow-x:clip;max-width:100%}
-#app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 78px)}   /* the floating «Новый ордер» must not cover the last card */
+#app.has-fab{padding-bottom:calc(var(--nav-top) + 78px)}   /* the floating «Новый ордер» must not cover the last card */
 /* the Charts tab fills the screen (chart height is fitted in chartTabHeight); ⛶ hides the tab bar too */
 body.route-chart{background:var(--chart-bg)}
 body.route-chart #app{padding-bottom:var(--nav-top)}
@@ -1027,7 +1027,7 @@ body.trade-locked .fabnew{opacity:.5;pointer-events:none}
 body.route-wallet{max-width:none;background:#0c0a08}
 body.route-wallet #app{padding-bottom:0}
 body.route-wallet .bottomnav,body.route-wallet .appbar{display:none}
-html:has(body.route-wallet){background:#0c0a08}
+html.route-wallet{background:#0c0a08}
 
 /* The wallet is its OWN scroll container (position:fixed + overflow-y:auto), not
    the document. Mobile browsers only retract the URL bar on *document* scroll,
@@ -1459,7 +1459,7 @@ html:has(body.route-wallet){background:#0c0a08}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs::before,:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs > .sub-glass{content:"";position:absolute;inset:0;border-radius:inherit;z-index:0;pointer-events:none;
   background:var(--cap-glass);-webkit-backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8);backdrop-filter:blur(calc(16px * var(--lgb,1))) saturate(1.8)}
 /* with the real layer in place (it carries the lens as well), the pseudo one stands down */
-:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs:has(> .sub-glass)::before{display:none}
+:root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs.has-glass::before{display:none}
 .sub-glass{display:none}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .subtabs > .sub-glass{display:block}
 :root[data-glass="on"]:not([data-lgoff~="headers"]) .wl-topbar{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;isolation:isolate;padding:10px 12px}
@@ -2478,7 +2478,7 @@ body.amenu-open .wl-logo{opacity:0}
    and ran along the ticket's own top - two rims, read as the sheet's glass doubled (user screenshot 2026-09-27:
    «стекло разве должно так выходить?»). The page is behind the scrim anyway; only the capsule that lines up goes. */
 :root[data-glass="on"] #app .subtabs{transition:opacity var(--mo-std)}
-:root[data-glass="on"] body:has(> .modal:not(.closing):not(.amodal)) #app .subtabs{opacity:0}
+:root[data-glass="on"] body.has-sheet #app .subtabs{opacity:0}
 /* ===================== «АВРОРА» IS WATER ======================================================================
    (user 2026-09-26: «более водяной, что бы много чего на каплю было похоже … намного лучше нужны эффекты капли»).
    What a bead of water on dark glass shows, and so what every drop here is made of:
@@ -2839,7 +2839,7 @@ body.trade-locked .closepos{opacity:.5;pointer-events:none}
 .bignew,:root[data-glass="on"]:not([data-lgoff~="newbtn"]) .bignew{border-radius:19px;padding:17px}
 /* the flat bar's count on «Позиции»: the original's #262626 badge (the glass bar keeps its own) */
 :root:not([data-glass="on"]) .navpill,:root[data-lgoff~="nav"] .navpill{background:rgb(var(--bl));color:var(--bl-ink)}
-#app:has(.bignew),#app:has(.fabnew){padding-bottom:calc(var(--nav-top) + 92px)}
+#app.has-fab{padding-bottom:calc(var(--nav-top) + 92px)}
 /* ===================== «МОЙ cTRADER» AND «НАСТРОЙКИ», iOS 26 / 27 (user 2026-11-21) ==============================
    «на скрине где мой ситрейдер открыт, нужно все панельки по айос дизайн сделать, там они выглядят обычно»: inset
    panels with 26 px corners (iOS 26's grouped cells), iOS's own fills, separators and secondary labels, rows of 52-54 px.
@@ -8425,6 +8425,11 @@ function render(){
     if(nb){ nb._navKey = navKey; nb._kept = false; }
   }
   document.body.classList.toggle("route-wallet", t === "wallet");   // wallet route uses a wider column
+  // NO :has() IN THE CSS (2026-11-22, the 120 Hz pass): «#app:has(.fabnew)», «html:has(body.route-wallet)» and the like made
+  // Blink re-check <html> and #app on every mutation inside them - dozens of whole-document style passes in one tab hop.
+  // The same conditions are plain classes now, set where they change.
+  document.documentElement.classList.toggle("route-wallet", t === "wallet");
+  { const a = app(); if(a) a.classList.toggle("has-fab", !!a.querySelector(".bignew, .fabnew")); }
   document.body.classList.toggle("route-chart", t === "chart");
   document.body.classList.toggle("chart-full", t === "chart" && _chartFull);
   bindScreen();
@@ -8433,13 +8438,19 @@ function render(){
   if(glassOn()){
     glassDrops(app());
     quickLens(app());
-    document.querySelectorAll("#app .bignew, #app .fabnew").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, 26, .6, false, false, undefined, undefined, true));   // «Новый ордер»: crystal, bent at the rim, a rainbow while the page moves under it
-    document.querySelectorAll("#app .mini-tools button, #app .wl-logo").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight));   // the mini chart's ⛶ / м1, the mark: glass drops
-    document.querySelectorAll("#app .appbar .iconbtn").forEach(b => lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, undefined, false, false, undefined, undefined, true));   // «‹»: a little rainbow while the page moves
+    // ALL THE SIZES FIRST, THEN THE GLASS (2026-11-22, the 120 Hz pass): each lgGlass writes the element's filter, and the
+    // next element's offsetWidth then forced the whole page's style and layout again - one pass per button, ~20 ms
+    // each on a phone-speed CPU, in the very handler of the tap. The same glass on the same elements, read in one go.
+    const GJ = [], gj = (sel, f, needW) => document.querySelectorAll(sel).forEach(b => GJ.push([b, f, needW]));
+    gj("#app .bignew, #app .fabnew", (b, w, h) => lgGlass(b, w, h, 26, .6, false, false, undefined, undefined, true));   // «Новый ордер»: crystal, bent at the rim, a rainbow while the page moves under it
+    gj("#app .mini-tools button, #app .wl-logo", (b, w, h) => lgGlass(b, w, h));   // the mini chart's ⛶ / м1, the mark: glass drops
+    gj("#app .appbar .iconbtn", (b, w, h) => lgGlass(b, w, h, undefined, undefined, false, false, undefined, undefined, true));   // «‹»: a little rainbow while the page moves
     // the capsules - the screen's title, search, the balance - were frosted but never bent: the same glass now,
     // with the frost they had (16 at full haze)
-    document.querySelectorAll("#app .wl-search, #app .ab-bal").forEach(b => { if(b.offsetWidth) lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, 16); });
-    document.querySelectorAll("#app .appbar .ttl").forEach(b => { if(b.offsetWidth) lgGlass(b, b.offsetWidth, b.offsetHeight, undefined, 16, false, false, undefined, undefined, true); });   // the title: a little rainbow while the page moves
+    gj("#app .wl-search, #app .ab-bal", (b, w, h) => lgGlass(b, w, h, undefined, 16), true);
+    gj("#app .appbar .ttl", (b, w, h) => lgGlass(b, w, h, undefined, 16, false, false, undefined, undefined, true), true);   // the title: a little rainbow while the page moves
+    const GD = GJ.map(([b]) => [b.offsetWidth, b.offsetHeight]);
+    GJ.forEach(([b, f, needW], i) => { if(!needW || GD[i][0]) f(b, GD[i][0], GD[i][1]); });
   }
   updateLive();
   if(t === "chart" || (t === "markets" && S.ui.marketOpen && S.ui.subtab === "chart")) setupChartCanvas();
@@ -11868,6 +11879,7 @@ function subGlass(bar){
   // the capsule's own glass, as a layer under everything in it: frost AND the iOS bend at its rim
   let sgl = bar.querySelector(":scope > .sub-glass");
   if(!sgl){ sgl = document.createElement("span"); sgl.className = "sub-glass"; sgl.setAttribute("aria-hidden", "true"); bar.insertBefore(sgl, bar.firstChild); }
+  bar.classList.add("has-glass");   // was «.subtabs:has(> .sub-glass)» in the CSS
   if(glassOn("headers")) lgGlass(sgl, bar.clientWidth, bar.clientHeight, undefined, 16, false, false, undefined, undefined, true);
   let red = bar.querySelector(":scope > .sub-red");
   if(!red){ red = document.createElement("span"); red.className = "sub-red"; red.setAttribute("aria-hidden", "true"); red.inert = true; bar.insertBefore(red, bub); }
@@ -13763,6 +13775,10 @@ function sheetDrag(m){
   sh.addEventListener("pointerup", up, { passive: true });
   sh.addEventListener("pointercancel", up, { passive: true });
 }
+// «body.has-sheet»: a sheet is up (not closing, not a side panel) - what «body:has(> .modal:not(.closing):not(.amodal))» said
+// in the CSS, kept by one observer instead of a :has() Blink re-checks on every mutation in the page
+const _sheetFlag = () => { const b = document.body; if(b) b.classList.toggle("has-sheet", !!document.querySelector("body > .modal:not(.closing):not(.amodal)")); };
+if(typeof MutationObserver === "function" && document.body) new MutationObserver(_sheetFlag).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
 function openSheet(html, sheetCls, modalCls){
   const from = _morphFrom && _morphFrom.isConnected && performance.now() - _morphT < 450 && glassOn("morph") ? _morphFrom : null;
   _morphFrom = null;
