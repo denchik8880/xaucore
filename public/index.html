@@ -376,6 +376,12 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 /* …UNDER the blue: a black veil over the accent copy (z 3) dimmed the chosen tab to a third (B-R 73 instead of 244) */
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:2}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#409cff}
+/* THE POSITIONS TAB IN THE RED WHILE THEY LOSE (user 2026-11-23, cTrader on iOS: its «Торгівля» tab turns red - #cd5147 off
+   their screenshot - while the open positions together are at a loss, and blue again in profit). navPnlSync sets
+   .pnl-loss on the bar only while that tab is the chosen one; glass (the accent window, --nav-on) and flat (--nav-on-flat). */
+.bottomnav{--nav-loss:#cd5147}
+:root[data-theme="dark"] .bottomnav{--nav-loss:#ff5a4f}
+.bottomnav.pnl-loss{--nav-on:var(--nav-loss)!important;--nav-on-flat:var(--nav-loss)!important}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* The ordinary row stays neutral outside the lens. The complete optical copy uses the theme's accent;
    the existing capsule clip decides which parts of its letters and icons are visible in that colour. */
@@ -7535,6 +7541,12 @@ function lqDropCatcher(c){
 function lqAnc(Q, el){
   if(Q.anc && Q.anc !== el){ Q.anc.style.removeProperty("opacity"); if(!Q.anc.isConnected) Q.anc.classList.remove("lg-hid"); }
   Q.anc = el || null;
+  // THE BUTTON BECOMES THE MENU, so its press is over (user 2026-11-23, phone: an empty grey capsule stayed where «м1» was
+  // under the open timeframe menu). The finger's release lands on the menu's catch layer, so the pill's press never
+  // ended: it stayed .pressing, and its pair with «XAUUSD» kept drawing their one liquid body round a pill that was gone.
+  // The press is let go here and the pair parted; the pill comes back from the menu as a plain button.
+  if(el && typeof glassCancel === "function") glassCancel(el);
+  if(el && el._lqg){ const G = el._lqg; lqgClear(G); _lqg.delete(G); }
   lqAncPut(Q);
 }
 function lqAncPut(Q){
@@ -10495,6 +10507,7 @@ function pmPath(s0, s1, t0, t1, h0, joined, gap, brk, bulge){
   const h = h0 + (bulge || 0), oy = -(bulge || 0) / 2;                     // a bulge grows it about its middle
   const r = h / 2, O = 10, P = (x, y) => (x + O).toFixed(2) + "," + (y + O + oy).toFixed(2), A = (x, y) => "A" + r + "," + r + " 0 0 1 " + P(x, y);   // in the goo box: 10 px out on every side
   const cap = (a, b) => "M" + P(a + r, 0) + "L" + P(b - r, 0) + A(b - r, h) + "L" + P(a + r, h) + A(a + r, 0) + "Z";
+  if(t0 == null) return cap(s0, s1);                                          // «м1» is out (poured into its menu): «XAUUSD» alone
   if(gap <= 0) return cap(s0, Math.max(s1, t1));
   if(!joined) return cap(s0, s1) + cap(t0, t1);
   const k = clamp(1 - gap / brk, 0, 1), dip = r * (1 - k) * .92, th = (1 - k) * 1.15;
@@ -10530,7 +10543,11 @@ function pmDraw(row){
   PM.gap = gap;
   const moving = !!(PM.drag || Math.abs(PM.v) > .5 || Math.abs(PM.sv) > .5 || Math.abs(PM.b) > .05);
   if(row.classList.contains("flux") !== moving) row.classList.toggle("flux", moving);
-  const d = pmPath(s0, s1, t0, t1, h, PM.joined, gap, brk, PM.b);
+  // THE TIMEFRAME POURED INTO ITS MENU LEAVES NO DROP BEHIND (user 2026-11-23, phone screenshot: an empty grey capsule
+  // stayed where «м1» was while the timeframe menu was open). The menu hides the pill (.lg-hid); the shared glass body
+  // drawn for the pair kept its capsule. It draws «XAUUSD» alone until the pill comes back.
+  const tfOut = tf.classList.contains("lg-hid");
+  const d = tfOut ? pmPath(s0, s1, null, null, h, false, gap, brk, PM.b) : pmPath(s0, s1, t0, t1, h, PM.joined, gap, brk, PM.b);
   row.querySelector(".chp-goo").style.setProperty("--gp", 'path("' + d + '")');
   for(const p of row.querySelectorAll(".chp-rim .h, .chp-rim .r, .chp-rim .c, .chp-shade path")) p.setAttribute("d", d);   // the mask hole and both shadows share it
 }
@@ -10583,8 +10600,31 @@ function pmSetup(){
   if(PM.x == null) PM.x = pmMerged() ? -PM_D : 0;
   if(!glassOn("chart")){ row.classList.remove("goo", "merged"); return; }
   if(pmMerged() || Math.abs(PM.x) > .05 || PM.drag) row.classList.add("goo");
+  // the menu machinery hides and brings back «м1» (.lg-hid) on its own clock: redraw the pair's body the moment it does
+  const tf = row.querySelector('[data-act="charttf"]');
+  if(tf && !tf._pmObs && typeof MutationObserver === "function"){
+    tf._pmObs = new MutationObserver(() => { const r = pmRow(); if(r && r.classList.contains("goo")) pmDraw(r); });
+    tf._pmObs.observe(tf, { attributes: true, attributeFilter: ["class"] });
+  }
   pmDraw(row);
   if(PM.drag || Math.abs(PM.x - (S.ui.chMerge ? -PM_D : 0)) > .05 || Math.abs(PM.v) > .5) pmKick();
+  tfWarm();
+}
+/* THE TIMEFRAME MENU'S WRITING, SHAPED AHEAD (user 2026-11-23, «оно еще немного фризит»). The first time the menu opened,
+   its seven rows were shaped inside the tap: a 93 ms layout in a 145 ms click at 4× CPU, where a later open lays out in
+   3.5 ms. Laid out once, unseen, in an idle moment after the chart is up (and again after a change of language), so the
+   first tap is a warm one. Nothing is shown and the glass is not touched. */
+let _tfWarm = "";
+function tfWarm(){
+  if(_tfWarm === LANG || !glassOn("morph")) return;
+  _tfWarm = LANG;
+  _idle(() => {
+    if(_lqM.tf || !document.body) return;
+    const w = document.createElement("div"); w.className = "lg-pop"; w.setAttribute("aria-hidden", "true");
+    w.style.cssText = "visibility:hidden;pointer-events:none;left:0;top:0;width:220px";
+    w.innerHTML = TF_ORDER.map(tf => `<button type="button" tabindex="-1" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("");
+    document.body.append(w); void w.offsetHeight; w.remove();
+  });
 }
 // a pressed pill that turns into a drag lets go of its press at once (it has no glass of its own any more)
 function glassCancel(b){
@@ -14038,9 +14078,18 @@ function liveDrawKey(tf){
 let _lgFly = 0;                                                    // a drop is in the air: hold the live updates
 let _bgLiveT = 0;
 const CHART_LIVE_MS = 200;
+// the chosen «Позиции» tab is red while the open positions' net (as the table's «Чистая прибыль») is below zero
+function navPnlSync(){
+  const bar = document.querySelector(".bottomnav"); if(!bar || !S) return;
+  let net = 0;
+  if(S.positions.length && navIndexOf(S.ui.tab) === 2) for(const p of S.positions) net += posMetrics(p).net;
+  const loss = net < 0;
+  if(bar.classList.contains("pnl-loss") !== loss) bar.classList.toggle("pnl-loss", loss);
+}
 function updateLive(){
   if(!S || _lgFly) return;
   recalcAccount();
+  navPnlSync();
   /* A SHEET OVER THE PAGE (user 2026-09-28: «лагает»): the page under an open sheet is seen only through the sheet's
      glass, and every change there - a price, the mini chart, the chart - makes that glass work over again. Under a
      sheet the page is brought up to date once a second; the sheet itself keeps every tick (its _live). */
