@@ -377,11 +377,16 @@ body.trade-locked .ctp-lot input{pointer-events:none;opacity:.5}
 :root[data-theme="dark"]:not([data-tone="aurora"])[data-glass="on"]:not([data-lgoff~="nav"]) .nav-rest{z-index:2}
 :root[data-theme="dark"][data-tone="aurora"][data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav{--nav-on:#409cff}
 /* THE POSITIONS TAB IN THE RED WHILE THEY LOSE (user 2026-11-23, cTrader on iOS: its «Торгівля» tab turns red - #cd5147 off
-   their screenshot - while the open positions together are at a loss, and blue again in profit). navPnlSync sets
-   .pnl-loss on the bar only while that tab is the chosen one; glass (the accent window, --nav-on) and flat (--nav-on-flat). */
+   their screenshot - while the open positions together are at a loss, and blue again in profit). .pnl-loss is on the bar
+   whenever they lose (navLoss), whichever tab is chosen, and it reds THAT TAB ALONE - its accent copy and its count badge -
+   so the drop shows it red on its way over from another tab and «Мой cTrader» beside it stays blue in the same drop (user
+   2026-11-23, a drag from «Позиции» to «Мой cTrader»: «она тоже не должна быть синей, красной»; the whole accent used to
+   turn red, and only once the tab was chosen). Flat bar: the chosen tab's own colour. */
 .bottomnav{--nav-loss:#cd5147}
 :root[data-theme="dark"] .bottomnav{--nav-loss:#ff5a4f}
-.bottomnav.pnl-loss{--nav-on:var(--nav-loss)!important;--nav-on-flat:var(--nav-loss)!important}
+:root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav.pnl-loss .nav-red .nb[data-pnl]{color:var(--nav-loss)}
+.bottomnav.pnl-loss .nb[data-pnl] .navpill{background:var(--nav-loss)}
+.bottomnav.pnl-loss button[data-nav="positions"].on{color:var(--nav-loss)}
 :root[data-glass="on"]:not([data-lgoff~="nav"]) .bottomnav button{position:absolute;left:calc((var(--nx,.1) - var(--nw,.2) / 2) * 100%);width:calc(var(--nw,.2) * 100%);top:0;bottom:0;z-index:1;padding:0;justify-content:center;gap:3px;line-height:1;font-size:var(--nav-fs,10.5px);font-weight:600;letter-spacing:0;transform-origin:50% 55%;transition:color var(--mo-std)}
 /* The ordinary row stays neutral outside the lens. The complete optical copy uses the theme's accent;
    the existing capsule clip decides which parts of its letters and icons are visible in that colour. */
@@ -12520,10 +12525,10 @@ function bottomNav(){
   // colour travels with it instead of jumping from one tab to the next
   const tag = { positions: S.positions.length, orders: S.pendings.length };
   // the copy carries the count badge as well, or a tab's badge would vanish the moment the drop covered it
-  const red = NAV_ICONS.map((x, i) => `<span class="nb" style="${navSlotStyle(i)}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
+  const red = NAV_ICONS.map((x, i) => `<span class="nb" style="${navSlotStyle(i)}"${x[0] === "positions" ? " data-pnl" : ""}><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</span>`).join("");
   const row = NAV_ICONS.map((x, i) => `<button data-nav="${x[0]}" class="${x[3].includes(t) ? "on" : ""}" style="${navSlotStyle(i)}"><span class="ic">${I(x[1])}${tag[x[0]] ? `<span class="navpill">${tag[x[0]]}</span>` : ""}</span>${L(x[2])}</button>`).join("");
   const bx = navBox(NB.a, NB.b);
-  return `<div class="bottomnav${NB.drag ? " dragging" : ""}" style="${navRailStyle()};--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--ngs:${(NB.cs || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><span class="nr-optics"><span class="nr-in">${red}</span></span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
+  return `<div class="bottomnav${NB.drag ? " dragging" : ""}${navLoss() ? " pnl-loss" : ""}" style="${navRailStyle()};--dk:${(1 - (NB.clear || 0)).toFixed(3)};--ng:${(NB.clear || 0).toFixed(4)};--ngs:${(NB.cs || 0).toFixed(4)};--u:${bx.left.toFixed(4)};--sx:${bx.sx.toFixed(4)};--sy:${bx.sy.toFixed(4)};--lf:${NB.lift.toFixed(3)}"><span class="nav-rest" aria-hidden="true"></span><span class="nav-bub${NB.clear ? "" : " material-idle"}"><i class="nb-skin" aria-hidden="true"></i></span><span class="nav-red" aria-hidden="true"><span class="nr-optics"><span class="nr-in">${red}</span></span></span><span class="nav-lens${NB.lift < .01 ? " idle" : ""}"></span>
     <span class="nav-shadow" aria-hidden="true"></span><span class="nav-surface" aria-hidden="true"></span><span class="nav-backdrop${NB.clear ? "" : " material-idle"}" aria-hidden="true"><i class="nb-refract"></i></span><span class="nav-neutral"><span class="nav-panel">${row}</span></span>
   </div>`;
 }
@@ -14087,12 +14092,16 @@ function liveDrawKey(tf){
 let _lgFly = 0;                                                    // a drop is in the air: hold the live updates
 let _bgLiveT = 0;
 const CHART_LIVE_MS = 200;
-// the chosen «Позиции» tab is red while the open positions' net (as the table's «Чистая прибыль») is below zero
-function navPnlSync(){
-  const bar = document.querySelector(".bottomnav"); if(!bar || !S) return;
+// «Позиции» is red while the open positions' net (as the table's «Чистая прибыль») is below zero
+function navLoss(){
+  if(!S || !S.positions.length) return false;
   let net = 0;
-  if(S.positions.length && navIndexOf(S.ui.tab) === 2) for(const p of S.positions) net += posMetrics(p).net;
-  const loss = net < 0;
+  for(const p of S.positions) net += posMetrics(p).net;
+  return net < 0;
+}
+function navPnlSync(){
+  const bar = document.querySelector(".bottomnav"); if(!bar) return;
+  const loss = navLoss();
   if(bar.classList.contains("pnl-loss") !== loss) bar.classList.toggle("pnl-loss", loss);
 }
 function updateLive(){

@@ -40,7 +40,7 @@ function harness({ width = 384, height = 64, labels = [34, 42, 43, 55, 50], view
       sp: (v, x, to, p, dt) => v + (-p.k * (x - to) - 2 * Math.sqrt(p.k) * p.z * v) * dt,
       steps: dt => Math.max(1, Math.ceil(dt * 240 - 1e-6)) },
     nav: tab => { counters.nav.push(tab); ctx.S.ui.tab = tab; },
-    navLens() {}, navOpticsBind() {}, lgGlass() {},
+    navLens() {}, navOpticsBind() {}, lgGlass() {}, navLoss: () => false,
     openNavCard: () => { counters.cards++; },
     document: {
       documentElement: { style: style(), dataset, get clientWidth() { return ctx.window.innerWidth; } },
