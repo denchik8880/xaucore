@@ -7576,6 +7576,7 @@ function lqMenu(key, anchor, o){
   if(!anchor) return null;
   const M0 = _lqM[key];
   if(M0 && !M0.closing && lqSame(M0, anchor)){ lqMenuClose(key); return null; }   // its button toggles it
+  if(M0 && M0.closing && M0.then) return M0;                       // a pick is on its way (lqMenuClose's then): it goes back and does it
   if(M0 && M0.closing && lqSame(M0, anchor) && M0.pop.isConnected && M0.pop._lq && glassOn("morph")){
     M0.closing = false; M0.anchor = anchor; M0.o = o;
     const tmp = document.createElement("div"); o.build(tmp);      // its writing as it is now: the pick that sent it
@@ -7611,13 +7612,21 @@ function lqHome(M){
   if(shown(M.anchor)) return M.anchor;
   return M.sel ? [...document.querySelectorAll(M.sel)].find(shown) || null : null;
 }
-function lqMenuClose(key, now){
-  const M = _lqM[key]; if(!M) return;
+/* then: what a pick does, once the drop is back in its button (user 2026-11-23, the timeframe menu: «при закрытии оно
+   тормозит, закрывается как будто 20 фпс»). The pick used to re-render the whole screen in the tap - 210 ms at 4× CPU -
+   and only then start the drop on its way back, which lost its first frames to it and its next ones to the layout the
+   render left behind. Now the drop goes back first, on frames of its own, and the pick follows it - in a task after
+   the frame the drop is gone in, so that frame (the button whole again) is painted before the render. */
+function lqThen(M){ const t = M.then; M.then = null; if(t) setTimeout(() => { for(const f of t) f(); }, 0); }
+function lqMenuClose(key, now, then){
+  const M = _lqM[key], after = typeof then === "function" ? then : null;
+  if(!M){ if(after) after(); return; }
+  if(after) (M.then || (M.then = [])).push(after);
   const unhide = () => {
     for(const e of [M.anchor, ...(M.sel ? document.querySelectorAll(M.sel) : [])]){ e.classList.remove("lg-hid"); e.style.removeProperty("opacity"); }
     if(M.pop._lq) M.pop._lq.anc = null;
   };
-  const kill = () => { if(_lqM[key] === M) delete _lqM[key]; M.pop.remove(); lqDropCatcher(M.catcher); unhide(); };
+  const kill = () => { if(_lqM[key] === M) delete _lqM[key]; M.pop.remove(); lqDropCatcher(M.catcher); unhide(); lqThen(M); };
   if(M.closing){ if(now === true) kill(); return; }
   const home = lqHome(M);
   lqFocusBack(M, home);
@@ -7658,7 +7667,7 @@ function openTFPop(pill){
   lqMenu("tf", pill, { sel: '.chpill[data-act="charttf"]',
     build: pop => {
       pop.innerHTML = TF_ORDER.map(tf => `<button type="button" role="menuitem" data-tfpick="${tf}" class="${S.ui.chartTF === tf ? "on" : ""}"><span>${L(TF_NAME[tf])}</span><b>${L(MINI_TF_LABEL[tf])}</b></button>`).join("");
-      pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = () => { setChartTF(b.dataset.tfpick); closeTFPop(); });
+      pop.querySelectorAll("[data-tfpick]").forEach(b => b.onclick = () => { const tf = b.dataset.tfpick; closeTFPop(false, () => setChartTF(tf)); });
     },
     place: (pop, a) => {
       const W = Math.min(220, innerWidth - 16); pop.style.width = W + "px";
@@ -7667,7 +7676,7 @@ function openTFPop(pill){
       pop.style.left = left + "px"; pop.style.top = top + "px";
     } });
 }
-function closeTFPop(now, outside){ lqMenuClose("tf", now, outside); }
+function closeTFPop(now, then){ lqMenuClose("tf", now, then); }
 // «Ещё» → «Язык»: the languages pour out of the one on show
 // it pours out of the whole row, «Язык … Русский ›», and gathers back into it (user 2026-09-26: «на всю плашку как
 // надо»; poured out of the word alone it came back as a blob over «Русский» - «накладывается как будто на текст»).
@@ -15137,8 +15146,19 @@ const LIT_KEEP = "canvas, .bottomnav, .subtabs, .seg, .pk, .miniquick, .lotwheel
 function litFinger(e){
   if(!LG_UI.light || !glassOn() || !LG_LENS) return;
   if(e.target && e.target.closest && e.target.closest(LIT_KEEP)) return;
-  litTo(e.clientX / (innerWidth || 1) * 100, e.clientY / (innerHeight || 1) * 100);
-  clearTimeout(_litIdle); _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000);   // then it drifts back to where the device is held
+  const x = e.clientX / (innerWidth || 1) * 100, y = e.clientY / (innerHeight || 1) * 100;
+  clearTimeout(_litIdle);
+  /* A TAP THAT CLOSES A MENU (on its catch layer) moves the light only once the drop is back in its button (user
+     2026-11-23: «при закрытии оно тормозит, закрывается как будто 20 фпс»). Moving at once, the light restyled every
+     piece of glass on screen in each frame of the ~0.2 s close, and the drop, which reads where its button is every
+     frame, paid for that restyle in the middle of the frame: 30-130 ms frames at 4× CPU. The light still goes where
+     the finger was, a quarter of a second later. */
+  if(e.target && e.target.closest && e.target.closest(".lg-pop-catch")){
+    _litIdle = setTimeout(() => { litTo(x, y); _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000); }, 280);
+    return;
+  }
+  litTo(x, y);
+  _litIdle = setTimeout(() => { _litIdle = 0; litHome(); }, 2000);   // then it drifts back to where the device is held
 }
 /* THE LIGHT GOES WHERE YOU TOUCH - and stays there while the finger slides. Every move of the light repaints every piece
    of glass on screen, and each repaint runs its lens again: chased through a drag it re-ran all the glass on every frame
